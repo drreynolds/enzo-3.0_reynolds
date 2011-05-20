@@ -52,7 +52,16 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
+  static void SetEnabledParticleID(int id) {
+    if (ActiveParticleType_SampleParticle::EnabledParticleID >= 0) {
+        ENZO_FAIL("Trying to set the Enabled Particle ID multiple times!");
+    }
+    ActiveParticleType_SampleParticle::EnabledParticleID = id;
+  }
+protected:
+  static int EnabledParticleID;
 };
+int ActiveParticleType_SampleParticle::EnabledParticleID = -1;
 
 int ActiveParticleType_SampleParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
@@ -82,7 +91,9 @@ ParticleBufferHandler *ActiveParticleType_SampleParticle::AllocateBuffers(int Nu
 
 namespace {
   ActiveParticleType_info *SampleInfo = new ActiveParticleType_info
-    ("SampleParticle", (&ActiveParticleType_SampleParticle::EvaluateFormation),
+    ("SampleParticle",
+     (&ActiveParticleType_SampleParticle::SetEnabledParticleID),
+     (&ActiveParticleType_SampleParticle::EvaluateFormation),
      (&ActiveParticleType_SampleParticle::DescribeSupplementalData),
      (&ActiveParticleType_SampleParticle::AllocateBuffers));
 }

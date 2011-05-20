@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -60,6 +61,12 @@ void EnableActiveParticleType(char *active_particle_type_name) {
         ENZO_FAIL("Unknown ParticleType");
     }
     EnabledActiveParticles[EnabledActiveParticlesCount++] = my_type;
+    int this_id = my_type->Enable();
+    /* Note that this ID is only unique for each individual instantiation of
+       Enzo.  The next time you start it, these numbers might be different.
+       This is why they aren't output to a file!
+    */
+    assert(my_type->GetEnabledParticleID() == EnabledActiveParticlesCount-1);
     return;
 }
 
@@ -263,3 +270,6 @@ void ActiveParticleType::DestroyData(grid *_grid,
     /* We don't need to reset anything else. */
 
 }
+
+int ActiveParticleType_info::TotalEnabledParticleCount = 0;
+

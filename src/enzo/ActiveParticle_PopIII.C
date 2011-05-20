@@ -55,10 +55,19 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
+  static void SetEnabledParticleID(int id) {
+    if (ActiveParticleType_PopIII::EnabledParticleID >= 0) {
+        ENZO_FAIL("Trying to set the Enabled Particle ID multiple times!");
+    }
+    ActiveParticleType_PopIII::EnabledParticleID = id;
+  }
+protected:
+  static int EnabledParticleID;
 private:
   float LifeTime;
   float Metallicity;
 };
+int ActiveParticleType_PopIII::EnabledParticleID = -1;
 
 int ActiveParticleType_PopIII::EvaluateFormation
 (grid *thisgrid_orig, ActiveParticleFormationData &supp_data)
@@ -215,7 +224,10 @@ void ActiveParticleType_PopIII::DescribeSupplementalData
 class PopIIIParticleBufferHandler : public ParticleBufferHandler
 {
   public:
-    PopIIIParticleBufferHandler(int NumberOfParticles) { }
+    PopIIIParticleBufferHandler(int NumberOfParticles);
+  private:
+    float *Lifetime;
+    float *Metallicity;
 };
 
 ParticleBufferHandler *ActiveParticleType_PopIII::AllocateBuffers(int NumberOfParticles)
@@ -224,10 +236,17 @@ ParticleBufferHandler *ActiveParticleType_PopIII::AllocateBuffers(int NumberOfPa
     return handler;
 }
 
+PopIIIParticleBufferHandler::PopIIIParticleBufferHandler(int NumberOfParticles)
+{
+    this->Lifetime = new float[NumberOfParticles];
+    this->Metallicity = new float[NumberOfParticles];
+}
+
 namespace {
     ActiveParticleType_info *SampleInfo = new ActiveParticleType_info(
-            "PopIII", (&ActiveParticleType_PopIII::EvaluateFormation),
+            "PopIII",
+        (&ActiveParticleType_PopIII::SetEnabledParticleID),
+        (&ActiveParticleType_PopIII::EvaluateFormation),
 	    (&ActiveParticleType_PopIII::DescribeSupplementalData),
 	    (&ActiveParticleType_PopIII::AllocateBuffers));
-
 }
