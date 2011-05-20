@@ -40,14 +40,8 @@ class ActiveParticleType_PopIII;
 class PopIIIParticleBufferHandler;
 
 class PopIIIGrid : private grid {
-    friend class ActiveParticleType_PopIII;
+  friend class ActiveParticleType_PopIII;
 };
-
-/* Note that we only refer to SampleParticleGrid here. 
- * Given a grid object, we static case to get this:
- *
- *    SampleParticleGrid *thisgrid =
- *      static_cast<SampleParticleGrid *>(thisgrid_orig); */
 
 class ActiveParticleType_PopIII : public ActiveParticleType
 {
@@ -55,25 +49,16 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
-  static void SetEnabledParticleID(int id) {
-    if (ActiveParticleType_PopIII::EnabledParticleID >= 0) {
-        ENZO_FAIL("Trying to set the Enabled Particle ID multiple times!");
-    }
-    ActiveParticleType_PopIII::EnabledParticleID = id;
-  }
-protected:
-  static int EnabledParticleID;
 private:
   float LifeTime;
   float Metallicity;
 };
-int ActiveParticleType_PopIII::EnabledParticleID = -1;
+
 
 int ActiveParticleType_PopIII::EvaluateFormation
 (grid *thisgrid_orig, ActiveParticleFormationData &supp_data)
 {
-  PopIIIGrid *tg =
-    static_cast<PopIIIGrid *>(thisgrid_orig);
+  PopIIIGrid *tg = static_cast<PopIIIGrid *>(thisgrid_orig);
 
   float bmass, div, dtot, tdyn, LifetimeInYears;
   int i, j, k, dim, index, offset_y, offset_z;
@@ -243,10 +228,6 @@ PopIIIParticleBufferHandler::PopIIIParticleBufferHandler(int NumberOfParticles)
 }
 
 namespace {
-    ActiveParticleType_info *SampleInfo = new ActiveParticleType_info(
-            "PopIII",
-        (&ActiveParticleType_PopIII::SetEnabledParticleID),
-        (&ActiveParticleType_PopIII::EvaluateFormation),
-	    (&ActiveParticleType_PopIII::DescribeSupplementalData),
-	    (&ActiveParticleType_PopIII::AllocateBuffers));
+    ActiveParticleType_info *PopIIIParticleInfo = 
+        register_ptype <ActiveParticleType_PopIII> ("PopIII");
 }

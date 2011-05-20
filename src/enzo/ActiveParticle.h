@@ -248,5 +248,34 @@ class ActiveParticleType_info
         int MyEnabledParticleID; /* Defaults to 0 */
 };
 
+template <class baseclass> 
+class ParticleIDHandlerMixin : public baseclass
+{
+  friend class ActiveParticleType_info;
+  public:
+    static void SetEnabledParticleID(int id) {
+      if (ParticleIDHandlerMixin<baseclass>::EnabledParticleID >= 0) {
+          ENZO_FAIL("Trying to set the Enabled Particle ID multiple times!");
+      }
+      ParticleIDHandlerMixin<baseclass>::EnabledParticleID = id;
+    }
+  protected:
+   static int EnabledParticleID;
+};
+template<class baseclass> int ParticleIDHandlerMixin<baseclass>::EnabledParticleID = -1;
+
+template <class active_particle_class>
+ActiveParticleType_info *register_ptype(std::string name)
+{
+    
+    ActiveParticleType_info *pinfo = new ActiveParticleType_info(
+        name,
+     (ParticleIDHandlerMixin<active_particle_class>::SetEnabledParticleID),
+     (&active_particle_class::EvaluateFormation),
+     (&active_particle_class::DescribeSupplementalData),
+     (&active_particle_class::AllocateBuffers));
+    return pinfo;
+}
+
 #endif
 
