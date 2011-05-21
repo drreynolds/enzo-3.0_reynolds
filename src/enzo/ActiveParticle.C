@@ -271,5 +271,28 @@ void ActiveParticleType::DestroyData(grid *_grid,
 
 }
 
+ParticleBufferHandler **grid::GetParticleBuffers() {
+  if ((this->NumberOfActiveParticles == 0) ||
+      (EnabledActiveParticlesCount == 0)) return NULL;
+  fprintf(stderr, "Getting buffers %"ISYM" and %"ISYM"\n",
+            this->NumberOfActiveParticles,
+            EnabledActiveParticlesCount);
+  int i, pt;
+  int *hist = new int[EnabledActiveParticlesCount];
+  for (i = 0; i < this->NumberOfActiveParticles; i++) hist[i] = 0;
+  for (i = 0; i < this->NumberOfActiveParticles; i++)
+  {
+    pt = this->ActiveParticles[i]->GetEnabledParticleID();
+    if (pt < 0) { fprintf(stderr, "GPB:  %"ISYM"\n", i); continue;}
+    hist[pt]++;
+  }
+  for (i = 0; i < EnabledActiveParticlesCount; i++){
+    fprintf(stderr, "GPB:: %"ISYM"\n", i);
+    fprintf(stderr, "GPB: [%"ISYM"]=%"ISYM"\n", i, hist[i]);
+  }
+  delete hist;
+  return NULL;
+}
+
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
 

@@ -45,6 +45,7 @@ class ActiveParticleType
     ActiveParticleType(){};
     ~ActiveParticleType(){};
     ActiveParticleType(ActiveParticleType*& part){};
+    virtual int GetEnabledParticleID(int id = -1) = 0;
 #ifdef ACTIVE_PARTICLE_IMPLEMENTED
     ActiveParticleType(grid *_grid, int _id, int _level);
     ActiveParticleType(StarBuffer *buffer, int n);
@@ -214,15 +215,15 @@ class ActiveParticleType_info
        /* We will add more functions to this as necessary */
        ActiveParticleType_info(
            std::string this_name,
-           void (*sfunc)(int id),
            int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
            void (*dfunc)(ActiveParticleFormationDataFlags &flags),
-           ParticleBufferHandler *(*abfunc)(int NumberOfParticles)
+           ParticleBufferHandler *(*abfunc)(int NumberOfParticles),
+           ActiveParticleType *particle
            ){
-        this->set_enabled_id = sfunc;
         this->formation_function = ffunc;
         this->describe_data_flags = dfunc;
         this->allocate_buffers = abfunc;
+        this->particle_instance = particle;
         get_active_particle_types()[this_name] = this;
        }
 
@@ -232,50 +233,45 @@ class ActiveParticleType_info
        int Enable(){
          /* 0-indexed */
          this->MyEnabledParticleID = this->TotalEnabledParticleCount++;
-         this->set_enabled_id(this->MyEnabledParticleID);
+         this->particle_instance->GetEnabledParticleID(this->MyEnabledParticleID);
          return this->MyEnabledParticleID;
        }
 
        int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
        void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
        ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
+       ActiveParticleType* particle_instance;
     private:
 
         /* This is distinct from the global as a redundant error-checking
            pattern */
         static int TotalEnabledParticleCount;
-        void (*set_enabled_id)(int id);
         int MyEnabledParticleID; /* Defaults to 0 */
+        int *EnabledParticleIDPointer;
 };
-
-template <class baseclass> 
-class ParticleIDHandlerMixin : public baseclass
-{
-  friend class ActiveParticleType_info;
-  public:
-    static void SetEnabledParticleID(int id) {
-      if (ParticleIDHandlerMixin<baseclass>::EnabledParticleID >= 0) {
-          ENZO_FAIL("Trying to set the Enabled Particle ID multiple times!");
-      }
-      ParticleIDHandlerMixin<baseclass>::EnabledParticleID = id;
-    }
-  protected:
-   static int EnabledParticleID;
-};
-template<class baseclass> int ParticleIDHandlerMixin<baseclass>::EnabledParticleID = -1;
 
 template <class active_particle_class>
 ActiveParticleType_info *register_ptype(std::string name)
 {
-    
+    active_particle_class *pp = new active_particle_class();
     ActiveParticleType_info *pinfo = new ActiveParticleType_info(
         name,
-     (ParticleIDHandlerMixin<active_particle_class>::SetEnabledParticleID),
      (&active_particle_class::EvaluateFormation),
      (&active_particle_class::DescribeSupplementalData),
-     (&active_particle_class::AllocateBuffers));
+     (&active_particle_class::AllocateBuffers),
+       pp);
     return pinfo;
 }
+
+#define ENABLED_PARTICLE_ID_ACCESSOR \
+    int GetEnabledParticleID(int myid = -1) { \
+        static int ParticleID = -1; \
+        if (myid >= 0) { \
+            if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");\
+            ParticleID = myid; \
+        } \
+        return ParticleID; \
+    };
 
 #endif
 

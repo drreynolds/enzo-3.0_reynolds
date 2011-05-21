@@ -52,6 +52,7 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
+ENABLED_PARTICLE_ID_ACCESSOR
 };
 
 int ActiveParticleType_SampleParticle::EvaluateFormation(

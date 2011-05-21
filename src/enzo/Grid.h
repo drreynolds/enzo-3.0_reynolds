@@ -126,7 +126,8 @@ class grid
 //  Active particle data
 //
   int NumberOfActiveParticles;
-  ActiveParticleType *ActiveParticles;
+  ActiveParticleType **ActiveParticles;
+  class ParticleBufferHandler **GetParticleBuffers();
 //
 //  Gravity data
 // 
