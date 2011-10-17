@@ -122,8 +122,6 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
         == this->NumberOfActiveParticles);
   }
 
-  ActiveParticleType::DestroyData(this, supplemental_data);
-
   /******************** FEEDBACK ********************/
 
   /* Now we iterate */
@@ -133,9 +131,9 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     ActiveParticleTypeToEvaluate->feedback_function(this);
   }
   
+  ActiveParticleType::DestroyData(this, supplemental_data);
 
   //if (debug) printf("StarParticle: end\n");
-
 
   LCAPERF_STOP("grid_ActiveParticleHandler");
   return SUCCESS;
