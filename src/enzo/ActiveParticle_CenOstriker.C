@@ -113,13 +113,15 @@ int ActiveParticleType_SampleParticle::EvaluateFormation(grid *thisgrid_orig, Ac
 
 	// 5. Cell mass is greater than the Jeans Mass
 
-	BaryonMass = density[index] * data.DensityUnits * dx / SolarMass;
-	IsothermalSoundSpeedSquared = SoundSpeedConstant * data.Temperature[index];
-	JeansMass = M_PI / (6.0 * sqrt(density[index] * data.DensityUnits)) *
-	  POW(M_PI * IsothermalSoundSpeedSquared / GravConst,1.5) / SolarMass;
-	
-	if (BaryonMass < JeansMass)
-	  continue;
+	if (CenOstrikerJeansMassCriterion) {
+	  BaryonMass = density[index] * data.DensityUnits * dx / SolarMass;
+	  IsothermalSoundSpeedSquared = SoundSpeedConstant * data.Temperature[index];
+	  JeansMass = M_PI / (6.0 * sqrt(density[index] * data.DensityUnits)) *
+	    POW(M_PI * IsothermalSoundSpeedSquared / GravConst,1.5) / SolarMass;
+	  
+	  if (BaryonMass < JeansMass)
+	    continue;
+	}
 
 	// 6) Check to see if star is above threshold (given in units of M_solar)
 
