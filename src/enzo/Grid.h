@@ -12,7 +12,6 @@
 
 #ifndef GRID_DEFINED__
 #define GRID_DEFINED__
-
 #include "ProtoSubgrid.h"
 #include "ListOfParticles.h"
 #include "region.h"
@@ -91,6 +90,8 @@ class grid
   FLOAT *CellLeftEdge[MAX_DIMENSION];
   FLOAT *CellWidth[MAX_DIMENSION];
   fluxes *BoundaryFluxes;
+  float *YT_TemperatureField;                         // place to store temperature field
+                                                      // for call to yt.
 
   // For restart dumps
 
@@ -202,20 +203,22 @@ class grid
 
 /* Read grid data from a file (returns: success/failure) */
 
-   int ReadGrid(FILE *main_file_pointer, int GridID, 
+   int ReadGrid(FILE *main_file_pointer, int GridID, char DataFilename[], 
 		int ReadText = TRUE, int ReadData = TRUE);
 
 /* Read grid data from a group file (returns: success/failure) */
 
 #ifndef NEW_GRID_IO
-  int Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
-		     int ReadText, int ReadData, bool ReadParticlesOnly=false);
+   int Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
+		      char DataFilename[],
+		      int ReadText, int ReadData, bool ReadParticlesOnly=false);
 #else
    int Group_ReadGrid(FILE *main_file_pointer, int GridID, HDF5_hid_t file_id, 
+		      char DataFilename[],
 		      int ReadText = TRUE, int ReadData = TRUE, 
 		      bool ReadParticlesOnly=false, int ReadEverything = FALSE);
 #endif
-
+   
 /* Get field or particle data based on name or integer 
    defined in typedefs.h. Details are in Grid_CreateFieldArray.C. */
 
@@ -264,6 +267,13 @@ class grid
         if(ProcessorNumber != MyProcessorNumber) return -1;
         return 0;
     }
+   
+/* Routines for writing/reading grid hierarchy information to/from
+   HDF5 hierarchy file */
+   int WriteHierarchyInformationHDF5(char *base_name, hid_t level_group_id, int level, int ParentGridIDs[], int NumberOfDaughterGrids, int DaughterGridIDs[], int NextGridThisLevelID, int NextGridNextLevelID, FILE *log_fptr);
+   
+   int ReadHierarchyInformationHDF5(hid_t Hfile_id, int GridID, int &Task, int &NextGridThisLevelID, int &NextGridNextLevelID, char DataFilename[], FILE *log_fptr);
+
 
 /* Write grid data to separate files (returns: success/failure) */
 
@@ -330,6 +340,7 @@ public:
 /* Return time, timestep */
 
    FLOAT ReturnTime() {return Time;};
+   FLOAT ReturnOldTime() {return OldTime;};
    float ReturnTimeStep() {return dtFixed;};
 
   /* Return, set grid ID */
@@ -496,6 +507,10 @@ public:
    formalism when using Gadget equilibrium cooling. */
 
    int GadgetComputeTemperatureDEF(FLOAT time, float *temperature);
+
+/* Baryons: compute the dust temperature. */
+
+   int ComputeDustTemperatureField(float *temperature, float *dust_temperature);
 
 /* Baryons: compute X-ray emissivity in specified band. */
 
@@ -718,7 +733,7 @@ public:
    float GadgetCoolingRateFromU(float u, float rho, float *ne_guess, 
 				float redshift);
 
-// Functions for shock finding and cosmic ray acceleration
+// Functions for shock finding
 //
    int FindShocks();
    int FindTempSplitShocks();
@@ -1081,6 +1096,17 @@ public:
 
    int ComputeAccelerationFieldExternal();
 
+/* Gravity: Set the external acceleration fields from external potential. */
+
+   int ComputeAccelerationsFromExternalPotential(int DifferenceType,
+                                                 float *ExternalPotential,
+                                                 float *Field[]);
+
+/* Gravity: Add fixed, external potential to baryons & particles. */
+
+   int AddExternalPotentialField(float *field);
+   
+
 /* Particles + Gravity: Clear ParticleAccleration. */
 
    int ClearParticleAccelerations();
@@ -1110,7 +1136,7 @@ public:
 /* Gravity: Delete AccelerationField. */
 
    void DeleteAccelerationField() {
-     if (!((SelfGravity || UniformGravity || PointSourceGravity))) return;
+     if (!((SelfGravity || UniformGravity || PointSourceGravity || ExternalGravity))) return;
      for (int dim = 0; dim < GridRank; dim++) {
        delete [] AccelerationField[dim];
        AccelerationField[dim] = NULL;
@@ -1612,7 +1638,8 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
 
   /* Identify colour field */
 
-  int IdentifyColourFields(int &SNColourNum, int &MetalNum, int &MBHColourNum,
+  int IdentifyColourFields(int &SNColourNum, int &MetalNum, 
+			   int &MetalIaNum, int &MBHColourNum,
 			   int &Galaxy1ColourNum, int &Galaxy2ColourNum);
 
   /* Identify Multi-species fields. */
@@ -1622,9 +1649,9 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
 			    int &HMNum, int &H2INum, int &H2IINum,
                             int &DINum, int &DIINum, int &HDINum);
 
-/* Identify shock/cosmic ray fields. */
-  int IdentifyCRSpeciesFields(int &MachNum, int&CRNum, 
-			      int &PSTempNum, int &PSDenNum);
+  /* Identify shock fields. */
+  int IdentifyShockSpeciesFields(int &MachNum,int &PSTempNum, int &PSDenNum);
+
   // Identify Simon Glover Species Fields
   int IdentifyGloverSpeciesFields(int &HIINum,int &HINum,int &H2INum,
 				  int &DINum,int &DIINum,int &HDINum,
@@ -1924,6 +1951,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			  float CosmologySimulationInitialFractionH2I,
 			  float CosmologySimulationInitialFractionH2II,
 			  float CosmologySimulationInitialFractionMetal,
+			  float CosmologySimulationInitialFractionMetalIa,
 #ifdef TRANSFER
 			  float RadHydroInitialRadiationEnergy,
 #endif
@@ -1979,6 +2007,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			  float CosmologySimulationInitialFractionH2I,
 			  float CosmologySimulationInitialFractionH2II,
 			  float CosmologySimulationInitialFractionMetal,
+			  float CosmologySimulationInitialFractionMetalIa,
 			  int   CosmologySimulationUseMetallicityField,
 			  PINT &CurrentNumberOfParticles,
 			  int CosmologySimulationManuallySetParticleMassRatio,
@@ -2119,7 +2148,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int RemoveForcingFromBaryonFields();
   int AddRandomForcing(float * norm, float dtTopGrid);
   int PrepareRandomForcingNormalization(float * GlobVal, int GlobNum);
-  int ReadRandomForcingFields(FILE *main_file_pointer);
+  int ReadRandomForcingFields(FILE *main_file_pointer, char DataFilename[]);
 
   int AddFields(int TypesToAdd[], int NumberOfFields);
   int DeleteObsoleteFields(int *ObsoleteFields, 
@@ -2193,7 +2222,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			  float dtLevelAbove);
 
   int ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
-			  float dtLevelAbove);
+			    float dtLevelAbove);
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 
@@ -2536,6 +2565,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                                    float Byl,
                                    float Bzl);
   int MHD2DTestInitializeGrid(int MHD2DProblemType, 
+			      int UseColour,
 			      float RampWidth,
 			      float rhol, float rhou,
 			      float vxl,  float vxu,
@@ -2565,9 +2595,16 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 				  float rho_medium, float p_medium, int level, int SetBaryonFields);
   int MHDTurbulenceInitializeGrid(float rho_medium, float cs_medium, float mach, 
 				  float Bnaught, int seed, int level, int SetBaryonFields);
+  int MHDDecayingRandomFieldInitializeGrid(float rho_medium, float cs_medium, float mach, 
+					   float Bnaught, int seed, 
+					   float Sindex, float Skmin, float Skmax, 
+					   int level, int SetBaryonFields);
 
   int PrepareVelocityNormalization(double *v_rms, double *Volume);
   int NormalizeVelocities(Eflt factor);
+
+  int PrepareAlfvenVelocityNormalization(double *v_rms, double *Volume);
+  int NormalizeMagneticFields(Eflt factor);
 
   int GalaxyDiskInitializeGrid(int NumberOfHalos,
 			       FLOAT HaloRadius[MAX_SPHERES],

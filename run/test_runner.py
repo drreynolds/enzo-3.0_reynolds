@@ -33,7 +33,9 @@ try:
         disable_stream_logging, ufstring
     disable_stream_logging()
     ytcfg["yt","suppressStreamLogging"] = "True"
-except ImportError:
+except:
+    raise
+
     RegressionTestRunner = None
 
 try:
@@ -61,6 +63,9 @@ varspec = dict(
     author = (str, ''),
     max_time_minutes = (float, 60),
     radiation = (str, None),
+    quicksuite = (bool, False),
+    pushsuite = (bool, False),
+    fullsuite = (bool, False)
 )
 
 known_variables = dict( [(k, v[0]) for k, v in varspec.items()] )
@@ -384,7 +389,7 @@ class EnzoTestRun(object):
         else:
             fn = self.test_data['answer_testing_script']
             if RegressionTestRunner is None:
-                print "This installation of yt does not support testing, please update."
+                print "This installation of yt does not support testing, please update to the branch 'yt'."
                 return
             clear_registry()
 

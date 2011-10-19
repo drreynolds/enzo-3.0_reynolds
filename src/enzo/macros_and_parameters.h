@@ -67,9 +67,9 @@
 #define MAX_REFINE_REGIONS               150
 
 #ifdef WINDS 
-#define MAX_NUMBER_OF_PARTICLE_ATTRIBUTES  6
+#define MAX_NUMBER_OF_PARTICLE_ATTRIBUTES  7
 #else
-#define MAX_NUMBER_OF_PARTICLE_ATTRIBUTES  3
+#define MAX_NUMBER_OF_PARTICLE_ATTRIBUTES  4
 #endif
 
 #define MAX_TIME_ACTIONS                   10
@@ -239,6 +239,7 @@ typedef int            HDF5_hid_t;
 #define float double
 #define TEMP_HOLD_NAME float32
 #define HDF5_REAL HDF5_R8
+#define HDF5_FILE_REAL HDF5_FILE_R8
 #ifdef USE_PYTHON
 #define ENPY_BFLOAT NPY_DOUBLE
 #define enpy_bfloat npy_double
@@ -525,8 +526,6 @@ typedef int            HDF5_hid_t;
 #define NON_DM_PARTICLES_MERGED_LEVEL 3
 #define NON_DM_PARTICLES_MERGED_ALL 4
 #define TEMPERATURE_FIELD 1000
-
-#define DEFAULT_MU 0.6
 
 /* Maximum number of leafs per parent in radiation source tree. */
 

@@ -6,3 +6,7 @@ critical = True
 cadence = 'nightly'
 hydro = True
 dimensionality = 2
+max_time_minutes = 10
+fullsuite = True
+pushsuite = True
+quicksuite = False

@@ -1,3 +1,5 @@
+.. _parameters:
+
 Enzo Parameter List
 ===================
 
@@ -53,6 +55,9 @@ Stopping Parameters
     Causes the simulation to immediately stop when a specified level is
     reached. Default value 0 (off), possible values are levels 1
     through maximum number of levels in a given simulation.
+``NumberOfOutputsBeforeExit`` (external)
+    After this many datadumps have been written, the code will exit.  If 
+    set to 0 (default), this option will not be used.  Default: 0.
 ``StopCPUTime`` (external)
     Causes the simulation to stop if the wall time exceeds ``StopCPUTime``.
     The simulation will output if the wall time after the next
@@ -734,6 +739,8 @@ Hydrodynamic Parameters
     methods). If using multiple species (i.e. ``MultiSpecies`` > 0), then
     this value is ignored in favor of a direct calculation (except for
     PPM LR) Default: 5/3.
+``Mu`` (external)
+    The molecular weight. Default: 0.6.
 ``ConservativeReconstruction`` (external)
     Experimental.  This option turns on the reconstruction of the
     left/right interfaces in the Riemann problem in the conserved
@@ -918,16 +925,49 @@ Gravity Parameters
     completely baryon dominated. It is used to remove the discreteness
     effects of the few remaining dark matter particles. Not used if set
     to a value less than 0. Default: -1
+
+External Gravity Source
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+These parameters set-up an external static background gravity source that is
+added to the acceleration field for the baryons and particles.
+
 ``PointSourceGravity`` (external)
-    This flag (1 - on, 0 - off) indicates if there is to be a
-    (constant) point source gravitational field. Default: 0
+    This parameter indicates that there is to be a
+    (constant) gravitational field with a point source profile (``PointSourceGravity`` =
+    1) or NFW profile (``PointSourceGravity`` = 2). Default: 0
 ``PointSourceGravityConstant`` (external)
-    The magnitude of the point source acceleration at a distance of 1
-    length unit. Default: 1
+    If ``PointSourceGravity`` = 1, this is the magnitude of the point
+    source acceleration at a distance of 1
+    length unit (i.e. GM in code units). If ``PointSourceGravity`` =
+    2, then it takes the mass of the dark matter halo in CGS
+    units. ``ProblemType`` = 31 (galaxy disk simulation) automatically calculates
+    values for ``PointSourceGravityConstant`` and
+    ``PointSourceGravityCoreRadius``. Default: 1
+``PointSourceGravityCoreRadius`` (external)
+    For ``PointSourceGravity`` = 1, this is the radius inside which
+    the acceleration field is smoothed in code units. With ``PointSourceGravity`` =
+    2, it is the scale radius, rs, in CGS units (see Navarro, Frank & White,
+    1997). Default: 0
 ``PointSourceGravityPosition`` (external)
     If the ``PointSourceGravity`` flag is turned on, this parameter
-    specifies the center of the point-source gravitational field.
-    Default: 0 0 0
+    specifies the center of the point-source gravitational field in
+    code units. Default: 0 0 0
+``ExternalGravity`` (external)
+   This fulfills the same purpose as ``PointSourceGravity`` but is
+   more aptly named. ``ExternalGravity = 1`` turns on an alternative
+   implementation of the NFW profile with properties
+   defined via the parameters ``HaloCentralDensity``, ``HaloConcentration`` and ``HaloVirialRadius``. Boxsize is assumed to be 1.0 in this case. ``ExternalGravity = 10`` gives a gravitational field defined by the logarithmic potential in Binney & Tremaine, corresponding to a disk with constant circular velocity.  Default: 0 
+``ExternalGravityConstant`` (external)
+    If ``ExternalGravity = 10``, this is the circular velocity of the disk in code units. Default: 0.0
+``ExternalGravityDensity`` 
+   Reserved for future use.
+``ExternalGravityPosition`` (external)
+    If ``ExternalGravity = 10``, this parameter specifies the center of the gravitational field in code units. Default: 0 0 0
+``ExternalGravityOrientation`` (external)
+    For ``ExternalGravity = 10``, this is the unit vector of the disk's angular momentum (e.g. a disk whose face-on view is oriented in the x-y plane would have ``ExternalGravityOrientation = 0 0 1``). Default: 0 0 0 
+``ExternalGravityRadius`` (external)
+   If ``ExternalGravity = 10``, this marks the inner radius of the disk in code units within which the velocity drops to zero. Default: 0.0
 ``UniformGravity`` (external)
     This flag (1 - on, 0 - off) indicates if there is to be a uniform
     gravitational field. Default: 0
@@ -991,7 +1031,8 @@ Parameters for Additional Physics
 ``RadiativeCooling`` (external)
     This flag (1 - on, 0 - off) controls whether or not a radiative
     cooling module is called for each grid. There are currently several
-    possibilities, controlled by the value of another flag. Default: 0
+    possibilities, controlled by the value of another flag. See :ref:`cooling` 
+    for more information on the various cooling methods.  Default: 0
     
     -  If the ``MultiSpecies`` flag is off, then equilibrium cooling is
        assumed and one of the following two will happen. If the parameter
@@ -1018,18 +1059,18 @@ Parameters for Additional Physics
     is valid for temperatures greater than 10,000 K. This requires the
     file ``TREECOOL`` to execute. Default: 0
 ``MetalCooling`` (external)
-    This flag (0 - off, 1 - metal cooling from Glover & Jappsen 2007, 2
-    - Cen, 3 - Cloudy cooling from Smith, Sigurdsson, & Abel 2008)
-    turns on metal cooling for runs that track metallicity. Option 1 is
-    valid for temperatures between 100 K and 10\ :sup:`8`\  K because
-    it considers fine-structure line emission from carbon, oxygen, and
-    silicon and includes the additional metal cooling rates from
-    Sutherland & Dopita (1993). Option 2 is only valid for temperatures
-    above 10\ :sup:`4`\  K. Option 3 uses multi-dimensional tables of
-    heating/cooling values created with Cloudy and optionally coupled
-    to the ``MultiSpecies`` chemistry/cooling solver. This method is valid
-    from 10 K to 10\ :sup:`8`\  K. See the Cloudy Cooling parameters below.
-    Default: 0.
+    This flag (0 - off, 1 - metal cooling from Glover & Jappsen 2007,
+    2 - Cen et al (1995), 3 - Cloudy cooling from Smith, Sigurdsson, &
+    Abel 2008) turns on metal cooling for runs that track
+    metallicity. Option 1 is valid for temperatures between 100 K and
+    10\ :sup:`8`\ K because it considers fine-structure line emission
+    from carbon, oxygen, and silicon and includes the additional metal
+    cooling rates from Sutherland & Dopita (1993). Option 2 is only
+    valid for temperatures above 10\ :sup:`4`\ K. Option 3 uses
+    multi-dimensional tables of heating/cooling values created with
+    Cloudy and optionally coupled to the ``MultiSpecies``
+    chemistry/cooling solver. This method is valid from 10 K to 10\
+    :sup:`8`\ K. See the Cloudy Cooling parameters below.  Default: 0.
 ``MetalCoolingTable`` (internal)
     This field contains the metal cooling table required for
     ``MetalCooling`` option 1. In the top level directory input/, there are
@@ -1055,12 +1096,17 @@ Parameters for Additional Physics
     ``MultiSpecies`` and ``RadiationFieldType`` are forced to 0 and
     ``RadiativeCooling`` is forced to 1.
     [Not in public release version]
-
+``PhotoelectricHeating`` (external)
+    If set to be 1, Gamma_pe = 5.1e-26 erg/s will be added uniformly
+    to the gas without any shielding (Tasker & Bryan 2008). At the
+    moment this is still experimental. Default: 0
 ``MultiMetals`` (external)
     This was added so that the user could turn on or off additional
     metal fields - currently there is the standard metallicity field
     (Metal_Density) and two additional metal fields (Z_Field1 and
     Z_Field2). Acceptable values are 1 or 0, Default: 0 (off).
+
+.. _cloudy_cooling:
 
 Cloudy Cooling
 ~~~~~~~~~~~~~~
@@ -1088,30 +1134,12 @@ creating Cloudy datasets.
     are made with the intention that only the cooling rates are to be
     used. Default: 0 (off).
 
-``IncludeCloudyMMW`` (external)
-    An integer (0 or 1) specifying whether the additional mean
-    molecular weight contributed by the metals be used in the
-    conversion from internal energy to temperature. These values will
-    come from the Cloudy dataset. For metallicities less than solar,
-    this addition will be negligible. Default: 0 (off).
-
 ``CMBTemperatureFloor`` (external)
     An integer (0 or 1) specifying whether a temperature floor is
     created at the temperature of the cosmic microwave background
     (T\ :sub:`CMB`\  = 2.72 (1 + z) K). This is accomplished in the
     code by subtracting the cooling rate at T\ :sub:`CMB`\  such that
     Cooling = Cooling(T) - Cooling(T\ :sub:`CMB`\ ). Default: 1 (on).
-
-``CloudyMetallicityNormalization`` (external)
-    A float value used in the conversion of metal density into
-    metallicity. This value will change depending on the specific
-    abundance patterns used to make the Cloudy dataset. The value of
-    this factor is calculated as the sum of (A\ :sub:`i`\  \*
-    m\ :sub:`i`\ ) over all elements i heavier than He, where
-    A\ :sub:`i`\  is the solar number abundance relative to H and
-    m\ :sub:`i`\  is the atomic mass. For the solar abundance pattern
-    from the latest version of Cloudy, using all metals through Zn,
-    this value is 0.018477. Default: 0.018477.
 
 ``CloudyElectronFractionFactor`` (external)
     A float value to account for additional electrons contributed by
@@ -1216,6 +1244,27 @@ For details on each of the different star formation methods available in Enzo se
     or 1.  See :ref:`distributed_feedback` for an illustration.
     Default: 0.
 
+``StarMakerTypeIaSNe`` (external)
+    This parameter turns on thermal and chemical feedback from Type Ia
+    supernovae.  The mass loss and luminosity of the supernovae are
+    determined from `fits of K. Nagamine
+    <http://www.physics.unlv.edu/~kn/SNIa_2/>`_.  The ejecta are
+    traced in a separate species field, ``MetalSNIa_Density``.  The
+    metallicity of star particles that comes from this ejecta is
+    stored in the particle attribute ``typeia_fraction``.  Can be used
+    with ``StarParticleCreation`` = 0, 1, 2, 5, 7, and 8.  Default:
+    0.
+
+``StarMakerPlanetaryNebulae`` (external) 
+    This parameter turns on thermal and chemical feedback from
+    planetary nebulae.  The mass loss and luminosity are taken from
+    the same `fits from K. Nagamine
+    <http://www.physics.unlv.edu/~kn/SNIa_2/>`_.  The chemical
+    feedback injects gas with the same metallicity as the star
+    particle, and the thermal feedback equates to a 10 km/s wind.  The
+    ejecta are not stored in its own species field.  Can be used
+    with ``StarParticleCreation`` = 0, 1, 2, 5, 7, and 8.  Default: 0.
+
 Normal Star Formation
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -1265,9 +1314,12 @@ The parameters below are considered in ``StarParticleCreation`` method
     returned to the gas phase as thermal energy. Default: 1e-5
 ``StarEnergyToStellarUV`` (external)
     The fraction of the rest-mass energy of the stars created which is
-    returned as UV radiation with a young star spectrum. This is used when calculating the radiation background. Default: 3e-6
+    returned as UV radiation with a young star spectrum. This is used
+    when calculating the radiation background. Default: 3e-6
 ``StarEnergyToQuasarUV`` (external)
-    The fraction of the rest-mass energy of the stars created which is returned as UV radiation with a quasar spectrum. This is used when calculating the radiation background. Default: 5e-6
+    The fraction of the rest-mass energy of the stars created which is
+    returned as UV radiation with a quasar spectrum. This is used when
+    calculating the radiation background. Default: 5e-6
 
 Population III Star Formation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1356,23 +1408,26 @@ The parameters below are considered in StarParticleCreation method 9.
         #order: MBH mass (in Ms), MBH location[3], MBH creation time
         100000.0      0.48530579      0.51455688      0.51467896      0.0
 
+.. _radiation_backgrounds:
 
 Background Radiation Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``RadiationFieldType`` (external)
     This integer parameter specifies the type of radiation field that
-    is to be used. It can currently only be used if ``MultiSpecies`` = 1
-    (i.e. no molecular H support). The following values are used.
-    Default: 0
+    is to be used. Except for ``RadiationFieldType`` = 9, which should
+    be used with ``MultiSpecies`` = 2, UV backgrounds can currently
+    only be used with ``MultiSpecies`` = 1 (i.e. no molecular H
+    support). The following values are used. Default: 0
 
    ::
   
      1. Haardt & Madau spectrum with q_alpha=1.5
      2. Haardt & Madau spectrum with q_alpha = 1.8
-     3. reserved for experimentation
+     3. Modified Haardt & Madau spectrum to match observations
+     	(Kirkman & Tytler 2005).
      4. H&M spectrum (q_alpha=1.5. supplemented with an X-ray Compton heating
-         background from Madau & Efstathiou (see astro-ph/9902080)
+        background from Madau & Efstathiou (see astro-ph/9902080)
      9. a constant molecular H2 photo-dissociation rate
      10. internally computed radiation field using the algorithm of Cen & Ostriker
      11. same as previous, but with very, very simple optical shielding fudge
@@ -1393,11 +1448,25 @@ Background Radiation Parameters
     hydrogen (H2) dissociation rate. There a normalization is performed
     on the rate by multiplying it with ``RadiationSpectrumNormalization``.
     Default: 1e-21
+``RadiationFieldRedshift`` (external)
+    This parameter specifies the redshift at which the radiation field
+    is calculated.  Default: 0
 ``RadiationShield`` (external)
     This parameter specifies whether the user wants to employ
     approximate radiative-shielding. This parameter will be
     automatically turned on when RadiationFieldType is set to 11. See
     ``calc_photo_rates.src``. Default: 0
+``RadiationRedshiftOn`` (external) The redshift at which the UV 
+    background turns on. Default: 7.0.
+``RadiationRedshiftFullOn`` (external) The redshift at which the UV
+    background is at full strength.  Between z =
+    ``RadiationRedshiftOn`` and z = ``RadiationRedshiftFullOn``, the 
+    background is gradually ramped up to full strength. Default: 6.0.
+``RadiationRedshiftDropOff`` (external) The redshift at which the 
+    strength of the UV background is begins to gradually reduce,
+    reaching zero by ``RadiationRedshiftOff``. Default: 0.0.
+``RadiationRedshiftOff`` (external) The redshift at which the UV 
+    background is fully off. Default: 0.0.
 ``AdjustUVBackground`` (external)
     Add description. Default: 1.
 ``SetUVAmplitude`` (external)
@@ -1406,33 +1475,27 @@ Background Radiation Parameters
     Add description. Default: 1.8.
 ``RadiationSpectrumSlope`` (external)
     Add description. Default: 1.5.
-``PhotoelectricHeating`` (external)
-    If set to be 1, Gamma_pe = 5.1e-26 erg/s will be added uniformly
-    to the gas without any shielding (Tasker & Bryan 2008). At the
-    moment this is still experimental. Default: 0
 
 Minimum Pressure Support Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``UseMinimumPressureSupport`` (external)
     When radiative cooling is turned on, and objects are allowed to
-    collapse to very small sizes (i.e. a few cells), and they are
-    evolved for many, many dynamical times, then unfortunate things
-    happen. Primarily, there is some spurious angular momentum
-    generation, and possible some resulting momentum non-conservation.
-    To alleviate this problem, a very simple fudge was introduced: if
-    this flag is turned on, then a minimum temperature is applied to
-    grids with level == ``MaximumRefinementLevel``. This minimum
-    temperature is that required to make each cell Jeans stable
-    multiplied by the parameter below. If you use this, it is advisable
-    to also set the gravitational smoothing length in the form of
-    ``MaximumGravityRefineLevel`` to 2 or 3 less than
-    ``MaximumRefinementLevel``. Default: 0
+    collapse to very small sizes so that their Jeans length is no
+    longer resolved, then they may undergo artificial fragmentation
+    and angular momentum non-conservation.  To alleviate this problem,
+    as discussed in more detail in Machacek, Bryan & Abel (2001), a
+    very simple fudge was introduced: if this flag is turned on, then
+    a minimum temperature is applied to grids with level ==
+    ``MaximumRefinementLevel``. This minimum temperature is that
+    required to make each cell Jeans stable multiplied by the
+    parameter below.  More precisely, the temperature of a cell is set
+    such that the resulting Jeans length is the square-root of the
+    parameter ``MinimumPressureSupportParameter``.  So, for the
+    default value of 100 (see below), this insures that the ratio of
+    the Jeans length/cell size is at least 10.  Default: 0
 ``MinimumPressureSupportParameter`` (external)
-    This is the parameter alluded to above. Very roughly speaking, is
-    the number of cells over which a gravitationally bound small cold
-    clump, on the most refined level, will be spread over. Default:
-    100
+    This is the numerical parameter discussed above. Default: 100
 
 Radiative Transfer (Ray Tracing) Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1486,14 +1549,14 @@ Radiative Transfer (Ray Tracing) Parameters
     depth. To interpolate, we need to calculate the vertex interpolated
     density fields. Default: 0.
 ``RadiativeTransferSourceClustering`` (internal)
-    Set to 1 to turn on ray merging. Not fully tested and may still be
-    buggy. Default: 0.
+    Set to 1 to turn on ray merging from combined virtual sources on a
+    binary tree. Default: 0.
 ``RadiativeTransferPhotonMergeRadius`` (internal)
     The radius at which the rays will merge from their SuperSource,
     which is the luminosity weighted center of two sources. This radius
     is in units of the separation of two sources associated with one
     SuperSource. If set too small, there will be angular artifacts in
-    the radiation field. Default: 10.
+    the radiation field. Default: 2.5
 ``RadiativeTransferTimestepVelocityLimit`` (external)
     Limits the radiative transfer timestep to a minimum value that is
     determined by the cell width at the finest level divided by this
@@ -1953,7 +2016,7 @@ Feedback Physics
     ``mbh_particle_io.dat``
 
 Conduction
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~
 
 Isotropic and anisotropic thermal conduction are implemented using the
 method of Parrish and Stone: namely, using an explicit, forward
@@ -1982,6 +2045,29 @@ independently for the isotropic and anisotropic conduction.
     algorithm.  In its current explicit formulation, it must be set to
     a value of 0.5 or less.
     Default: 0.5
+
+Shock Finding Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+For details on shock finding in Enzo see :ref:`shock_finding`.
+
+``ShockMethod`` (external)
+    This parameter controls the use and type of shock finding. Default: 0
+    
+    ::
+
+	0 - Off
+	1 - Temperature Dimensionally Unsplit Jumps
+	2 - Temperature Dimensionally Split Jumps
+	1 - Velocity Dimensionally Unsplit Jumps
+	2 - Velocity Dimensionally Split Jumps
+
+``ShockTemperatureFloor`` (external)
+    When calculating the mach number using temperature jumps, set the
+    temperature floor in the calculation to this value.
+
+``StorePreShockFields`` (external)
+    Optionally store the Pre-shock Density and Temperature during data output.
+
 
 .. _testproblem_param:
 
