@@ -123,11 +123,21 @@ int ActiveParticleType_SampleParticle::EvaluateFormation(grid *thisgrid_orig, Ac
 
 	// 6) Check to see if star is above threshold (given in units of M_solar)
 
-	StarFraction = min(StarMakerMassEfficiency*thisGrid->dtFixed/tdyn, 0.9);
+	StarFraction = min(StarMakerMassEfficiency*thisGrid->ReturnTimeStep()/DynamicalTime, 0.9);
+	DynamicalTime = max(DynamicalTime, StarMakerMinimumDynamicalTime*3.156e7/data.TimeUnits);
 	
-	//RandomNumber = mt_random();
-	//if (RandomNumber >= exp(-1.0 * StarMakerMinimumDynamicalTime / tdyn))
-	//  continue;
+	// 7) If we allow stochastic star formation, make new particles every time the unfulfilled star formation buffer
+	//    exceeds the mininimum particle mass
+
+	if (CenOstrikerStochasticStarformation) {
+	  if (StarFraction*BaryonMass < StarMakerMinimumMass) {
+	    UnfulfilledStarFormationMass += StarFraction*BaryonMass;
+	    if (UnfulfilledStarFormationMass < StarMakerMinimumMass) 
+	      continue;
+	    StarFraction = min(StarMakerMinimumMass/BaryonMass, 0.5);
+	    UnfulfilledStarFormationMass -= StarFraction*BaryonMass;
+	  } 
+	}
 
 	/*
 	 * ====================================================================
@@ -140,7 +150,9 @@ int ActiveParticleType_SampleParticle::EvaluateFormation(grid *thisgrid_orig, Ac
 
 	np->Mass = StarFraction*density[index];
 	np->type = CenOstriker;
-	np->BirthTime = thisGrid->Time;
+	np->BirthTime = thisGrid->ReturnTime();
+	np->DynamicalTime = DynamicalTime;
+
 
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
 	np->pos[0] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
@@ -178,19 +190,201 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback(grid *thisGrid_orig, Active
   float *velx = thisGrid->BaryonField[data.Vel1Num];
   float *vely = thisGrid->BaryonField[data.Vel2Num];
   float *velz = thisGrid->BaryonField[data.Vel3Num];
-  
+  float *totalenergy = thisGrid->BaryonField[data.TENum];
+  float *gasenergy = thisGrid->BaryonField[data.GENum];
+  float dt = thisGrid->dtFixed;
+  float dx = float(thisGrid->CellWidth[0][0]);
+
+  /* Find metallicity fields */
+
+  int SNColourNum, MetalNum;
+
+  if (this->IdentifyColourFields(SNColourNum, MetalNum, MBHColourNum,
+				 Galaxy1ColourNum, Galaxy2ColourNum) == FAIL) {
+    ENZO_FAIL("Error in grid->IdentifyColourFields.\n");
+  }
+
+  float *MetalField;
+  float *TotalMetals = NULL;
+  int MetallicityFlag;
+
+  MetallicityFlag = (MetalNum != -1 || SNColourNum != -1);
+
+  if (MetalNum != -1 && SNColourNum != -1) {
+    TotalMetals = new float[size];
+    for (i = 0; i < size; i++)
+      TotalMetals[i] = BaryonField[MetalNum][i] + BaryonField[SNColourNum][i];
+    MetalField = TotalMetals;
+  } // ENDIF both metal types                                                                                                                                                                                                                                                 
+  else {
+    if (MetalNum != -1)
+      MetalField = BaryonField[MetalNum];
+    else if (SNColourNum != -1)
+      MetalField = BaryonField[SNColourNum];
+  } // ENDELSE both metal types
+
+  float xv1,xv2,ParticleBirthTime,ParticleDynamicalTimeAtBirth,
+    ParticleMass,ParticleInitialMass,ParticleMetalFraction,StarFormationDensityThisTimestep,
+    SupernovaEnergyThisTimestep,DensityToAddToEachCell;
+
+  float StellarMassFormedThistimestepOnThisGrid = 0;
+
+  FLOAT xpos,ypos,zpos;
+
+  FLOAT CurrentTime = thisGrid->Time;
   FLOAT xstart = thisGrid->CellLeftEdge[0];
   FLOAT ystart = thisGrid->CellLeftEdge[1];
-  FLOAT zstart = thisGrid->
+  FLOAT zstart = thisGrid->CellLeftEdge[2];
 
   int npart = thisGrid->NumberOfParticles;
-  int n;
+  int GridXSize = thisGrid->GridDimension[0];
+  int GridYSize = thisGrid->GridDimension[1];
+  int GridZSize = thisGrid->GridDimension[2];
+  int NumberOfGhostZones = thisGrid->GridStartIndex[0];
   
+  int n,i,j,k,index;
 
   for (n=0;npart-1;n++) {
+    if (thisGrid->ActiveParticles[n]->ReturnType() == CenOstriker)
+      continue;
+  
+    xpos = thisGrid->ActiveParticles[n]->pos[0];
+    ypos = thisGrid->ActiveParticles[n]->pos[1];
+    zpos = thisGrid->ActiveParticles[n]->pos[2];
+  
+    xvel = thisGrid->ActiveParticles[n]->vel[0];
+    yvel = thisGrid->ActiveParticles[n]->vel[1];
+    zvel = thisGrid->ActiveParticles[n]->vel[2];
+
+    ParticleBirthTime = thisGrid->ActiveParticles[n]->BirthTime;
+    ParticleDynamicalTimeAtBirth = thisGrid->ActiveParticles[n]->DynamicalTime;
+    ParticleMass = thisGrid->ActiveParticles[n]->Mass;
+    ParticleMetalFraction = thisGrid->ActiveParticles[n]->Metallicity
+    
+    // Determine how much of a given star particle would have been turned into stars during this timestep.
+    // Then, calculate the mass which should have formed during this timestep dt using the integral form
+    // of the Cen & Ostriker formula.
+    
+    xv1 = (CurrentTime - ParticleBirthTime) / ParticleDynamicalTimeAtBirth;
+    if (xv1 > 12.0) continue; // current time - creation time >> dynamical time at formation, so ignore
+    
+    xv2 = (CurrentTime + dt - ParticleBirthTime) / ParticlDynamicalTimeAtBirth;
+
+    // First, calculate the initial mass of the star particle in question
+    
+    ParticleInitialMass = ParticleMass / (1.0 - StarMassEjectionFraction(1.0 - (1.0 + xv1)*exp(-xv1)));
+    
+    // Then, calculate the amount of mass that would have formed in this timestep.
+
+    StarFormationDensityThisTimestep = InitialParticleMass * ((1.0 + xv1)*exp(-xv1) - 
+							   (1.0 + xv2)*exp(-xv2));
+    
+    StarFormationDensityThisTimestep = max(min(StarFormationDensityThisTimestep,ParticleMass),0.0);
+      
+    // Calculate 3D grid indices
+
+    i = int((xpos - xstart)/dx);
+    j = int((ypos - ystart)/dy);
+    k = int((zpos - zstart)/dz);
+
+    // Check bounds - if star particle is outside of this grid then give a warning and continue
+    
+    if (i < 0 || i > GridXSize-1 || j < 0 || j > GridYSize-1 || k < 0 || k > GridZSize-1){
+      fprintf(stdout, "Particle out of grid; xind, yind, zind, level = %d, $d, $d, $d\n",i,j,k,);
+      continue;
+    }
+      
+    // Calculate serial index
+
+    index = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0],j,k);
+
+    // skip if very little mass if formed
+
+    if (StarFormationDensityThisTimestep/density[index] < 1e-10 )
+      continue;
+
+    // calculate mass added to each cell
+
+    DensityToAddToEachCell = (StarFormationDensityThisTimestep * StarMassEjectionFraction) / StarFeedbackDistTotalCells;
+
+    // If using distributed feedback, check if particle is too close to the boundary and adjust indices accordingly
+
+    if (StarFeedbackDistRadius > 0)
+      {
+	i = max(1+NumberOfGhostZones+StarFeedbackDistRadius,
+		min(GridXSize - NumberOfGhostZones - StarFeedbackDistRadius,i));
+	j = max(1+NumberOfGhostZones+StarFeedbackDistRadius,
+		min(GridYSize - NumberOfGhostZones - StarFeedbackDistRadius,j));
+	k = max(1+NumberOfGhostZones+StarFeedbackDistRadius,
+		min(GridZSize - NumberOfGhostZones - StarFeedbackDistRadius,k));	
+      }
+
+    // Subtract ejected mass from particle
+    
+    ParticleMass -= StarFormationDensityThisTimestep*StarMassEjectionFraction;
+
+    // Save particle mass
+
+    thisGrid->ActiveParticles[n]->Mass = ParticleMass
+
+    // Record amount of star formation in this grid
+
+    StellarMassFormedThisTimestepOnThisGrid += StarFormationDensityThisTimestep*dt*POW(dx,3);
+
+    // Calculate supernova energy for this timestep
+
+    SupernovaEnergyThisTimestep = StarEnergyToThermalFeedback * StarFormationDensityThisTimestep * 
+      POW(clight/data.VelocityUnits,2) / StarFeedbackDistTotalCells;
+
+#define NO_SHARE_ENERGY
+#ifdef SHARE_ENERGY
+    SupernovaEnergyThisTimestep *= StarFormationDensityThisTimestep*StarMassEjectionFraction / 
+      (StarFormationDensityThisTimestep*StarMassEjectionFraction + ParticleInitialMAss*exp(-xv2)*(1.0+xv2));
+#endif /* SHARE_ENERGY */
+
+    // Add energy to the energy field
+    for (kc = k - StarFeedbackDistRadius; kc > k + StarFeedbackDistRadius, kc++){
+      stepk = abs(kc - k);
+      for (jc = j - StarFeedbackDistRadius; jc > j + StarFeedbackDistRadius, jc++){
+	stepj = stepk + abs(jc - j);
+	for (ic = i - StarFeedbackDistRadiusl ic > i + StarFeedbackDistRadius, ic++){
+	  cellstep = stepj + abs(ic - i);
+	  DistIndex = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0],jc,kc);
+	  if (cellstep < StarFeedbackDistCellStep) {
+	    DensityRatio = 1.0/(density[DistIndex] + DensityToAddToEachCell);
+	    TotalEnergy[DistIndex] = ((TotalEnergy[DistIndex]*density[DistIndex]) + SupernovaEnergyThisTimestep)*DensityRatio;
+	    if (DualEnergyFormalism == 1)
+	      GasEnergy[DistIndex] = ((GasEnergy[DistIndex]*density[DistIndex]) + SupernovaEnergyThisTimestep)*DensityRatio;
+
+	    // Metal feedback (note that in this function gas metal is a fraction
+	    // (rho_metal/rho_gas) rather than a density.  The conversion has 
+	    // been done in the handling routine)
+
+	    // The "Cen Method".  This takes into account gas recycling:
+
+	    if (MetallicityFlag == 1)
+	      MetalField[DistIndex] = (MetalField[DistIndex]*density[DistIndex]) +
+		(StarFormationDensityThisTimestep / StarFeedbackDistTotalCells) *
+		(StarMetalYield * (1.0 - ParticleMetalFraction) +
+		 StarMassEjectionFraction * ParticleMetalFraction) * DensityRatio;
+
+	    // Mass and momentum feedback
+
+	    velx[DistIndex] = velx[DistIndex]*density[DistIndex] + DensityToAddToEachCell * xvel;
+	    vely[DistIndex] = vely[DistIndex]*density[DistIndex] + DensityToAddToEachCell * yvel;
+	    velz[DistIndex] = velz[DistIndex]*density[DistIndex] + DensityToAddToEachCell * zvel;
+	    density[DistIndex] += DensityToAddToEachCell;
+	    velx[DistIndex] /= density[DistIndex];
+	    vely[DistIndex] /= density[DistIndex];
+	    velz[DistIndex] /= density[DistIndex];
+	      
+
+	  }
+	}
+      }
+    }
 
     
-
   } // end loop over particles
   
   return SUCCESS;

@@ -54,6 +54,8 @@ class ActiveParticleType
   int   ReturnID(void) { return Identifier; };
   double ReturnMass(void) { return Mass; };
   float ReturnBirthTime(void) { return BirthTime; };
+  float ReturnDynamicalTime(void) { return DynamicalTime; };
+  star_type ReturnType(void) {return type; };
 
   int   ReturnLevel(void) { return level; };
   void  ReduceLevel(void) { level--; };
@@ -100,6 +102,7 @@ class ActiveParticleType
     float        vel[MAX_DIMENSION];
     double       Mass;		// Msun
     float        BirthTime;
+    float        DynamicalTime      
     PINT         Identifier;
     int		 level;
     int		 GridID;

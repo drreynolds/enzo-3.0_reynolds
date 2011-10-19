@@ -903,4 +903,5 @@ class ActiveParticleType_info;
 EXTERN ActiveParticleType_info *EnabledActiveParticles[MAX_ACTIVE_PARTICLE_TYPES];
 EXTERN int EnabledActiveParticlesCount;
 
+
 #endif
