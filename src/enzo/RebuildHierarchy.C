@@ -91,6 +91,10 @@ int RebuildHierarchy(TopGridData *MetaData,
 		     LevelHierarchyEntry *LevelArray[], int level)
 {
 
+  if (LevelCycleCount[level] % RebuildHierarchyCycleSkip[level]) {
+    return SUCCESS;
+  }
+
   double tt0, tt1, tt2, tt3;
  
   /* declarations */
@@ -328,8 +332,8 @@ int RebuildHierarchy(TopGridData *MetaData,
     /* 3) Rebuild all grids on this level and below.  Note: All the grids
           in LevelArray[level+] have been deleted. */
 
-      for (i = level; i < MAX_DEPTH_OF_HIERARCHY-1; i++) {
-	    //for (i = level; i < MaximumLevelNow; i++) {
+      //      for (i = level; i < MAX_DEPTH_OF_HIERARCHY-1; i++) {
+      for (i = level; i < MaximumLevelNow; i++) {
  
 
       /* If there are no grids on this level, exit. */

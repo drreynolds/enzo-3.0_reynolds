@@ -31,6 +31,30 @@
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 
+#ifdef NEW_CONFIG
+
+#include "ParameterControl/ParameterControl.h"
+extern Configuration Param;
+
+/* Set default parameter values. */
+
+const char config_popiii_particle_defaults[] = 
+"### POPIII STAR PARTICLE DEFAULTS ###\n"
+"\n"
+"Physics: {\n"
+"    ActiveParticles: {\n"
+"        PopIII: {\n"
+"            OverDensityThreshold = 1e6;\n"
+"            MetalCriticalFraction = 1e-4;\n"
+"            H2CriticalFraction = 5e-4;\n"
+"            StarMass = 100;\n"
+"        };\n"
+"    };\n"
+"};\n";
+
+#endif
+
+
 float CalculatePopIIILifetime(float Mass);
 
 /* We need to make sure that we can operate on the grid, so this dance is
@@ -49,11 +73,52 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
-ENABLED_PARTICLE_ID_ACCESSOR
+  static int InitializeParticleType();
+  static int EvaluateFeedback(grid *thisgrid_orig);
+  ENABLED_PARTICLE_ID_ACCESSOR
+
+  // Pop III specific active particle parameters
+  static float OverDensityThreshold, MetalCriticalFraction, 
+    H2CriticalFraction, StarMass;
+
 private:
   float LifeTime;
   float Metallicity;
+
 };
+
+float ActiveParticleType_PopIII::OverDensityThreshold = FLOAT_UNDEFINED;
+float ActiveParticleType_PopIII::MetalCriticalFraction = FLOAT_UNDEFINED;
+float ActiveParticleType_PopIII::H2CriticalFraction = FLOAT_UNDEFINED;
+float ActiveParticleType_PopIII::StarMass = FLOAT_UNDEFINED;
+
+// get some parameters from the Param object
+int ActiveParticleType_PopIII::InitializeParticleType() {
+
+#ifdef NEW_CONFIG
+
+  // Update the parameter config to include the local defaults. Note
+  // that this does not overwrite any values previously specified.
+  Param.Update(config_popiii_particle_defaults);
+
+  // Retrieve parameters from Param structure
+  Param.GetScalar(OverDensityThreshold, "Physics.ActiveParticles.PopIII.OverDensityThreshold");
+  Param.GetScalar(MetalCriticalFraction, "Physics.ActiveParticles.PopIII.MetalCriticalFraction");
+  Param.GetScalar(H2CriticalFraction, "Physics.ActiveParticles.PopIII.H2CriticalFraction");
+  Param.GetScalar(StarMass, "Physics.ActiveParticles.PopIII.StarMass");
+
+#else
+
+  OverDensityThreshold = 0.0;
+  MetalCriticalFraction = 0.0;
+  H2CriticalFraction = 0.0;
+  StarMass = 0.0;
+
+#endif
+
+  return SUCCESS;
+}
+
 
 int ActiveParticleType_PopIII::EvaluateFormation
 (grid *thisgrid_orig, ActiveParticleFormationData &supp_data)
@@ -87,18 +152,18 @@ int ActiveParticleType_PopIII::EvaluateFormation
     for (j = tg->GridStartIndex[1]; j <= tg->GridEndIndex[1]; j++) {
       index = GRIDINDEX_NOGHOST(tg->GridStartIndex[0], j, k);
       for (i = tg->GridStartIndex[0]; i <= tg->GridEndIndex[0]; i++, index++) {
-
-    // 0. If no more room for particles, quit.
-    if (supp_data.NumberOfNewParticles >=
-        supp_data.MaxNumberOfNewParticles)
+	
+	// 0. If no more room for particles, quit.
+	if (supp_data.NumberOfNewParticles >=
+	    supp_data.MaxNumberOfNewParticles)
           continue;
-
+	
 	// 1. Finest level of refinement
 	if (tg->BaryonField[tg->NumberOfBaryonFields][index] != 0.0) 
 	  continue;
 	
 	// 2. Density greater than threshold
-	if (density[index] < PopIIIOverDensityThreshold)
+	if (density[index] < OverDensityThreshold)
 	  continue;
 
 	/* 3. Negative divergence: For ZEUS, the velocities are
@@ -127,11 +192,11 @@ int ActiveParticleType_PopIII::EvaluateFormation
 
 	// 5. If metallicity is greater than the critical metallicity
 	if (HasMetalField && 
-	    supp_data.TotalMetals[index] > PopIIIMetalCriticalFraction)
+	    supp_data.TotalMetals[index] > MetalCriticalFraction)
 	  continue;
 
 	// 6. Require some H2 fraction to form a metal-free star
-	if (supp_data.H2Fraction[index] < PopIIIH2CriticalFraction)
+	if (supp_data.H2Fraction[index] < H2CriticalFraction)
 	  continue;
 
 	/*
@@ -144,11 +209,11 @@ int ActiveParticleType_PopIII::EvaluateFormation
 	   Note for an IMF, we have to recompute this after the random
 	   sampling. */
 
-    ActiveParticleType_PopIII *np = new ActiveParticleType_PopIII();
-    supp_data.NewParticles[supp_data.NumberOfNewParticles++] = np;
-    //fprintf(stderr, "G_APH: Creating !\n");
+	ActiveParticleType_PopIII *np = new ActiveParticleType_PopIII();
+	supp_data.NewParticles[supp_data.NumberOfNewParticles++] = np;
+	//fprintf(stderr, "G_APH: Creating !\n");
 
-	LifetimeInYears = CalculatePopIIILifetime(PopIIIStarMass);
+	LifetimeInYears = CalculatePopIIILifetime(StarMass);
 
 	// Mass of the star will be assigned by the accretion routines.
 	if (RadiativeTransfer) {
@@ -156,7 +221,7 @@ int ActiveParticleType_PopIII::EvaluateFormation
 	  np->LifeTime = LifetimeInYears * yr / supp_data.TimeUnits;
 	} else {
 	  bmass = density[index] * supp_data.MassUnits;
-	  np->Mass = min(0.5 * bmass, PopIIIStarMass / supp_data.MassUnits);
+	  np->Mass = min(0.5 * bmass, StarMass / supp_data.MassUnits);
 	  np->LifeTime = LifetimeInYears * yr / supp_data.TimeUnits;
 	}
 
@@ -174,11 +239,11 @@ int ActiveParticleType_PopIII::EvaluateFormation
 	*/
 
 
-	double *tvel = tg->AveragedVelocityAtCell(index, supp_data.DensNum,
-					       supp_data.Vel1Num);
-    np->vel[0] = tvel[0];
-    np->vel[1] = tvel[1];
-    np->vel[2] = tvel[2];
+	float *tvel = tg->AveragedVelocityAtCell(index, supp_data.DensNum,
+						 supp_data.Vel1Num);
+	np->vel[0] = tvel[0];
+	np->vel[1] = tvel[1];
+	np->vel[2] = tvel[2];
 
 	/* Set the metallicity */
 
@@ -192,6 +257,12 @@ int ActiveParticleType_PopIII::EvaluateFormation
   } // ENDFOR k
 
   return NumberOfNewParticles;
+}
+
+// Pop III feedback (done through rad. transfer and feedback spheres)
+int ActiveParticleType_PopIII::EvaluateFeedback(grid *thisgrid_orig)
+{
+  return SUCCESS;
 }
 
 void ActiveParticleType_PopIII::DescribeSupplementalData
@@ -228,6 +299,12 @@ PopIIIParticleBufferHandler::PopIIIParticleBufferHandler(int NumberOfParticles)
 }
 
 namespace {
-    ActiveParticleType_info *PopIIIParticleInfo = 
-        register_ptype <ActiveParticleType_PopIII> ("PopIII");
+//    ActiveParticleType_info *PopIIIParticleInfo = 
+//        register_ptype <ActiveParticleType_PopIII> ("PopIII");
+    ActiveParticleType_info *SampleInfo = new ActiveParticleType_info(
+            "PopIII", (&ActiveParticleType_PopIII::EvaluateFormation),
+	    (&ActiveParticleType_PopIII::DescribeSupplementalData),
+	    (&ActiveParticleType_PopIII::AllocateBuffers),
+	    (&ActiveParticleType_PopIII::InitializeParticleType),
+	    (&ActiveParticleType_PopIII::EvaluateFeedback) );
 }

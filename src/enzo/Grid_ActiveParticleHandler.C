@@ -70,8 +70,6 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   LCAPERF_START("grid_ActiveParticleHandler");
 
-    /* This is where everything used to be! */
-
   /* First we identify the data dependencies */
 
   struct ActiveParticleFormationDataFlags flags = flags_default;
@@ -88,6 +86,8 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   ActiveParticleType::ConstructData(this, flags, supplemental_data);
 
+  /******************** FORMATION ********************/
+
   int NumberOfNewParticles = 0;
   /* Now we iterate */
   for (i = 0; i < EnabledActiveParticlesCount; i++)
@@ -98,9 +98,9 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     NumberOfNewParticles = supplemental_data.NumberOfNewParticles;
     
   }
+
   /*fprintf(stderr, "G_APH: Have created %"ISYM" new particles\n",
           NumberOfNewParticles);*/
-  
 
   /* Now we copy the particles from NewParticles into a statically allocated
    * array */
@@ -127,6 +127,15 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   this->GetParticleBuffers();
 
+  /******************** FEEDBACK ********************/
+
+  /* Now we iterate */
+  for (i = 0; i < EnabledActiveParticlesCount; i++)
+  {
+    ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+    ActiveParticleTypeToEvaluate->feedback_function(this);
+  }
+  
   //if (debug) printf("StarParticle: end\n");
 
 

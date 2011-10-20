@@ -41,10 +41,8 @@
 // Function prototypes
  
 int InitializeMovieFile(TopGridData &MetaData, HierarchyEntry &TopGrid);
-int WriteHierarchyStuff(FILE *fptr, HierarchyEntry *Grid,
-                        char* base_name, int &GridID, FLOAT WriteTime);
 int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt);
-int WriteParameterFile(FILE *fptr, TopGridData &MetaData);
+int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *Filename=NULL);
 void ConvertTotalEnergyToGasEnergy(HierarchyEntry *Grid);
 int SetDefaultGlobalValues(TopGridData &MetaData);
 int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum);
@@ -203,6 +201,8 @@ int CollapseMHD3DInitialize(FILE *fptr, FILE *Outfptr,
 			    HierarchyEntry &TopGrid, TopGridData &MetaData, int SetBaryonFields);
 int MHDTurbulenceInitialize(FILE *fptr, FILE *Outfptr, 
 			    HierarchyEntry &TopGrid, TopGridData &MetaData, int SetBaryonFields);
+int MHDDecayingRandomFieldInitialize(FILE *fptr, FILE *Outfptr, 
+			    HierarchyEntry &TopGrid, TopGridData &MetaData, int SetBaryonFields);
 int GalaxyDiskInitialize(FILE *fptr, FILE *Outfptr, 
 			 HierarchyEntry &TopGrid, TopGridData &MetaData);
 int AGNDiskInitialize(FILE *fptr, FILE *Outfptr, 
@@ -279,10 +279,12 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
   // Set the number of particle attributes, if left unset
  
   if (NumberOfParticleAttributes == INT_UNDEFINED)
-    if (StarParticleCreation || StarParticleFeedback)
+    if (StarParticleCreation || StarParticleFeedback) {
       NumberOfParticleAttributes = 3;
-    else
+      if (StarMakerTypeIaSNe) NumberOfParticleAttributes++;
+    } else {
       NumberOfParticleAttributes = 0;
+    }
  
   // Give unset parameters their default values
  
@@ -610,6 +612,12 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
     ret = MHD1DTestWavesInitialize(fptr, Outfptr, TopGrid, MetaData);
   }
 
+  /* 210) MHD Decaying random magnetic fields */
+  if (ProblemType == 210) {
+    ret = MHDDecayingRandomFieldInitialize(fptr, Outfptr, TopGrid, MetaData, 0);
+  }
+
+
   /* ???? */
   if (ProblemType ==300) {
     ret = PoissonSolverTestInitialize(fptr, Outfptr, TopGrid, MetaData);
@@ -847,8 +855,6 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
  
   while (CurrentGrid != NULL) {
     
-    // WriteHierarchyStuff(stderr, CurrentGrid, "UUUU", GP, WT);
-    
     if (debug)
       printf("InitializeNew: Partition Initial Grid %"ISYM"\n", gridcounter);
     
@@ -918,7 +924,7 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
     if (ProblemType == 202)
     CollapseMHD3DInitialize(fptr, Outfptr, TopGrid, MetaData, 1);
 
-  // For ProblemType 203 (Turbulence Simulation we only initialize the data
+  // For ProblemType 203 (MHD Turbulence Simulation we only initialize the data
   // once the topgrid has been split.
   if (ProblemType == 203)
     if (MHDTurbulenceInitialize(fptr, Outfptr, TopGrid, MetaData, 1)
@@ -926,6 +932,13 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
       ENZO_FAIL("Error in MHDTurbulenceReInitialize.\n");
     }
   
+  // initialize the data once the topgrid has been split.
+  if (ProblemType == 210)
+    if (MHDDecayingRandomFieldInitialize(fptr, Outfptr, TopGrid, MetaData, 1)
+	== FAIL) {
+      ENZO_FAIL("Error in MHDDecayingRandomField ReInitialize.\n");
+    }
+
   CommunicationBarrier();
  
   // Close parameter files

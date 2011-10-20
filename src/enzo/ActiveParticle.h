@@ -97,14 +97,14 @@ class ActiveParticleType
     
   protected:
     grid        *CurrentGrid;
-    FLOAT     pos[MAX_DIMENSION];
-    float         vel[MAX_DIMENSION];
-    double            Mass;        // Msun
-    float         BirthTime;
+    FLOAT	 pos[MAX_DIMENSION];
+    float        vel[MAX_DIMENSION];
+    double       Mass;		// Msun
+    float        BirthTime;
     PINT         Identifier;
-    int         level;
-    int         GridID;
-    star_type     type;
+    int		 level;
+    int		 GridID;
+    star_type    type;
 
     bool Active;
     int EnabledParticleID;
@@ -127,6 +127,7 @@ struct ActiveParticleFormationData {
   float *DarkMatterDensity;
   float *H2Fraction;
   float *CoolingTime;
+  float *CoolingRate;
   float *Temperature;
   float *TotalMetals;
   float DensityUnits;
@@ -151,6 +152,7 @@ const struct ActiveParticleFormationData data_default = {
   NULL,     // DarkMatterDensity
   NULL,     // H2Fraction
   NULL,     // CoolingTime
+  NULL,     // CoolingRate
   NULL,     // Temperature
   NULL,     // TotalMetals
   0.0,      // DensityUnits
@@ -175,6 +177,7 @@ struct ActiveParticleFormationDataFlags {
   bool DarkMatterDensity;
   bool H2Fraction;
   bool CoolingTime;
+  bool CoolingRate;
   bool Temperature;
   bool UnitConversions;
   bool DataFieldNumbers;
@@ -185,6 +188,7 @@ const struct ActiveParticleFormationDataFlags flags_default = {
   false,    // DarkMatterDensity
   false,    // H2Fraction
   false,    // CoolingTime
+  false,    // CoolingRate
   false,    // Temperature
   false,    // UnitConversions
   false,    // DataFieldNumbers
@@ -219,11 +223,15 @@ class ActiveParticleType_info
            void (*dfunc)(ActiveParticleFormationDataFlags &flags),
            ParticleBufferHandler *(*abfunc)(int NumberOfParticles),
            ActiveParticleType *particle
+	   int (*ifunc)(),
+	   int (*feedfunc)(grid *thisgrid_orig)
            ){
         this->formation_function = ffunc;
         this->describe_data_flags = dfunc;
         this->allocate_buffers = abfunc;
         this->particle_instance = particle;
+	this->initialize = ifunc;
+	this->feedback_function = feedfunc;
         get_active_particle_types()[this_name] = this;
        }
 
@@ -248,6 +256,15 @@ class ActiveParticleType_info
         static int TotalEnabledParticleCount;
         int MyEnabledParticleID; /* Defaults to 0 */
         int *EnabledParticleIDPointer;
+
+  static int count(){return get_active_particle_types().size();}
+  
+  int (*initialize)(void);
+  int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  int (*feedback_function)(grid *thisgrid_orig);
+  void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
+  ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
+
 };
 
 template <class active_particle_class>
