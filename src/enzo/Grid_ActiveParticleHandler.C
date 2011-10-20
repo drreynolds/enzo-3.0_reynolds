@@ -121,7 +121,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     assert((NumberOfNewParticles + OldNumberOfActiveParticles)
         == this->NumberOfActiveParticles);
   }
-  
+
   /******************** FEEDBACK ********************/
 
   /* Now we iterate */
