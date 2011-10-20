@@ -52,7 +52,7 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
-  static int EvaluateFeedback(grid *thisgrid_orig);
+  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int Initialize(void);
 };
 
@@ -69,7 +69,7 @@ int ActiveParticleType_SampleParticle::EvaluateFormation(grid *thisgrid_orig, Ac
   return 0;
 }
 
-int ActiveParticleType_SampleParticle::EvaluateFeedback(grid *thisgrid_orig)
+int ActiveParticleType_SampleParticle::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   return SUCCESS;
 }

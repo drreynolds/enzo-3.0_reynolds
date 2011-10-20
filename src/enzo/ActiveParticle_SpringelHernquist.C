@@ -55,7 +55,7 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
-  static int EvaluateFeedback(grid *thisgrid_orig);
+  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
 
   // Pop III specific active particle parameters
   static float OverDensityThreshold, PhysicalDensityThreshold;
@@ -227,7 +227,7 @@ int ActiveParticleType_SpringelHernquist::EvaluateFormation
 }
 
 // SH star feedback
-int ActiveParticleType_SpringelHernquist::EvaluateFeedback(grid *thisgrid_orig)
+int ActiveParticleType_SpringelHernquist::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   return SUCCESS;
 }
