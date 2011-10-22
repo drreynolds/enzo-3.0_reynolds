@@ -56,6 +56,7 @@ public:
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  ENABLED_PARTICLE_ID_ACCESSOR
 
   // Pop III specific active particle parameters
   static float OverDensityThreshold, PhysicalDensityThreshold;
@@ -94,8 +95,8 @@ int ActiveParticleType_SpringelHernquist::EvaluateFormation
   SpringelHernquistGrid *tg =
     static_cast<SpringelHernquistGrid *>(thisgrid_orig);
 
-  float bmass, div, dtot, tdyn, tstar;
-  int i, j, k, dim, index, offset_y, offset_z;
+  float bmass, tstar;
+  int i, j, k, index, offset_y, offset_z;
   int NumberOfNewParticles = 0;
   float r_float, y, x, pstar, starfraction, usn;
   float msolar=SolarMass, mproton=mh, beta=0.1,
@@ -255,10 +256,6 @@ ParticleBufferHandler *ActiveParticleType_SpringelHernquist::AllocateBuffers(int
 }
 
 namespace {
-  ActiveParticleType_info *SampleInfo = new ActiveParticleType_info
-    ("SpringelHernquist", (&ActiveParticleType_SpringelHernquist::EvaluateFormation),
-     (&ActiveParticleType_SpringelHernquist::DescribeSupplementalData),
-     (&ActiveParticleType_SpringelHernquist::AllocateBuffers),
-     (&ActiveParticleType_SpringelHernquist::InitializeParticleType),
-     (&ActiveParticleType_SpringelHernquist::EvaluateFeedback ));
+  ActiveParticleType_info *SpringelHernquistParticleInfo = 
+    register_ptype <ActiveParticleType_SpringelHernquist> ("SpringelHernquist");
 }

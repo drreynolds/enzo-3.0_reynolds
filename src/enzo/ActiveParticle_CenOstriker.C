@@ -78,13 +78,15 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
+  ENABLED_PARTICLE_ID_ACCESSOR
   
-  static float OverdensityThreshold, MassEfficiency, MinimumDynamicalTime, MinimumStarMass, MassEjectionFraction, 
-    EnergyToThermalFeedback, MetalYield;
+  static float OverdensityThreshold, MassEfficiency, MinimumDynamicalTime, 
+    MinimumStarMass, MassEjectionFraction, EnergyToThermalFeedback, MetalYield;
 
   static int FeedbackDistTotalCells, FeedbackDistRadius, FeedbackDistCellStep;
 
-  static bool JeansMassCriterion, StochasticStarFormation, UnigridVelocities, PhysicalOverdensity, dtDependence;
+  static bool JeansMassCriterion, StochasticStarFormation, UnigridVelocities, 
+    PhysicalOverdensity, dtDependence;
 
 private:
   float Metallicity;

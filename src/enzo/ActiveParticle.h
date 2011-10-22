@@ -103,6 +103,7 @@ public:
 
   //ActiveParticle* StarBufferToList(StarBuffer *buffer, int n);
   StarBuffer* StarListToBuffer(int n);
+
   //#endif /* IMPLEMENTED */
     
 protected:

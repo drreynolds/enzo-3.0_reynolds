@@ -129,7 +129,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
   for (i = 0; i < EnabledActiveParticlesCount; i++)
   {
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-    ActiveParticleTypeToEvaluate->feedback_function(this);
+    ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
   }
   
   ActiveParticleType::DestroyData(this, supplemental_data);

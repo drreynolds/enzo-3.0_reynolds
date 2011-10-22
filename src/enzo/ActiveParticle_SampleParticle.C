@@ -53,11 +53,11 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int Initialize(void);
+  static int InitializeParticleType(void);
   ENABLED_PARTICLE_ID_ACCESSOR
 };
 
-int ActiveParticleType_SampleParticle::Initialize(void)
+int ActiveParticleType_SampleParticle::InitializeParticleType(void)
 {
   return SUCCESS;
 }
