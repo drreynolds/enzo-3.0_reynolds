@@ -17,6 +17,7 @@
 #include "RateData.h"
 #include "RadiationFieldData.h"
 #include "TestProblemData.h"
+//#include "CosmicRayData.h"
 
 /* These are the different types of baryon fields. */
 
@@ -121,46 +122,44 @@ const field_type
   Mach            = 63,
   PreShockTemperature = 64,
   PreShockDensity = 65,  
+  CRDensity       = 66,
 
 /* these are required for Simon Glover's chemistry (which also needs some of the
    other fields, which are used for MultiSpecies) */
-  CIDensity       = 66,
-  CIIDensity      = 67, 
-  OIDensity       = 68, 
-  OIIDensity      = 69,
-  SiIDensity      = 70,
-  SiIIDensity     = 71,
-  SiIIIDensity    = 72,
-  CHIDensity      = 73,
-  CH2IDensity     = 74,
-  CH3IIDensity    = 75,
-  C2IDensity      = 76,
-  COIDensity      = 77,
-  HCOIIDensity    = 78,
-  OHIDensity      = 79,
-  H2OIDensity     = 80,
-  O2IDensity      = 81,
+  CIDensity       = 67,
+  CIIDensity      = 68, 
+  OIDensity       = 69, 
+  OIIDensity      = 70,
+  SiIDensity      = 71,
+  SiIIDensity     = 72,
+  SiIIIDensity    = 73,
+  CHIDensity      = 74,
+  CH2IDensity     = 75,
+  CH3IIDensity    = 76,
+  C2IDensity      = 77,
+  COIDensity      = 78,
+  HCOIIDensity    = 79,
+  OHIDensity      = 80,
+  H2OIDensity     = 81,
+  O2IDensity      = 82,
 
-  MBHColour       = 82,
-  ForbiddenRefinement = 83,
+  MBHColour       = 83,
+  ForbiddenRefinement = 84,
 
 /* FLD radiation module stuff (D. Reynolds) */ 
-  RadiationFreq0  = 84,
-  RadiationFreq1  = 85,
-  RadiationFreq2  = 86,
-  RadiationFreq3  = 87,
-  RadiationFreq4  = 88,
-  RadiationFreq5  = 89,
-  RadiationFreq6  = 90,
-  RadiationFreq7  = 91,
-  RadiationFreq8  = 92,
-  RadiationFreq9  = 93,
+  RadiationFreq0  = 85,
+  RadiationFreq1  = 86,
+  RadiationFreq2  = 87,
+  RadiationFreq3  = 88,
+  RadiationFreq4  = 89,
+  RadiationFreq5  = 90,
+  RadiationFreq6  = 91,
+  RadiationFreq7  = 92,
+  RadiationFreq8  = 93,
+  RadiationFreq9  = 94,
 
   /* Number of ray segments for ray tracing load balancing */
-  RaySegments     = 94,
-
-/* Metals from Type Ia SNe */
-  MetalSNIaDensity = 95,
+  RaySegments     = 95,
 
   FieldUndefined  = 96;
    
@@ -177,7 +176,7 @@ enum field_type {Density, TotalEnergy, InternalEnergy, Pressure,
 
 #define FieldTypeIsDensity(A) ((((A) >= TotalEnergy && (A) <= Velocity3) || ((A) >= kphHI && (A) <= kdissH2I) || ((A) >= RadiationFreq0 && (A) <= RaySegments) || ((A) >= Bfield1 && (A) <= AccelerationField3)) ? FALSE : TRUE)
 #define FieldTypeIsRadiation(A) ((((A) >= kphHI && (A) <= kdissH2I) || ((A) >= RadiationFreq0 && (A) <= RadiationFreq9)) ? TRUE : FALSE)
-#define FieldTypeNoInterpolate(A) (((((A) >= Mach) && ((A) <= PreShockDensity)) || ((A) == GravPotential)) ? TRUE : FALSE)
+#define FieldTypeNoInterpolate(A) (((((A) >= Mach) && ((A) <= Mach + 1 + CRModel)) || ((A) == GravPotential)) ? TRUE : FALSE)
 
 /* These are the different types of fluid boundary conditions. */
 
@@ -258,7 +257,8 @@ const star_type
   BlackHole = PARTICLE_TYPE_BLACK_HOLE,
   PopIII_CF = PARTICLE_TYPE_COLOR_STAR, // Non-radiating PopIII
   MBH = PARTICLE_TYPE_MBH,
-  Kravtsov = PARTICLE_TYPE_STAR;
+  Kravtsov = PARTICLE_TYPE_STAR,
+  CenOstriker = PARTICLE_TYPE_STAR;
 
 
 /* Define a float/int union. */

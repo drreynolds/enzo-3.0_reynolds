@@ -764,6 +764,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   for (i = 0; i < MAX_ACTIVE_PARTICLE_TYPES; i++) EnabledActiveParticles[i] = NULL;
   EnabledActiveParticlesCount = 0;
+  UnfulfilledStarFormationMass = 0;
 
   /* Gas drag parameters */
   UseGasDrag = 0;

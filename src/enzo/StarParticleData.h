@@ -110,6 +110,8 @@ SPEXTERN float  MBHFeedbackMetalYield;
 SPEXTERN float  MBHFeedbackThermalRadius;
 SPEXTERN float  MBHFeedbackJetsThresholdMass;
 
+SPEXTERN float UnfulfilledStarFormationMass;
+
 SPEXTERN float minStarLifetime;
 SPEXTERN FLOAT LastSupernovaTime;
 SPEXTERN float *IMFData;

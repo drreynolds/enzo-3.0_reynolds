@@ -74,7 +74,7 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
-  static int EvaluateFeedback(grid *thisgrid_orig);
+  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   ENABLED_PARTICLE_ID_ACCESSOR
 
   // Pop III specific active particle parameters
@@ -260,7 +260,7 @@ int ActiveParticleType_PopIII::EvaluateFormation
 }
 
 // Pop III feedback (done through rad. transfer and feedback spheres)
-int ActiveParticleType_PopIII::EvaluateFeedback(grid *thisgrid_orig)
+int ActiveParticleType_PopIII::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   return SUCCESS;
 }
