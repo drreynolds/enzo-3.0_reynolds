@@ -126,7 +126,6 @@ int ActiveParticleType_CenOstriker::InitializeParticleType() {
   Param.GetScalar(MassEjectionFraction, "Physics.ActiveParticles.CenOstriker.MassEjectionFraction");
   Param.GetScalar(EnergyToThermalFeedback, "Physics.ActiveParticles.CenOstriker.EnergyToThermalFeedback");
   Param.GetScalar(MetalYield, "Physics.ActiveParticles.CenOstriker.MetalYield");
-  Param.GetScalar(FeedbackDistTotalCells, "Physics.ActiveParticles.CenOstriker.FeedbackDistTotalCells");
   Param.GetScalar(FeedbackDistRadius, "Physics.ActiveParticles.CenOstriker.FeedbackDistRadius");
   Param.GetScalar(FeedbackDistCellStep, "Physics.ActiveParticles.CenOstriker.FeedbackDistCellStep");
   Param.GetScalar(JeansMassCriterion, "Physics.ActiveParticles.CenOstriker.JeansMassCriterion");
@@ -136,16 +135,15 @@ int ActiveParticleType_CenOstriker::InitializeParticleType() {
 
 #else
   
-  OverdensityThreshold = 100;
-  MassEfficiency = 1.0;
-  MinimumDynamicalTime = 1.0e6;
-  MinimumStarMass = 1.0e9;
-  MassEjectionFraction = 0.25;
-  EnergyToThermalFeedback = 1.0e-5;
-  MetalYield = 0.02;
-  FeedbackDistTotalCells = 1;
-  FeedbackDistRadius = 0;
-  FeedbackDistCellStep = 0;
+  OverdensityThreshold = StarMakerOverDensityThreshold;
+  MassEfficiency = StarMakerMassEfficiency;
+  MinimumDynamicalTime = StarMakerMinimumDynamicalTime;
+  MinimumStarMass = StarMakerMinimumMass;
+  MassEjectionFraction = StarMassEjectionFraction;
+  EnergyToThermalFeedback = StarEnergyToThermalFeedback;
+  MetalYield = StarMetalYield;
+  FeedbackDistRadius = StarFeedbackDistRadius;
+  FeedbackDistCellStep = StarFeedbackDistCellStep;
   JeansMassCriterion = true;
   StochasticStarFormation = false;
   UnigridVelocities = true;

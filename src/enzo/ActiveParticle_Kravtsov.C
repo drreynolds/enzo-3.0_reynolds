@@ -101,9 +101,9 @@ int ActiveParticleType_Kravtsov::InitializeParticleType() {
 
 #else
 
-  DensityThreshold = 0.0;
-  StarFormationTimeConstant = 0.0;
-  MinimumStarMass = 0.0;
+  DensityThreshold = StarMakerOverDensityThreshold;
+  StarFormationTimeConstant = StarMakerMinimumDynamicalTime;
+  MinimumStarMass = StarMakerMinimumMass;
   
 #endif
 

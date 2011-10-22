@@ -80,11 +80,10 @@ int ActiveParticleType_SpringelHernquist::InitializeParticleType() {
   Param.GetScalar(MinimumDynamicalTime, "Physics.ActiveParticles.SpringelHernquist.MinimumDynamicalTime");
   Param.GetScalar(MinimumMass, "Physics.ActiveParticles.SpringelHernquist.MinimumMass");
 #else
-  // zero for now, just to check compiling
-  OverDensityThreshold = 0.0;
-  PhysicalDensityThreshold = 0.0;
-  MinimumDynamicalTime = 0.0;
-  MinimumMass = 0.0;
+  OverDensityThreshold = StarMakerOverDensityThreshold;
+  PhysicalDensityThreshold = StarMakerSHDensityThreshold;
+  MinimumDynamicalTime = StarMakerMinimumDynamicalTime;
+  MinimumMass = StarMakerMinimumMass;
 #endif
 
 }

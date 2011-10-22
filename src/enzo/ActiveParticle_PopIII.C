@@ -109,10 +109,10 @@ int ActiveParticleType_PopIII::InitializeParticleType() {
 
 #else
 
-  OverDensityThreshold = 0.0;
-  MetalCriticalFraction = 0.0;
-  H2CriticalFraction = 0.0;
-  StarMass = 0.0;
+  OverDensityThreshold = PopIIIOverDensityThreshold;
+  MetalCriticalFraction = PopIIIMetalCriticalFraction;
+  H2CriticalFraction = PopIIIH2CriticalFraction;
+  StarMass = PopIIIStarMass;
 
 #endif
 
