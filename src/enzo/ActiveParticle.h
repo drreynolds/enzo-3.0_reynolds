@@ -46,8 +46,7 @@ public:
   ~ActiveParticleType(){};
   ActiveParticleType(ActiveParticleType*& part){};
   virtual int GetEnabledParticleID(int id = -1) = 0;
-#ifdef ACTIVE_PARTICLE_IMPLEMENTED
-
+  //#ifdef ACTIVE_PARTICLE_IMPLEMENTED
   ActiveParticleType(grid *_grid, int _id, int _level);
   ActiveParticleType(StarBuffer *buffer, int n);
   ActiveParticleType(StarBuffer buffer) ;
@@ -239,9 +238,9 @@ public:
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
    ParticleBufferHandler *(*abfunc)(int NumberOfParticles),
-   ActiveParticleType *particle
    int (*ifunc)(),
-   int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data)
+   int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
+   ActiveParticleType *particle
    ){
     this->formation_function = ffunc;
     this->describe_data_flags = dfunc;
@@ -262,7 +261,9 @@ public:
     return this->MyEnabledParticleID;
   }
 
+  int (*initialize)(void);
   int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
   ActiveParticleType* particle_instance;
@@ -273,14 +274,6 @@ private:
   static int TotalEnabledParticleCount;
   int MyEnabledParticleID; /* Defaults to 0 */
   int *EnabledParticleIDPointer;
-
-  static int count(){return get_active_particle_types().size();}
-  
-  int (*initialize)(void);
-  int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
-  ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
 
 };
 
@@ -293,6 +286,8 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::EvaluateFormation),
      (&active_particle_class::DescribeSupplementalData),
      (&active_particle_class::AllocateBuffers),
+     (&active_particle_class::InitializeParticleType),
+     (&active_particle_class::EvaluateFeedback),
      pp);
   return pinfo;
 }
@@ -306,6 +301,7 @@ ActiveParticleType_info *register_ptype(std::string name)
     }									\
     return ParticleID;							\
   };
+
 
 #endif
 

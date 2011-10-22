@@ -299,12 +299,6 @@ PopIIIParticleBufferHandler::PopIIIParticleBufferHandler(int NumberOfParticles)
 }
 
 namespace {
-//    ActiveParticleType_info *PopIIIParticleInfo = 
-//        register_ptype <ActiveParticleType_PopIII> ("PopIII");
-    ActiveParticleType_info *SampleInfo = new ActiveParticleType_info(
-            "PopIII", (&ActiveParticleType_PopIII::EvaluateFormation),
-	    (&ActiveParticleType_PopIII::DescribeSupplementalData),
-	    (&ActiveParticleType_PopIII::AllocateBuffers),
-	    (&ActiveParticleType_PopIII::InitializeParticleType),
-	    (&ActiveParticleType_PopIII::EvaluateFeedback) );
+  ActiveParticleType_info *PopIIIParticleInfo = 
+    register_ptype <ActiveParticleType_PopIII> ("PopIII");
 }

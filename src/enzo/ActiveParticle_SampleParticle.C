@@ -94,12 +94,6 @@ ParticleBufferHandler *ActiveParticleType_SampleParticle::AllocateBuffers(int Nu
 
 
 namespace {
-//    ActiveParticleType_info *SampleParticleInfo = 
-//        register_ptype <ActiveParticleType_SampleParticle> ("SampleParticle");
-  ActiveParticleType_info *SampleInfo = new ActiveParticleType_info
-    ("SampleParticle", (&ActiveParticleType_SampleParticle::EvaluateFormation),
-     (&ActiveParticleType_SampleParticle::DescribeSupplementalData),
-     (&ActiveParticleType_SampleParticle::AllocateBuffers),
-     (&ActiveParticleType_SampleParticle::Initialize),
-     (&ActiveParticleType_SampleParticle::EvaluateFeedback ) );
+  ActiveParticleType_info *SampleParticleInfo = 
+    register_ptype <ActiveParticleType_SampleParticle> ("SampleParticle");
 }

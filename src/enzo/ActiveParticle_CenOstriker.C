@@ -294,7 +294,7 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	np->pos[0] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
 	if (UnigridVelocities == false) {
-	  double *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
+	  float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
 	  
 	  np->vel[0] = tvel[0];
 	  np->vel[1] = tvel[1];
@@ -362,21 +362,21 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback(grid *thisGrid_orig, Active
   bool HasMetalField = (data.MetalNum != -1 || data.ColourNum != -1);
 
   for (n=0;npart-1;n++) {
-    if (thisGrid->ActiveParticles[n].ReturnType() == CenOstriker)
+    if (thisGrid->ActiveParticles[n]->ReturnType() == CenOstriker)
       continue;
   
-    xpos = thisGrid->ActiveParticles[n].ReturnXPosition();
-    ypos = thisGrid->ActiveParticles[n].ReturnYPosition();
-    zpos = thisGrid->ActiveParticles[n].ReturnZPosition();
+    xpos = thisGrid->ActiveParticles[n]->ReturnXPosition();
+    ypos = thisGrid->ActiveParticles[n]->ReturnYPosition();
+    zpos = thisGrid->ActiveParticles[n]->ReturnZPosition();
   
-    xvel = thisGrid->ActiveParticles[n].ReturnXVelocity();
-    yvel = thisGrid->ActiveParticles[n].ReturnYVelocity();
-    zvel = thisGrid->ActiveParticles[n].ReturnZVelocity();
+    xvel = thisGrid->ActiveParticles[n]->ReturnXVelocity();
+    yvel = thisGrid->ActiveParticles[n]->ReturnYVelocity();
+    zvel = thisGrid->ActiveParticles[n]->ReturnZVelocity();
 
-    ParticleBirthTime = thisGrid->ActiveParticles[n].ReturnBirthTime();
-    ParticleDynamicalTimeAtBirth = thisGrid->ActiveParticles[n].ReturnDynamicalTime();
-    ParticleMass = thisGrid->ActiveParticles[n].ReturnMass();
-    ParticleMetalFraction = thisGrid->ActiveParticles[n].ReturnMetallicity();
+    ParticleBirthTime = thisGrid->ActiveParticles[n]->ReturnBirthTime();
+    ParticleDynamicalTimeAtBirth = thisGrid->ActiveParticles[n]->ReturnDynamicalTime();
+    ParticleMass = thisGrid->ActiveParticles[n]->ReturnMass();
+    ParticleMetalFraction = thisGrid->ActiveParticles[n]->ReturnMetallicity();
     
     // Determine how much of a given star particle would have been turned into stars during this timestep.
     // Then, calculate the mass which should have formed during this timestep dt using the integral form
@@ -442,7 +442,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback(grid *thisGrid_orig, Active
 
     // Save particle mass
 
-    thisGrid->ActiveParticles[n].SetMass(ParticleMass);
+    thisGrid->ActiveParticles[n]->SetMass(ParticleMass);
 
     // Record amount of star formation in this grid
 
@@ -461,11 +461,11 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback(grid *thisGrid_orig, Active
 
     // Add energy to the energy field
     for (kc = k - FeedbackDistRadius; kc > k + FeedbackDistRadius; kc++){
-      stepk = abs(kc - k);
+      stepk = fabs(kc - k);
       for (jc = j - FeedbackDistRadius; jc > j + FeedbackDistRadius; jc++){
-	stepj = stepk + abs(jc - j);
+	stepj = stepk + fabs(jc - j);
 	for (ic = i - FeedbackDistRadius; ic > i + FeedbackDistRadius; ic++){
-	  cellstep = stepj + abs(ic - i);
+	  cellstep = stepj + fabs(ic - i);
 	  DistIndex = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0],jc,kc);
 	  if (cellstep < FeedbackDistCellStep) {
 	    DensityRatio = 1.0/(density[DistIndex] + DensityToAddToEachCell);
@@ -534,10 +534,6 @@ ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers(int Numbe
 
 
 namespace {
-  ActiveParticleType_info *SampleInfo = new ActiveParticleType_info
-    ("CenOstrikerParticle", (&ActiveParticleType_CenOstriker::EvaluateFormation),
-     (&ActiveParticleType_CenOstriker::DescribeSupplementalData),
-     (&ActiveParticleType_CenOstriker::AllocateBuffers),
-     (&ActiveParticleType_CenOstriker::InitializeParticleType),
-     (&ActiveParticleType_CenOstriker::EvaluateFeedback) );
+  ActiveParticleType_info *CenOstrikerParticleInfo = 
+    register_ptype <ActiveParticleType_CenOstriker> ("CenOstriker");
 }
