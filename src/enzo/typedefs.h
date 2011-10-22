@@ -17,7 +17,7 @@
 #include "RateData.h"
 #include "RadiationFieldData.h"
 #include "TestProblemData.h"
-//#include "CosmicRayData.h"
+#include "CosmicRayData.h"
 
 /* These are the different types of baryon fields. */
 

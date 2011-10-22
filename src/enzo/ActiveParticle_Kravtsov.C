@@ -72,7 +72,7 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
-  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  static int EvaluateFeedback(grid *thisgrid_orig);
 
   static float DensityThreshold, StarFormationTimeConstant, MinimumStarMass;
 
@@ -234,7 +234,7 @@ int ActiveParticleType_Kravtsov::EvaluateFormation
 }
 
 // Pop III feedback
-int ActiveParticleType_Kravtsov::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
+int ActiveParticleType_Kravtsov::EvaluateFeedback(grid *thisgrid_orig)
 {
   return SUCCESS;
 }

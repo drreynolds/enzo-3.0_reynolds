@@ -130,14 +130,12 @@ void ActiveParticleType::ConstructData(grid *_grid,
 
   /* Find metallicity field and set flag. */
  
-  int SNColourNum, MetalNum, Metal2Num, MetalIaNum, MBHColourNum, Galaxy1ColourNum, Galaxy2ColourNum; 
+  int SNColourNum, MetalNum, MBHColourNum, Galaxy1ColourNum, Galaxy2ColourNum; 
 
-  if (_grid->IdentifyColourFields(SNColourNum, Metal2Num, MetalIaNum, MBHColourNum, 
+  if (_grid->IdentifyColourFields(SNColourNum, MetalNum, MBHColourNum, 
 				 Galaxy1ColourNum, Galaxy2ColourNum) == FAIL) {
     ENZO_FAIL("Error in grid->IdentifyColourFields.\n");
   }
-
-  MetalNum = max(Metal2Num,SNColourNum);
 
   /* Now we fill in the *Num attributes of data */
   data.DensNum = DensNum;
@@ -145,8 +143,6 @@ void ActiveParticleType::ConstructData(grid *_grid,
   data.Vel2Num = Vel2Num;
   data.Vel3Num = Vel3Num;
   data.MetalNum = MetalNum;
-  data.TENum = TENum;
-  data.GENum = GENum;
   /*data.ColourNum = ColourNum;*/
 
   /* Compute the redshift. */

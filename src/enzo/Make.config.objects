@@ -17,7 +17,6 @@
 OBJS_CONFIG_LIB = \
         acml_st1.o \
         ActiveParticle.o \
-	ActiveParticle_CenOstriker.o \
         ActiveParticle_Kravtsov.o \
         ActiveParticle_PopIII.o \
         ActiveParticle_SampleParticle.o \
