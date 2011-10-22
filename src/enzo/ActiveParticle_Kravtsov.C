@@ -72,7 +72,8 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
-  static int EvaluateFeedback(grid *thisgrid_orig);
+  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  ENABLED_PARTICLE_ID_ACCESSOR
 
   static float DensityThreshold, StarFormationTimeConstant, MinimumStarMass;
 
@@ -120,9 +121,9 @@ int ActiveParticleType_Kravtsov::EvaluateFormation
   /* Make it pretty */
 
   float *density = tg->BaryonField[supp_data.DensNum];
-  float *velx = tg->BaryonField[supp_data.Vel1Num];
-  float *vely = tg->BaryonField[supp_data.Vel2Num];
-  float *velz = tg->BaryonField[supp_data.Vel3Num];
+//  float *velx = tg->BaryonField[supp_data.Vel1Num];
+//  float *vely = tg->BaryonField[supp_data.Vel2Num];
+//  float *velz = tg->BaryonField[supp_data.Vel3Num];
 
   float CellWidthTemp = float(tg->CellWidth[0][0]);
 
@@ -233,8 +234,8 @@ int ActiveParticleType_Kravtsov::EvaluateFormation
   return NumberOfNewParticles;
 }
 
-// Pop III feedback
-int ActiveParticleType_Kravtsov::EvaluateFeedback(grid *thisgrid_orig)
+// Feedback
+int ActiveParticleType_Kravtsov::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   return SUCCESS;
 }
@@ -260,11 +261,6 @@ ParticleBufferHandler *ActiveParticleType_Kravtsov::AllocateBuffers(int NumberOf
 }
 
 namespace {
-    ActiveParticleType_info *SampleInfo = new ActiveParticleType_info(
-            "Kravtsov", (&ActiveParticleType_Kravtsov::EvaluateFormation),
-	    (&ActiveParticleType_Kravtsov::DescribeSupplementalData),
-	    (&ActiveParticleType_Kravtsov::AllocateBuffers),
-	    (&ActiveParticleType_Kravtsov::InitializeParticleType),
-	    (&ActiveParticleType_Kravtsov::EvaluateFeedback) );
-
+  ActiveParticleType_info *KravtsovParticleInfo = 
+    register_ptype <ActiveParticleType_Kravtsov> ("Kravtsov");
 }

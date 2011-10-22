@@ -52,11 +52,12 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
-  static int EvaluateFeedback(grid *thisgrid_orig);
-  static int Initialize(void);
+  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  static int InitializeParticleType(void);
+  ENABLED_PARTICLE_ID_ACCESSOR
 };
 
-int ActiveParticleType_SampleParticle::Initialize(void)
+int ActiveParticleType_SampleParticle::InitializeParticleType(void)
 {
   return SUCCESS;
 }
@@ -69,7 +70,8 @@ int ActiveParticleType_SampleParticle::EvaluateFormation(grid *thisgrid_orig, Ac
   return 0;
 }
 
-int ActiveParticleType_SampleParticle::EvaluateFeedback(grid *thisgrid_orig)
+int ActiveParticleType_SampleParticle::EvaluateFeedback
+(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   return SUCCESS;
 }
@@ -93,10 +95,6 @@ ParticleBufferHandler *ActiveParticleType_SampleParticle::AllocateBuffers(int Nu
 
 
 namespace {
-  ActiveParticleType_info *SampleInfo = new ActiveParticleType_info
-    ("SampleParticle", (&ActiveParticleType_SampleParticle::EvaluateFormation),
-     (&ActiveParticleType_SampleParticle::DescribeSupplementalData),
-     (&ActiveParticleType_SampleParticle::AllocateBuffers),
-     (&ActiveParticleType_SampleParticle::Initialize),
-     (&ActiveParticleType_SampleParticle::EvaluateFeedback ) );
+  ActiveParticleType_info *SampleParticleInfo = 
+    register_ptype <ActiveParticleType_SampleParticle> ("SampleParticle");
 }

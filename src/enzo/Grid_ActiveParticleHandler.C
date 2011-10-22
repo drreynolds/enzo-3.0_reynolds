@@ -107,10 +107,10 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   if (NumberOfNewParticles > 0) {
     int OldNumberOfActiveParticles = this->NumberOfActiveParticles;
-    ActiveParticleType *OldActiveParticles = this->ActiveParticles;
+    ActiveParticleType **OldActiveParticles = this->ActiveParticles;
 
     this->NumberOfActiveParticles += NumberOfNewParticles;
-    this->ActiveParticles = new ActiveParticleType[this->NumberOfActiveParticles];
+    this->ActiveParticles = new ActiveParticleType*[this->NumberOfActiveParticles];
     for (i = 0; i < OldNumberOfActiveParticles; i++) {
       this->ActiveParticles[i] = OldActiveParticles[i];
     }
@@ -120,6 +120,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     }
     assert((NumberOfNewParticles + OldNumberOfActiveParticles)
         == this->NumberOfActiveParticles);
+    delete[] OldActiveParticles; 
   }
 
   /******************** FEEDBACK ********************/
@@ -128,7 +129,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
   for (i = 0; i < EnabledActiveParticlesCount; i++)
   {
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-    ActiveParticleTypeToEvaluate->feedback_function(this);
+    ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
   }
   
   ActiveParticleType::DestroyData(this, supplemental_data);

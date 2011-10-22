@@ -127,7 +127,8 @@ class grid
 //  Active particle data
 //
   int NumberOfActiveParticles;
-  ActiveParticleType *ActiveParticles;
+  ActiveParticleType **ActiveParticles;
+  class ParticleBufferHandler **GetParticleBuffers();
 //
 //  Gravity data
 // 
@@ -550,7 +551,7 @@ public:
 
 /* Debugging support. */
 
-   int DebugCheck(char *message = "Debug");
+   int DebugCheck(const char *message = "Debug");
 
 #ifdef EMISSIVITY
    /* define function prototype as a grid member function */

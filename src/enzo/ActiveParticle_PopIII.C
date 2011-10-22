@@ -64,14 +64,8 @@ class ActiveParticleType_PopIII;
 class PopIIIParticleBufferHandler;
 
 class PopIIIGrid : private grid {
-    friend class ActiveParticleType_PopIII;
+  friend class ActiveParticleType_PopIII;
 };
-
-/* Note that we only refer to SampleParticleGrid here. 
- * Given a grid object, we static case to get this:
- *
- *    SampleParticleGrid *thisgrid =
- *      static_cast<SampleParticleGrid *>(thisgrid_orig); */
 
 class ActiveParticleType_PopIII : public ActiveParticleType
 {
@@ -80,7 +74,8 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
-  static int EvaluateFeedback(grid *thisgrid_orig);
+  static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  ENABLED_PARTICLE_ID_ACCESSOR
 
   // Pop III specific active particle parameters
   static float OverDensityThreshold, MetalCriticalFraction, 
@@ -128,8 +123,7 @@ int ActiveParticleType_PopIII::InitializeParticleType() {
 int ActiveParticleType_PopIII::EvaluateFormation
 (grid *thisgrid_orig, ActiveParticleFormationData &supp_data)
 {
-  PopIIIGrid *tg =
-    static_cast<PopIIIGrid *>(thisgrid_orig);
+  PopIIIGrid *tg = static_cast<PopIIIGrid *>(thisgrid_orig);
 
   float bmass, div, dtot, tdyn, LifetimeInYears;
   int i, j, k, dim, index, offset_y, offset_z;
@@ -266,7 +260,8 @@ int ActiveParticleType_PopIII::EvaluateFormation
 }
 
 // Pop III feedback (done through rad. transfer and feedback spheres)
-int ActiveParticleType_PopIII::EvaluateFeedback(grid *thisgrid_orig)
+int ActiveParticleType_PopIII::EvaluateFeedback
+(grid *thisgrid_orig, ActiveParticleFormationData &supp_data)
 {
   return SUCCESS;
 }
@@ -286,7 +281,10 @@ void ActiveParticleType_PopIII::DescribeSupplementalData
 class PopIIIParticleBufferHandler : public ParticleBufferHandler
 {
   public:
-    PopIIIParticleBufferHandler(int NumberOfParticles) { }
+    PopIIIParticleBufferHandler(int NumberOfParticles);
+  private:
+    float *Lifetime;
+    float *Metallicity;
 };
 
 ParticleBufferHandler *ActiveParticleType_PopIII::AllocateBuffers(int NumberOfParticles)
@@ -295,12 +293,13 @@ ParticleBufferHandler *ActiveParticleType_PopIII::AllocateBuffers(int NumberOfPa
     return handler;
 }
 
-namespace {
-    ActiveParticleType_info *SampleInfo = new ActiveParticleType_info(
-            "PopIII", (&ActiveParticleType_PopIII::EvaluateFormation),
-	    (&ActiveParticleType_PopIII::DescribeSupplementalData),
-	    (&ActiveParticleType_PopIII::AllocateBuffers),
-	    (&ActiveParticleType_PopIII::InitializeParticleType),
-	    (&ActiveParticleType_PopIII::EvaluateFeedback) );
+PopIIIParticleBufferHandler::PopIIIParticleBufferHandler(int NumberOfParticles)
+{
+    this->Lifetime = new float[NumberOfParticles];
+    this->Metallicity = new float[NumberOfParticles];
+}
 
+namespace {
+  ActiveParticleType_info *PopIIIParticleInfo = 
+    register_ptype <ActiveParticleType_PopIII> ("PopIII");
 }

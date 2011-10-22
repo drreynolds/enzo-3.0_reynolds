@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -63,6 +64,12 @@ void EnableActiveParticleType(char *active_particle_type_name) {
     my_type->initialize();
 
     EnabledActiveParticles[EnabledActiveParticlesCount++] = my_type;
+    int this_id = my_type->Enable();
+    /* Note that this ID is only unique for each individual instantiation of
+       Enzo.  The next time you start it, these numbers might be different.
+       This is why they aren't output to a file!
+    */
+    assert(my_type->GetEnabledParticleID() == EnabledActiveParticlesCount-1);
     return;
 }
 
@@ -130,12 +137,10 @@ void ActiveParticleType::ConstructData(grid *_grid,
 
   /* Find metallicity field and set flag. */
  
-  int SNColourNum, MetalNum, MBHColourNum, Galaxy1ColourNum, Galaxy2ColourNum; 
+  int SNColourNum, MetalNum, MetalIaNum, MBHColourNum, Galaxy1ColourNum, Galaxy2ColourNum; 
 
-  if (_grid->IdentifyColourFields(SNColourNum, MetalNum, MBHColourNum, 
-				 Galaxy1ColourNum, Galaxy2ColourNum) == FAIL) {
-    ENZO_FAIL("Error in grid->IdentifyColourFields.\n");
-  }
+  _grid->IdentifyColourFields(SNColourNum, MetalNum, MetalIaNum, MBHColourNum, 
+			      Galaxy1ColourNum, Galaxy2ColourNum);
 
   /* Now we fill in the *Num attributes of data */
   data.DensNum = DensNum;
@@ -284,3 +289,29 @@ void ActiveParticleType::DestroyData(grid *_grid,
     /* We don't need to reset anything else. */
 
 }
+
+ParticleBufferHandler **grid::GetParticleBuffers() {
+  if ((this->NumberOfActiveParticles == 0) ||
+      (EnabledActiveParticlesCount == 0)) return NULL;
+  fprintf(stderr, "Getting buffers %"ISYM" and %"ISYM"\n",
+            this->NumberOfActiveParticles,
+            EnabledActiveParticlesCount);
+  int i, pt;
+  int *hist = new int[EnabledActiveParticlesCount];
+  for (i = 0; i < this->NumberOfActiveParticles; i++) hist[i] = 0;
+  for (i = 0; i < this->NumberOfActiveParticles; i++)
+  {
+    pt = this->ActiveParticles[i]->GetEnabledParticleID();
+    if (pt < 0) { fprintf(stderr, "GPB:  %"ISYM"\n", i); continue;}
+    hist[pt]++;
+  }
+  for (i = 0; i < EnabledActiveParticlesCount; i++){
+    fprintf(stderr, "GPB:: %"ISYM"\n", i);
+    fprintf(stderr, "GPB: [%"ISYM"]=%"ISYM"\n", i, hist[i]);
+  }
+  delete hist;
+  return NULL;
+}
+
+int ActiveParticleType_info::TotalEnabledParticleCount = 0;
+

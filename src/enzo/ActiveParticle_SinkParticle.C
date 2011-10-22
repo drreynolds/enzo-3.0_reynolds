@@ -70,6 +70,7 @@ public:
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int InitializeParticleType();
+  ENABLED_PARTICLE_ID_ACCESSOR
 
   static float OverflowFactor;
 };
@@ -231,10 +232,6 @@ ParticleBufferHandler *ActiveParticleType_SinkParticle::AllocateBuffers(int Numb
 
 
 namespace {
-  ActiveParticleType_info *SampleInfo = new ActiveParticleType_info
-    ("SinkParticle", (&ActiveParticleType_SinkParticle::EvaluateFormation),
-     (&ActiveParticleType_SinkParticle::DescribeSupplementalData),
-     (&ActiveParticleType_SinkParticle::AllocateBuffers),
-     (&ActiveParticleType_SinkParticle::InitializeParticleType),
-     (&ActiveParticleType_SinkParticle::EvaluateFeedback ) );
+  ActiveParticleType_info *SinkParticleInfo = 
+    register_ptype <ActiveParticleType_SinkParticle> ("SinkParticle");
 }
