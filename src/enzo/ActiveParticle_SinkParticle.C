@@ -182,7 +182,7 @@ int ActiveParticleType_SinkParticle::EvaluateFormation(grid *thisgrid_orig, Acti
 	np->pos[0] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
 	np->pos[0] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
-	double *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
+	float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
 	  
 	np->vel[0] = tvel[0];
 	np->vel[1] = tvel[1];
