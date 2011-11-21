@@ -42,24 +42,26 @@ public:
   
   /* This should return the number of new star particles created, and should
    * create them. */
-  ActiveParticleType(){};
-  ~ActiveParticleType(){};
-  ActiveParticleType(ActiveParticleType*& part){};
-  virtual int GetEnabledParticleID(int id = -1) = 0;
-  star_type ReturnType(void) {return type; };
-#ifdef ACTIVE_PARTICLE_IMPLEMENTED
+//  ActiveParticleType(){};
+//  ~ActiveParticleType(){};
+//  ActiveParticleType(ActiveParticleType*& part){};
+
+  ActiveParticleType(void);
   ActiveParticleType(grid *_grid, int _id, int _level);
-  ActiveParticleType(StarBuffer *buffer, int n);
-  ActiveParticleType(StarBuffer buffer) ;
-  ActiveParticleType* copy(void);
+  ActiveParticleType(ActiveParticleType*& part);
+  ~ActiveParticleType(void);
+
+  void operator=(ActiveParticleType *a);
+
+  template <class active_particle_class> active_particle_class *copy(void);
 
   int   ReturnID(void) { return Identifier; };
   double ReturnMass(void) { return Mass; };
   float ReturnBirthTime(void) { return BirthTime; };
   float ReturnDynamicalTime(void) { return DynamicalTime; };
   star_type ReturnType(void) {return type; };
-
   int   ReturnLevel(void) { return level; };
+
   void  ReduceLevel(void) { level--; };
   void  IncreaseLevel(void) { level++; };
   void  SetLevel(int i) { level = i; };
@@ -70,35 +72,34 @@ public:
 
   FLOAT *ReturnPosition(void) { return pos; }
   float *ReturnVelocity(void) { return vel; }
-  void    ConvertMassToSolar(void);
-  void    Merge(Star a);
-  void    Merge(Star *a);
-  bool    Mergable(Star a);
-  bool  Mergable(Star *a);
-  float Separation(Star a);
-  float Separation(Star *a);
-  float Separation2(Star a);
-  float Separation2(Star *a);
-  float RelativeVelocity2(Star a);
-  float RelativeVelocity2(Star *a);
+  void   ConvertAllMassesToSolar(void);
+  void   ConvertMassToSolar(void);
+  void   Merge(ActiveParticleType *a);
+  bool  Mergable(ActiveParticleType *a);
+  bool  MergableMBH(ActiveParticleType *a);
+  float Separation(ActiveParticleType *a);
+  float Separation2(ActiveParticleType *a);
+  float RelativeVelocity2(ActiveParticleType *a);
   void  UpdatePositionVelocity(void);
-  void    DeleteCopyInGrid(void);
-  int   DeleteCopyInGridGlobal(LevelHierarchyEntry *LevelArray[]);
-  void    CopyToGrid(void);
   void  MirrorToParticle(void);
-  virtual bool  IsARadiationSource(FLOAT Time) { return FALSE };
-  int   DeleteParticle(LevelHierarchyEntry *LevelArray[]);
+  void  CopyFromParticle(grid *_grid, int _id, int _level);
   int   DisableParticle(LevelHierarchyEntry *LevelArray[]);
-  void  ActivateNewStar(FLOAT Time, float Timestep);
+  int   SphereContained(LevelHierarchyEntry *LevelArray[], int level, 
+			float Radius);
+  void  PrintInfo(void);
+  //void  ActivateNewStar(FLOAT Time, float Timestep);
+  //void  DeleteCopyInGrid(void);
+  //int   DeleteCopyInGridGlobal(LevelHierarchyEntry *LevelArray[]);
 
-  int SphereContained(LevelHierarchyEntry *LevelArray[], int level, 
-              float Radius);
+  /* Virtual and pure virtual functions in this base class */
 
-  ActiveParticle* StarBufferToList(StarBuffer *buffer, int n);
-  StarBuffer* StarListToBuffer(int n);
+  virtual bool IsARadiationSource(FLOAT Time) { return FALSE; };
+  virtual int GetEnabledParticleID(int id = -1) = 0;
 
-#endif /* IMPLEMENTED */
-    
+#ifdef TRANSFER
+  RadiationSourceEntry* RadiationSourceInitialize(void);
+#endif
+
 protected:
   grid *CurrentGrid;
   FLOAT	pos[MAX_DIMENSION];
