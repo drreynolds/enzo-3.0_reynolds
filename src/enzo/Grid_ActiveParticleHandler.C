@@ -95,7 +95,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
     ActiveParticleTypeToEvaluate->formation_function(
                                 this, supplemental_data);
-    NumberOfNewParticles = supplemental_data.NumberOfNewParticles;
+    NumberOfNewParticles += supplemental_data.NumberOfNewParticles;
     
   }
 
