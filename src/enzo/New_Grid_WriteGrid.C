@@ -636,6 +636,38 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 
   } // end: if (NumberOfParticles > 0)
  
+  /* ------------------------------------------------------------------- */
+  /* 4) Save active particle quantities. */
+
+  if (NumberOfActiveParticles > 0) {
+    /* Iterate over the enabled active particle types */
+
+    for (i = 0; i < EnabledActiveParticlesCount; i++)
+      {
+	/* Count the number of active particles of this type */
+
+	
+
+	/* Copy the active particles of this type to a temporary buffer */
+       
+	
+
+	/* Sort Active particles according to their identifier */
+
+    
+
+	/* Create a temporary buffer (64 bit). */
+
+	temp = new float[NumberOfActiveParticles];
+	
+	/* "128-bit" particle positions are stored as what HDF5 calls
+	   'native long double.' */
+	
+	TempIntArray[0] = NumberOfActiveParticles;
+	  
+      } // end: for EnabledActiveParticlesCount
+  }  // end: if (NumberOfActiveParticles > 0)
+
   /* Close HDF group and file. */
  
   if (WriteEverything == TRUE) this->WriteAllFluxes(group_id);
