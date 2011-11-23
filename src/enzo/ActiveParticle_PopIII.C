@@ -72,6 +72,7 @@ class ActiveParticleType_PopIII : public ActiveParticleType
 public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
+  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
@@ -276,6 +277,13 @@ void ActiveParticleType_PopIII::DescribeSupplementalData
   flags.UnitConversions = true;
   flags.DataFieldNumbers = true;
   flags.MetalField = true;
+}
+
+int ActiveParticleType_PopIII::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+{
+  ActiveParticleType_PopIII *ParticlesToWrite = static_cast<ActiveParticleType_PopIII *>(these_particles);
+
+  return SUCCESS;
 }
 
 class PopIIIParticleBufferHandler : public ParticleBufferHandler

@@ -235,6 +235,7 @@ public:
    ParticleBufferHandler *(*abfunc)(int NumberOfParticles),
    int (*ifunc)(),
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
+   int (*writefunc)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id),
    ActiveParticleType *particle
    ){
     this->formation_function = ffunc;
@@ -243,6 +244,7 @@ public:
     this->particle_instance = particle;
     this->initialize = ifunc;
     this->feedback_function = feedfunc;
+    this->write_function = writefunc;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -259,6 +261,7 @@ public:
   int (*initialize)(void);
   int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  int (*write_function)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
   ActiveParticleType* particle_instance;
@@ -272,6 +275,39 @@ private:
 
 };
 
+int write_dataset(int ndims, hsize_t *dims, char *name, hid_t group,
+		  hid_t data_type, void *data)
+{
+
+  hid_t file_dsp_id;
+  hid_t dset_id;
+  hid_t h5_status;
+  herr_t h5_error = -1;
+  
+  file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
+  if( file_dsp_id == h5_error )
+    ENZO_VFAIL("Error creating dataspace for %s", name)
+      
+  dset_id =  H5Dcreate(group, name, data_type, file_dsp_id, H5P_DEFAULT);
+  if( dset_id == h5_error )
+    ENZO_VFAIL("Error creating dataset %s", name)
+      
+  h5_status = H5Dwrite(dset_id, data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+		       (VOIDP) data);
+  if( h5_status == h5_error )
+    ENZO_VFAIL("Error writing dataset %s", name)
+
+  h5_status = H5Sclose(file_dsp_id);
+  if( h5_status == h5_error )
+    ENZO_VFAIL("Error closing dataspace %s", name)
+
+  h5_status = H5Dclose(dset_id);
+  if( h5_status == h5_error )
+    ENZO_VFAIL("Error closing dataset %s", name)
+
+  return SUCCESS;
+}
+
 template <class active_particle_class>
 ActiveParticleType_info *register_ptype(std::string name)
 {
@@ -283,6 +319,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::AllocateBuffers),
      (&active_particle_class::InitializeParticleType),
      (&active_particle_class::EvaluateFeedback),
+     (&active_particle_class::WriteToOutput),
      pp);
   return pinfo;
 }

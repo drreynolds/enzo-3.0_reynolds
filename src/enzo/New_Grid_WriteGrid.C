@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <vector>
 #include "h5utilities.h"
  
 #include "ErrorExceptions.h"
@@ -34,6 +35,7 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
+#include "ActiveParticles.h"
 
 void my_exit(int status);
  
@@ -56,7 +58,7 @@ int GetUnits(float *DensityUnits, float *LengthUnits,
 int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id,
                           int WriteEverything)
 {
- 
+
   int i, j, k, dim, field, size, active_size, ActiveDim[MAX_DIMENSION];
   int file_status;
  
@@ -644,45 +646,53 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
-	/* Count the number of active particles of this type */
 
+	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+	bool BufferExists = false;
 	
 
-	/* Copy the active particles of this type to a temporary buffer */
-       
+	/* Count the number of active particles of this type  */
 	
+	std::vector<int> LocationOfActiveParticlesOfThisType;
+	
+	for (j = 0; j<NumberOfActiveParticles; j++) {
+	  if (this->ActiveParticles[j]->GetEnabledParticleID() == i) {
+	    LocationOfActiveParticlesOfThisType.push_back(j);
+	  }
+	}
+	
+	int NumberOfActiveParticlesOfThisType = LocationOfActiveParticlesOfThisType.size();
 
-	/* Sort Active particles according to their identifier */
+	/* Put the active particles of this type in a temporary buffer */
 
+	ActiveParticlesOfThisType = new ActiveParticleType*[NumberOfActiveParticlesOfThisType];
+
+	for (j = 0; j<NumberOfActiveParticlesOfThisType; j++) {
+	  ActiveParticlesOfThisType[j] = this->ActiveParticles[LocationOfActiveParticlesOfThisType[j]];
+	}
+	
+	ActiveParticleTypeToEvaluate->WriteToOutput(ActiveParticlesOfThisType,NumberOfActiveParticlesOfThisType,GridRank,group_id);
+
+
+      }
     
-
-	/* Create a temporary buffer (64 bit). */
-
-	temp = new float[NumberOfActiveParticles];
-	
-	/* "128-bit" particle positions are stored as what HDF5 calls
-	   'native long double.' */
-	
-	TempIntArray[0] = NumberOfActiveParticles;
-	  
-      } // end: for EnabledActiveParticlesCount
   }  // end: if (NumberOfActiveParticles > 0)
-
+  
   /* Close HDF group and file. */
- 
+  
   if (WriteEverything == TRUE) this->WriteAllFluxes(group_id);
   h5_status = H5Gclose(group_id);
-
+  
   /* 4) Save Gravity info. */
- 
+  
   /* Clean up. */
- 
+  
   delete [] name;
   delete [] procfilename;
   delete [] groupfilename;
- 
+  
   return SUCCESS;
- 
+  
 }
 #endif
 
@@ -714,28 +724,28 @@ int grid::write_dataset(int ndims, hsize_t *dims, char *name, hid_t group,
       temp = (float *) data; /* Should be fine, since we re-cast back to VOID */
     }
 
-    file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
-    if( file_dsp_id == h5_error )
-        ENZO_VFAIL("Error creating dataspace for %s", name)
-
-    dset_id =  H5Dcreate(group, name, data_type, file_dsp_id, H5P_DEFAULT);
-    if( dset_id == h5_error )
-        ENZO_VFAIL("Error creating dataset %s", name)
-
-    h5_status = H5Dwrite(dset_id, data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+  file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
+  if( file_dsp_id == h5_error )
+    ENZO_VFAIL("Error creating dataspace for %s", name)
+      
+  dset_id =  H5Dcreate(group, name, data_type, file_dsp_id, H5P_DEFAULT);
+  if( dset_id == h5_error )
+    ENZO_VFAIL("Error creating dataset %s", name)
+      
+  h5_status = H5Dwrite(dset_id, data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                         (VOIDP) temp);
-    if( h5_status == h5_error )
-        ENZO_VFAIL("Error writing dataset %s", name)
+  if( h5_status == h5_error )
+     ENZO_VFAIL("Error writing dataset %s", name)
 
-    h5_status = H5Sclose(file_dsp_id);
-    if( h5_status == h5_error )
-        ENZO_VFAIL("Error closing dataspace %s", name)
+  h5_status = H5Sclose(file_dsp_id);
+  if( h5_status == h5_error )
+     ENZO_VFAIL("Error closing dataspace %s", name)
 
-    h5_status = H5Dclose(dset_id);
-    if( h5_status == h5_error )
-        ENZO_VFAIL("Error closing dataset %s", name)
+  h5_status = H5Dclose(dset_id);
+  if( h5_status == h5_error )
+     ENZO_VFAIL("Error closing dataset %s", name)
 
-    return SUCCESS;
+  return SUCCESS;
 
 }
 
