@@ -17,6 +17,8 @@
 OBJS_CONFIG_LIB = \
         acml_st1.o \
         ActiveParticle.o \
+	ActiveParticleFinalize.o \
+	ActiveParticleInitialize.o \
 	ActiveParticleRoutines.o \
         ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
@@ -478,6 +480,7 @@ OBJS_CONFIG_LIB = \
 	Grid_KHInitializeGrid.o \
         Grid_MagneticFieldResetter.o \
 	Grid_MirrorStarParticles.o \
+	Grid_MirrorActiveParticles.o \
 	Grid_MoveAllParticles.o \
 	Grid_MoveAllStars.o \
 	Grid_MoveParticlesFOF.o \
