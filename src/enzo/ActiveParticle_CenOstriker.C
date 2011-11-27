@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <iostream>
+#include "hdf5.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -75,6 +76,7 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
+  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -86,6 +88,8 @@ public:
 
   static bool JeansMassCriterion, StochasticStarFormation, UnigridVelocities, 
     PhysicalOverdensity, dtDependence;
+
+  float ReturnMetallicity(void) {return Metallicity; };
 
 private:
   float Metallicity;
@@ -512,6 +516,62 @@ void ActiveParticleType_CenOstriker::DescribeSupplementalData(ActiveParticleForm
   flags.UnitConversions = true;
   flags.DataFieldNumbers = true;
   flags.MetalField = true;
+}
+
+int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+{
+  ActiveParticleType_CenOstriker *ParticlesToWrite = static_cast<ActiveParticleType_CenOstriker *>(these_particles);
+
+  char *ParticlePositionLabel[] =
+     {"CenOstrikerParticle_position_x", "CenOstrikerParticle_position_y", "CenOstrikerParticle_position_z"};
+  char *ParticleVelocityLabel[] =
+     {"CenOstrikerParticle_velocity_x", "CenOstrikerParticle_velocity_y", "CenOstrikerParticle_velocity_z"};
+
+  /* Create temporary buffers to store particle data */
+
+  FLOAT Position[GridRank][n];
+  float Velocity[GridRank][n]; 
+  double Mass[n];
+  float BirthTime[n];
+  float DynamicalTime[n];
+  float Metallicity[n];
+  
+  FLOAT *pos;
+  float *vel;
+
+  int i,dim;
+
+  hsize_t TempInt;
+  TempInt = n;
+    
+
+  for (i=0;i<n;i++) {
+    pos = ParticlesToWrite[i].ReturnPosition();
+    vel = ParticlesToWrite[i].ReturnVelocity();
+    for (dim = 0; dim < GridRank; dim++) {
+      Position[dim][i] = pos[dim];
+      Velocity[dim][i] = vel[dim];
+    }
+    Mass[i] = ParticlesToWrite[i].ReturnMass();
+    BirthTime[i] = ParticlesToWrite[i].ReturnBirthTime();
+    DynamicalTime[i] = ParticlesToWrite[i].ReturnDynamicalTime();
+    Metallicity[i] = ParticlesToWrite[i].ReturnMetallicity();
+  }
+
+  for (dim = 0; dim < GridRank; dim++) {
+    write_dataset(1,&TempInt,ParticlePositionLabel[dim],
+		  group_id, HDF5_FILE_PREC, (VOIDP) Position[dim]);
+  }
+
+  for (dim = 0; dim < GridRank; dim++) {
+    write_dataset(1,&TempInt,ParticleVelocityLabel[dim],
+		  group_id, HDF5_FILE_PREC, (VOIDP) Velocity[dim]);
+  }
+  
+  write_dataset(1,&TempInt,"CenOstriker_mass",group_id,HDF5_FILE_PREC,(VOIDP) Mass);
+  write_dataset(1,&TempInt,"CenOstriker_creation_time",group_id,HDF5_FILE_PREC,(VOIDP) BirthTime);
+  write_dataset(1,&TempInt,"CenOstriker_dynamical_time",group_id,HDF5_FILE_PREC,(VOIDP) DynamicalTime);
+  write_dataset(1,&TempInt,"CenOstriker_metallicity_fraction",group_id,HDF5_FILE_PREC,(VOIDP) Metallicity);
 }
 
 class CenOstrikerBufferHandler : public ParticleBufferHandler

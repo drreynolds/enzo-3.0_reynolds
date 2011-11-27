@@ -70,6 +70,7 @@ class ActiveParticleType_Kravtsov : public ActiveParticleType
 public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
+  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
@@ -246,6 +247,13 @@ void ActiveParticleType_Kravtsov::DescribeSupplementalData
   flags.UnitConversions = true;
   flags.DataFieldNumbers = true;
   flags.MetalField = true;
+}
+
+int ActiveParticleType_Kravtsov::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+{
+  ActiveParticleType_Kravtsov *ParticlesToWrite = static_cast<ActiveParticleType_Kravtsov *>(these_particles);
+
+  return SUCCESS;
 }
 
 class KravtsovParticleBufferHandler : public ParticleBufferHandler

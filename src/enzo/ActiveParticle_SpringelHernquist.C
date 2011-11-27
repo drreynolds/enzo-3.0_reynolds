@@ -54,6 +54,7 @@ class ActiveParticleType_SpringelHernquist : public ActiveParticleType
 public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
+  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
@@ -242,6 +243,13 @@ void ActiveParticleType_SpringelHernquist::DescribeSupplementalData
   flags.UnitConversions = true;
   flags.DataFieldNumbers = true;
   flags.MetalField = true;
+}
+
+int ActiveParticleType_SpringelHernquist::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+{
+  ActiveParticleType_SpringelHernquist *ParticlesToWrite = static_cast<ActiveParticleType_SpringelHernquist *>(these_particles);
+
+  return SUCCESS;
 }
 
 class SpringelHernquistParticleBufferHandler : public ParticleBufferHandler

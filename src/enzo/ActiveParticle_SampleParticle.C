@@ -51,6 +51,7 @@ class ActiveParticleType_SampleParticle : public ActiveParticleType
 public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
+  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int InitializeParticleType(void);
@@ -79,6 +80,12 @@ int ActiveParticleType_SampleParticle::EvaluateFeedback
 void ActiveParticleType_SampleParticle::DescribeSupplementalData(ActiveParticleFormationDataFlags &flags)
 {
   flags.DarkMatterDensity = true;
+}
+
+int ActiveParticleType_SampleParticle::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+{
+  ActiveParticleType_SampleParticle *ParticlesToWrite = static_cast<ActiveParticleType_SampleParticle *>(these_particles);
+  return SUCCESS;
 }
 
 class SampleParticleBufferHandler : public ParticleBufferHandler
