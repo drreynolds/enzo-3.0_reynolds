@@ -9,6 +9,7 @@
 /  modified3:  Robert Harkness, April 2008
 /  modified4:  Matthew Turk, September 2009
 /  modified5:  Michael Kuhlen, October 2010, HDF5 hierarchy
+/  modified6:  Nathan Goldbaum, November 2011, Active Particle Support  
 /
 /  PURPOSE:
 /
@@ -647,9 +648,10 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
 
+	/* Instantitate an active particle helper of this type
+	   This class contains the function that allows us to write to disk */
+
 	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-	bool BufferExists = false;
-	
 
 	/* Count the number of active particles of this type  */
 	
@@ -671,8 +673,13 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 	  ActiveParticlesOfThisType[j] = this->ActiveParticles[LocationOfActiveParticlesOfThisType[j]];
 	}
 	
+	/* Write them to disk */
+
 	ActiveParticleTypeToEvaluate->WriteToOutput(ActiveParticlesOfThisType,NumberOfActiveParticlesOfThisType,GridRank,group_id);
 
+	/* Clean up */
+
+	delete [] ActiveParticlesOfThisType;
 
       }
     
