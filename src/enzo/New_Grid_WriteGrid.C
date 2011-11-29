@@ -20,6 +20,9 @@
 //      where the Old values aren't required)
  
 #include <hdf5.h>
+#include <map>
+#include <iostream>
+#include <stdexcept>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +39,9 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
-#include "ActiveParticles.h"
+#include "fortran.def"
+#include "CosmologyParameters.h"
+#include "ActiveParticle.h"
 
 void my_exit(int status);
  
@@ -190,6 +195,8 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
     }
 
     fprintf(fptr, "NumberOfParticles   = %"ISYM"\n", NumberOfParticles);
+
+    fprintf(fptr, "NumberOfActiveParticles =%"ISYM"\n", NumberOfActiveParticles);
 
     if (NumberOfParticles > 0)
       fprintf(fptr, "ParticleFileName = %s\n", procfilename); // must be same as above
@@ -645,6 +652,8 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
   if (NumberOfActiveParticles > 0) {
     /* Iterate over the enabled active particle types */
 
+    hid_t ActiveParticleGroupID = H5Gcreate(group_id, "ActiveParticles", 0);
+
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
 
@@ -666,8 +675,8 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 	int NumberOfActiveParticlesOfThisType = LocationOfActiveParticlesOfThisType.size();
 
 	/* Put the active particles of this type in a temporary buffer */
-
-	ActiveParticlesOfThisType = new ActiveParticleType*[NumberOfActiveParticlesOfThisType];
+	
+	ActiveParticleType **ActiveParticlesOfThisType = new ActiveParticleType*[NumberOfActiveParticlesOfThisType];
 
 	for (j = 0; j<NumberOfActiveParticlesOfThisType; j++) {
 	  ActiveParticlesOfThisType[j] = this->ActiveParticles[LocationOfActiveParticlesOfThisType[j]];
@@ -675,7 +684,8 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 	
 	/* Write them to disk */
 
-	ActiveParticleTypeToEvaluate->WriteToOutput(ActiveParticlesOfThisType,NumberOfActiveParticlesOfThisType,GridRank,group_id);
+	ActiveParticleTypeToEvaluate->write_function(*ActiveParticlesOfThisType,NumberOfActiveParticlesOfThisType,
+						    GridRank,ActiveParticleGroupID);
 
 	/* Clean up */
 
