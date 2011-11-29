@@ -484,8 +484,6 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
   } // end: if (NumberOfParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
  
-  if (NumberOfActiveParticles > 0)
-
 
   /* Close file. */
  
