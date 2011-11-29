@@ -376,11 +376,11 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
     /* Initialize the star particles */
 
+    Star *AllStars = NULL;
 #ifdef ACTIVE_PARTICLE_IMPLEMENTED
     ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
 	                     level, TotalStarParticleCountPrevious);
 #else
-    Star *AllStars = NULL;
     StarParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, AllStars, TotalStarParticleCountPrevious);
 #endif
