@@ -520,7 +520,11 @@ void ActiveParticleType_CenOstriker::DescribeSupplementalData(ActiveParticleForm
 
 int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
 {
-  ActiveParticleType_CenOstriker *ParticlesToWrite = static_cast<ActiveParticleType_CenOstriker *>(these_particles);
+  /* Create a new subgroup within the active particle group for active particles of type CenOstriker */
+
+  hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
+
+  ActiveParticleType_CenOstriker *ParticlesToWrite = static_cast<ActiveParticleType_CenOstriker*>(these_particles);
 
   char *ParticlePositionLabel[] =
      {"CenOstrikerParticle_position_x", "CenOstrikerParticle_position_y", "CenOstrikerParticle_position_z"};
@@ -559,19 +563,19 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
   }
 
   for (dim = 0; dim < GridRank; dim++) {
-    write_dataset(1,&TempInt,ParticlePositionLabel[dim],
-		  group_id, HDF5_FILE_PREC, (VOIDP) Position[dim]);
+    WriteDataset(1,&TempInt,ParticlePositionLabel[dim],
+		  CenOstrikerGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
   }
 
   for (dim = 0; dim < GridRank; dim++) {
-    write_dataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  group_id, HDF5_FILE_PREC, (VOIDP) Velocity[dim]);
+    WriteDataset(1,&TempInt,ParticleVelocityLabel[dim],
+		  CenOstrikerGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
   }
   
-  write_dataset(1,&TempInt,"CenOstriker_mass",group_id,HDF5_FILE_PREC,(VOIDP) Mass);
-  write_dataset(1,&TempInt,"CenOstriker_creation_time",group_id,HDF5_FILE_PREC,(VOIDP) BirthTime);
-  write_dataset(1,&TempInt,"CenOstriker_dynamical_time",group_id,HDF5_FILE_PREC,(VOIDP) DynamicalTime);
-  write_dataset(1,&TempInt,"CenOstriker_metallicity_fraction",group_id,HDF5_FILE_PREC,(VOIDP) Metallicity);
+  WriteDataset(1,&TempInt,"CenOstriker_mass",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"CenOstriker_creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
+  WriteDataset(1,&TempInt,"CenOstriker_dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
+  WriteDataset(1,&TempInt,"CenOstriker_metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
 }
 
 class CenOstrikerBufferHandler : public ParticleBufferHandler

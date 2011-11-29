@@ -16,9 +16,14 @@
 // This routine writes the parameter file in the argument and sets parameters
 //   based on it.
  
+#include <map>
+#include <iostream>
+#include <vector>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
+#include <assert.h>
 #include <math.h>
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -29,7 +34,7 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
 #include "TopGridData.h"
-
+#include "ActiveParticle.h"
  
 /* function prototypes */
  
@@ -282,7 +287,15 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   fprintf(fptr, "ParticleBoundaryType   = %"ISYM"\n",MetaData.ParticleBoundaryType);
   fprintf(fptr, "NumberOfParticles      = %"PISYM" (do not modify)\n",
 	  MetaData.NumberOfParticles);
- 
+
+  ActiveParticleMap map = get_active_particle_types();
+
+  ActiveParticleMap::const_iterator end = map.end();
+
+  for (ActiveParticleMap::const_iterator it = map.begin(); it != end; ++it) {
+    fprintf(fptr, "AppendActiveParticleType =%s\n", it->first);
+  }
+
   fprintf(fptr, "CourantSafetyNumber    = %"FSYM"\n",
 	  MetaData.CourantSafetyNumber);
   fprintf(fptr, "PPMFlatteningParameter = %"ISYM"\n",

@@ -71,6 +71,7 @@ public:
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int InitializeParticleType();
+
   ENABLED_PARTICLE_ID_ACCESSOR
 
   static float OverflowFactor;

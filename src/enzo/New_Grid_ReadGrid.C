@@ -10,6 +10,7 @@
 /  modified4:  Robert Harkness, April 2008
 /  modified5:  Matthew Turk, September 2009 for refactoring and removing IO_TYPE
 /  modified6:  Michael Kuhlen, October 2010, HDF5 hierarchy
+/  modified7:  Nathan Goldbaum, November 2011, Active Particle Support
 /
 /  PURPOSE:
 /
@@ -483,6 +484,7 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
   } // end: if (NumberOfParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
  
+
   /* Close file. */
  
   if ( (MyProcessorNumber == ProcessorNumber) &&
