@@ -60,8 +60,7 @@ int ReadListOfInts(FILE *fptr, int N, int nums[]);
 static int GridReadDataGridCounter = 0;
  
  
-#ifdef NEW_GRID_IO
-int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
+int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
 			 char DataFilename[],
 			 int ReadText, int ReadData, bool ReadParticlesOnly,
 			 int ReadEverything)
@@ -233,7 +232,7 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
     int ghosts =DEFAULT_GHOST_ZONES;
     if (GridStartIndex[0] != ghosts)  {
 	if (GridID < 2)
-     fprintf(stderr,"Grid_Group_ReadGrid: Adjusting Ghostzones which in the hierarchy file did not match the selected HydroMethod.\n");
+     fprintf(stderr,"Grid_ReadGrid: Adjusting Ghostzones which in the hierarchy file did not match the selected HydroMethod.\n");
       for (int dim=0; dim < GridRank; dim++) {
 	GridDimension[dim]  = GridEndIndex[dim]-GridStartIndex[dim]+1+2*ghosts;
 	GridStartIndex[dim] = ghosts;
@@ -605,7 +604,6 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
   return SUCCESS;
  
 }
-#endif
 
 int grid::read_dataset(int ndims, hsize_t *dims, char *name, hid_t group,
                   hid_t data_type, void *read_to, int copy_back_active,

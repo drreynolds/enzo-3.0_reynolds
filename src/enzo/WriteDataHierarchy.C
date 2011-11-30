@@ -33,7 +33,7 @@
  
  
  
-int Group_WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *Grid,
+int WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *Grid,
 		            char* base_name, int &GridID, FLOAT WriteTime, hid_t file_id,
                     int CheckpointDump = FALSE)
 {
@@ -49,20 +49,10 @@ int Group_WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *
   /* Write out grid data for this grid (if WriteTime is < 0 then output
      at the grid's time, otherwise interpolate to WriteTime and output). */
 
-#ifndef NEW_GRID_IO
-  if(CheckpointDump == TRUE) {
-    fprintf(stderr, "Sorry, you need the new Grid IO to use checkpoints.\n");
-    return SUCCESS;
-   }
-#endif
- 
   if ((WriteTime < 0) || (CheckpointDump == TRUE)) {
-    if (Grid->GridData->Group_WriteGrid(fptr, base_name, GridID, file_id
-#ifdef NEW_GRID_IO
-            , CheckpointDump
-#endif
-        ) == FAIL) {
-      ENZO_FAIL("Error in grid->Group_WriteGrid.\n");
+    if (Grid->GridData->WriteGrid(fptr, base_name, GridID, file_id, CheckpointDump)
+         == FAIL) {
+      ENZO_FAIL("Error in grid->WriteGrid.\n");
     }
   }
   else
@@ -80,9 +70,9 @@ int Group_WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *
  
   if (NextGridThisLevelID != 0) {
     GridID++;
-    if (Group_WriteDataHierarchy(fptr, MetaData, Grid->NextGridThisLevel,
+    if (WriteDataHierarchy(fptr, MetaData, Grid->NextGridThisLevel,
             base_name, GridID, WriteTime, file_id, CheckpointDump) == FAIL) {
-      ENZO_FAIL("Error in Group_WriteDataHierarchy(1).\n");
+      ENZO_FAIL("Error in WriteDataHierarchy(1).\n");
     }
   }
  
@@ -96,9 +86,9 @@ int Group_WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *
  
   if (NextGridNextLevelID != 0) {
     GridID++;
-    if (Group_WriteDataHierarchy(fptr, MetaData, Grid->NextGridNextLevel,
+    if (WriteDataHierarchy(fptr, MetaData, Grid->NextGridNextLevel,
                 base_name, GridID, WriteTime, file_id, CheckpointDump) == FAIL) {
-      ENZO_FAIL("Error in Group_WriteDataHierarchy(1).\n");
+      ENZO_FAIL("Error in WriteDataHierarchy(1).\n");
 
     }
   }

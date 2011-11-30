@@ -64,7 +64,7 @@ int SysMkdir(char *startdir, char *directory);
  
 void AddLevel(LevelHierarchyEntry *Array[], HierarchyEntry *Grid, int level);
 int WriteDataCubes(HierarchyEntry *TopGrid, int TDdims[], char *gridbasename, int &GridID, FLOAT WriteTime);
-int Group_WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *TopGrid,
+int WriteDataHierarchy(FILE *fptr, TopGridData &MetaData, HierarchyEntry *TopGrid,
 		       char *gridbasename, int &GridID, FLOAT WriteTime, hid_t file_id,
                int CheckpointDump = FALSE);
 int WriteHDF5HierarchyFile(char *base_name, HierarchyEntry *TopGrid, TopGridData MetaData, LevelHierarchyEntry *LevelArray[]);
@@ -95,16 +95,16 @@ int SetBoundaryConditions(HierarchyEntry *Grids[], int NumberOfGrids,
 
 
 #ifdef TRANSFER
-extern char RTSuffix[];
+char RTSuffix[]        = ".rtmodule";
 #endif
-extern char BCSuffix[];
-extern char GridSuffix[];
-extern char HierarchySuffix[];
-extern char hdfsuffix[];
-extern char RadiationSuffix[];
-extern char TaskMapSuffix[];
-extern char MemoryMapSuffix[];
-extern char ConfigureSuffix[];
+char BCSuffix[]        = ".boundary";
+char GridSuffix[]      = ".grid";
+char HierarchySuffix[] = ".hierarchy";
+char hdfsuffix[]       = ".hdf";
+char RadiationSuffix[] = ".radiation";
+char TaskMapSuffix[]   = ".taskmap";
+char MemoryMapSuffix[] = ".memorymap";
+char ConfigureSuffix[] = ".configure";
 
 char CPUSuffix[]       = ".cpu";
 char BHierarchySuffix[] = ".harrays";
@@ -114,7 +114,7 @@ extern char LastFileNameWritten[MAX_LINE_LENGTH];
  
  
  
-int Group_WriteAllData(char *basename, int filenumber,
+int WriteAllData(char *basename, int filenumber,
 		 HierarchyEntry *TopGrid, TopGridData &MetaData,
 		 ExternalBoundary *Exterior, 
 #ifdef TRANSFER
@@ -693,9 +693,9 @@ int Group_WriteAllData(char *basename, int filenumber,
 	ENZO_VFAIL("Error opening hierarchy file %s\n", hierarchyname);
   }
 
-  if (Group_WriteDataHierarchy(fptr, MetaData, TempTopGrid,
+  if (WriteDataHierarchy(fptr, MetaData, TempTopGrid,
             gridbasename, GridID, WriteTime, file_id, CheckpointDump) == FAIL)
-    ENZO_FAIL("Error in Group_WriteDataHierarchy");
+    ENZO_FAIL("Error in WriteDataHierarchy");
 
     hid_t metadata_group = H5Gcreate(file_id, "Metadata", 0);
     if(metadata_group == h5_error)ENZO_FAIL("Error writing metadata!");
@@ -876,7 +876,6 @@ int Group_WriteAllData(char *basename, int filenumber,
   return SUCCESS;
 }
 
-/* 
 void DeleteGridHierarchy(HierarchyEntry *GridEntry)
 {
   if (GridEntry->NextGridThisLevel != NULL)
@@ -887,4 +886,3 @@ void DeleteGridHierarchy(HierarchyEntry *GridEntry)
  
   return;
 }
-*/

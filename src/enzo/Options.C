@@ -184,12 +184,6 @@ int ENZO_OptionsinEffect(void)
     fprintf(opf, "  Fast sibiling search disabled\n");
 #endif
 
-#ifdef USE_HDF4
-    fprintf(opf, "  HDF4 reading enabled\n");
-#else
-    fprintf(opf, "  HDF4 reading disabled\n");
-#endif
-
 #ifdef FLUX_FIX
     fprintf(opf, "  Flux fix for subgrid siblings enabled\n");
 #else

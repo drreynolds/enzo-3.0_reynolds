@@ -39,8 +39,6 @@
  
 void WriteListOfFloats(FILE *fptr, int N, FLOAT floats[]);
 int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
-		ExternalBoundary *Exterior, float *Initialdt);
-int Group_ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		      ExternalBoundary *Exterior, float *Initialdt,
 		      bool ReadParticlesOnly=false);
 void AddLevel(LevelHierarchyEntry *Array[], HierarchyEntry *Grid, int level);
@@ -129,22 +127,12 @@ int PutSinkRestartInitialize(FILE *fptr, FILE *Outfptr,
   if (debug)
     printf("reading restart parameter file %s\n", PutSinkRestartName);
  
-#ifdef USE_HDF5_GROUPS
-  if (Group_ReadAllData(PutSinkRestartName, &TopGrid, MetaData, &Exterior, &dummyf) == FAIL) {
+  if (ReadAllData(PutSinkRestartName, &TopGrid, MetaData, &Exterior, &dummyf) == FAIL) {
     if (MyProcessorNumber == ROOT_PROCESSOR) {
-      fprintf(stderr, "Error in Group_ReadAllData %s\n",PutSinkRestartName );
-      fprintf(stderr, "Probably not in a packed-HDF5 format. Trying other read routines.\n");
+      fprintf(stderr, "Error in ReadAllData %s\n",PutSinkRestartName );
+      ENZO_FAIL("");
     }
-#endif
-    // If not packed-HDF5, then try usual HDF5 or HDF4
-    if (ReadAllData(PutSinkRestartName, &TopGrid, MetaData, &Exterior, &dummyf)
-	== FAIL) {
-      if (MyProcessorNumber == ROOT_PROCESSOR)
-      ENZO_VFAIL("Error in ParameterFile %s.\n", PutSinkRestartName)
-    }
-#ifdef USE_HDF5_GROUPS
   }
-#endif
 
   if (MyProcessorNumber == ROOT_PROCESSOR)
     fprintf(stderr, "Successfully read restart file %s.\n",

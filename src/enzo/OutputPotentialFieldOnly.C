@@ -33,7 +33,7 @@
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
-int Group_WriteAllData(char *basename, int filenumber,
+int WriteAllData(char *basename, int filenumber,
 		       HierarchyEntry *TopGrid, TopGridData &MetaData,
 		       ExternalBoundary *Exterior, 
 #ifdef TRANSFER
@@ -152,7 +152,7 @@ int OutputPotentialFieldOnly(char *ParameterFile,
   if (OutputDM == TRUE)
     OutputSmoothedDarkMatter = -2;
 
-  Group_WriteAllData(DumpName, DumpNumber, TopGrid, MetaData, &Exterior
+  WriteAllData(DumpName, DumpNumber, TopGrid, MetaData, &Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
 #endif

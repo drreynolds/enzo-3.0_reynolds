@@ -204,9 +204,10 @@ class grid
 
 /* Read grid data from a group file (returns: success/failure) */
 
-   int ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
+   int ReadGrid(FILE *main_file_pointer, int GridID, HDF5_hid_t file_id, 
 		      char DataFilename[],
-		      int ReadText, int ReadData, bool ReadParticlesOnly=false);
+		      int ReadText = TRUE, int ReadData = TRUE, 
+		      bool ReadParticlesOnly=false, int ReadEverything = FALSE);
    
 /* Get field or particle data based on name or integer 
    defined in typedefs.h. Details are in Grid_CreateFieldArray.C. */
@@ -262,7 +263,7 @@ class grid
 
 /* Write grid data to separate files (returns: success/failure) */
 
-   int WriteGridX(FILE *main_file_pointer, char *base_name, int grid_id);
+   int WriteGridExtract(FILE *main_file_pointer, char *base_name, int grid_id);
 
 /* Write task memory map */
 

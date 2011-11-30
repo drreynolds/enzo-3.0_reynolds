@@ -33,7 +33,7 @@
 
 int RebuildHierarchy(TopGridData *MetaData,
 		     LevelHierarchyEntry *LevelArray[], int level);
-int Group_WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
+int WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
 		 TopGridData &MetaData, ExternalBoundary *Exterior,
 #ifdef TRANSFER
 		       ImplicitProblemABC *ImplicitSolver,
@@ -88,7 +88,7 @@ int OutputSmoothedDarkMatterOnly(char *ParameterFile,
   if (OutputSmoothedDarkMatter == FALSE)
     OutputSmoothedDarkMatter = -2;
 
-  Group_WriteAllData(DumpName, DumpNumber, TopGrid, MetaData, &Exterior
+  WriteAllData(DumpName, DumpNumber, TopGrid, MetaData, &Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
 #endif

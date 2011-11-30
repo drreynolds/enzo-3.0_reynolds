@@ -173,11 +173,6 @@ help-config:
 	@echo "      gmake fluxfix-yes"
 	@echo "      gmake fluxfix-no"
 	@echo 
-	@echo "   Set whether to use HDF4"
-	@echo
-	@echo "      gmake use-hdf4-yes"
-	@echo "      gmake use-hdf4-no"
-	@echo
 	@echo "   Set whether to use inline python"
 	@echo
 	@echo "      gmake python-yes"

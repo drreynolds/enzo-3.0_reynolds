@@ -81,14 +81,6 @@ int WriteAllData(char *basename, int filenumber,
 #ifdef TRANSFER
 		 ImplicitProblemABC *ImplicitSolver,
 #endif		 
-		 FLOAT WriteTime = -1);
-
-int Group_WriteAllData(char *basename, int filenumber,
-		 HierarchyEntry *TopGrid, TopGridData &MetaData,
-		 ExternalBoundary *Exterior, 
-#ifdef TRANSFER
-		 ImplicitProblemABC *ImplicitSolver,
-#endif		 
 		 FLOAT WriteTime = -1,
 		 int RestartDump = FALSE);
 
@@ -488,7 +480,7 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
           fprintf(stderr, "Error in EvolveLevel.\n");
           fprintf(stderr, "--> Dumping data (output number %d).\n",
                   MetaData.DataDumpNumber);
-	Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
+	WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
 		     &TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 		     , ImplicitSolver
@@ -508,7 +500,7 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
 	    fprintf(stderr, "Error in EvolveLevel_RK2.\n");
 	    fprintf(stderr, "--> Dumping data (output number %d).\n",
 		    MetaData.DataDumpNumber);
-	    Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
+	    WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
 			       &TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 			       , ImplicitSolver
@@ -712,24 +704,13 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
  
   if ((MetaData.dtDataDump != 0.0 || MetaData.CycleSkipDataDump != 0) &&
       !MetaData.WroteData)
-    //#ifdef USE_HDF5_GROUPS
-    if (Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
+    if (WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
 			   &TopGrid, MetaData, Exterior, 
 #ifdef TRANSFER
 			   ImplicitSolver, 
 #endif		 
 			   -666) == FAIL)
-      ENZO_FAIL("Error in Group_WriteAllData.");
-// #else
-//     if (WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber,
-// 		     &TopGrid, MetaData, Exterior, 
-//#ifdef TRANSFER
-//		     ImplicitSolver, 
-//#endif		 
-//                   -666) == FAIL) {
-//       ENZO_FAIL("Error in WriteAllData.\n");
-//     }
-// #endif
+      ENZO_FAIL("Error in WriteAllData.");
  
   /* Write a file to indicate that we're finished. */
 

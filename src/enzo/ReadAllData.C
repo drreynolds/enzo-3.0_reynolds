@@ -51,7 +51,7 @@ void my_exit(int status);
 
 /* function prototypes */
  
-int Group_ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *TopGrid, int GridID,
+int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *TopGrid, int GridID,
 			    HierarchyEntry *ParentGrid, hid_t file_id,
 			    int NumberOfRootGrids, int *RootGridProcessors,
 			    bool ReadParticlesOnly=false, FILE *log_fptr=NULL);
@@ -78,7 +78,7 @@ extern char CPUSuffix[];
 int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, int &Attribute, FILE *log_fptr);
 int HDF5_ReadDataset(hid_t group_id, const char *DatasetName, int Dataset[], FILE *log_fptr);
 
-int Group_ReadAllData(char *name, HierarchyEntry *TopGrid, TopGridData &MetaData,
+int ReadAllData(char *name, HierarchyEntry *TopGrid, TopGridData &MetaData,
 		      ExternalBoundary *Exterior, float *Initialdt,
 		      bool ReadParticlesOnly)
  
@@ -171,16 +171,10 @@ int Group_ReadAllData(char *name, HierarchyEntry *TopGrid, TopGridData &MetaData
     return FAIL;
   }
 
-  // Below, ENZO_FAIL is changed to "return FAIL" to deal with various data formats including HDF4, HDF5, packed-HDF5
-  // because boundary should be the one that distinguishes these different data formats.
-  // This will allow a graceful exit when the dataformat is not packed-HDF5.
-  // - Ji-hoon Kim
   // Try to read external boundaries. If they don't fit grid data we'll set them later below
     if(LoadGridDataAtStart){    
       if (Exterior->ReadExternalBoundary(fptr) == FAIL) {
-	fprintf(stderr, "Error in ReadExternalBoundary (%s).\n",
-		MetaData.BoundaryConditionName);
-	return FAIL;
+	ENZO_VFAIL("Error in ReadExternalBoundary (%s).", MetaData.BoundaryConditionName)
       }
     }else{
       if (Exterior->ReadExternalBoundary(fptr, TRUE, FALSE) == FAIL) {
@@ -329,7 +323,7 @@ int Group_ReadAllData(char *name, HierarchyEntry *TopGrid, TopGridData &MetaData
   }
 
   GridID = 1;
-  if (Group_ReadDataHierarchy(fptr, Hfile_id, TopGrid, GridID, NULL, file_id,
+  if (ReadDataHierarchy(fptr, Hfile_id, TopGrid, GridID, NULL, file_id,
 			      NumberOfRootGrids, RootGridProcessors,
 			      ReadParticlesOnly, log_fptr) == FAIL) {
     fprintf(stderr, "Error in ReadDataHierarchy (%s).\n", hierarchyname);

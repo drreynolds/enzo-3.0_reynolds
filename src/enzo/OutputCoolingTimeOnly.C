@@ -30,7 +30,7 @@
 #endif
 #include "CosmologyParameters.h"
 
-int Group_WriteAllData(char *basename, int filenumber,
+int WriteAllData(char *basename, int filenumber,
 		       HierarchyEntry *TopGrid, TopGridData &MetaData,
 		       ExternalBoundary *Exterior, 
 #ifdef TRANSFER
@@ -118,7 +118,7 @@ int OutputCoolingTimeOnly(char *ParameterFile,
   // parameter, and only compute the cooling time.
   OutputCoolingTime = -1;
 
-  Group_WriteAllData(DumpName, DumpNumber, TopGrid, MetaData, &Exterior
+  WriteAllData(DumpName, DumpNumber, TopGrid, MetaData, &Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
 #endif

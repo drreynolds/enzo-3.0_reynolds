@@ -85,8 +85,8 @@ int grid::WriteGridInterpolate(FLOAT WriteTime, FILE *fptr, char *base_name, int
  
   FLOAT SavedTime = Time;
   Time = WriteTime;
-  if (this->Group_WriteGrid(fptr, base_name, grid_id, file_id) == FAIL) {
-    ENZO_FAIL("Error in grid->Group_WriteGrid.\n");
+  if (this->WriteGrid(fptr, base_name, grid_id, file_id) == FAIL) {
+    ENZO_FAIL("Error in grid->WriteGrid.\n");
   }
   Time = SavedTime;
  

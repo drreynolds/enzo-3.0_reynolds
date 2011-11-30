@@ -37,21 +37,12 @@
 int WriteTracerParticleData(char *basename, int filenumber,
 		   LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
 		   FLOAT WriteTime);
-//#ifdef USE_HDF5_GROUPS
-int Group_WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
+int WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
 		       TopGridData &MetaData, ExternalBoundary *Exterior,
 #ifdef TRANSFER
 		       ImplicitProblemABC *ImplicitSolver,
 #endif
 		       FLOAT WriteTime = -1, int CheckpointDump = FALSE);
-// #else
-// int WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
-//                  TopGridData &MetaData, ExternalBoundary *Exterior,
-//#ifdef TRANSFER
-//	            ImplicitProblemABC *ImplicitSolver,
-//#endif
-//                  FLOAT WriteTime = -1);
-// #endif
 void my_exit(int status);
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
@@ -264,25 +255,14 @@ int OutputFromEvolveLevel(LevelHierarchyEntry *LevelArray[],TopGridData *MetaDat
     LevelHierarchyEntry *Temp2 = LevelArray[0];
     while (Temp2->NextGridThisLevel != NULL)
       Temp2 = Temp2->NextGridThisLevel; /* ugh: find last in linked list */
-    //#ifdef USE_HDF5_GROUPS
-    if (Group_WriteAllData(MetaData->DataDumpName, MetaData->DataDumpNumber++,
+    if (WriteAllData(MetaData->DataDumpName, MetaData->DataDumpNumber++,
 			   Temp2->GridHierarchyEntry, *MetaData, Exterior,
 #ifdef TRANSFER
 			   ImplicitSolver,
 #endif
 			   LevelArray[level]->GridData->ReturnTime(), CheckpointDump) == FAIL) {
-            ENZO_FAIL("Error in Group_WriteAllData.");
+            ENZO_FAIL("Error in WriteAllData.");
     }
-// #else
-//     if (WriteAllData(MetaData->DataDumpName, MetaData->DataDumpNumber++,
-// 		     Temp2->GridHierarchyEntry, *MetaData, Exterior, 
-// #ifdef TRANSFER
-// 		     ImplicitSolver,
-// #endif
-// 		     LevelArray[level]->GridData->ReturnTime()) == FAIL) {
-//       ENZO_FAIL("Error in WriteAllData.\n");
-//     }
-// #endif
   }//WriteOutput == TRUE
 
   if( ExitEnzo == TRUE ){

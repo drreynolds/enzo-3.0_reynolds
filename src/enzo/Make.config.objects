@@ -451,6 +451,7 @@ OBJS_CONFIG_LIB = \
         Grid_GetEnclosedMassInShell.o \
         Grid_GetProjectedBoundaryFluxes.o \
         Grid_GravityEquilibriumTestInitializeGrid.o \
+        Grid_WriteGridExtract.o \
         Grid_WriteGrid.o \
         Grid_ReadGrid.o \
 	Grid_IdentifyColourFields.o \
@@ -515,7 +516,6 @@ OBJS_CONFIG_LIB = \
 	Grid_RadHydroStreamTestInitializeGrid.o \
 	Grid_RadiationComputeDensities.o \
 	Grid_RadiatingShockInitializeGrid.o \
-	Grid_ReadGrid.o \
         Grid_CosmologyReadParticles3D.o \
         Grid_ReadHierarchyInformationHDF5.o \
 	Grid_ReadRandomForcingFields.o \

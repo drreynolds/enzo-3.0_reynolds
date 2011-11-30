@@ -66,8 +66,6 @@ int InitializeLocal(int restart, HierarchyEntry &TopGrid,
 		    TopGridData &MetaData);
 
 int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
-		ExternalBoundary *Exterior, float *Inititaldt);
-int Group_ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		      ExternalBoundary *Exterior, float *Initialdt,
 		      bool ReadParticlesOnly=false);
 
@@ -126,14 +124,7 @@ int InterpretCommandLine(int argc, char *argv[], char *myname,
 void AddLevel(LevelHierarchyEntry *Array[], HierarchyEntry *Grid, int level);
 int SetDefaultGlobalValues(TopGridData &MetaData);
 
-int WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
-                 TopGridData &MetaData, ExternalBoundary *Exterior,
-#ifdef TRANSFER
-		 ImplicitProblemABC *ImplicitSolver,
-#endif
-                 FLOAT WriteTime = -1);
-
-int Group_WriteAllData(char *basename, int filenumber,
+int WriteAllData(char *basename, int filenumber,
 		 HierarchyEntry *TopGrid, TopGridData &MetaData,
 		 ExternalBoundary *Exterior, 
 #ifdef TRANSFER
@@ -473,24 +464,13 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
   // First expect to read in packed-HDF5
 
-#ifdef USE_HDF5_GROUPS
     bool ReadParticlesOnly = (HaloFinderOnly == TRUE);
-    if (Group_ReadAllData(ParameterFile, &TopGrid, MetaData, &Exterior, &Initialdt,
+    if (ReadAllData(ParameterFile, &TopGrid, MetaData, &Exterior, &Initialdt,
 			  ReadParticlesOnly) == FAIL) {
       if (MyProcessorNumber == ROOT_PROCESSOR) {
-	fprintf(stderr, "Error in Group_ReadAllData %s\n", ParameterFile);
-	fprintf(stderr, "Probably not in a packed-HDF5 format. Trying other read routines.\n");
+	ENZO_VFAIL("Error in ReadAllData: %s", ParameterFile)
       }
-#endif
-      // If not packed-HDF5, then try usual HDF5 or HDF4
-      if (ReadAllData(ParameterFile, &TopGrid, MetaData, &Exterior, &Initialdt) == FAIL) {
-	if (MyProcessorNumber == ROOT_PROCESSOR)
-	  fprintf(stderr, "Error in ReadAllData %s.\n", ParameterFile);
-	my_exit(EXIT_FAILURE);
-      }
-#ifdef USE_HDF5_GROUPS
     }
-#endif
 
 #ifdef NEW_PROBLEM_TYPES
   if (ProblemType == -978)
@@ -677,7 +657,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 //       }
 //     }
     
-//     if (Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber-1,
+//     if (WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber-1,
 //                      &TopGrid, MetaData, 
 // #ifdef TRANSFER
 //                      ImplicitSolver,

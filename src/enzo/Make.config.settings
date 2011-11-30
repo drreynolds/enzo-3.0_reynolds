@@ -37,7 +37,6 @@
 #    CONFIG_EMISSIVITY
 #    CONFIG_FAST_SIB
 #    CONFIG_FLUX_FIX
-#    CONFIG_USE_HDF4	
 #    CONFIG_BITWISE_IDENTICALITY
 #    CONFIG_USE_ECUDA
 #    CONFIG_SET_ACCELERATION_BOUNDARY
@@ -278,15 +277,6 @@
 #-----------------------------------------------------------------------
 
      CONFIG_FLUX_FIX = yes
-
-#======================================================================= 
-# CONFIG_USE_HDF4
-#======================================================================= 
-#    yes           For some users (hdf4)
-#    no            For most of the users (hdf5)
-#----------------------------------------------------------------------- 
- 
-     CONFIG_USE_HDF4 = no
 
 #======================================================================= 
 # CONFIG_BITWISE_IDENTICALITY
