@@ -196,9 +196,9 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 
     fprintf(fptr, "NumberOfParticles   = %"ISYM"\n", NumberOfParticles);
 
-    fprintf(fptr, "NumberOfActiveParticles =%"ISYM"\n", NumberOfActiveParticles);
+    fprintf(fptr, "NumberOfActiveParticles = %"ISYM"\n", NumberOfActiveParticles);
 
-    if (NumberOfParticles > 0)
+    if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0))
       fprintf(fptr, "ParticleFileName = %s\n", procfilename); // must be same as above
  
     if (SelfGravity)
