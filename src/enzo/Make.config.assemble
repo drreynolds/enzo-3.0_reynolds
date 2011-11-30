@@ -333,36 +333,6 @@
     endif
 
 #-----------------------------------------------------------------------
-# DETERMINE PACKED_AMR SETTINGS
-#-----------------------------------------------------------------------
-
-    ERROR_PACKED_AMR = 1
-
-    # Settings for using PACKED_AMR mods
-
-    ifeq ($(CONFIG_PACKED_AMR),yes)
-        ERROR_PACKED_AMR = 0
-        ASSEMBLE_PACKED_AMR_DEFINES = \
-                 -DUSE_HDF5_GROUPS
-#                 -DSINGLE_HDF5_OPEN_ON_INPUT
-    endif
-
-    # Settings for not using PACKED_AMR mods
-
-    ifeq ($(CONFIG_PACKED_AMR),no)
-        ERROR_PACKED_AMR = 0
-        ASSEMBLE_PACKED_AMR_DEFINES = 
-    endif
-
-    # error if CONFIG_PACKED_AMR is incorrect
-
-    ifeq ($(ERROR_PACKED_AMR),1)
-       .PHONY: error_packed_amr
-       error_packed_amr:
-	$(error Illegal value '$(CONFIG_PACKED_AMR)' for $$(CONFIG_PACKED_AMR))
-    endif
-
-#-----------------------------------------------------------------------
 # DETERMINE PACKED_MEM SETTINGS
 #-----------------------------------------------------------------------
 
@@ -764,34 +734,6 @@
     endif
 
 #-----------------------------------------------------------------------
-# DETERMINE GRID IO SETTINGS
-#-----------------------------------------------------------------------
-
-    ERROR_NEW_GRID_IO = 1
-
-    # Settings to turn fast sibling search ON
-
-    ifeq ($(CONFIG_NEW_GRID_IO),yes)
-        ERROR_NEW_GRID_IO = 0
-        ASSEMBLE_NEW_GRID_IO_DEFINES = -DNEW_GRID_IO
-    endif
-
-    # Settings to turn new grid IO OFF
-
-    ifeq ($(CONFIG_NEW_GRID_IO),no)
-        ERROR_NEW_GRID_IO = 0
-        ASSEMBLE_NEW_GRID_IO_DEFINES =
-    endif
-
-    # error if CONFIG_NEW_GRID_IO is incorrect
-
-    ifeq ($(ERROR_NEW_GRID_IO),1)
-       .PHONY: error_NEW_GRID_IO
-       error_NEW_GRID_IO:
-	$(error Illegal value '$(CONFIG_NEW_GRID_IO)' for $$(CONFIG_NEW_GRID_IO))
-    endif
-
-#-----------------------------------------------------------------------
 # DETERMINE HYPRE SETTINGS
 #-----------------------------------------------------------------------
 
@@ -1048,14 +990,12 @@
               $(ASSEMBLE_PARTICLES_DEFINES) \
               $(ASSEMBLE_PRECISION_DEFINES) \
               $(ASSEMBLE_TASKMAP_DEFINES) \
-              $(ASSEMBLE_PACKED_AMR_DEFINES) \
               $(ASSEMBLE_PACKED_MEM_DEFINES) \
               $(ASSEMBLE_TESTING_DEFINES) \
               $(ASSEMBLE_TPVEL_DEFINES) \
               $(ASSEMBLE_PHOTON_DEFINES) \
               $(ASSEMBLE_HYPRE_DEFINES) \
               $(ASSEMBLE_EMISSIVITY_DEFINES) \
-              $(ASSEMBLE_NEW_GRID_IO_DEFINES) \
               $(ASSEMBLE_FAST_SIB_DEFINES) \
               $(ASSEMBLE_BITWISE_IDENTICALITY_DEFINES) \
               $(ASSEMBLE_FLUX_FIX_DEFINES) \

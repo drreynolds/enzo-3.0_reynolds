@@ -142,10 +142,6 @@ int ENZO_OptionsinEffect(void)
     fprintf(opf, "  Minimum memory start-up => non-apative mesh only\n");
 #endif
 
-#ifdef HDF5_USE_HDF5_GROUPS
-    fprintf(opf, "  HDF5 groups for packed AMR\n");
-#endif
-
 #ifdef USE_HDF5_OUTPUT_BUFFERING
     fprintf(opf, "  HDF5 in-core buffering for packed AMR output\n");
 #endif
@@ -198,12 +194,6 @@ int ENZO_OptionsinEffect(void)
     fprintf(opf, "  Flux fix for subgrid siblings enabled\n");
 #else
     fprintf(opf, "  Flux fix for subgrid siblings disabled\n");
-#endif
-
-#ifdef NEW_GRID_IO
-    fprintf(opf, "  New Grid I/O enabled\n");
-#else
-    fprintf(opf, "  New Grid I/O disabled\n");
 #endif
 
 #ifdef BITWISE_IDENTICALITY

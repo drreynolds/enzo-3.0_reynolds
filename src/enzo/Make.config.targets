@@ -85,11 +85,6 @@ help-config:
 	@echo "      gmake taskmap-yes"
 	@echo "      gmake taskmap-no"
 	@echo
-	@echo "   Set whether to use 'packed AMR' mods"
-	@echo
-	@echo "      gmake packed-amr-yes"
-	@echo "      gmake packed-amr-no"
-	@echo
 	@echo "   Set whether to use 'packed memory' mods (requires packed AMR)"
 	@echo
 	@echo "      gmake packed-mem-yes"
@@ -162,11 +157,6 @@ help-config:
 	@echo
 	@echo "      gmake photon-yes"
 	@echo "      gmake photon-no"
-	@echo 
-	@echo "   Use the new Grid IO routines"
-	@echo
-	@echo "      gmake newgridio-yes"
-	@echo "      gmake newgridio-no"
 	@echo 
 	@echo "   Include fast sibling search"
 	@echo
@@ -260,7 +250,6 @@ show-config:
 	@echo "   CONFIG_USE_MPI  [use-mpi-{yes,no}]                        : $(CONFIG_USE_MPI)"
 	@echo "   CONFIG_OBJECT_MODE  [object-mode-{32,64}]                 : $(CONFIG_OBJECT_MODE)"
 	@echo "   CONFIG_TASKMAP  [taskmap-{yes,no}]                        : $(CONFIG_TASKMAP)"
-	@echo "   CONFIG_PACKED_AMR  [packed-amr-{yes,no}]                  : $(CONFIG_PACKED_AMR)"
 	@echo "   CONFIG_PACKED_MEM  [packed-mem-{yes,no}]                  : $(CONFIG_PACKED_MEM)"
 	@echo "   CONFIG_LCAPERF  [lcaperf-{yes,no}]                        : $(CONFIG_LCAPERF)"
 	@echo "   CONFIG_PAPI  [papi-{yes,no}]                              : $(CONFIG_PAPI)"
@@ -277,7 +266,6 @@ show-config:
 	@echo "   CONFIG_HYPRE  [hypre-{yes,no}]                            : $(CONFIG_HYPRE)"
 	@echo "   CONFIG_EMISSIVITY  [emissivity-{yes,no}]                  : $(CONFIG_EMISSIVITY)"
 	@echo "   CONFIG_USE_HDF4  [use-hdf4-{yes,no}]                      : $(CONFIG_USE_HDF4)"
-	@echo "   CONFIG_NEW_GRID_IO  [newgridio-{yes,no}]                  : $(CONFIG_NEW_GRID_IO)"
 	@echo "   CONFIG_BITWISE_IDENTICALITY  [bitwise-{yes,no}]           : $(CONFIG_BITWISE_IDENTICALITY)"
 	@echo "   CONFIG_FAST_SIB  [fastsib-{yes,no}]                       : $(CONFIG_FAST_SIB)"
 	@echo "   CONFIG_FLUX_FIX  [fluxfix-{yes,no}]                       : $(CONFIG_FLUX_FIX)"
@@ -559,23 +547,6 @@ CONFIG_TASKMAP-%: suggest-clean
 
 #-----------------------------------------------------------------------
 
-VALID_PACKED-AMR = packed-amr-yes packed-amr-no
-.PHONY: $(VALID_PACKED-AMR)
-
-packed-amr-yes: CONFIG_PACKED-AMR-yes
-packed-amr-no: CONFIG_PACKED-AMR-no
-packed-amr-%:
-	@printf "\n\tInvalid target: $@\n\n\tValid targets: [$(VALID_PACKED-AMR)]\n\n"
-CONFIG_PACKED-AMR-%: suggest-clean
-	@tmp=.config.temp; \
-        grep -v CONFIG_PACKED_AMR $(MAKE_CONFIG_OVERRIDE) > $${tmp}; \
-        mv $${tmp} $(MAKE_CONFIG_OVERRIDE); \
-        echo "CONFIG_PACKED_AMR = $*" >> $(MAKE_CONFIG_OVERRIDE); \
-	$(MAKE)  show-config | grep CONFIG_PACKED_AMR; \
-	echo
-
-#-----------------------------------------------------------------------
-
 VALID_PACKED-MEM = packed-mem-yes packed-mem-no
 .PHONY: $(VALID_PACKED-MEM)
 
@@ -832,23 +803,6 @@ CONFIG_EMISSIVITY-%:
         mv $${tmp} $(MAKE_CONFIG_OVERRIDE); \
         echo "CONFIG_EMISSIVITY = $*" >> $(MAKE_CONFIG_OVERRIDE); \
 	$(MAKE) show-config | grep CONFIG_EMISSIVITY; \
-	echo
-
-#-----------------------------------------------------------------------
-
-VALID_NEW_GRID_IO = newgridio-yes newgridio-no
-.PHONY: $(VALID_NEW_GRID_IO)
-
-newgridio-yes: CONFIG_NEW_GRID_IO-yes
-newgridio-no: CONFIG_NEW_GRID_IO-no
-newgridio-%:
-	@printf "\n\tInvalid target: $@\n\n\tValid targets: [$(VALID_NEW_GRID_IO)]\n\n"
-CONFIG_NEW_GRID_IO-%: suggest-clean
-	@tmp=.config.temp; \
-        grep -v CONFIG_NEW_GRID_IO $(MAKE_CONFIG_OVERRIDE) > $${tmp}; \
-        mv $${tmp} $(MAKE_CONFIG_OVERRIDE); \
-        echo "CONFIG_NEW_GRID_IO = $*" >> $(MAKE_CONFIG_OVERRIDE); \
-	$(MAKE)  show-config | grep CONFIG_NEW_GRID_IO; \
 	echo
 
 #-----------------------------------------------------------------------
