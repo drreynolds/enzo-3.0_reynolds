@@ -293,7 +293,7 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   ActiveParticleMap::const_iterator end = map.end();
 
   for (ActiveParticleMap::const_iterator it = map.begin(); it != end; ++it) {
-    fprintf(fptr, "AppendActiveParticleType =%s\n", it->first);
+    fprintf(fptr, "AppendActiveParticleType =%s\n", it->first.c_str());
   }
 
   fprintf(fptr, "CourantSafetyNumber    = %"FSYM"\n",
