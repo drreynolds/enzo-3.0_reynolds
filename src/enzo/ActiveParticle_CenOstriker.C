@@ -25,6 +25,7 @@
 #include "TopGridData.h"
 #include "EventHooks.h"
 #include "ActiveParticle.h"
+#include "h5utilities.h"
 
 #ifdef NEW_CONFIG
 
@@ -524,12 +525,15 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
 
   hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
 
+  writeStringAttribute(CenOstrikerGroupID,"active_particle_type","CenOstriker");
+  writeScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
+
   ActiveParticleType_CenOstriker *ParticlesToWrite = static_cast<ActiveParticleType_CenOstriker*>(these_particles);
 
   char *ParticlePositionLabel[] =
-     {"CenOstrikerParticle_position_x", "CenOstrikerParticle_position_y", "CenOstrikerParticle_position_z"};
+     {"Particle_position_x", "Particle_position_y", "Particle_position_z"};
   char *ParticleVelocityLabel[] =
-     {"CenOstrikerParticle_velocity_x", "CenOstrikerParticle_velocity_y", "CenOstrikerParticle_velocity_z"};
+     {"Particle_velocity_x", "Particle_velocity_y", "Particle_velocity_z"};
 
   /* Create temporary buffers to store particle data */
 
@@ -572,10 +576,10 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
 		  CenOstrikerGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
   }
   
-  WriteDataset(1,&TempInt,"CenOstriker_mass",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
-  WriteDataset(1,&TempInt,"CenOstriker_creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
-  WriteDataset(1,&TempInt,"CenOstriker_dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
-  WriteDataset(1,&TempInt,"CenOstriker_metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+  WriteDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
+  WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
+  WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
 }
 
 class CenOstrikerBufferHandler : public ParticleBufferHandler

@@ -206,6 +206,21 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 		ENZO_FAIL("Error reading GravityBoundaryType.");
       }
 
+    /* 5) Read active particle info */
+    
+    if (fscanf(fptr, "NumberOfActiveParticles = %"ISYM"\n", &NumberOfActiveParticles) != 1) {
+      ENZO_FAIL("error reading NumberOfActiveParticles.");
+    }
+    
+    if (NumberOfActiveParticles > 0) {
+      
+      /* Read particle file name. */
+      
+      if (fscanf(fptr, "ParticleFileName = %s\n", procfilename) != 1) {
+	ENZO_FAIL("Error reading ParticleFileName.");
+      }
+    }
+    
     // If HierarchyFile has different Ghostzones (which should be a parameter not a macro ...)
     // (useful in a restart with different hydro/mhd solvers) 
     int ghosts =DEFAULT_GHOST_ZONES;
@@ -484,6 +499,76 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
   } // end: if (NumberOfParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
  
+  if (NumberOfActiveParticles > 0 && ReadData && (MyProcessorNumber == ProcessorNumber)) {
+
+    /* Open file if not already done (note: particle name must = grid name). */
+
+    if ((NumberOfBaryonFields == 0 || ReadParticlesOnly) && NumberOfParticles == 0) {
+
+#ifndef SINGLE_HDF5_OPEN_ON_INPUT 
+      file_id = H5Fopen(procfilename, H5F_ACC_RDONLY, H5P_DEFAULT);
+      if( file_id == h5_error )ENZO_VFAIL("Error opening file %s", name)
+#endif
+ 
+      group_id = H5Gopen(file_id, name);
+      if( group_id == h5_error )ENZO_VFAIL("Error opening group %s", name)
+
+    } 
+
+    /* Open the active particles group */
+
+    hid_t ActiveParticleGroupID = H5Gopen(group_id, "ActiveParticles");
+
+    /* Loop over enabled active particle types */
+
+    int NumberOfActiveParticlesOnDisk;
+    
+    ActiveParticleType **ActiveParticlesOnDisk;
+
+    for (i = 0; i < EnabledActiveParticlesCount; i++)
+      {
+    
+	/* Instantiate an active particle helper of this type
+	   This class contains the function that allows us to read from disk */
+
+	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+	
+	/* Create an empty buffer that particles in the data file will be read into */
+
+	ActiveParticleType **ActiveParticlesOfThisTypeOnDisk;
+	int NumberOfActiveParticlesOfThisType;
+
+	/* Read the active particles from disk */
+
+	ActiveParticleTypeToEvaluate->read_function(ActiveParticlesOfThisTypeOnDisk,
+						    &NumberOfActiveParticlesOfThisType,
+						    GridRank,
+						    ActiveParticleGroupID);
+	
+	int OldNumberOfActiveParticles = NumberOfActiveParticlesOnDisk;
+
+	ActiveParticleType **OldActiveParticles = ActiveParticlesOnDisk;
+
+	NumberOfActiveParticlesOnDisk += NumberOfActiveParticlesOfThisType;
+	
+	ActiveParticlesOnDisk = new ActiveParticleType*[NumberOfActiveParticlesOnDisk];
+
+	for (i = 0; i < OldNumberOfActiveParticles; i++) {
+	  ActiveParticlesOnDisk[i] = OldActiveParticles[i];
+	}
+	for (i = 0; i < NumberOfActiveParticlesOfThisType; i++) {
+	  ActiveParticlesOnDisk[OldNumberOfActiveParticles + i] = ActiveParticlesOfThisTypeOnDisk[i];
+	}
+
+	delete [] OldActiveParticles;
+	delete [] ActiveParticlesOfThisTypeOnDisk;
+	
+      } // end: for EnabledActiveParticlesCount
+
+    this->ActiveParticles = ActiveParticlesOnDisk;
+
+  } // end: if (NumberOfActiveParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
+
 
   /* Close file. */
  
