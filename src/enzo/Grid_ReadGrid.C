@@ -196,7 +196,11 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
             ENZO_FAIL("error reading NumberOfParticles.");
     }
  
-    if (NumberOfParticles > 0) {
+    if (fscanf(fptr, "NumberOfActiveParticles = %"ISYM"\n", &NumberOfActiveParticles) != 1) {
+      ENZO_FAIL("error reading NumberOfActiveParticles.");
+    }
+    
+    if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0)) {
  
       /* Read particle file name. */
     
@@ -213,19 +217,6 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
       }
 
     /* 5) Read active particle info */
-    
-    if (fscanf(fptr, "NumberOfActiveParticles = %"ISYM"\n", &NumberOfActiveParticles) != 1) {
-      ENZO_FAIL("error reading NumberOfActiveParticles.");
-    }
-    
-    if (NumberOfActiveParticles > 0) {
-      
-      /* Read particle file name. */
-      
-      if (fscanf(fptr, "ParticleFileName = %s\n", procfilename) != 1) {
-	ENZO_FAIL("Error reading ParticleFileName.");
-      }
-    }
     
     // If HierarchyFile has different Ghostzones (which should be a parameter not a macro ...)
     // (useful in a restart with different hydro/mhd solvers) 
