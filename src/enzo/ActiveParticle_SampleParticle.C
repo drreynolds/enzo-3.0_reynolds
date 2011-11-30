@@ -52,6 +52,7 @@ public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int InitializeParticleType(void);
@@ -86,6 +87,12 @@ void ActiveParticleType_SampleParticle::DescribeSupplementalData(ActiveParticleF
 int ActiveParticleType_SampleParticle::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
 {
   ActiveParticleType_SampleParticle *ParticlesToWrite = static_cast<ActiveParticleType_SampleParticle *>(these_particles);
+  return SUCCESS;
+}
+
+int ActiveParticleType_SampleParticle::ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id)
+{
+
   return SUCCESS;
 }
 

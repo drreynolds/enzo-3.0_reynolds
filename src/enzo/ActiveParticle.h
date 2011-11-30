@@ -40,6 +40,8 @@ public:
 			  ActiveParticleFormationData &data);
   int static WriteDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			  hid_t data_type, void *data);
+  int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+			 hid_t data_type, void *read_to);
   /* Several pure virtual functions */
   
   /* This should return the number of new star particles created, and should
@@ -238,6 +240,7 @@ public:
    int (*ifunc)(),
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*writefunc)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id),
+   int (*readfunc)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id),
    ActiveParticleType *particle
    ){
     this->formation_function = ffunc;
@@ -247,6 +250,7 @@ public:
     this->initialize = ifunc;
     this->feedback_function = feedfunc;
     this->write_function = writefunc;
+    this->read_function = readfunc;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -264,6 +268,7 @@ public:
   int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*write_function)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
   ActiveParticleType* particle_instance;
@@ -288,6 +293,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::InitializeParticleType),
      (&active_particle_class::EvaluateFeedback),
      (&active_particle_class::WriteToOutput),
+     (&active_particle_class::ReadFromOutput),
      pp);
   return pinfo;
 }

@@ -73,8 +73,36 @@ void EnableActiveParticleType(char *active_particle_type_name) {
     return;
 }
 
+int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+				    hid_t data_type, void *read_to)
+{
+  hid_t file_dsp_id;
+  hid_t dset_id;
+  hid_t h5_status;
+  herr_t      h5_error = -1;
+  int i, j, k, dim;
+  /* get data into temporary array */
+
+  file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
+  if( file_dsp_id == h5_error ){ENZO_FAIL("Error creating file dataspace");}
+
+  dset_id =  H5Dopen(group, name);
+  if( dset_id == h5_error )ENZO_VFAIL("Error opening %s", name)
+
+  h5_status = H5Dread(dset_id, data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) read_to);
+  if( dset_id == h5_error )ENZO_VFAIL("Error reading %s", name)
+
+  h5_status = H5Sclose(file_dsp_id);
+  if( dset_id == h5_error )ENZO_VFAIL("Error closing dataspace %s", name)
+
+  h5_status = H5Dclose(dset_id);
+  if( dset_id == h5_error )ENZO_VFAIL("Error closing %s", name)
+			     
+  return SUCCESS;
+}
+
 int ActiveParticleType::WriteDataset(int ndims, hsize_t *dims, char *name, hid_t group,
-		  hid_t data_type, void *data)
+				     hid_t data_type, void *data)
 {
 
   hid_t file_dsp_id;
