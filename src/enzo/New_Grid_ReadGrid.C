@@ -19,12 +19,15 @@
 //  Input a grid from file pointer fpt
  
 #include <hdf5.h>
+#include <map>
+#include <iostream>
+#include <stdexcept>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <math.h>
 #include <assert.h>
+#include <vector>
 #include "h5utilities.h"
  
 #include "ErrorExceptions.h"
@@ -35,6 +38,10 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
+#include "fortran.def"
+#include "CosmologyParameters.h"
+#include "ActiveParticle.h"
+
 void my_exit(int status);
  
 #ifdef PROTO /* Remove troublesome HDF PROTO declaration. */

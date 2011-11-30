@@ -74,7 +74,7 @@ void EnableActiveParticleType(char *active_particle_type_name) {
 }
 
 int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
-				    hid_t data_type, void *read_to);
+				    hid_t data_type, void *read_to)
 {
   hid_t file_dsp_id;
   hid_t dset_id;

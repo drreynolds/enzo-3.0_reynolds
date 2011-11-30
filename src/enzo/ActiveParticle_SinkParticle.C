@@ -67,6 +67,7 @@ class ActiveParticleType_SinkParticle : public ActiveParticleType
 public:
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
@@ -227,6 +228,14 @@ int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType *these_par
 
   return SUCCESS;
 }
+
+int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id)
+{
+
+
+  return SUCCESS;
+}
+
 
 class SinkParticleBufferHandler : public ParticleBufferHandler
 {

@@ -78,6 +78,7 @@ public:
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -517,32 +518,30 @@ void ActiveParticleType_CenOstriker::DescribeSupplementalData(ActiveParticleForm
   flags.MetalField = true;
 }
 
-int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType *particles_to_read, int n, int GridRank, hid_t group_id)
+int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id)
 {
   /* Open the subgroup within the active particle for active particles of type CenOstriker */
 
   hid_t CenOstrikerGroupID = H5Gopen(group_id,"CenOstriker");
 
-  readScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
-
-  *particles_to_read = new 
+  readAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",n);
 
   char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};
   char *ParticleVelocityLabel[] =
      {"velocity_x", "velocity_y", "velocity_z"};
 
-  FLOAT Position[GridRank][n];
-  float Velocity[GridRank][n]; 
-  double Mass[n];
-  float BirthTime[n];
-  float DynamicalTime[n];
-  float Metallicity[n];
+  FLOAT Position[GridRank][*n];
+  float Velocity[GridRank][*n]; 
+  double Mass[*n];
+  float BirthTime[*n];
+  float DynamicalTime[*n];
+  float Metallicity[*n];
   
   int i,dim;
 
   hsize_t TempInt;
-  TempInt = n;
+  TempInt = *n;
   
   for (dim = 0; dim < GridRank; dim++) {
     ReadDataset(1,&TempInt,ParticlePositionLabel[dim],
@@ -558,23 +557,20 @@ int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType *particles
   ReadDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
   ReadDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
 
-  ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker[];
-
-  for (i = 0; i < n; i++) {
-    *np[i] = new ActiveParticleType_CenOsriker();
-    np[i]->Mass = Mass[i];
-    np[i]->type = CenOstriker;
-    np[i]->BirthTime = DynamicalTime[i];
+  for (i = 0; i < *n; i++) {
+    ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker;
+    particles_to_read[i] = np;
+    np = new ActiveParticleType_CenOstriker();
+    np->Mass = Mass[i];
+    np->type = CenOstriker;
+    np->BirthTime = DynamicalTime[i];
+    np->Metallicity = Metallicity[i];
     for (dim = 0; dim < GridRank; dim++){
-      np[i]->pos[dim] = Position[dim][i];
-      np[i]->vel[dim] = Velocity[dim][i];
+      np->pos[dim] = Position[dim][i];
+      np->vel[dim] = Velocity[dim][i];
     }
-
-    np[i]->Metallicity = Metallicity[i];
   }
-
-  particles_to_read = np
-
+  return SUCCESS;
 }
 
 int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
@@ -637,6 +633,8 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
   WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+
+  return SUCCESS;
 }
 
 class CenOstrikerBufferHandler : public ParticleBufferHandler
