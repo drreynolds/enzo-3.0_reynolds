@@ -173,7 +173,6 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
   int i, j, k, dim, index, offset_y, offset_z;
   int NumberOfNewParticles = 0;
 
-  /* Define some pointers for readability */
 
   float *density = thisGrid->BaryonField[data.DensNum];
   float *velx = thisGrid->BaryonField[data.Vel1Num];
@@ -281,8 +280,8 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 
 
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
-	np->pos[0] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
-	np->pos[0] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
+	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
+	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
 	if (UnigridVelocities == false) {
 	  float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
@@ -320,7 +319,6 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   ActiveParticleType_CenOstriker *particles = 
     static_cast<ActiveParticleType_CenOstriker*>(*thisGrid->ActiveParticles);
   
-  /* Define some pointers for readability  */
   float *density = thisGrid->BaryonField[data.DensNum];
   float *velx = thisGrid->BaryonField[data.Vel1Num];
   float *vely = thisGrid->BaryonField[data.Vel2Num];
@@ -519,21 +517,80 @@ void ActiveParticleType_CenOstriker::DescribeSupplementalData(ActiveParticleForm
   flags.MetalField = true;
 }
 
+int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType *particles_to_read, int n, int GridRank, hid_t group_id)
+{
+  /* Open the subgroup within the active particle for active particles of type CenOstriker */
+
+  hid_t CenOstrikerGroupID = H5Gopen(group_id,"CenOstriker");
+
+  readScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
+
+  *particles_to_read = new 
+
+  char *ParticlePositionLabel[] =
+     {"position_x", "position_y", "position_z"};
+  char *ParticleVelocityLabel[] =
+     {"velocity_x", "velocity_y", "velocity_z"};
+
+  FLOAT Position[GridRank][n];
+  float Velocity[GridRank][n]; 
+  double Mass[n];
+  float BirthTime[n];
+  float DynamicalTime[n];
+  float Metallicity[n];
+  
+  int i,dim;
+
+  hsize_t TempInt;
+  TempInt = n;
+  
+  for (dim = 0; dim < GridRank; dim++) {
+    ReadDataset(1,&TempInt,ParticlePositionLabel[dim],
+		  CenOstrikerGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
+  }
+
+  for (dim = 0; dim < GridRank; dim++) {
+    ReadDataset(1,&TempInt,ParticleVelocityLabel[dim],
+		  CenOstrikerGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
+  }
+  ReadDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
+  ReadDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
+  ReadDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
+  ReadDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+
+  ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker[];
+
+  for (i = 0; i < n; i++) {
+    *np[i] = new ActiveParticleType_CenOsriker();
+    np[i]->Mass = Mass[i];
+    np[i]->type = CenOstriker;
+    np[i]->BirthTime = DynamicalTime[i];
+    for (dim = 0; dim < GridRank; dim++){
+      np[i]->pos[dim] = Position[dim][i];
+      np[i]->vel[dim] = Velocity[dim][i];
+    }
+
+    np[i]->Metallicity = Metallicity[i];
+  }
+
+  particles_to_read = np
+
+}
+
 int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
 {
   /* Create a new subgroup within the active particle group for active particles of type CenOstriker */
 
   hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
 
-  writeStringAttribute(CenOstrikerGroupID,"active_particle_type","CenOstriker");
   writeScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
 
   ActiveParticleType_CenOstriker *ParticlesToWrite = static_cast<ActiveParticleType_CenOstriker*>(these_particles);
 
   char *ParticlePositionLabel[] =
-     {"Particle_position_x", "Particle_position_y", "Particle_position_z"};
+     {"position_x", "position_y", "position_z"};
   char *ParticleVelocityLabel[] =
-     {"Particle_velocity_x", "Particle_velocity_y", "Particle_velocity_z"};
+     {"velocity_x", "velocity_y", "velocity_z"};
 
   /* Create temporary buffers to store particle data */
 

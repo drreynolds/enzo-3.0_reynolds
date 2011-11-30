@@ -544,7 +544,9 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 						    &NumberOfActiveParticlesOfThisType,
 						    GridRank,
 						    ActiveParticleGroupID);
-	
+
+	/* Add the active particles read from disk to the active particle buffer */
+
 	int OldNumberOfActiveParticles = NumberOfActiveParticlesOnDisk;
 
 	ActiveParticleType **OldActiveParticles = ActiveParticlesOnDisk;
@@ -560,10 +562,14 @@ int grid::Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 	  ActiveParticlesOnDisk[OldNumberOfActiveParticles + i] = ActiveParticlesOfThisTypeOnDisk[i];
 	}
 
+	/* clean up */
+
 	delete [] OldActiveParticles;
 	delete [] ActiveParticlesOfThisTypeOnDisk;
 	
       } // end: for EnabledActiveParticlesCount
+
+    /* Assign the active particle buffer to this grid */
 
     this->ActiveParticles = ActiveParticlesOnDisk;
 
