@@ -83,6 +83,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   struct ActiveParticleFormationData supplemental_data = data_default;
   supplemental_data.level = level;
+  supplemental_data.GridID = this->ID;
 
   ActiveParticleType::ConstructData(this, flags, supplemental_data);
 
@@ -121,16 +122,18 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     assert((NumberOfNewParticles + OldNumberOfActiveParticles)
         == this->NumberOfActiveParticles);
     delete[] OldActiveParticles; 
+    printf("Creating %d new active particles\n", NumberOfNewParticles);
   }
 
   /******************** FEEDBACK ********************/
 
   /* Now we iterate */
-  for (i = 0; i < EnabledActiveParticlesCount; i++)
-  {
-    ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-    ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
-  }
+  if (NumberOfActiveParticles > 0)
+    for (i = 0; i < EnabledActiveParticlesCount; i++)
+      {
+	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+	ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
+      }
   
   ActiveParticleType::DestroyData(this, supplemental_data);
 

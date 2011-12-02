@@ -211,7 +211,11 @@ void ActiveParticleType::ConstructData(grid *_grid,
   data.Vel2Num = Vel2Num;
   data.Vel3Num = Vel3Num;
   data.MetalNum = MetalNum;
-  /*data.ColourNum = ColourNum;*/
+  data.TENum = TENum;
+  data.GENum = GENum;
+  data.ColourNum = SNColourNum;
+  data.MetalNum = MetalNum;
+  data.MetalIaNum = MetalIaNum;
 
   /* Compute the redshift. */
  

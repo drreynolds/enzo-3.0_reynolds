@@ -275,11 +275,13 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker();
 	data.NewParticles[data.NumberOfNewParticles++] = np;
 
+	np->level = data.level;
+	np->GridID = data.GridID;
+
 	np->Mass = StarFraction*density[index];
-	np->type = CenOstriker;
+	np->type = INT_UNDEFINED;  // This should come from ActiveParticleType_info
 	np->BirthTime = thisGrid->ReturnTime();
 	np->DynamicalTime = DynamicalTime;
-
 
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
@@ -347,7 +349,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   FLOAT ystart = thisGrid->CellLeftEdge[1][0];
   FLOAT zstart = thisGrid->CellLeftEdge[2][0];
 
-  int npart = thisGrid->NumberOfParticles;
+  int npart = thisGrid->NumberOfActiveParticles;
   int GridXSize = thisGrid->GridDimension[0];
   int GridYSize = thisGrid->GridDimension[1];
   int GridZSize = thisGrid->GridDimension[2];
@@ -358,7 +360,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   
   int n,i,j,k,ic,kc,jc,stepk,stepj,cellstep,DistIndex,index;
 
-  for (n=0;npart-1;n++) {
+  for (n=0; n < npart-1;n++) {
     if (thisGrid->ActiveParticles[n]->ReturnType() == CenOstriker)
       continue;
   

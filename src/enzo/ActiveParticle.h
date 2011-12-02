@@ -51,6 +51,7 @@ public:
 //  ActiveParticleType(ActiveParticleType*& part){};
 
   ActiveParticleType(void);
+  ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
   ActiveParticleType(grid *_grid, int _id, int _level);
   ActiveParticleType(ActiveParticleType*& part);
   ~ActiveParticleType(void);
@@ -154,8 +155,10 @@ struct ActiveParticleFormationData {
   int TENum;
   int GENum;
   int MetalNum;
+  int MetalIaNum;
   int ColourNum;
   int level;
+  int GridID;
 };
 
 const struct ActiveParticleFormationData data_default = {
@@ -181,8 +184,10 @@ const struct ActiveParticleFormationData data_default = {
   -1,       // TENum
   -1,       // GENum
   -1,       // MetalNum
+  -1,       // MetalIaNum
   -1,       // ColourNum
-  -1        // level
+  -1,       // level
+  -1        // GridID
 };
 
 

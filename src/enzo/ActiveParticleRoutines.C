@@ -49,7 +49,11 @@ ActiveParticleType::ActiveParticleType(void)
   for (dim = 0; dim < MAX_DIMENSION; dim++)
     pos[dim] = vel[dim] = 0.0;
   Mass = BirthTime = DynamicalTime = 0.0;
-  Identifier = level = GridID = type = 0;
+  level = GridID = type = 0;
+
+  /* The correct indices are assigned in CommunicationUpdateStarParticleCount 
+     in StarParticleFinalize.*/
+  Identifier = INT_UNDEFINED;
 }
 
 ActiveParticleType::ActiveParticleType(ActiveParticleType*& part)
@@ -59,8 +63,29 @@ ActiveParticleType::ActiveParticleType(ActiveParticleType*& part)
   for (dim = 0; dim < MAX_DIMENSION; dim++)
     pos[dim] = vel[dim] = 0.0;
   Mass = BirthTime = DynamicalTime = 0.0;
-  Identifier = level = GridID = type = 0;
+  level = GridID = type = 0;
+
+  /* The correct indices are assigned in CommunicationUpdateStarParticleCount 
+     in StarParticleFinalize.*/
+  Identifier = INT_UNDEFINED;
 }
+
+ActiveParticleType::ActiveParticleType(grid *_grid, ActiveParticleFormationData &data)
+{
+  int dim;
+  CurrentGrid = _grid;
+  for (dim = 0; dim < MAX_DIMENSION; dim++)
+    pos[dim] = vel[dim] = 0.0;
+  Mass = BirthTime = DynamicalTime = 0.0;
+  type = 0;
+  level = data.level;
+  GridID = data.GridID;
+
+  /* The correct indices are assigned in CommunicationUpdateStarParticleCount 
+     in StarParticleFinalize.*/
+  Identifier = INT_UNDEFINED;
+}
+
 
 ActiveParticleType::ActiveParticleType(grid *_grid, int _id, int _level)
 {
