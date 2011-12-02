@@ -202,23 +202,12 @@ class grid
 
    ~grid();
 
-/* Read grid data from a file (returns: success/failure) */
-
-   int ReadGrid(FILE *main_file_pointer, int GridID, char DataFilename[], 
-		int ReadText = TRUE, int ReadData = TRUE);
-
 /* Read grid data from a group file (returns: success/failure) */
 
-#ifndef NEW_GRID_IO
-   int Group_ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
-		      char DataFilename[],
-		      int ReadText, int ReadData, bool ReadParticlesOnly=false);
-#else
-   int Group_ReadGrid(FILE *main_file_pointer, int GridID, HDF5_hid_t file_id, 
+   int ReadGrid(FILE *main_file_pointer, int GridID, HDF5_hid_t file_id, 
 		      char DataFilename[],
 		      int ReadText = TRUE, int ReadData = TRUE, 
 		      bool ReadParticlesOnly=false, int ReadEverything = FALSE);
-#endif
    
 /* Get field or particle data based on name or integer 
    defined in typedefs.h. Details are in Grid_CreateFieldArray.C. */
@@ -248,11 +237,7 @@ class grid
 
 /* Write grid data to a group file (returns: success/failure) */
 
-#ifndef NEW_GRID_IO
-   int Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id);
-#else
-   int Group_WriteGrid(FILE *main_file_pointer, char *base_name, int grid_id, HDF5_hid_t file_id, int WriteEverything = FALSE);
-#endif
+   int WriteGrid(FILE *main_file_pointer, char *base_name, int grid_id, HDF5_hid_t file_id, int WriteEverything = FALSE);
 
    int WriteAllFluxes(hid_t grid_node);
    int WriteFluxGroup(hid_t top_group, fluxes *fluxgroup);
@@ -278,7 +263,7 @@ class grid
 
 /* Write grid data to separate files (returns: success/failure) */
 
-   int WriteGridX(FILE *main_file_pointer, char *base_name, int grid_id);
+   int WriteGridExtract(FILE *main_file_pointer, char *base_name, int grid_id);
 
 /* Write task memory map */
 
@@ -306,7 +291,7 @@ class grid
 /* Interpolate to specified time and write grid data to a group file
    (returns: success/failure). */
 
-   int Group_WriteGridInterpolate(FLOAT WriteTime, FILE *main_file_pointer,
+   int WriteGridInterpolate(FLOAT WriteTime, FILE *main_file_pointer,
                             char *base_name, int grid_id, HDF5_hid_t file_id);
 
    int ComputeVectorAnalysisFields(field_type fx, field_type fy, field_type fz,
@@ -2224,6 +2209,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 			    float dtLevelAbove);
+  int MirrorActiveParticles(int direction);
+
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 

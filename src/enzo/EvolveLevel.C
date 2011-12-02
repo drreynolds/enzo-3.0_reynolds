@@ -185,7 +185,8 @@ int OutputFromEvolveLevel(LevelHierarchyEntry *LevelArray[],TopGridData *MetaDat
 int ComputeRandomForcingNormalization(LevelHierarchyEntry *LevelArray[],
                                       int level, TopGridData *MetaData,
                                       float * norm, float * pTopGridTimeStep);
-int CreateSiblingList(HierarchyEntry ** Grids, int NumberOfGrids, SiblingGridList *SiblingList, 
+int CreateSiblingList(HierarchyEntry ** Grids, int NumberOfGrids, 
+		      SiblingGridList *SiblingList, 
 		      int StaticLevelZero,TopGridData * MetaData,int level);
 
 #ifdef FLUX_FIX
@@ -211,6 +212,12 @@ int StarParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			 int level, Star *&AllStars,
 			 int TotalStarParticleCountPrevious[]);
+int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
+			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			     int ThisLevel, int TotalStarParticleCountPrevious[]);
+int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
+			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			   int level, int TotalStarParticleCountPrevious[]);
 int AdjustRefineRegion(LevelHierarchyEntry *LevelArray[], 
 		       TopGridData *MetaData, int EL_level);
 int AdjustMustRefineParticlesRefineToLevel(TopGridData *MetaData, int EL_level);
@@ -370,8 +377,14 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Initialize the star particles */
 
     Star *AllStars = NULL;
+#ifdef ACTIVE_PARTICLE_IMPLEMENTED
+    ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
+	                     level, TotalStarParticleCountPrevious);
+#else
     StarParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, AllStars, TotalStarParticleCountPrevious);
+#endif
+    
 
 #ifdef TRANSFER
     /* Initialize the radiative transfer */
@@ -496,14 +509,13 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
       }*/
 #endif
 
-
       /* Include 'star' particle creation and feedback. */
-
-      Grids[grid1]->GridData->StarParticleHandler
-	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
 
 #ifdef ACTIVE_PARTICLE_IMPLEMENTED
       Grids[grid1]->GridData->ActiveParticleHandler
+	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
+#else
+      Grids[grid1]->GridData->StarParticleHandler
 	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
 #endif
 
@@ -542,8 +554,13 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
+#ifdef ACTIVE_PARTICLE_IMPLEMENTED
+    ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
+			   level, TotalStarParticleCountPrevious);
+#else
     StarParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			 level, AllStars, TotalStarParticleCountPrevious);
+#endif
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */

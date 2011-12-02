@@ -4,7 +4,9 @@
 /
 /  written by: Greg Bryan
 /  date:       April, 2000
-/  modified1:
+/  modified1:  Robert Harkness
+/              July, 2006
+/              Pass through HDF5 file_id for groups
 /
 /  PURPOSE:  This routine interpolates grid data to the time passed
 /            in and then call the regular grid i/o routine.  It is
@@ -15,10 +17,11 @@
 /  RETURNS:
 /
 ************************************************************************/
- 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
 
 
 #include "ErrorExceptions.h"
@@ -38,8 +41,7 @@ int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);
    when full is written to the file pointed to by fptr. */
  
  
-int grid::WriteGridInterpolate(FLOAT WriteTime, FILE *fptr, char *base_name,
-			       int grid_id)
+int grid::WriteGridInterpolate(FLOAT WriteTime, FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id)
 {
  
   int dim, i, field, size = 1;
@@ -83,7 +85,7 @@ int grid::WriteGridInterpolate(FLOAT WriteTime, FILE *fptr, char *base_name,
  
   FLOAT SavedTime = Time;
   Time = WriteTime;
-  if (this->WriteGrid(fptr, base_name, grid_id) == FAIL) {
+  if (this->WriteGrid(fptr, base_name, grid_id, file_id) == FAIL) {
     ENZO_FAIL("Error in grid->WriteGrid.\n");
   }
   Time = SavedTime;

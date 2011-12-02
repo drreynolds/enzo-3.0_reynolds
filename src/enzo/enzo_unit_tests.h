@@ -110,7 +110,7 @@ int CommunicationFinalize();
 
 int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		    ExternalBoundary *Exterior);
-int Group_ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
+int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		    ExternalBoundary *Exterior);
 
 // --- Main test framework ---

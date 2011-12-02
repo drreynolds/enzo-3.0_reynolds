@@ -333,17 +333,18 @@ void ExtractSection(HierarchyEntry &TopGrid, TopGridData &MetaData,
  
   if (ExtractFieldsOnly)
   {
-    if (Grids[ExtractLevel]->WriteGridX(output, ExtractOutputName, 0) == FAIL) {
-      fprintf(stderr, "Error in grid->WriteGridX.\n");
+    if (Grids[ExtractLevel]->WriteGridExtract(output, ExtractOutputName, 0) == FAIL) {
+      fprintf(stderr, "Error in grid->WriteGridExtract.\n");
       my_exit(EXIT_FAILURE);
     }
   }
   else
   {
-    if (Grids[ExtractLevel]->WriteGrid(output, ExtractOutputName, 0) == FAIL) {
+    ENZO_FAIL("This functionality is not currently implemented.");
+    /*if (Grids[ExtractLevel]->WriteGrid(output, ExtractOutputName, 0) == FAIL) {
       fprintf(stderr, "Error in grid->WriteGrid.\n");
       my_exit(EXIT_FAILURE);
-    }
+    }*/
   }
  
   /* If using particles, open a file to output particle data. */

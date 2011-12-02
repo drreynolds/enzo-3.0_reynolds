@@ -33,7 +33,8 @@
 /* function prototypes */
  
 int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
-		ExternalBoundary *Exterior, float *Initialdt);
+		      ExternalBoundary *Exterior, float *Initialdt,
+		      bool ReadParticlesOnly=false);
 void AddLevel(LevelHierarchyEntry *Array[], HierarchyEntry *Grid, int level);
 char LastFileNameWritten[MAX_LINE_LENGTH];
 int CopyOverlappingZones(grid* CurrentGrid, TopGridData *MetaData,

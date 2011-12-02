@@ -6,21 +6,29 @@
 /  date:       November, 1994
 /  modified1:  Robert Harkness, July 2002
 /  modified2:  Alexei Kritsuk, Jan 2004   a trick for RandomForcing //AK
-/  modified3:  Michael Kuhlen, October 2010, HDF5 hierarchy
+/  modified3:  Robert Harkness, Jan 2007 for HDF5 memory buffering
+/  modified4:  Robert Harkness, April 2008
+/  modified5:  Matthew Turk, September 2009 for refactoring and removing IO_TYPE
+/  modified6:  Michael Kuhlen, October 2010, HDF5 hierarchy
+/  modified7:  Nathan Goldbaum, November 2011, Active Particle Support
 /
 /  PURPOSE:
 /
 ************************************************************************/
  
 //  Input a grid from file pointer fpt
-
-#ifdef USE_HDF4
-#include "mfhdf.h"
-#endif /* USE_HDF4 */
+ 
 #include <hdf5.h>
+#include <map>
+#include <iostream>
+#include <stdexcept>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+#include <vector>
+#include "h5utilities.h"
  
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -30,43 +38,53 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
+#include "fortran.def"
+#include "CosmologyParameters.h"
+#include "ActiveParticle.h"
+
 void my_exit(int status);
  
 #ifdef PROTO /* Remove troublesome HDF PROTO declaration. */
 #undef PROTO
 #endif
  
+// HDF5 function prototypes
+ 
+
+ 
 // function prototypes
  
 int ReadListOfFloats(FILE *fptr, int N, FLOAT floats[]);
 int ReadListOfInts(FILE *fptr, int N, int nums[]);
  
-// extern int ParticleTypeInFile; // declared and set in ReadParameterFile
+static int GridReadDataGridCounter = 0;
  
-#ifdef USE_HDF4 //Ji-hoon Kim
-int ReadField(float *temp, int Dims[], int Rank, char *name, char *field_name);
-static Eint32 sd_id, sds_index; // HDF4 (SD) handlers                                               
-#endif 
-
-int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[], 
-		   int ReadText, int ReadData)
+ 
+int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id, 
+			 char DataFilename[],
+			 int ReadText, int ReadData, bool ReadParticlesOnly,
+			 int ReadEverything)
 {
-  bool TryHDF5 = TRUE; 
-  int i, j, k, dim, field, size, active_size;
+ 
+  int i, j, k, field, size, active_size, dim;
   char name[MAX_LINE_LENGTH], dummy[MAX_LINE_LENGTH];
   char logname[MAX_LINE_LENGTH];
+  char procfilename[MAX_LINE_LENGTH];
+ 
+  char id[MAX_GROUP_TAG_SIZE];
+  char pid[MAX_TASK_TAG_SIZE];
+  char gpid[MAX_TASK_TAG_SIZE];
  
   int ActiveDim[MAX_DIMENSION];
  
   FILE *log_fptr;
  
-  hid_t       file_id, dset_id;
-  hid_t       float_type_id, FLOAT_type_id;
-  hid_t       file_type_id, FILE_type_id;
+  hid_t       group_id, dset_id, old_fields;
   hid_t       file_dsp_id;
   hid_t       num_type;
  
   hsize_t     OutDims[MAX_DIMENSION];
+  hsize_t     FullOutDims[MAX_DIMENSION];
   hsize_t     TempIntArray[MAX_DIMENSION];
  
   herr_t      h5_status;
@@ -79,30 +97,12 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
   char *ParticleVelocityLabel[] =
     {"particle_velocity_x", "particle_velocity_y", "particle_velocity_z"};
 #ifdef WINDS
-    char *ParticleAttributeLabel[] = 
-      {"creation_time", "dynamical_time", "metallicity_fraction", "particle_jet_x", 
-       "particle_jet_y", "particle_jet_z", "typeia_fraction"};
+  char *ParticleAttributeLabel[] =
+    {"creation_time", "dynamical_time", "metallicity_fraction", "particle_jet_x", 
+     "particle_jet_y", "particle_jet_z", "typeia_fraction"};
 #else
-    char *ParticleAttributeLabel[] = 
-      {"creation_time", "dynamical_time", "metallicity_fraction", "typeia_fraction"};
-#endif
-
-#ifdef USE_HDF4
-  Eint32 TempIntArray2[MAX_DIMENSION];
-  Eint32 sds_id, num_type2, attributes, TempInt;  
-  sds_index = 0;  // start at first SDS
-#endif 
- 
-#ifdef IO_LOG
-  int         io_log = 1;
-#else
-  int         io_log = 0;
-#endif
-
-#ifdef IO_64
-#define io_type float64
-#else
-#define io_type float32
+  char *ParticleAttributeLabel[] = 
+    {"creation_time", "dynamical_time", "metallicity_fraction", "typeia_fraction"};
 #endif
  
   if(ReadText && HierarchyFileInputFormat == 1){
@@ -111,12 +111,11 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
 
     /* make sure quantities defined at least for 3d */
  
-    for (dim = GridRank; dim < 3; dim++) {
+    for (int dim = GridRank; dim < 3; dim++) {
       GridDimension[dim] = 1;
       GridStartIndex[dim] = 0;
       GridEndIndex[dim] = 0;
     }
-
     if (fscanf(fptr, "GridRank = %"ISYM"\n", &GridRank) != 1) {
             ENZO_FAIL("Error reading GridRank.");
     }
@@ -152,15 +151,19 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
     if (ReadListOfFloats(fptr, GridRank, GridRightEdge) == FAIL) {
             ENZO_FAIL("Error reading GridRightEdge.");
     }
-
+ 
     if (fscanf(fptr, "Time = %"PSYM"\n", &Time) != 1) {
             ENZO_FAIL("Error reading Time.");
+    }
+    if (ReadEverything == TRUE && 
+       (fscanf(fptr, "OldTime = %"PSYM"\n", &OldTime) != 1)) {
+            ENZO_FAIL("Error reading OldTime.");
     }
  
     if (fscanf(fptr, "SubgridsAreStatic = %"ISYM"\n", &SubgridsAreStatic) != 1) {
             ENZO_FAIL("Error reading SubgridsAreStatic.");
     }
-
+ 
     /* Read baryon field quantities. */
  
     if (fscanf(fptr, "NumberOfBaryonFields = %"ISYM"\n",
@@ -168,12 +171,6 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
             ENZO_FAIL("Error reading NumberOfBaryonFields.");
     }
     if (NumberOfBaryonFields > 0) {
-
-      if (NumberOfBaryonFields >= MAX_NUMBER_OF_BARYON_FIELDS) {
-	ENZO_VFAIL("NumberOfBaryonFields (%"ISYM") exceeds "
-	       "MAX_NUMBER_OF_BARYON_FIELDS (%"ISYM").\n", 
-	       NumberOfBaryonFields, MAX_NUMBER_OF_BARYON_FIELDS)
-      }
  
       fscanf(fptr, "FieldType = ");
  
@@ -183,7 +180,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
  
       fgetpos(fptr, &BaryonFileNamePosition); //AK
  
-      if (fscanf(fptr, "BaryonFileName = %s\n", name) != 1) {
+      if (fscanf(fptr, "BaryonFileName = %s\n", procfilename) != 1) {
 		ENZO_FAIL("Error reading BaryonFileName.");
       }
  
@@ -198,16 +195,20 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
     if (fscanf(fptr, "NumberOfParticles = %"ISYM"\n", &NumberOfParticles) != 1) {
             ENZO_FAIL("error reading NumberOfParticles.");
     }
-  
-    if (NumberOfParticles > 0) {
+ 
+    if (fscanf(fptr, "NumberOfActiveParticles = %"ISYM"\n", &NumberOfActiveParticles) != 1) {
+      ENZO_FAIL("error reading NumberOfActiveParticles.");
+    }
+    
+    if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0)) {
  
       /* Read particle file name. */
-
-      if (fscanf(fptr, "ParticleFileName = %s\n", name) != 1) {
+    
+      if (fscanf(fptr, "ParticleFileName = %s\n", procfilename) != 1) {
 		ENZO_FAIL("Error reading ParticleFileName.");
       }
     }
-
+ 
     /* 4) Read gravity info */
  
     if (SelfGravity)
@@ -215,782 +216,618 @@ int grid::ReadGrid(FILE *fptr, int GridID, char DataFilename[],
 		ENZO_FAIL("Error reading GravityBoundaryType.");
       }
 
-    // If HierarchyFile has different Ghostzones 
+    /* 5) Read active particle info */
+    
+    // If HierarchyFile has different Ghostzones (which should be a parameter not a macro ...)
     // (useful in a restart with different hydro/mhd solvers) 
     int ghosts =DEFAULT_GHOST_ZONES;
     if (GridStartIndex[0] != ghosts)  {
-      if (GridID < 2) fprintf(stderr,"Grid_ReadGrid: Adjusting Ghostzones which in the hierarchy file did not match the selected HydroMethod.\n");
-      
-      for (dim=0; dim < GridRank; dim++) {
+	if (GridID < 2)
+     fprintf(stderr,"Grid_ReadGrid: Adjusting Ghostzones which in the hierarchy file did not match the selected HydroMethod.\n");
+      for (int dim=0; dim < GridRank; dim++) {
 	GridDimension[dim]  = GridEndIndex[dim]-GridStartIndex[dim]+1+2*ghosts;
 	GridStartIndex[dim] = ghosts;
 	GridEndIndex[dim]   = GridStartIndex[dim]+GridDimension[dim]-1-2*ghosts;
-	if (GridID < 2) fprintf(stderr, "dim: GridStart,GridEnd,GridDim:  %i: %i %i %i\n",
-				dim, GridStartIndex[dim], GridEndIndex[dim], GridDimension[dim]);
+	 if (GridID < 2) fprintf(stderr, "dim: GridStart,GridEnd,GridDim:  %i: %i %i %i\n",
+				  dim, GridStartIndex[dim], GridEndIndex[dim], GridDimension[dim]);
       }
-    } // end Adjusting Grid Size with different Ghostzones
-  } /* end if (ReadText && HierarchyFileInputFormat == 1) */
+    }
 
+  } // (if (ReadText && HierarchyFileInputFormat == 1) )
 
   // if HDF5 Hierarchy file, then copy DataFilename (read in
   // Grid::ReadHierarchyInformationHDF5.C) to procfilename
   if (HierarchyFileInputFormat % 2 == 0) {
-    strcpy(name, DataFilename);
+    strcpy(procfilename, DataFilename);
   }
+
+  snprintf(name, MAX_LINE_LENGTH-1, "/Grid%"GROUP_TAG_FORMAT""ISYM, GridID);
+
+  if (NumberOfBaryonFields > 0 && ReadData && !ReadParticlesOnly &&
+      (MyProcessorNumber == ProcessorNumber)) {
+
+#ifndef SINGLE_HDF5_OPEN_ON_INPUT
+    file_id = H5Fopen(procfilename,  H5F_ACC_RDONLY, H5P_DEFAULT);
+    if( file_id == h5_error ) ENZO_VFAIL("Error opening %s", procfilename)
+#endif
+ 
+    group_id = H5Gopen(file_id, name);
+    if( group_id == h5_error )ENZO_VFAIL("Error opening group %s", name)
+ 
+    /* fill in ActiveDim for dims up to 3d */
+ 
+    for (int dim = 0; dim < 3; dim++)
+      ActiveDim[dim] = GridEndIndex[dim] - GridStartIndex[dim] +1;
+ 
+    /* check dimensions of HDF file against this grid
+       (note: we don't bother to check the coordinate arrays)  */
+ 
+    size = 1;
+    active_size = 1;
+ 
+    for (int dim = 0; dim < GridRank; dim++) {
+      size *= GridDimension[dim];
+      active_size *= ActiveDim[dim];
+    }
+ 
+    //  CAUTION - are the coordinates reversed?
+ 
+    for (int dim = 0; dim < GridRank; dim++) {
+      OutDims[GridRank-dim-1] = ActiveDim[dim];
+      FullOutDims[GridRank-dim-1] = GridDimension[dim];
+    }
+ 
+    /* allocate temporary space */
+ 
+    float *temp = new float[active_size];
+ 
+    if(ReadEverything == TRUE) {
+      old_fields = H5Gopen(group_id, "OldFields");
+      FLOAT dtFixedCopy;
+      readAttribute(old_fields, HDF5_PREC, "Time", &this->Time, TRUE);
+      readAttribute(old_fields, HDF5_PREC, "OldTime", &this->OldTime, TRUE);
+      readAttribute(old_fields, HDF5_PREC, "dtFixed", &dtFixedCopy, TRUE);
+      this->dtFixed = dtFixedCopy;
+    }
+ 
+    /* loop over fields, reading each one */
+
+    for (field = 0; field < NumberOfBaryonFields; field++) {
+      BaryonField[field] = new float[size];
+      for (i = 0; i < size; i++)
+        BaryonField[field][i] = 0;
+
+      if(ReadEverything == FALSE) {
+        this->read_dataset(GridRank, OutDims, DataLabel[field],
+            group_id, HDF5_REAL, (VOIDP) temp,
+            TRUE, BaryonField[field], ActiveDim);
+      } else {
+        this->read_dataset(GridRank, OutDims, DataLabel[field],
+            group_id, HDF5_REAL, BaryonField[field],
+            FALSE, NULL, NULL);
+
+        OldBaryonField[field] = new float[size];
+        for (i = 0; i < size; i++)
+          OldBaryonField[field][i] = 0;
+
+        this->read_dataset(GridRank, OutDims, DataLabel[field],
+            old_fields, HDF5_REAL, OldBaryonField[field],
+            FALSE, NULL, NULL);
+
+      }
+
+    } // end: loop over fields
+ 
+
+    if (HydroMethod == MHD_RK) { // This is the MHD with Dedner divergence cleaning that needs an extra field
+      // 
+
+   
+      int activesize = 1;
+      for (int dim = 0; dim < GridRank; dim++)
+	activesize *= (GridDimension[dim]-2*DEFAULT_GHOST_ZONES);
+      
+      if (divB == NULL) 
+	divB = new float[activesize];
+      
+      /* if we restart from a different solvers output without a Phi Field create here and set to zero */
+      int PhiNum; 
+      if ((PhiNum = FindField(PhiField, FieldType, NumberOfBaryonFields)) < 0) {
+	fprintf(stderr, "Starting with Dedner MHD method with no Phi field. \n");
+	fprintf(stderr, "Adding it in Grid_ReadGrid.C \n");
+	char *PhiName = "Phi";
+	PhiNum = NumberOfBaryonFields;
+	int PhiToAdd = PhiField;
+	this->AddFields(&PhiToAdd, 1);
+	DataLabel[PhiNum] = PhiName;
+      } else { 
+	if (0) 
+	  for (int n = 0; n < size; n++)
+	    BaryonField[PhiNum][n] = 0.;
+      }
+
+      /* if we restart from a different solvers output without a Phi_pField 
+	 and yet want to use the divergence cleaning, create here and set to zero */
+      if (UseDivergenceCleaning) {
+	int Phi_pNum; 
+	if ((Phi_pNum = FindField(Phi_pField, FieldType, NumberOfBaryonFields)) < 0) {
+	  fprintf(stderr, "Want to use divergence cleaning with no Phi_p field. \n");
+	  fprintf(stderr, "Adding it in Grid_ReadGrid.C \n");
+	  char *Phi_pName = "Phi_p";
+	  Phi_pNum = NumberOfBaryonFields;
+	  int Phi_pToAdd = Phi_pField;
+	  this->AddFields(&Phi_pToAdd, 1);
+	  DataLabel[Phi_pNum] = Phi_pName;
+	}
+      }
+
+      for (int dim = 0; dim < 3; dim++)
+	if (gradPhi[dim] == NULL)
+	  gradPhi[dim] = new float[activesize];
+      
+      for (int dim = GridRank; dim < 3; dim++)
+	for (int n = 0; n < activesize; n++)
+	  gradPhi[dim][n] = 0.0;
+      
+    } /* if HydroMethod == MHD */
+
+
+    delete [] temp;
+ 
+  }  // end:   if (NumberOfBaryonFields > 0 && ReadData &&
+  //      (MyProcessorNumber == ProcessorNumber)) {
+
+  /* Compute Flux quantities */
 
   this->PrepareGridDerivedQuantities();
  
-  switch(sizeof(io_type))
-    {
-    case 4: float_type_id = HDF5_R4; break;
-    case 8: float_type_id = HDF5_R8; break;
-    default: float_type_id = HDF5_R4;
+ 
+  if (NumberOfParticles > 0 && ReadData &&
+      (MyProcessorNumber == ProcessorNumber)) {
+  
+ 
+    /* Open file if not already done (note: particle name must = grid name). */
+ 
+    if (NumberOfBaryonFields == 0 || ReadParticlesOnly) {
+ 
+#ifndef SINGLE_HDF5_OPEN_ON_INPUT 
+      file_id = H5Fopen(procfilename, H5F_ACC_RDONLY, H5P_DEFAULT);
+      if( file_id == h5_error )ENZO_VFAIL("Error opening file %s", name)
+#endif
+ 
+      group_id = H5Gopen(file_id, name);
+      if( group_id == h5_error )ENZO_VFAIL("Error opening group %s", name)
+ 
+    } // end: if (NumberOfBaryonFields == 0)
+ 
+    /* Allocate room for particles. */
+ 
+    this->AllocateNewParticles(NumberOfParticles);
+ 
+    TempIntArray[0] = NumberOfParticles;
+ 
+    FLOAT *temp = new FLOAT[NumberOfParticles];
+ 
+    /* Read ParticlePosition (use temporary buffer). */
+ 
+    for (int dim = 0; dim < GridRank; dim++) {
+      this->read_dataset(1, TempIntArray, ParticlePositionLabel[dim],
+            group_id, HDF5_FILE_PREC, (VOIDP) ParticlePosition[dim], FALSE);
     }
-
-  switch(sizeof(FLOAT))
-    {
-    case 4: FLOAT_type_id = HDF5_R4;
-      FILE_type_id = HDF5_FILE_R4; break;
-    case 8: FLOAT_type_id = HDF5_R8;
-      FILE_type_id = HDF5_FILE_R8; break;
-    case 16: FLOAT_type_id = HDF5_R16;
-      FILE_type_id = H5Tcopy(HDF5_FILE_B8);
-      H5Tset_size(FILE_type_id,16); break;
-     default: printf("INCORRECT FLOAT DEFINITION\n");
+ 
+    /* Read ParticleVelocity. */
+ 
+    for (int dim = 0; dim < GridRank; dim++) {
+      this->read_dataset(1, TempIntArray, ParticleVelocityLabel[dim],
+            group_id, HDF5_REAL, (VOIDP) ParticleVelocity[dim], FALSE);
     }
+ 
+    this->read_dataset(1, TempIntArray, "particle_mass",
+          group_id, HDF5_REAL, (VOIDP) ParticleMass, FALSE);
 
-  if (NumberOfBaryonFields > 0 && ReadData ) {
-    if (MyProcessorNumber == ProcessorNumber)
-      {
-	strcpy(logname, name);
-	strcat(logname, ".hdf.log");
-	if (io_log) log_fptr = fopen(logname, "a");
+    /* Read ParticleNumber into temporary buffer and Copy to ParticleNumber. */
+ 
+    this->read_dataset(1, TempIntArray, "particle_index",
+          group_id, HDF5_PINT, (VOIDP) ParticleNumber, FALSE);
+
+    // Read ParticleType if present
+
+    H5E_BEGIN_TRY{
+      dset_id = H5Dopen(group_id, "particle_type");
+    }H5E_END_TRY
+ 
+    if (ParticleTypeInFile == TRUE && dset_id != h5_error) {
+
+      H5Dclose(dset_id);
+
+      /* Read ParticleType into temporary buffer and Copy to ParticleType. */
+      this->read_dataset(1, TempIntArray, "particle_type",
+            group_id, HDF5_INT, (VOIDP) ParticleType, FALSE);
+ 
+      int abs_type;
+      for (i = 0; i < NumberOfParticles; i++) {
+	abs_type = ABS(ParticleType[i]);
+        if (abs_type < PARTICLE_TYPE_GAS ||
+            abs_type > NUM_PARTICLE_TYPES-1) {
+          ENZO_VFAIL("file: %s: particle %"ISYM" has unknown type %"ISYM"\n", name, i, ParticleType[i])
+        }
       }
  
-    if (MyProcessorNumber == ProcessorNumber){
+    } else {
+ 
+      /* Otherwise create the type. */
+ 
+      for (i = 0; i < NumberOfParticles; i++)
+        ParticleType[i] = ReturnParticleType(i);
+ 
+    }
+ 
+ 
+    /* Read ParticleAttributes. */
+    if (AddParticleAttributes) {
+      for (j = 0; j < NumberOfParticleAttributes; j++) {
+	ParticleAttribute[j] = new float[NumberOfParticles];
+	for (i=0; i < NumberOfParticles; i++)
+	  ParticleAttribute[j][i] = 0;
+      }
+    } else {
+    for (j = 0; j < NumberOfParticleAttributes; j++) {
 
-#ifdef USE_HDF4
-      TryHDF5 = FALSE; // try with HDF4 first
-      if ((sd_id = SDstart(name, DFACC_RDONLY)) == HDF_FAIL) {
-	fprintf(stderr, "Error opening file with HDF4: %s.\n", name);
-	fprintf(stderr, "Will try HDF 5 instead.\n");
-	TryHDF5 = TRUE;
+      H5E_BEGIN_TRY{
+	dset_id = H5Dopen(group_id, ParticleAttributeLabel[j]);
+      }H5E_END_TRY;
+
+      if (dset_id != h5_error) {
+	H5Dclose(dset_id);
+	this->read_dataset(1, TempIntArray, ParticleAttributeLabel[j],
+			   group_id, HDF5_REAL, (VOIDP) ParticleAttribute[j], 
+			   FALSE);
+      } else {
+	ParticleAttribute[j] = new float[NumberOfParticles];
+	for (i=0; i < NumberOfParticles; i++)
+	  ParticleAttribute[j][i] = 0;
       }
 
-      if (!TryHDF5) {
-	sds_id = SDselect(sd_id, sds_index++);
-	while (SDiscoordvar(sds_id)) {
-	  SDendaccess(sds_id);
-	  sds_id = SDselect(sd_id, sds_index++);
-	}
-	if (SDgetinfo(sds_id, dummy, &TempInt, TempIntArray2, &num_type2, 
-		      &attributes) == HDF_FAIL) {
-	  fprintf(stderr, "Error reading dims0 from %s.\n", name);
-	  return FAIL;
-	}
-	SDendaccess(sds_id);
-	sds_index--;
-	
-	if (TempInt != GridRank) {
-	  fprintf(stderr, "HDF rank (%d) does not match GridRank.\n", TempInt);
-	  return FAIL;
-	}
-      }
+    }
+    } // ENDELSE add particle attributes
+ 
+    delete [] temp;
+ 
+
+  } // end: if (NumberOfParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
+ 
+  if (NumberOfActiveParticles > 0 && ReadData && (MyProcessorNumber == ProcessorNumber)) {
+
+    /* Open file if not already done (note: particle name must = grid name). */
+
+    if ((NumberOfBaryonFields == 0 || ReadParticlesOnly) && NumberOfParticles == 0) {
+
+#ifndef SINGLE_HDF5_OPEN_ON_INPUT 
+      file_id = H5Fopen(procfilename, H5F_ACC_RDONLY, H5P_DEFAULT);
+      if( file_id == h5_error )ENZO_VFAIL("Error opening file %s", name)
 #endif
-      if (TryHDF5) {
-	if(!ReadText){
-	  // build filename from grid id
-	  char id[MAX_GRID_TAG_SIZE];
-	  sprintf(id, "%"GRID_TAG_FORMAT""ISYM, GridID);
-	  strcpy(name, PrevParameterFileName);
-	  strcat(name, ".grid");
-	  strcat(name, id);
-	}
-      
-      if (io_log) fprintf(log_fptr,"H5Fopen with Name %s\n",name);
  
-      file_id = H5Fopen(name,  H5F_ACC_RDONLY, H5P_DEFAULT);
-      if (io_log) fprintf(log_fptr, "H5Fopen id: %"ISYM"\n", file_id);
-      if( file_id == h5_error ){ENZO_FAIL("line 305 Grid_ReadGrid.C \n");}
-      }
+      group_id = H5Gopen(file_id, name);
+      if( group_id == h5_error )ENZO_VFAIL("Error opening group %s", name)
 
-      /* fill in ActiveDim for dims up to 3d */
- 
-      for (dim = 0; dim < 3; dim++)
-	ActiveDim[dim] = GridEndIndex[dim] - GridStartIndex[dim] +1;
- 
-      /* check dimensions of HDF file against this grid
-	 (note: we don't bother to check the coordinate arrays)  */
- 
-      size = 1;
-      active_size = 1;
- 
-      for (dim = 0; dim < GridRank; dim++) {
-	size *= GridDimension[dim];
-	active_size *= ActiveDim[dim];
-      }
- 
-      //  CAUTION - are the coordinates reversed?
- 
-      for (dim = 0; dim < GridRank; dim++) {
-	OutDims[GridRank-dim-1] = ActiveDim[dim];
-	if (io_log) fprintf(log_fptr, "Outdims %"ISYM"\n", (int) OutDims[GridRank-dim-1]);
-      }
- 
-      /* allocate temporary space */
- 
-#ifdef USE_HDF4 // will use float also for HDF5 if USE_HDF4
-      float *temp = NULL;
-      if (sizeof(Eflt) == 4)
-	temp = new float[active_size]; 
-      else
-	temp = new float[active_size*2];  	
-#else
-      io_type *temp = new io_type[active_size];
-#endif
-      /* loop over fields, reading each one */
- 
-      for (field = 0; field < NumberOfBaryonFields; field++) {
- 
-	/* get data into temporary array */
-#ifdef USE_HDF4
-	if (!TryHDF5) 
-	  if (ReadField(temp, ActiveDim, GridRank, name, 
-			DataLabel[field]) == FAIL) {
-	  fprintf(stderr, "Error reading field %d.\n", field);
-	  return FAIL;
-	}
-#endif
-	if(TryHDF5) {
-	  file_dsp_id = H5Screate_simple((Eint32) GridRank, OutDims, NULL);
-	  if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	  if( file_dsp_id == h5_error ){ENZO_FAIL("line 354  Grid_ReadGrid \n");}
-	  
-	  if (io_log) fprintf(log_fptr, "H5Dopen with Name = %s\n", DataLabel[field]);
-	  
-	  dset_id =  H5Dopen(file_id, DataLabel[field]);
-	  if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	  if( dset_id == h5_error ){ENZO_FAIL("line 360  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dread(dset_id, float_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) temp);
-	  if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 364  Grid_ReadGrid \n");}
-	  h5_status = H5Sclose(file_dsp_id);
-	  if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 367  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dclose(dset_id);
-	  if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 371  Grid_ReadGrid \n");}
-	}
+    } 
 
- 
-	/* copy active region into whole grid */
- 
-	BaryonField[field] = new float[size];
- 
-	for (i = 0; i < size; i++)
-	  BaryonField[field][i] = 0;
-	
-	for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
-	  for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
-	    for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++)
-	      BaryonField[field][i + j*GridDimension[0] +
-				 k*GridDimension[0]*GridDimension[1]] =
-		float(temp[(i-GridStartIndex[0])                         +
-			   (j-GridStartIndex[1])*ActiveDim[0]            +
-			   (k-GridStartIndex[2])*ActiveDim[0]*ActiveDim[1] ]);
+    /* Open the active particles group */
 
-      } // end: loop over fields
- 
-      delete [] temp;
- 
-    }  // end: if (MyProcessorNumber == ProcessorNumber)
+    hid_t ActiveParticleGroupID = H5Gopen(group_id, "ActiveParticles");
 
-  if (HydroMethod == MHD_RK) { // This is the MHD with Dedner divergence cleaning that needs an extra field
+    /* Loop over enabled active particle types */
 
-    int activesize = 1;
-    for (int dim = 0; dim < GridRank; dim++)
-      activesize *= (GridDimension[dim]-2*DEFAULT_GHOST_ZONES);
+    int NumberOfActiveParticlesOnDisk;
     
-    if (divB == NULL) 
-      divB = new float[activesize];
+    ActiveParticleType **ActiveParticlesOnDisk;
 
-    /* if we restart from a different solvers output without a PhiField create here and set to zero */
-    int PhiNum; 
-    if ((PhiNum = FindField(PhiField, FieldType, NumberOfBaryonFields)) < 0) {
-      fprintf(stderr, "Starting with Dedner MHD method with no Phi field. \n");
-      fprintf(stderr, "Adding it in Grid_ReadGrid.C \n");
-      char *PhiName = "Phi";
-      PhiNum = NumberOfBaryonFields;
-      int PhiToAdd = PhiField;
-      this->AddFields(&PhiToAdd, 1);
-      DataLabel[PhiNum] = PhiName;
-    }
+    for (i = 0; i < EnabledActiveParticlesCount; i++)
+      {
+    
+	/* Instantiate an active particle helper of this type
+	   This class contains the function that allows us to read from disk */
 
-    /* if we restart from a different solvers output without a Phi_pField 
-       and yet want to use the divergence cleaning, create here and set to zero */
-    if (UseDivergenceCleaning) {
-      int Phi_pNum; 
-      if ((Phi_pNum = FindField(Phi_pField, FieldType, NumberOfBaryonFields)) < 0) {
-	fprintf(stderr, "Want to use divergence cleaning with no Phi_p field. \n");
-	fprintf(stderr, "Adding it in Grid_ReadGrid.C \n");
-	char *Phi_pName = "Phi_p";
-	Phi_pNum = NumberOfBaryonFields;
-	int Phi_pToAdd = Phi_pField;
-	this->AddFields(&Phi_pToAdd, 1);
-	DataLabel[Phi_pNum] = Phi_pName;
-      }
-    }
-
-    for (int dim = 0; dim < 3; dim++)
-      if (gradPhi[dim] == NULL)
-	gradPhi[dim] = new float[activesize];
-
-    for (int dim = GridRank; dim < 3; dim++)
-      for (int n = 0; n < activesize; n++)
-	gradPhi[dim][n] = 0.0;
-
-  } /* if HydroMethod == MHD */
-
-  }  // end read baryon fields
- 
-  /* 3) Read particle info */
- 
-  if (NumberOfParticles > 0 && ReadData) {
- 
-    if (MyProcessorNumber == ProcessorNumber) {
-
-
-      if ((TryHDF5) && (!ReadText)){
-	// build filename from grid id
-	char id[MAX_GRID_TAG_SIZE];
-	sprintf(id, "%"GRID_TAG_FORMAT""ISYM, GridID);
-	strcpy(name, PrevParameterFileName);
-	strcpy(name, ".grid");
-	strcat(name, id);
-      }
- 
-      /* Open file if not already done (note: particle name must = grid name). */
- 
-      if (NumberOfBaryonFields == 0) {
- 
-#ifdef USE_HDF4
-	if (!TryHDF5) 
-	  if ((sd_id = SDstart(name, DFACC_RDONLY)) == HDF_FAIL) {
-	    fprintf(stderr, "Error opening file %s.\n", name);
-	    return FAIL;
-	  }
-#endif
-	if (MyProcessorNumber == ProcessorNumber)
-	  {
-	    strcpy(logname, name);
-	    strcat(logname, ".hdf.log");
-	    if (io_log) log_fptr = fopen(logname, "a");
-	  }
+	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
 	
-	if (io_log) fprintf(log_fptr, "H5Fopen with Name %s\n", name);
+	/* Create an empty buffer that particles in the data file will be read into */
+
+	ActiveParticleType **ActiveParticlesOfThisTypeOnDisk;
+	int NumberOfActiveParticlesOfThisType;
+
+	/* Read the active particles from disk */
+
+	ActiveParticleTypeToEvaluate->read_function(ActiveParticlesOfThisTypeOnDisk,
+						    &NumberOfActiveParticlesOfThisType,
+						    GridRank,
+						    ActiveParticleGroupID);
+
+	/* Add the active particles read from disk to the active particle buffer */
+
+	int OldNumberOfActiveParticles = NumberOfActiveParticlesOnDisk;
+
+	ActiveParticleType **OldActiveParticles = ActiveParticlesOnDisk;
+
+	NumberOfActiveParticlesOnDisk += NumberOfActiveParticlesOfThisType;
 	
-	if(TryHDF5) {
-	  file_id = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT);
-	  if (io_log) fprintf(log_fptr, "H5Fopen id: %"ISYM"\n", file_id);
-	  if( file_id == h5_error ){ENZO_FAIL("line 484  Grid_ReadGrid \n");}
+	ActiveParticlesOnDisk = new ActiveParticleType*[NumberOfActiveParticlesOnDisk];
+
+	for (i = 0; i < OldNumberOfActiveParticles; i++) {
+	  ActiveParticlesOnDisk[i] = OldActiveParticles[i];
 	}
-	
- 
-      } // end: if (NumberOfBaryonFields == 0)
- 
-      /* Allocate room for particles. */
- 
-      this->AllocateNewParticles(NumberOfParticles);
-
-      TempIntArray[0] = NumberOfParticles;
-      
-#ifdef USE_HDF4
-      if (!TryHDF5) {
-      TempIntArray2[0] = Eint32(NumberOfParticles);
-	
-      Eint32 HDFDataType = (sizeof(FLOAT) == 4) ? DFNT_FLOAT32 : DFNT_FLOAT64;  // DFNT_* are defined by HDF4
-      if (sizeof(FLOAT) == 16) HDFDataType = DFNT_FLOAT128;
-	
-	/* Read dims.
-	   If Rank != 1, we may have just read some other field SDS.  If so,
-	   then try again. */
-	
-	TempInt = 0;
-	while (TempInt != 1) {
-	  sds_id = SDselect(sd_id, sds_index++);
-	  while (SDiscoordvar(sds_id)) {
-	    SDendaccess(sds_id);
-	    sds_id = SDselect(sd_id, sds_index++);
-	  }
-	  if (SDgetinfo(sds_id, dummy, &TempInt, TempIntArray2, &num_type2, 
-			&attributes) == HDF_FAIL) {
-	    fprintf(stderr, "Error reading dims1 from %s.\n", name);
-	    return FAIL;
-	  }
-	  SDendaccess(sds_id);
+	for (i = 0; i < NumberOfActiveParticlesOfThisType; i++) {
+	  ActiveParticlesOnDisk[OldNumberOfActiveParticles + i] = ActiveParticlesOfThisTypeOnDisk[i];
 	}
-	sds_index--; 
-	
-	/* Check dims. */
-	
-	if (TempInt != 1 || TempIntArray2[0] != NumberOfParticles) {
-	  fprintf(stderr, "HDF particle dims do not match NumberOfParticles.\n");
-	  fprintf(stderr, "  (HDF dim[0] = %d, NumberOfParticles = %d)\n",
-		  int(TempIntArray2[0]), NumberOfParticles);
-	  return FAIL;  
-	}
-	
-      /* Create a temporary buffer (32 bit or twice the size for 64). */
-      
-      float *temp = NULL;
-      if (num_type2 != HDFDataType) {
-	if (num_type2 == DFNT_FLOAT64)
-	  temp = new float[NumberOfParticles*2];
-	if (num_type2 == DFNT_FLOAT128)
-	  temp = new float[NumberOfParticles*4];
-      }
-      if (temp == NULL)
-	temp = new float[NumberOfParticles];
 
-	/* Read ParticlePosition (use temporary buffer). */ 
-	
-	for (dim = 0; dim < GridRank; dim++) {
-	  
-	  if (num_type2 == HDFDataType) {
-	    
-	    /* same data type: just read. */
-	    
-	    if (ReadField((float *) ParticlePosition[dim], &NumberOfParticles, 1, name, 
-			  ParticlePositionLabel[dim]) == FAIL) {
-	      fprintf(stderr, "Error reading ParticlePosition %d\n", dim);
-	      return FAIL;
-	    }
-	    
-	  } else {
-	    
-	    /* convert data: Read into temporary buffer and copy. */
-	    
-	    if (ReadField(temp, &NumberOfParticles, 1, name, 
-			  ParticlePositionLabel[dim]) == FAIL) {
-	      fprintf(stderr, "Error reading ParticlePosition %d\n", dim);
-	      return FAIL;
-	    }
-	    
-	    float64 *temp64 = (float64 *) temp;
-	    long_double *temp128 = (long_double *) temp;
-	    
-	    if (num_type2 == DFNT_FLOAT32)
-	      for (i = 0; i < NumberOfParticles; i++)
-		ParticlePosition[dim][i] = FLOAT(temp[i]);
-	    if (num_type2 == DFNT_FLOAT64)
-	      for (i = 0; i < NumberOfParticles; i++)
-		ParticlePosition[dim][i] = FLOAT(temp64[i]);
-	    if (num_type2 == DFNT_FLOAT128)
-	      for (i = 0; i < NumberOfParticles; i++)
-		ParticlePosition[dim][i] = FLOAT(temp128[i]);
+	/* clean up */
 
-	    //delete [] temp64;
-	    //delete [] temp128;
+	delete [] OldActiveParticles;
+	delete [] ActiveParticlesOfThisTypeOnDisk;
+	
+      } // end: for EnabledActiveParticlesCount
 
-	  }
-	} // end: loop over dims
-	
-	delete [] temp;
-	
-	/* Read ParticleVelocity. */
-	
-	for (dim = 0; dim < GridRank; dim++) {
-	  if (ReadField(ParticleVelocity[dim], &NumberOfParticles, 1, name,
-			ParticleVelocityLabel[dim]) == FAIL) {
-	    fprintf(stderr, "Error reading ParticleVelocity %d\n", dim);
-	    return FAIL;
-	  }
-	}
-	
-	/* Read ParticleMass. */
-	
-	if (ReadField(ParticleMass, &NumberOfParticles, 1, name,
-		      "particle_mass") == FAIL)
-	  return FAIL;
-	
-	/* Read ParticleNumber */
-	
-	if (ReadField((float *) ParticleNumber, &NumberOfParticles, 1, name,
-		      "particle_index") == FAIL)
-	  return FAIL;
-	
-	/* Read particle type if present */
-	
-	if (ParticleTypeInFile == TRUE) {
-	  
-	  if (ReadField((float *) ParticleType, &NumberOfParticles, 1, name,
-			"particle_type") == FAIL)
-	    return FAIL;
-	  
-#define NO_CHECK_PARTICLE_TYPE
-#ifdef CHECK_PARTICLE_TYPE
-	  for (i = 0; i < NumberOfParticles; i++)
-	    if (ParticleType[i] < PARTICLE_TYPE_GAS ||
-		ParticleType[i] > NUM_PARTICLE_TYPES-1) {
-	      fprintf(stderr, "file: %s: particle %d has unknown type %d\n",
-		      name, i, ParticleType[i]);
-	      return FAIL;
-	    }
-#endif
-	  
-	}
-	
-	/* Read ParticleAttributes. */
-	
-#define NO_RESTART_WITH_ATTRIBUTES
-	for (j = 0; j < NumberOfParticleAttributes; j++) {
-#ifdef RESTART_WITH_ATTRIBUTES
-	  for (i=0; i < NumberOfParticles; i++)
-	    ParticleAttribute[j][i] = 0;
-#else
-	  if (ReadField(ParticleAttribute[j], &NumberOfParticles, 1, name,
-			ParticleAttributeLabel[j]) == FAIL) {
-	    fprintf(stderr, "Error reading ParticleAttribute %d\n", j);
-	    return FAIL;
-	  }
-#endif
-	}
-	
-	/* If the particle type is not in the file, then set it according
-	   to the value of the attributes. */
-	
-	if (ParticleTypeInFile != TRUE)
-	  for (i = 0; i < NumberOfParticles; i++)
-	    ParticleType[i] = ReturnParticleType(i);
-      } // (!TryHDF5)
+    /* Assign the active particle buffer to this grid */
 
-#endif  // USE_HDF4
+    this->ActiveParticles = ActiveParticlesOnDisk;
 
-      if (TryHDF5) {
-	/* Create a temporary buffer (32 bit or twice the size for 64). */
-	
-	io_type *temp = NULL;
-	
-	switch(sizeof(FLOAT))
-	  {
-	  case 4: temp = new io_type[NumberOfParticles];    break;
-	  case 8: temp = new io_type[NumberOfParticles*2];  break;
-	  case 16:temp = new io_type[NumberOfParticles*4];  break;
-	  default: printf("INCORRECT FLOAT DEFINITION\n");
-	  }
-	
-	if (temp == NULL)
-	  temp = new io_type[NumberOfParticles];
-	
-	/* Read ParticlePosition (use temporary buffer). */
-	
-	for (dim = 0; dim < GridRank; dim++) {
-	  
-	  file_dsp_id = H5Screate_simple((Eint32) 1, TempIntArray, NULL);
-	  if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	  if( file_dsp_id == h5_error ){ENZO_FAIL("line  676 Grid_ReadGrid \n");}
-	  
-	  if (io_log) fprintf(log_fptr,"H5Dopen with Name = %s\n", ParticlePositionLabel[dim]);
-	  
-	  dset_id =  H5Dopen(file_id, ParticlePositionLabel[dim]);
-	  if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	  if( dset_id == h5_error ){ENZO_FAIL("line 682  Grid_ReadGrid \n");}
-	  
-	  num_type = H5Dget_type(dset_id);
-	  num_size = H5Tget_size(num_type);
-	  
-	  if (sizeof(FLOAT) == 16)
-	    {
-	      
-	      //NOTE: for 128bits this must be FILE_type_id and NOT FLOAT_type_id!
-	      h5_status = H5Dread(dset_id, FILE_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) ParticlePosition[dim]);
-	      if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	      if( h5_status == h5_error ){ENZO_FAIL("line 693  Grid_ReadGrid \n");}
-	      
-	    } else 
-	    {
-	      h5_status = H5Dread(dset_id, FLOAT_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) ParticlePosition[dim]);
-	      if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	      if( h5_status == h5_error ){ENZO_FAIL("line 699  Grid_ReadGrid \n");}
-	      
-	    }
-	  
-	  h5_status = H5Sclose(file_dsp_id);
-	  if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 705  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dclose(dset_id);
-	  if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 709  Grid_ReadGrid \n");}
-	  
-	}
-	
-	/* Read ParticleVelocity. */
-	
-	for (dim = 0; dim < GridRank; dim++) {
-	  
-	  file_dsp_id = H5Screate_simple((Eint32) 1, TempIntArray, NULL);
-	  if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	  if( file_dsp_id == h5_error ){ENZO_FAIL("line 719  Grid_ReadGrid \n");}
-	  
-	  if (io_log) fprintf(log_fptr, "H5Dopen with Name = %s\n", ParticleVelocityLabel[dim]);
-	  
-	  dset_id =  H5Dopen(file_id, ParticleVelocityLabel[dim]);
-	  if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	  if( dset_id == h5_error ){ENZO_FAIL("line 725  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dread(dset_id, float_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) temp);
-	  if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 729  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Sclose(file_dsp_id);
-	  if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 733  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dclose(dset_id);
-	  if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 737  Grid_ReadGrid \n");}
-	  
-	  for (i = 0; i < NumberOfParticles; i++)
-	    ParticleVelocity[dim][i] = float(temp[i]);
-	}
-	
-	/* Read ParticleMass into temporary buffer and Copy to ParticleMass. */
-	
-	file_dsp_id = H5Screate_simple((Eint32) 1, TempIntArray, NULL);
-	if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	if( file_dsp_id == h5_error ){ENZO_FAIL("line 747  Grid_ReadGrid \n");}
-	
-	if (io_log) fprintf(log_fptr,"H5Dopen with Name = particle_mass\n");
-	
-	dset_id =  H5Dopen(file_id, "particle_mass");
-	if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	if( dset_id == h5_error ){ENZO_FAIL("line 753  Grid_ReadGrid \n");}
-	
-	h5_status = H5Dread(dset_id, float_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) temp);
-	if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	if( h5_status == h5_error ){ENZO_FAIL("line   Grid_ReadGrid \n");}
-	
-	h5_status = H5Sclose(file_dsp_id);
-	if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	if( h5_status == h5_error ){ENZO_FAIL("line 761  Grid_ReadGrid \n");}
-	
-	h5_status = H5Dclose(dset_id);
-	if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	if( h5_status == h5_error ){ENZO_FAIL("line 765  Grid_ReadGrid \n");}
-	
-	for (i = 0; i < NumberOfParticles; i++)
-	  ParticleMass[i] = float(temp[i]);
-	
-	/* Read ParticleNumber into temporary buffer and Copy to ParticleNumber. */
-	
-	PINT *tempPINT = new PINT[NumberOfParticles];
-	
-	file_dsp_id = H5Screate_simple((Eint32) 1, TempIntArray, NULL);
-	if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	if( file_dsp_id == h5_error){ENZO_FAIL("line 776  Grid_ReadGrid \n");}
-	
-	if (io_log) fprintf(log_fptr,"H5Dopen  with Name = particle_index\n");
-	
-	dset_id =  H5Dopen(file_id, "particle_index");
-	if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	if( dset_id == h5_error ){ENZO_FAIL("line 782  Grid_ReadGrid \n");}
-	
-	h5_status = H5Dread(dset_id, HDF5_PINT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) tempPINT);
-	if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	if( h5_status == h5_error ){ENZO_FAIL("line 786  Grid_ReadGrid \n");}
-	
-	h5_status = H5Sclose(file_dsp_id);
-	if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	if( h5_status == h5_error ){ENZO_FAIL("line 790 Grid_ReadGrid \n");}
-	
-	h5_status = H5Dclose(dset_id);
-	if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	if( h5_status == h5_error ){ENZO_FAIL("line 794  Grid_ReadGrid \n");}
-	
-	for (i = 0; i < NumberOfParticles; i++)
-	  ParticleNumber[i] = tempPINT[i];
-	
-	// Read ParticleType if present
-	
-	if (ParticleTypeInFile == TRUE) {
+  } // end: if (NumberOfActiveParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
 
-	  int *tempint = new int[NumberOfParticles];
-	  
-	  /* Read ParticleType into temporary buffer and Copy to ParticleType. */
-	  
-	  file_dsp_id = H5Screate_simple((Eint32) 1, TempIntArray, NULL);
-	  if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	  if( file_dsp_id == h5_error){ENZO_FAIL("line 809  Grid_ReadGrid \n");}
-	  
-	  if (io_log) fprintf(log_fptr,"H5Dopen  with Name = particle_type\n");
-	  
-	  dset_id =  H5Dopen(file_id, "particle_type");
-	  if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	  if( dset_id == h5_error ){ENZO_FAIL("line 815  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dread(dset_id, HDF5_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) tempint);
-	  if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 819  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Sclose(file_dsp_id);
-	  if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 823  Grid_ReadGrid \n");}
-	  
-	  h5_status = H5Dclose(dset_id);
-	  if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	  if( h5_status == h5_error ){ENZO_FAIL("line 827  Grid_ReadGrid \n");}
-	  
-	  for (i = 0; i < NumberOfParticles; i++)
-	    ParticleType[i] = tempint[i];
-	  
-	  for (i = 0; i < NumberOfParticles; i++)
-	    if (ParticleType[i] < PARTICLE_TYPE_GAS ||
-		ParticleType[i] > NUM_PARTICLE_TYPES-1) {
-	      ENZO_VFAIL("file: %s: particle %"ISYM" has unknown type %"ISYM"\n",
-		      name, i, ParticleType[i])
-	    }
 
-	  delete [] tempint;
-	  
-	} else {
- 
-	  /* Otherwise create the type. */
-	  
-	  for (i = 0; i < NumberOfParticles; i++)
-	    ParticleType[i] = ReturnParticleType(i);
-	  
-	} 
-	
-	/* Read ParticleAttributes. */
-	if (AddParticleAttributes) {
-	  for (j = 0; j < NumberOfParticleAttributes; j++) {
-	    ParticleAttribute[j] = new float[NumberOfParticles];
-	    for (i=0; i < NumberOfParticles; i++)
-	      ParticleAttribute[j][i] = 0;
-	  }
-	} else {
-	  for (j = 0; j < NumberOfParticleAttributes; j++) {
-	    
-	    file_dsp_id = H5Screate_simple((Eint32) 1, TempIntArray, NULL);
-	    if (io_log) fprintf(log_fptr, "H5Screate file_dsp_id: %"ISYM"\n", file_dsp_id);
-	    if( file_dsp_id == h5_error ){ENZO_FAIL("line 863  Grid_ReadGrid \n");}
-	    
-	    if (io_log) fprintf(log_fptr,"H5Dopen with Name = %s\n",ParticleAttributeLabel[j]);
-	    
-	    dset_id =  H5Dopen(file_id, ParticleAttributeLabel[j]);
-	    if (io_log) fprintf(log_fptr, "H5Dopen id: %"ISYM"\n", dset_id);
-	    if( dset_id == h5_error ){ENZO_FAIL("line 869  Grid_ReadGrid \n");}
-	    
-	    h5_status = H5Dread(dset_id, float_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) temp);
-	    if (io_log) fprintf(log_fptr, "H5Dread: %"ISYM"\n", h5_status);
-	    if( h5_status == h5_error ){ENZO_FAIL("line 873  Grid_ReadGrid \n");}
-	    
-	    h5_status = H5Sclose(file_dsp_id);
-	    if (io_log) fprintf(log_fptr, "H5Sclose: %"ISYM"\n", h5_status);
-	    if( h5_status == h5_error ){ENZO_FAIL("line 877  Grid_ReadGrid \n");}
-	    
-	    h5_status = H5Dclose(dset_id);
-	    if (io_log) fprintf(log_fptr, "H5Dclose: %"ISYM"\n", h5_status);
-	    if( h5_status == h5_error ){ENZO_FAIL("line 881  Grid_ReadGrid \n");}
-	    
-	    for (i = 0; i < NumberOfParticles; i++)
-	      ParticleAttribute[j][i] = float(temp[i]);
-	    
-	  }
-	} // ENDELSE AddParticleAttributes 
-	
-	delete [] temp;
-	delete [] tempPINT;
-      } // (TryHDF5)
-
- 
-    } // end: if (MyProcessorNumber == ProcessorNumber)
-  } // end: if (NumberOfParticles > 0 && ReadData)
- 
   /* Close file. */
  
   if ( (MyProcessorNumber == ProcessorNumber) &&
-       (NumberOfParticles > 0 || NumberOfBaryonFields > 0) 
+       (NumberOfParticles > 0 || 
+	(NumberOfBaryonFields > 0 && !ReadParticlesOnly))
        && ReadData ){
+ 
+    if (ReadEverything == TRUE) this->ReadExtraFields(group_id);
+    h5_status = H5Gclose(group_id);
+    if( h5_status == h5_error ){ENZO_FAIL("Error in IO");}
 
-#ifdef USE_HDF4
-    if (!TryHDF5) SDend(sd_id);
+#ifndef SINGLE_HDF5_OPEN_ON_INPUT 
+
+    h5_status = H5Fclose(file_id);
+    if( h5_status == h5_error ){ENZO_FAIL("Error in IO");}
+
 #endif
-
-    if (TryHDF5) {
-      h5_status = H5Fclose(file_id);
-      if (io_log) fprintf(log_fptr, "H5Fclose: %"ISYM"\n", h5_status);
-      if( h5_status == h5_error ){ENZO_FAIL("line 910 Grid_ReadGrid \n");}
-    }
-
-    
   }
-  
-  if (MyProcessorNumber == ProcessorNumber)
-    {
-      if (io_log) fclose(log_fptr);
-    }
-  
+ 
   return SUCCESS;
-  
+ 
 }
 
-
-#ifdef USE_HDF4
-/* ----------------------------------------------------------------------                                          
-   This routine reads one data field from the file using the appropriate
-   data model.  Note that it uses file pointers/handlers that are statically
-   declared above. */
-
-int ReadField(float *temp, int Dims[], int Rank, char *name,
-	      char *field_name)
+int grid::read_dataset(int ndims, hsize_t *dims, char *name, hid_t group,
+                  hid_t data_type, void *read_to, int copy_back_active,
+                  float *copy_to, int *active_dims)
 {
-  int dim;
+  hid_t file_dsp_id;
+  hid_t dset_id;
+  hid_t h5_status;
+  herr_t      h5_error = -1;
+  int i, j, k, dim;
+  /* get data into temporary array */
 
-  int32 sds_id, start[] = {0, 0, 0};
-  int32 TempInt, TempIntArray[MAX_DIMENSION], attributes, num_type;
-  char dummy[MAX_LINE_LENGTH];
+  file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
+  if( file_dsp_id == h5_error ){ENZO_FAIL("Error creating file dataspace");}
 
-  /* Find the next SDS which is not a coordinate variable. */
+  dset_id =  H5Dopen(group, name);
+  if( dset_id == h5_error )ENZO_VFAIL("Error opening %s", name)
 
-  sds_id = SDselect(sd_id, sds_index++);
-  while (SDiscoordvar(sds_id)) {
-    SDendaccess(sds_id);
-    sds_id = SDselect(sd_id, sds_index++);
+  h5_status = H5Dread(dset_id, data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, (VOIDP) read_to);
+  if( dset_id == h5_error )ENZO_VFAIL("Error reading %s", name)
+
+  h5_status = H5Sclose(file_dsp_id);
+  if( dset_id == h5_error )ENZO_VFAIL("Error closing dataspace %s", name)
+
+  h5_status = H5Dclose(dset_id);
+  if( dset_id == h5_error )ENZO_VFAIL("Error closing %s", name)
+
+  if(copy_back_active == TRUE) {
+    /* copy active region into whole grid */
+
+    for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
+      for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
+        for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++){
+          copy_to[i + j*GridDimension[0] +
+            k*GridDimension[0]*GridDimension[1]] =
+	      ((float *)read_to)[(i-GridStartIndex[0])                             +
+	                         (j-GridStartIndex[1])*active_dims[0]              +
+	                         (k-GridStartIndex[2])*active_dims[0]*active_dims[1] ];   
+}
   }
+  return SUCCESS;
+}
 
-  if (SDgetinfo(sds_id, dummy, &TempInt, TempIntArray, &num_type, &attributes) == HDF_FAIL) {
-    fprintf(stderr, "error getting info from file %s (filed %s)\n", name, field_name);
-    return FAIL;
-  }
-  
-  /* check rank against this grid */
-  
-  if (TempInt != Rank) {
-    fprintf(stderr, "HDF rank (%d) does not match GridRank.\n", TempInt);
-    return FAIL;
-  }
+int grid::ReadAllFluxes(hid_t grid_node)
+{
+  /* We get the attribute describing to us the number of subgrids. */
 
-  /* check dimensions of HDF file against this grid */
-  
-  for (dim = 0; dim < Rank; dim++)
-    if (TempIntArray[Rank-dim-1] != Dims[dim]) {
-      fprintf(stderr, "HDF file dimensions do not match GridDimensions.\n");
-      return FAIL;
+  int i;
+  hid_t flux_group, subgrid_group;
+  hid_t h5_error = -1;
+  char name[255];
+
+  readAttribute(grid_node, HDF5_INT, "NumberOfSubgrids", 
+            (void *) &this->NumberOfSubgrids, 1);
+
+  /* Now for every subgrid, we read a flux group, and all of its associated
+     baryon fields. */
+
+  //fprintf(stderr, "Received NumberOfSubgrids = %"ISYM"\n", this->NumberOfSubgrids);
+
+  this->SubgridFluxStorage = new fluxes*[this->NumberOfSubgrids];
+
+  flux_group = H5Gopen(grid_node, "Fluxes");
+  if(flux_group == h5_error) ENZO_FAIL("Can't open Fluxes group");
+
+  for(i = 0; i < this->NumberOfSubgrids; i++) {
+    snprintf(name, 254, "Subgrid%08"ISYM, i);
+    subgrid_group = H5Gopen(flux_group, name);
+    if(subgrid_group == h5_error)ENZO_VFAIL("IO Problem opening %s", name)
+
+      this->SubgridFluxStorage[i] = new fluxes;
+    this->ReadFluxGroup(subgrid_group, this->SubgridFluxStorage[i]);
+    H5Gclose(subgrid_group);
+  }
+  subgrid_group = H5Gopen(flux_group, "BoundaryFluxes");
+  this->BoundaryFluxes = new fluxes;
+  this->ReadFluxGroup(subgrid_group, this->BoundaryFluxes);
+
+  H5Gclose(subgrid_group);
+  H5Gclose(flux_group);
+
+  return SUCCESS;
+
+}
+
+int grid::ReadFluxGroup(hid_t flux_group, fluxes *fluxgroup)
+{
+  hid_t h5_error = -1;
+  hid_t axis_group = h5_error;
+  hid_t left_group, right_group;
+  int i, j, field, dim;
+  hsize_t size;
+
+  char name[255];
+
+  for (dim = 0; dim < GridRank; dim++) {
+    /* compute size (in floats) of flux storage */
+
+    snprintf(name, 254, "Axis%"ISYM, dim);
+    axis_group = H5Gopen(flux_group, name);
+    if(axis_group == h5_error)ENZO_VFAIL("Can't open %s", name)
+
+    size = 1;
+
+    left_group = H5Gopen(axis_group, "Left");
+    if(left_group == h5_error){ENZO_FAIL("IO Problem with Left");}
+
+    right_group = H5Gopen(axis_group, "Right");
+    if(right_group == h5_error){ENZO_FAIL("IO Problem with Right");}
+
+    readAttribute(left_group, HDF5_I8, "StartIndex",
+        fluxgroup->LeftFluxStartGlobalIndex[dim], TRUE);
+    readAttribute(left_group, HDF5_I8, "EndIndex",
+        fluxgroup->LeftFluxEndGlobalIndex[dim], TRUE);
+
+    readAttribute(right_group, HDF5_I8, "StartIndex",
+        fluxgroup->RightFluxStartGlobalIndex[dim], TRUE);
+    readAttribute(right_group, HDF5_I8, "EndIndex",
+        fluxgroup->RightFluxEndGlobalIndex[dim], TRUE);
+
+    for (j = 0; j < GridRank; j++) {
+      size *= fluxgroup->LeftFluxEndGlobalIndex[dim][j] -
+        fluxgroup->LeftFluxStartGlobalIndex[dim][j] + 1;
     }
 
-  if (SDreaddata(sds_id, start, (int32 *) NULL, TempIntArray, (void *) temp)
+    for (field = 0; field < NumberOfBaryonFields; field++) {
+      /* For now our use case ensures these will always exist forever
+         and if they don't, we need a hard failure. */
+      /* Note also that if you pass a pre-initialized fluxgroup, this will leak
+         memory. */
+      fluxgroup->LeftFluxes[field][dim]  = new float[size];
+      fluxgroup->RightFluxes[field][dim]  = new float[size];
 
-      == HDF_FAIL) {
-    fprintf(stderr, "Error reading data from file %s (field %s).\n", name, field_name);
-    return FAIL;
+      this->read_dataset(1, &size, DataLabel[field], left_group,
+          HDF5_REAL, (void *) fluxgroup->LeftFluxes[field][dim],
+          FALSE);
+    
+      this->read_dataset(1, &size, DataLabel[field], right_group,
+          HDF5_REAL, (void *) fluxgroup->RightFluxes[field][dim],
+          FALSE);
+
+    }
+	for (field = NumberOfBaryonFields; field < MAX_NUMBER_OF_BARYON_FIELDS;
+	     field++) {
+          fluxgroup->LeftFluxes[field][dim] = NULL;
+          fluxgroup->RightFluxes[field][dim] = NULL;
+	}
+
+    H5Gclose(left_group);
+    H5Gclose(right_group);
+    H5Gclose(axis_group);
   }
-  SDendaccess(sds_id);
 
   return SUCCESS;
 }
-#endif /* USE_HDF4 */
 
+int grid::ReadExtraFields(hid_t group_id)
+{
+  hid_t acc_node;
+  hid_t h5_error = -1;
+  int size, dim;
+  int ActiveDim[MAX_DIMENSION];
+  hsize_t     OutDims[MAX_DIMENSION];
+  hsize_t     FullOutDims[MAX_DIMENSION];
+  hsize_t     GMFOutDims[MAX_DIMENSION];
+
+  for (dim = 0; dim < 3; dim++)
+    ActiveDim[dim] = GridEndIndex[dim] - GridStartIndex[dim] +1;
+
+  for (dim = 0; dim < GridRank; dim++) {
+    OutDims[GridRank-dim-1] = ActiveDim[dim];
+    FullOutDims[GridRank-dim-1] = GridDimension[dim];
+  }
+
+  H5E_BEGIN_TRY{
+    acc_node = H5Gopen(group_id, "Acceleration");
+  }H5E_END_TRY
+  /* We just check for existence, because for SOME REASON grids don't
+     know their own level. */
+  if(acc_node != h5_error){
+    char acc_name[255];
+    size = 1;
+    for (dim = 0; dim < GridRank; dim++) size *= GridDimension[dim];
+    float *temp = new float[size];
+    for (dim = 0; dim < GridRank; dim++) {
+      if(this->AccelerationField[dim] != NULL) {
+        delete this->AccelerationField[dim];
+      }
+      snprintf(acc_name, 254, "AccelerationField%"ISYM, dim);
+      this->read_dataset(GridRank, FullOutDims, acc_name,
+          acc_node, HDF5_REAL, (VOIDP) AccelerationField[dim],
+          FALSE, NULL, NULL);
+    }
+    delete temp;
+    H5Gclose(acc_node);
+  }
+  H5E_BEGIN_TRY{
+    acc_node = H5Dopen(group_id, "GravitatingMassField");
+  }H5E_END_TRY
+  if(acc_node != h5_error){
+    H5Dclose(acc_node);
+    this->InitializeGravitatingMassField(RefineBy);
+    size = 1;
+    for (dim = 0; dim < GridRank; dim++) {
+        size *= GravitatingMassFieldDimension[dim];
+        GMFOutDims[GridRank-dim-1] = GravitatingMassFieldDimension[dim];
+    }
+      if(this->GravitatingMassField != NULL)
+        delete this->GravitatingMassField;
+      //fprintf(stderr, "ALLOCATING %"ISYM" for GMF\n", size);
+      this->GravitatingMassField = new float[size];
+      this->read_dataset(GridRank, GMFOutDims, "GravitatingMassField",
+          group_id, HDF5_REAL, (VOIDP) this->GravitatingMassField, FALSE);
+  }
+
+  H5E_BEGIN_TRY{
+    acc_node = H5Dopen(group_id, "PotentialField");
+  }H5E_END_TRY
+  if(acc_node != h5_error){
+    H5Dclose(acc_node);
+    size = 1;
+    for (dim = 0; dim < GridRank; dim++) {
+        size *= GravitatingMassFieldDimension[dim];
+        GMFOutDims[GridRank-dim-1] = GravitatingMassFieldDimension[dim];
+    }
+      if(this->PotentialField != NULL)
+        delete this->PotentialField;
+      //fprintf(stderr, "ALLOCATING %"ISYM" for PF\n", size);
+      this->PotentialField = new float[size];
+      this->read_dataset(GridRank, GMFOutDims, "PotentialField",
+          group_id, HDF5_REAL, (VOIDP) this->PotentialField, FALSE);
+  }
+
+  this->ReadAllFluxes(group_id);
+  return SUCCESS;
+}

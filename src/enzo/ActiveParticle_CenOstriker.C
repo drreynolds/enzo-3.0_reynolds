@@ -13,6 +13,8 @@
 #include <math.h>
 #include <iostream>
 #include "hdf5.h"
+#include "h5utilities.h"
+
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -25,7 +27,6 @@
 #include "TopGridData.h"
 #include "EventHooks.h"
 #include "ActiveParticle.h"
-#include "h5utilities.h"
 
 #ifdef NEW_CONFIG
 

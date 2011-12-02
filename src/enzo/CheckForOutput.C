@@ -38,23 +38,12 @@
 #endif
  
 /* function prototypes */
-//#ifdef USE_HDF5_GROUPS
-int Group_WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
-		 TopGridData &MetaData, ExternalBoundary *Exterior,
-#ifdef TRANSFER
-	         ImplicitProblemABC *ImplicitSolver,
-#endif
-		 FLOAT WriteTime = -1, int RestartDump = FALSE);
-//#else
-/* 
 int WriteAllData(char *basename, int filenumber, HierarchyEntry *TopGrid,
 		 TopGridData &MetaData, ExternalBoundary *Exterior,
 #ifdef TRANSFER
 	         ImplicitProblemABC *ImplicitSolver,
 #endif
-		 FLOAT WriteTime = -1);
-*/
-//#endif
+		 FLOAT WriteTime = -1, int RestartDump = FALSE);
 
 double ReturnWallTime(void);
 void my_exit(int status);
@@ -85,7 +74,7 @@ int CheckForOutput(HierarchyEntry *TopGrid, TopGridData &MetaData,
     MetaData.CycleLastRestartDump = MetaData.CycleNumber;
 
     if (debug) printf("Writing restart dump.\n");
-    Group_WriteAllData(MetaData.RestartDumpName, MetaData.RestartDumpNumber++,
+    WriteAllData(MetaData.RestartDumpName, MetaData.RestartDumpNumber++,
 		       TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
@@ -140,7 +129,7 @@ int CheckForOutput(HierarchyEntry *TopGrid, TopGridData &MetaData,
     SavedCPUTime = MetaData.CPUTime;
     MetaData.CPUTime = 0.0;
     if (debug) printf("CPUtime-based output!\n");
-    Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
+    WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
 		       TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
@@ -158,24 +147,12 @@ int CheckForOutput(HierarchyEntry *TopGrid, TopGridData &MetaData,
     MetaData.CPUTime = 0.0;
     MetaData.TimeLastDataDump += MetaData.dtDataDump;
 
-    //#ifdef USE_HDF5_GROUPS
-    Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
+    WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
 		       TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
 #endif
 		       );
-// #else
-//     if (WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
-// 		        TopGrid, MetaData, Exterior
-//#ifdef TRANSFER
-//			, ImplicitSolver
-//#endif
-//		        ) == FAIL {
-// 	ENZO_FAIL("Error in WriteAllData.\n");
-//     }
-// #endif
-
     MetaData.CPUTime = SavedCPUTime;
     MetaData.WroteData = TRUE;
   }
@@ -189,23 +166,12 @@ int CheckForOutput(HierarchyEntry *TopGrid, TopGridData &MetaData,
     MetaData.CPUTime = 0.0;
     MetaData.CycleLastDataDump += MetaData.CycleSkipDataDump;
 
-    //#ifdef USE_HDF5_GROUPS
-    Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
+    WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
 		       TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
 #endif
 		       );
-// #else
-//     if (WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
-// 		        TopGrid, MetaData, Exterior
-//#ifdef TRANSFER
-//			, ImplicitSolver
-//#endif
-//                      ) == FAIL) {
-// 	ENZO_FAIL("Error in WriteAllData.\n");
-//     }
-// #endif
 
     MetaData.CPUTime = SavedCPUTime;
     MetaData.WroteData = TRUE;
@@ -229,43 +195,16 @@ int CheckForOutput(HierarchyEntry *TopGrid, TopGridData &MetaData,
 
 	  SavedCPUTime = MetaData.CPUTime;
 	  MetaData.CPUTime = 0.0;
-	  //#ifdef USE_HDF5_GROUPS
-	  Group_WriteAllData(Name, Number, TopGrid, MetaData, Exterior
+	  WriteAllData(Name, Number, TopGrid, MetaData, Exterior
 #ifdef TRANSFER
 			     , ImplicitSolver
 #endif
 			     );
-// #else
-// 	  if (WriteAllData(Name, Number, TopGrid, MetaData, Exterior
-//#ifdef TRANSFER
-//			   , ImplicitSolver
-//#endif
-//                         ) == FAIL) {
-// 	    ENZO_FAIL("Error in WriteAllData.\n");
-// 	  }
-// #endif
 
 	  MetaData.CPUTime = SavedCPUTime;
 	  MetaData.WroteData = TRUE;
 	}
 
-#ifdef UNUSED
-  /* Check for output: when the MBH jets haven't been ejected for too long 
-                       this is currently a test - Ji-hoon Kim, Mar.2010 */  
- 
-  if ((MBHFeedback >= 2 && MBHFeedback <= 5) && 
-      OutputWhenJetsHaveNotEjected == TRUE) {
-
-    fprintf(stdout, "CheckForOutput: MBH_JETS - file output complete; restart with the dump!\n");
-    Group_WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber++,
-		       TopGrid, MetaData, Exterior);
-
-    OutputWhenJetsHaveNotEjected = FALSE;
-    MetaData.WroteData = TRUE;
-    my_exit(EXIT_SUCCESS);
-
-  }
-#endif   
 
   if (MetaData.NumberOfOutputsBeforeExit && MetaData.WroteData) {
     MetaData.OutputsLeftBeforeExit--;

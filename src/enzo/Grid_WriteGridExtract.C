@@ -47,7 +47,7 @@ int WriteStringAttr(hid_t dset_id, char *Alabel, char *String, FILE *log_fptr);
  
  
  
-int grid::WriteGridX(FILE *fptr, char *base_name, int grid_id)
+int grid::WriteGridExtract(FILE *fptr, char *base_name, int grid_id)
 {
  
   int i, j, k, dim, field, size, ActiveDim[MAX_DIMENSION];

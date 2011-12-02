@@ -17,9 +17,7 @@
 #include "AnalysisBaseClass.h"
 
 std::map<HierarchyEntry *, int> OriginalGridID;
-#ifdef USE_HDF5_GROUPS
 std::map<HierarchyEntry *, int> OriginalTaskID;
-#endif
 
 void my_exit(int exit_status);
 int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);

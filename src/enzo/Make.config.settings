@@ -21,7 +21,6 @@
 #    CONFIG_USE_MPI
 #    CONFIG_OBJECT_MODE
 #    CONFIG_TASKMAP
-#    CONFIG_PACKED_AMR
 #    CONFIG_PACKED_MEM
 #    CONFIG_LCAPERF
 #    CONFIG_PYTHON
@@ -36,10 +35,8 @@
 #    CONFIG_PHOTON
 #    CONFIG_HYPRE
 #    CONFIG_EMISSIVITY
-#    CONFIG_NEW_GRID_IO
 #    CONFIG_FAST_SIB
 #    CONFIG_FLUX_FIX
-#    CONFIG_USE_HDF4	
 #    CONFIG_BITWISE_IDENTICALITY
 #    CONFIG_USE_ECUDA
 #    CONFIG_SET_ACCELERATION_BOUNDARY
@@ -132,15 +129,6 @@
 #-----------------------------------------------------------------------
 
      CONFIG_TASKMAP = no
-
-#=======================================================================
-# CONFIG_PACKED_AMR
-#=======================================================================
-#    yes           use packed AMR
-#    no            don't use packed AMR
-#-----------------------------------------------------------------------
-
-     CONFIG_PACKED_AMR = yes
 
 #=======================================================================
 # CONFIG_PACKED_MEM
@@ -273,15 +261,6 @@
      CONFIG_EMISSIVITY = no
 
 #=======================================================================
-# CONFIG_NEW_GRID_IO
-#=======================================================================
-#    yes           Use the new, simpler Grid IO routines
-#    no            Original (no checkpointing, more obtuse) Grid IO
-#-----------------------------------------------------------------------
-
-     CONFIG_NEW_GRID_IO = yes
-
-#=======================================================================
 # CONFIG_FAST_SIB
 #=======================================================================
 #    yes           Include the Fast Sibling Locator
@@ -298,15 +277,6 @@
 #-----------------------------------------------------------------------
 
      CONFIG_FLUX_FIX = yes
-
-#======================================================================= 
-# CONFIG_USE_HDF4
-#======================================================================= 
-#    yes           For some users (hdf4)
-#    no            For most of the users (hdf5)
-#----------------------------------------------------------------------- 
- 
-     CONFIG_USE_HDF4 = no
 
 #======================================================================= 
 # CONFIG_BITWISE_IDENTICALITY
