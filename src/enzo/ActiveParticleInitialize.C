@@ -29,14 +29,13 @@
 #include "LevelHierarchy.h"
 #include "ActiveParticle.h"
 
-int StarParticlePopIII_IMFInitialize(void);
 int FindTotalNumberOfParticles(LevelHierarchyEntry *LevelArray[]);
-void RecordTotalStarParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
-				  int TotalStarParticleCountPrevious[]);
+void RecordTotalActiveParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
+				    int TotalActiveParticleCountPrevious[]);
 
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			     int ThisLevel, int TotalStarParticleCountPrevious[])
+			     int ThisLevel, int TotalActiveParticleCountPrevious[])
 {
 
   /* Return if this does not concern us */
@@ -44,14 +43,14 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   LCAPERF_START("ActiveParticleInitialize");
 
-  /* Set MetaData->NumberOfParticles and prepare TotalStarParticleCountPrevious
-     these are to be used in CommunicationUpdateStarParticleCount 
-     in StarParticleFinalize */  
+  /* Set MetaData->NumberOfParticles and prepare TotalActiveParticleCountPrevious
+     these are to be used in CommunicationUpdateActiveParticleCount 
+     in ActiveParticleFinalize */  
 
   MetaData->NumberOfParticles = FindTotalNumberOfParticles(LevelArray);
-  NumberOfOtherParticles = MetaData->NumberOfParticles - NumberOfStarParticles;
-  RecordTotalStarParticleCount(Grids, NumberOfGrids, 
-			       TotalStarParticleCountPrevious);
+  NumberOfOtherParticles = MetaData->NumberOfParticles - NumberOfActiveParticles;
+  RecordTotalActiveParticleCount(Grids, NumberOfGrids, 
+				 TotalActiveParticleCountPrevious);
 
   /* TODO: Merging */
 
@@ -59,10 +58,12 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
      1. mirror quantities from active to normal particles
   */
 
+#ifdef UNUSED
   int grid_num;
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
     Grids[grid_num]->GridData->MirrorActiveParticles(COPY_OUT);
   } // ENDFOR grids
+#endif
 
   LCAPERF_STOP("ActiveParticleInitialize");
   return SUCCESS;

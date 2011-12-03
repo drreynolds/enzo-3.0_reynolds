@@ -29,7 +29,7 @@ int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, int &Attribute
 int ReadStarParticleData(FILE *fptr, hid_t Hfile_id, FILE *log_fptr)
 {
  
-  if (StarParticleCreation == FALSE)
+  if (EnabledActiveParticlesCount == 0) 
     return SUCCESS;
  
   /* read in number data. */
@@ -37,19 +37,19 @@ int ReadStarParticleData(FILE *fptr, hid_t Hfile_id, FILE *log_fptr)
   if (!AddParticleAttributes) {
 
     if (HierarchyFileInputFormat % 2 == 0) {
-      HDF5_ReadAttribute(Hfile_id, "NumberOfStarParticles", NumberOfStarParticles, log_fptr);
+      HDF5_ReadAttribute(Hfile_id, "NumberOfActiveParticles", NumberOfActiveParticles, log_fptr);
     }
 
     if (HierarchyFileInputFormat == 1) {
-      if (fscanf(fptr, "NumberOfStarParticles = %"ISYM"\n",
-		 &NumberOfStarParticles) != 1) {
-	//      ENZO_FAIL("Error reading NumberOfStarParticles.\n");
+      if (fscanf(fptr, "NumberOfActiveParticles = %"ISYM"\n",
+		 &NumberOfActiveParticles) != 1) {
+	//      ENZO_FAIL("Error reading NumberOfActiveParticles.\n");
 	
       }
     }
 
   } else 
-    NumberOfStarParticles = 0;
+    NumberOfActiveParticles = 0;
   
   NumberOfOtherParticles = 0; 
 

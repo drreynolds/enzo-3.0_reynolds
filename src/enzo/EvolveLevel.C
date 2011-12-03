@@ -204,20 +204,12 @@ int DeleteSUBlingList(int NumberOfGrids,
 		      LevelHierarchyEntry **SUBlingList);
 #endif
 
-int StarParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
-			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int ThisLevel, Star *&AllStars,
-			   int TotalStarParticleCountPrevious[]);
-int StarParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
-			 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			 int level, Star *&AllStars,
-			 int TotalStarParticleCountPrevious[]);
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			     int ThisLevel, int TotalStarParticleCountPrevious[]);
+			     int ThisLevel, int TotalActiveParticleCountPrevious[]);
 int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int level, int TotalStarParticleCountPrevious[]);
+			   int level, int TotalActiveParticleCountPrevious[]);
 int AdjustRefineRegion(LevelHierarchyEntry *LevelArray[], 
 		       TopGridData *MetaData, int EL_level);
 int AdjustMustRefineParticlesRefineToLevel(TopGridData *MetaData, int EL_level);
@@ -289,7 +281,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   int NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
   int *NumberOfSubgrids = new int[NumberOfGrids];
   fluxes ***SubgridFluxesEstimate = new fluxes **[NumberOfGrids];
-  int *TotalStarParticleCountPrevious = new int[NumberOfGrids];
+  int *TotalActiveParticleCountPrevious = new int[NumberOfGrids];
   RunEventHooks("EvolveLevelTop", Grids, *MetaData);
 
 #ifdef FLUX_FIX
@@ -377,13 +369,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Initialize the star particles */
 
     Star *AllStars = NULL;
-#ifdef ACTIVE_PARTICLE_IMPLEMENTED
     ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
-	                     level, TotalStarParticleCountPrevious);
-#else
-    StarParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
-			   level, AllStars, TotalStarParticleCountPrevious);
-#endif
+	                     level, TotalActiveParticleCountPrevious);
     
 
 #ifdef TRANSFER
@@ -511,13 +498,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
       /* Include 'star' particle creation and feedback. */
 
-#ifdef ACTIVE_PARTICLE_IMPLEMENTED
       Grids[grid1]->GridData->ActiveParticleHandler
 	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
-#else
-      Grids[grid1]->GridData->StarParticleHandler
-	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
-#endif
 
       /* Include shock-finding */
 
@@ -554,13 +536,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
-#ifdef ACTIVE_PARTICLE_IMPLEMENTED
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
-			   level, TotalStarParticleCountPrevious);
-#else
-    StarParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
-			 level, AllStars, TotalStarParticleCountPrevious);
-#endif
+			   level, TotalActiveParticleCountPrevious);
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
@@ -746,7 +723,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   delete [] NumberOfSubgrids;
   delete [] Grids;
   delete [] SubgridFluxesEstimate;
-  delete [] TotalStarParticleCountPrevious;
+  delete [] TotalActiveParticleCountPrevious;
 
   dtThisLevel[level] = dtThisLevelSoFar[level] = 0.0;
  

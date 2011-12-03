@@ -8,6 +8,7 @@
 #include <map>
 #include <iostream>
 #include <stdexcept>
+#include <typeinfo>
 #include <vector>
 #include <stdio.h>
 #include <math.h>
@@ -92,10 +93,9 @@ public:
   static bool JeansMassCriterion, StochasticStarFormation, UnigridVelocities, 
     PhysicalOverdensity, dtDependence;
 
-  float ReturnMetallicity(void) {return Metallicity; };
+  //float ReturnMetallicity(void) {return Metallicity; };
 
 private:
-  float Metallicity;
 
 };
 
@@ -277,9 +277,10 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 
 	np->level = data.level;
 	np->GridID = data.GridID;
+	np->CurrentGrid = thisgrid_orig;
 
 	np->Mass = StarFraction*density[index];
-	np->type = INT_UNDEFINED;  // This should come from ActiveParticleType_info
+	np->type = np->GetEnabledParticleID();
 	np->BirthTime = thisGrid->ReturnTime();
 	np->DynamicalTime = DynamicalTime;
 
@@ -320,8 +321,6 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 {
   CenOstrikerGrid *thisGrid =
     static_cast<CenOstrikerGrid *>(thisGrid_orig);
-  ActiveParticleType_CenOstriker *particles = 
-    static_cast<ActiveParticleType_CenOstriker*>(*thisGrid->ActiveParticles);
   
   float *density = thisGrid->BaryonField[data.DensNum];
   float *velx = thisGrid->BaryonField[data.Vel1Num];
@@ -360,23 +359,27 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   
   int n,i,j,k,ic,kc,jc,stepk,stepj,cellstep,DistIndex,index;
 
-  for (n=0; n < npart-1;n++) {
-    if (thisGrid->ActiveParticles[n]->ReturnType() == CenOstriker)
-      continue;
-  
-    //xpos = thisGrid->ActiveParticles[n]->pos[0];
-    xpos = particles[n].pos[0];
-    ypos = particles[n].pos[1];
-    zpos = particles[n].pos[2];
-  
-    xvel = particles[n].vel[0];
-    yvel = particles[n].vel[1];
-    zvel = particles[n].vel[2];
+  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
+  int type_num = dummy->GetEnabledParticleID();
+  delete dummy;
 
-    ParticleBirthTime = particles[n].BirthTime;
-    ParticleDynamicalTimeAtBirth = particles[n].DynamicalTime;
-    ParticleMass = particles[n].Mass;
-    ParticleMetalFraction = particles[n].Metallicity;
+  for (n=0; n < npart-1; n++) {
+    ActiveParticleType_CenOstriker *particle = 
+      static_cast<ActiveParticleType_CenOstriker*>(thisGrid->ActiveParticles[n]);
+    if (particle->type != type_num) continue;
+
+    xpos = particle->pos[0];
+    ypos = particle->pos[1];
+    zpos = particle->pos[2];
+  
+    xvel = particle->vel[0];
+    yvel = particle->vel[1];
+    zvel = particle->vel[2];
+
+    ParticleBirthTime = particle->BirthTime;
+    ParticleDynamicalTimeAtBirth = particle->DynamicalTime;
+    ParticleMass = particle->Mass;
+    ParticleMetalFraction = particle->Metallicity;
     
     // Determine how much of a given star particle would have been
     // turned into stars during this timestep.  Then, calculate the
@@ -409,7 +412,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
     // Check bounds - if star particle is outside of this grid then give a warning and continue
     
     if (i < 0 || i > GridXSize-1 || j < 0 || j > GridYSize-1 || k < 0 || k > GridZSize-1){
-      fprintf(stdout, "Particle out of grid; xind, yind, zind, level = %d, $d, $d, $d\n",i,j,k);
+      fprintf(stdout, "Particle out of grid; xind, yind, zind = %d, %d, %d\n",i,j,k);
       continue;
     }
       
@@ -444,7 +447,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     // Save particle mass
 
-    particles[n].Mass = ParticleMass;
+    particle->Mass = ParticleMass;
 
     // Record amount of star formation in this grid
 
@@ -610,16 +613,14 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
     
 
   for (i=0;i<n;i++) {
-    pos = ParticlesToWrite[i].ReturnPosition();
-    vel = ParticlesToWrite[i].ReturnVelocity();
     for (dim = 0; dim < GridRank; dim++) {
-      Position[dim][i] = pos[dim];
-      Velocity[dim][i] = vel[dim];
+      Position[dim][i] = ParticlesToWrite[i].pos[dim];
+      Velocity[dim][i] = ParticlesToWrite[i].vel[dim];
     }
-    Mass[i] = ParticlesToWrite[i].ReturnMass();
-    BirthTime[i] = ParticlesToWrite[i].ReturnBirthTime();
-    DynamicalTime[i] = ParticlesToWrite[i].ReturnDynamicalTime();
-    Metallicity[i] = ParticlesToWrite[i].ReturnMetallicity();
+    Mass[i] = ParticlesToWrite[i].Mass;
+    BirthTime[i] = ParticlesToWrite[i].BirthTime;
+    DynamicalTime[i] = ParticlesToWrite[i].DynamicalTime;
+    Metallicity[i] = ParticlesToWrite[i].Metallicity;
   }
 
   for (dim = 0; dim < GridRank; dim++) {

@@ -34,15 +34,15 @@
 
 /* prototypes */
 
-int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
+int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 					 TopGridData *MetaData,
 					 int NumberOfGrids,
-					 int TotalStarParticleCountPrevious[]);
+					 int TotalActiveParticleCountPrevious[]);
 
 
 int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int level, int TotalStarParticleCountPrevious[])
+			   int level, int TotalActiveParticleCountPrevious[])
 {
 
   if (EnabledActiveParticlesCount == 0) return SUCCESS;
@@ -51,16 +51,18 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   /* Update the star particle counters. */
 
-  CommunicationUpdateStarParticleCount(Grids, MetaData, NumberOfGrids,
-				       TotalStarParticleCountPrevious);
+  CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
+					 TotalActiveParticleCountPrevious);
 
   /* Update position and velocity of star particles from the actual
      particles */
 
+#ifdef UNUSED
   int grid_num;
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
     Grids[grid_num]->GridData->MirrorActiveParticles(COPY_IN);
   } // ENDFOR grids
+#endif
 
   /* TODO Items:
      1. Add feedback spheres

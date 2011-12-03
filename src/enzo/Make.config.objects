@@ -98,6 +98,7 @@ OBJS_CONFIG_LIB = \
         CommunicationTransferStarsOpt.o \
 	CommunicationTransferSubgridParticles.o \
         CommunicationTranspose.o \
+        CommunicationUpdateActiveParticleCount.o \
         CommunicationUpdateStarParticleCount.o \
         CommunicationUtilities.o \
 	ConductionBubbleInitialize.o \
@@ -745,6 +746,7 @@ OBJS_CONFIG_LIB = \
         RebuildHierarchy.o \
         RecalibrateAccretingMass.o \
         RecalibrateMBHFeedbackThermalRadius.o \
+	RecordTotalActiveParticleCount.o \
         ReduceFragmentation.o \
         remap.o \
         ReportMemoryUsage.o \

@@ -1350,6 +1350,7 @@ public:
 /* Particles: return number of particles. */
 
    int ReturnNumberOfParticles() {return NumberOfParticles;};
+   int ReturnNumberOfActiveParticles() {return NumberOfActiveParticles;};
 
    int ReturnNumberOfStarParticles(void);
 

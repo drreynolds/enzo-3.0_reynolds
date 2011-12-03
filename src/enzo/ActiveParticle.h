@@ -64,6 +64,7 @@ public:
   double ReturnMass(void) { return Mass; };
   float ReturnBirthTime(void) { return BirthTime; };
   float ReturnDynamicalTime(void) { return DynamicalTime; };
+  float ReturnMetallicity(void) { return Metallicity; };
   star_type ReturnType(void) {return type; };
   int   ReturnLevel(void) { return level; };
 
