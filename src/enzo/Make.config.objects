@@ -319,7 +319,9 @@ OBJS_CONFIG_LIB = \
 	Grid_AddToBoundaryFluxes.o \
 	Grid_AllocateGrids.o \
 	Grid_AnalyzeTrackPeaks.o \
+	Grid_AppendActiveParticles.o \
 	Grid_AppendForcingToBaryonFields.o \
+	Grid_AppendNewActiveParticles.o \
 	Grid_ApplyTimeAction.o \
 	Grid_AveragedVelocityAtCell.o \
 	Grid_CalculateAngularMomentum.o \
@@ -409,6 +411,7 @@ OBJS_CONFIG_LIB = \
 	Grid_DepositParticlePositionsLocal.o \
 	Grid_DepositPositions.o \
 	Grid_destructor.o \
+	Grid_DetachActiveParticles.o \
 	Grid_DetachForcingFromBaryonFields.o \
 	Grid_DoubleMachInitializeGrid.o \
 	Grid_FastSiblingLocatorAddGrid.o \

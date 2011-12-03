@@ -55,12 +55,12 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 					 TotalActiveParticleCountPrevious);
 
   /* Update position and velocity of star particles from the actual
-     particles */
+     particles.  Moved to after RebuildHierarchy in EvolveLevel. */
 
 #ifdef UNUSED
   int grid_num;
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
-    Grids[grid_num]->GridData->MirrorActiveParticles(COPY_IN);
+    Grids[grid_num]->GridData->DetachActiveParticles();
   } // ENDFOR grids
 #endif
 

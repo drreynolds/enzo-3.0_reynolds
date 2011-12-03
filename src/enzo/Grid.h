@@ -1409,6 +1409,16 @@ public:
       ParticleAttribute[i] = Attribute[i];
    };
 
+   void SetParticlePointers(float *Mass, PINT *Number, FLOAT *Position[], 
+			    float *Velocity[]) {
+    ParticleMass   = Mass;
+    ParticleNumber = Number;
+    for (int dim = 0; dim < GridRank; dim++) {
+      ParticlePosition[dim] = Position[dim];
+      ParticleVelocity[dim] = Velocity[dim];
+    }
+   };
+
 /* Particles: Set new star particle index. */
 
    void SetNewParticleIndex(int &NumberCount1, PINT &NumberCount2);
@@ -2210,8 +2220,14 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 			    float dtLevelAbove);
-  int MirrorActiveParticles(int direction);
 
+  /* Append and detach active particles data to 'normal' particle
+     arrays */
+
+  int AppendActiveParticles(void);
+  int AppendNewActiveParticles(ActiveParticleType **NewParticles,
+			       int NumberOfNewParticles);
+  int DetachActiveParticles(void);
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 

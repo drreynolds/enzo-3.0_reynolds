@@ -110,6 +110,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     int OldNumberOfActiveParticles = this->NumberOfActiveParticles;
     ActiveParticleType **OldActiveParticles = this->ActiveParticles;
 
+    this->AppendNewActiveParticles(supplemental_data.NewParticles, NumberOfNewParticles);
     this->NumberOfActiveParticles += NumberOfNewParticles;
     this->ActiveParticles = new ActiveParticleType*[this->NumberOfActiveParticles];
     for (i = 0; i < OldNumberOfActiveParticles; i++) {

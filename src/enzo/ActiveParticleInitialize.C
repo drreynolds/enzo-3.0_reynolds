@@ -55,15 +55,13 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
   /* TODO: Merging */
 
   /* Active particle initialization
-     1. mirror quantities from active to normal particles
+     1. copy quantities from active to normal particles
   */
 
-#ifdef UNUSED
   int grid_num;
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
-    Grids[grid_num]->GridData->MirrorActiveParticles(COPY_OUT);
+    Grids[grid_num]->GridData->AppendActiveParticles();
   } // ENDFOR grids
-#endif
 
   LCAPERF_STOP("ActiveParticleInitialize");
   return SUCCESS;
