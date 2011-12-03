@@ -45,8 +45,7 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int level, int TotalStarParticleCountPrevious[])
 {
 
-  if (!StarParticleCreation && !StarParticleFeedback)
-    return SUCCESS;
+  if (EnabledActiveParticlesCount == 0) return SUCCESS;
 
   LCAPERF_START("ActiveParticleFinalize");
 

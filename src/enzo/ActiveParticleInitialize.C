@@ -40,8 +40,7 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 {
 
   /* Return if this does not concern us */
-  if (!(StarParticleCreation || StarParticleFeedback)) 
-    return SUCCESS;
+  if (EnabledActiveParticlesCount == 0) return SUCCESS;
 
   LCAPERF_START("ActiveParticleInitialize");
 
