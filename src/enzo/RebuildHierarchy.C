@@ -148,7 +148,7 @@ int RebuildHierarchy(TopGridData *MetaData,
     for (Temp = LevelArray[i]; Temp; Temp = Temp->NextGridThisLevel)
       if (MyProcessorNumber != Temp->GridData->ReturnProcessorNumber()) {
 	Temp->GridData->SetNumberOfParticles(0);
-	Temp->GridData->SetNumberOfStars(0);
+	Temp->GridData->SetNumberOfActiveParticles(0);
       }
 
   /* The dynamic grids should be distributed enough to store the
@@ -202,8 +202,8 @@ int RebuildHierarchy(TopGridData *MetaData,
 	    GridPointer[k] = NULL;
 	  }
 
-	GridParent[j]->GridData->MoveAllStars(grids2, ContigiousGridList, 
-					      MetaData->TopGridDims[0]);
+//	GridParent[j]->GridData->MoveAllStars(grids2, ContigiousGridList, 
+//					      MetaData->TopGridDims[0]);
 	GridParent[j]->GridData->MoveAllParticles(grids2, ContigiousGridList);
 
 #ifdef TRANSFER   
@@ -252,7 +252,7 @@ int RebuildHierarchy(TopGridData *MetaData,
     }
 
     CommunicationTransferParticles(GridPointer, grids, MetaData->TopGridDims);
-    CommunicationTransferStars(GridPointer, grids, MetaData->TopGridDims);
+    //CommunicationTransferStars(GridPointer, grids, MetaData->TopGridDims);
 
     /* We need to collect particles again */
 
@@ -621,9 +621,9 @@ int RebuildHierarchy(TopGridData *MetaData,
 	    ToGrids[k] = SubgridHierarchyPointer[k]->GridData;
 	  }
  
-	  if (GridHierarchyPointer[j]->GridData->MoveSubgridStars(
-				 subgrids, ToGrids, FALSE) == FAIL)
-	    ENZO_FAIL("Error in grid->MoveSubgridStars.");
+//	  if (GridHierarchyPointer[j]->GridData->MoveSubgridStars(
+//				 subgrids, ToGrids, FALSE) == FAIL)
+//	    ENZO_FAIL("Error in grid->MoveSubgridStars.");
 
 	  if (GridHierarchyPointer[j]->GridData->MoveSubgridParticlesFast(
 				 subgrids, ToGrids, FALSE) == FAIL)

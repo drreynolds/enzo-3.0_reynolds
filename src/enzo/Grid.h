@@ -1357,6 +1357,7 @@ public:
 /* Particles: set number of particles. */
 
    void SetNumberOfParticles(int num) {NumberOfParticles = num;};
+   void SetNumberOfActiveParticles(int num) {NumberOfActiveParticles = num;};
 
 /* Particles: delete particle fields and set null. */
 
