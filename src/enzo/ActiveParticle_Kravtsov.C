@@ -272,7 +272,7 @@ class KravtsovParticleBufferHandler : public ParticleBufferHandler
     ParticleBufferHandler(NumberOfParticles) {};
 };
 
-ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers
+ParticleBufferHandler *ActiveParticleType_Kravtsov::AllocateBuffers
 (ActiveParticleType **particles, int NumberOfParticles)
 {
   KravtsovParticleBufferHandler *buffer = 

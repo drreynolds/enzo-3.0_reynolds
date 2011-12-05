@@ -229,11 +229,13 @@ bool ActiveParticleType::Mergable(ActiveParticleType *a)
   return type == a->type && type < 0;
 }
 
+#ifdef UNUSED
 bool ActiveParticleType::MergableMBH(ActiveParticleType *a)
 {
   // Merge MBH particle with another 
   return type == a->type && type == MBH;
 }
+#endif
 
 float ActiveParticleType::Separation2(ActiveParticleType *a)
 {

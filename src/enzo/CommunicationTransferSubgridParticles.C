@@ -149,9 +149,9 @@ int CommunicationTransferSubgridParticles(LevelHierarchyEntry *LevelArray[],
        grid processor numbers.
     */
 
-    Grids[grid1]->GridData->TransferSubgridStars
-      (GridPointers, NumberOfGrids, StarsToMove, Zero, Zero, 
-       StarSendList, KeepLocal, ParticlesAreLocal, COPY_OUT, TRUE);
+//    Grids[grid1]->GridData->TransferSubgridStars
+//      (GridPointers, NumberOfGrids, StarsToMove, Zero, Zero, 
+//       StarSendList, KeepLocal, ParticlesAreLocal, COPY_OUT, TRUE);
 
     Grids[grid1]->GridData->TransferSubgridParticles
       (GridPointers, NumberOfGrids, NumberToMove, Zero, Zero, 
@@ -245,9 +245,9 @@ int CommunicationTransferSubgridParticles(LevelHierarchyEntry *LevelArray[],
 	if (jend == StarNumberOfReceives) break;
       }
       
-      GridPointers[j]->TransferSubgridStars
-	(GridPointers, NumberOfGrids, StarsToMove, jstart, jend, 
-	 StarSharedList, KeepLocal, ParticlesAreLocal, COPY_IN, TRUE);
+//      GridPointers[j]->TransferSubgridStars
+//	(GridPointers, NumberOfGrids, StarsToMove, jstart, jend, 
+//	 StarSharedList, KeepLocal, ParticlesAreLocal, COPY_IN, TRUE);
       
       jstart = jend;
     } // ENDFOR grids

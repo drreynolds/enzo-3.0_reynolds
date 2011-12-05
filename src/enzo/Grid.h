@@ -129,6 +129,7 @@ class grid
   int NumberOfActiveParticles;
   ActiveParticleType **ActiveParticles;
   class ParticleBufferHandler **GetParticleBuffers();
+  class ParticleBufferHandler **GetParticleBuffers(bool *mask);
 //
 //  Gravity data
 // 
@@ -1566,9 +1567,15 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
 			   int* &NumberToMove, int StartIndex, 
 			   int EndIndex, star_data* &List, 
 			   bool KeepLocal, bool ParticlesAreLocal,
-			   int CopyDirection,
-			   int IncludeGhostZones = FALSE);
-
+			   int CopyDirection, int IncludeGhostZones);
+  
+  int TransferSubgridActiveParticles(grid* Subgrids[], int NumberOfSubgrids, 
+				     int* &NumberToMove, int StartIndex, 
+				     int EndIndex, ParticleBufferHandler **List, 
+				     bool KeepLocal, bool ParticlesAreLocal, 
+				     int CopyDirection, 
+				     int IncludeGhostZones = FALSE, 
+				     int CountOnly = FALSE);
 // -------------------------------------------------------------------------
 // Helper functions (should be made private)
 //
@@ -2415,8 +2422,6 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int CommunicationSendStars(grid *ToGrid, int ToProcessor);
 
-  int TransferSubgridStars(int NumberOfSubgrids, grid* ToGrids[], int AllLocal);
-  
   int FindNewStarParticles(int level);
 
   int FindAllStarParticles(int level);

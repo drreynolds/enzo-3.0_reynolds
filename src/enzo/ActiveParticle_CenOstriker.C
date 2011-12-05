@@ -81,7 +81,8 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
-  static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
+  static void UnpackBuffer(ActiveParticleType *np, ParticleBufferHandler **buffer, int place);
+  static ParticleBufferHandler *AllocateBuffer(ActiveParticleType *np);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
   
@@ -645,18 +646,26 @@ class CenOstrikerBufferHandler : public ParticleBufferHandler
 {
 public:
   // No extra fields in CenOstriker.  Same base constructor.
-  CenOstrikerBufferHandler(int NumberOfParticles) :
-    ParticleBufferHandler(NumberOfParticles) {};
+  CenOstrikerBufferHandler() : ParticleBufferHandler() {};
 };
 
-ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers
-(ActiveParticleType **particles, int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffer(ActiveParticleType *np)
 {
-  CenOstrikerBufferHandler *buffer = new CenOstrikerBufferHandler(NumberOfParticles);
-  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  CenOstrikerBufferHandler *buffer = new CenOstrikerBufferHandler();
+  buffer->FillBuffer(np);
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
   return buffer;
+}
+
+void ActiveParticleType_CenOstriker::UnpackBuffer
+(ActiveParticleType *np, ParticleBufferHandler **buffer, int place)
+{
+  np = new ActiveParticleType_CenOstriker();
+  buffer[place]->UnpackBuffer(np);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  return;
 }
 
 namespace {

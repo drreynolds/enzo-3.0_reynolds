@@ -363,22 +363,66 @@ ParticleBufferHandler **grid::GetParticleBuffers() {
   fprintf(stderr, "Getting buffers %"ISYM" and %"ISYM"\n",
             this->NumberOfActiveParticles,
             EnabledActiveParticlesCount);
-  int i, pt;
+  int i, j, index, pt;
+  ActiveParticleType_info *ap_type;
   int *hist = new int[EnabledActiveParticlesCount];
-  for (i = 0; i < this->NumberOfActiveParticles; i++) hist[i] = 0;
+  ParticleBufferHandler **buffer = new ParticleBufferHandler*[NumberOfActiveParticles];
+  for (i = 0; i < EnabledActiveParticlesCount; i++) hist[i] = 0;
   for (i = 0; i < this->NumberOfActiveParticles; i++)
   {
     pt = this->ActiveParticles[i]->GetEnabledParticleID();
     if (pt < 0) { fprintf(stderr, "GPB:  %"ISYM"\n", i); continue;}
     hist[pt]++;
   }
+  index = 0;
   for (i = 0; i < EnabledActiveParticlesCount; i++){
     fprintf(stderr, "GPB:: %"ISYM"\n", i);
     fprintf(stderr, "GPB: [%"ISYM"]=%"ISYM"\n", i, hist[i]);
-  }
+    ap_type = EnabledActiveParticles[i];
+    for (j = 0; j < this->NumberOfActiveParticles; j++) {
+      if (ActiveParticles[j]->GetEnabledParticleID() == i)
+	buffer[index++] = ap_type->allocate_buffer(this->ActiveParticles[j]);
+    } // ENDFOR j
+  } // ENDFOR i
   delete hist;
-  return NULL;
+  return buffer;
 }
+
+ParticleBufferHandler **grid::GetParticleBuffers(bool *mask) {
+  if ((this->NumberOfActiveParticles == 0) ||
+      (EnabledActiveParticlesCount == 0)) return NULL;
+  fprintf(stderr, "Getting buffers %"ISYM" and %"ISYM"\n",
+            this->NumberOfActiveParticles,
+            EnabledActiveParticlesCount);
+  int i, j, pt, nmask, index;
+  ActiveParticleType_info *ap_type;
+  int *hist = new int[EnabledActiveParticlesCount];
+  for (i = 0; i < EnabledActiveParticlesCount; i++) hist[i] = 0;
+  for (i = 0, nmask = 0; i < this->NumberOfActiveParticles; i++) 
+    if (mask[i]) nmask++;
+  ParticleBufferHandler **buffer = new ParticleBufferHandler*[nmask];
+  for (i = 0; i < this->NumberOfActiveParticles; i++)
+  {
+    if (mask) {
+      pt = this->ActiveParticles[i]->GetEnabledParticleID();
+      if (pt < 0) { fprintf(stderr, "GPB:  %"ISYM"\n", i); continue;}
+      hist[pt]++;
+    }
+  }
+  index = 0;
+  for (i = 0; i < EnabledActiveParticlesCount; i++){
+    fprintf(stderr, "GPB:: %"ISYM"\n", i);
+    fprintf(stderr, "GPB: [%"ISYM"]=%"ISYM"\n", i, hist[i]);
+    ap_type = EnabledActiveParticles[i];
+    for (j = 0; j < this->NumberOfActiveParticles; j++) {
+      if (mask[j] && ActiveParticles[j]->GetEnabledParticleID() == i)
+	buffer[index++] = ap_type->allocate_buffer(this->ActiveParticles[j]);
+    } // ENDFOR j
+  } // ENDFOR particle types
+  delete[] hist;
+  return buffer;
+}
+
 
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
 

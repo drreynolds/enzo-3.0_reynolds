@@ -14,6 +14,14 @@
 # Default Enzo object files
 #-----------------------------------------------------------------------
 
+# Removed temporarily
+#        ActiveParticle_Kravtsov.o \
+#        ActiveParticle_PopIII.o \
+#        ActiveParticle_SampleParticle.o \
+#        ActiveParticle_SpringelHernquist.o \
+#	ActiveParticle_SinkParticle.o \
+
+
 OBJS_CONFIG_LIB = \
         acml_st1.o \
         ActiveParticle.o \
@@ -23,13 +31,9 @@ OBJS_CONFIG_LIB = \
         ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_FillBuffer.o \
-        ActiveParticle_Kravtsov.o \
-        ActiveParticle_PopIII.o \
 	ActiveParticle_MirrorToParticle.o \
-        ActiveParticle_SampleParticle.o \
 	ActiveParticle_SphereContained.o \
-        ActiveParticle_SpringelHernquist.o \
-	ActiveParticle_SinkParticle.o \
+	ActiveParticle_UnpackBuffer.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
         AdjustMustRefineParticlesRefineToLevel.o \
@@ -575,6 +579,7 @@ OBJS_CONFIG_LIB = \
         Grid_TracerParticleCreateParticles.o \
         Grid_TracerParticleOutputData.o \
         Grid_TracerParticleSetVelocity.o \
+        Grid_TransferSubgridActiveParticles.o \
         Grid_TransferSubgridParticles.o \
         Grid_TransferSubgridStars.o \
         Grid_TurbulenceSimulationInitialize.o \

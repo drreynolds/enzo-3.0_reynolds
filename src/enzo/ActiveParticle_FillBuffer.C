@@ -36,25 +36,19 @@
 #include "EventHooks.h"
 #include "ActiveParticle.h"
 
-ParticleBufferHandler* ActiveParticleType::FillBuffer
-(ParticleBufferHandler* buffer, ActiveParticleType **particles, int NumberOfParticles,
- int start)
+void ParticleBufferHandler::FillBuffer(ActiveParticleType *np)
 {
-
-  int i, dim;
-  for (i = start; i < NumberOfParticles; i++) {
-    for (dim = 0; dim < MAX_DIMENSION; dim++) {
-      buffer->pos[dim][i] = particles[i]->pos[dim];
-      buffer->vel[dim][i] = particles[i]->vel[dim];
-    }
-    buffer->Mass[i] = particles[i]->Mass;
-    buffer->BirthTime[i] = particles[i]->BirthTime;
-    buffer->DynamicalTime[i] = particles[i]->DynamicalTime;
-    buffer->Identifier[i] = particles[i]->Identifier;
-    buffer->level[i] = particles[i]->level;
-    buffer->GridID[i] = particles[i]->GridID;
-    buffer->type[i] = particles[i]->type;
-  } // ENDFOR particles
-  return buffer;
-
+  int dim;
+  for (dim = 0; dim < MAX_DIMENSION; dim++) {
+    this->pos[dim] = np->pos[dim];
+    this->vel[dim] = np->vel[dim];
+  }
+  this->Mass = np->Mass;
+  this->BirthTime = np->BirthTime;
+  this->DynamicalTime = np->DynamicalTime;
+  this->Identifier = np->Identifier;
+  this->level = np->level;
+  this->GridID = np->GridID;
+  this->type = np->type;
+  return;
 }
