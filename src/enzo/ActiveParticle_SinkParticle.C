@@ -239,14 +239,20 @@ int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particl
 
 class SinkParticleBufferHandler : public ParticleBufferHandler
 {
-  public:
-    SinkParticleBufferHandler(int NumberOfParticles) { }
+public:
+  // No extra fields in SinkParticle.  Same base constructor.
+  SinkParticleBufferHandler(int NumberOfParticles) :
+    ParticleBufferHandler(NumberOfParticles) {};
 };
 
-ParticleBufferHandler *ActiveParticleType_SinkParticle::AllocateBuffers(int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_SinkParticle::AllocateBuffers
+(ActiveParticleType **particles, int NumberOfParticles)
 {
-    SinkParticleBufferHandler *handler = new SinkParticleBufferHandler(NumberOfParticles);
-    return handler;
+  SinkParticleBufferHandler *buffer = new SinkParticleBufferHandler(NumberOfParticles);
+  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  return buffer;
 }
 
 

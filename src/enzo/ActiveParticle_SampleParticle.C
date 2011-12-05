@@ -98,14 +98,20 @@ int ActiveParticleType_SampleParticle::ReadFromOutput(ActiveParticleType **parti
 
 class SampleParticleBufferHandler : public ParticleBufferHandler
 {
-  public:
-    SampleParticleBufferHandler(int NumberOfParticles) { }
+public:
+  // No extra fields in SampleParticle.  Same base constructor.
+  SampleParticleBufferHandler(int NumberOfParticles) :
+    ParticleBufferHandler(NumberOfParticles) {};
 };
 
-ParticleBufferHandler *ActiveParticleType_SampleParticle::AllocateBuffers(int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_SampleParticle::AllocateBuffers
+(ActiveParticleType **particles, int NumberOfParticles)
 {
-    SampleParticleBufferHandler *handler = new SampleParticleBufferHandler(NumberOfParticles);
-    return handler;
+  SampleParticleBufferHandler *buffer = new SampleParticleBufferHandler(NumberOfParticles);
+  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  return buffer;
 }
 
 

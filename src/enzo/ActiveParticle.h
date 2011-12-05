@@ -29,6 +29,7 @@
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
+class ParticleBufferHandler;
 
 class ActiveParticleType
 {
@@ -75,6 +76,7 @@ public:
   grid *ReturnCurrentGrid(void) { return CurrentGrid; };
   void  AssignCurrentGrid(grid *a) { this->CurrentGrid = a; };
   void  AddMass(double dM) { Mass += dM; };
+  void  AdjustMassByFactor(double factor) { Mass *= factor; };
 
   FLOAT *ReturnPosition(void) { return pos; }
   float *ReturnVelocity(void) { return vel; }
@@ -99,6 +101,10 @@ public:
 
   /* Virtual and pure virtual functions in this base class */
 
+  virtual ParticleBufferHandler *FillBuffer(ParticleBufferHandler* buffer, 
+    ActiveParticleType **particles, int NumberOfParticles, int start=0);
+  virtual ParticleBufferHandler *AllocateBuffers(ActiveParticleType **particles, 
+    int NumberOfParticles) = 0;
   virtual bool IsARadiationSource(FLOAT Time) { return FALSE; };
   virtual int GetEnabledParticleID(int id = -1) = 0;
 
@@ -126,6 +132,7 @@ private: /* Cannot be accessed by subclasses! */
   
   friend class grid;
   friend class ActiveParticleType_info;
+  friend class ParticleBufferHandler;
 
 };
 
@@ -228,9 +235,48 @@ void EnableActiveParticleType(char *active_particle_type_name);
 class ParticleBufferHandler
 {
 public:
-  ParticleBufferHandler() {};
-  ~ParticleBufferHandler() {};
+  ParticleBufferHandler(int NumberOfParticles) {
+    for (int dim = 0; dim < MAX_DIMENSION; dim++) {
+      pos[dim] = new FLOAT[NumberOfParticles];
+      vel[dim] = new float[NumberOfParticles];
+    }
+    Mass = new double[NumberOfParticles];
+    BirthTime = new float[NumberOfParticles];
+    DynamicalTime = new float[NumberOfParticles];
+    Metallicity = new float[NumberOfParticles];
+    Identifier = new PINT[NumberOfParticles];
+    level = new int[NumberOfParticles];
+    GridID = new int[NumberOfParticles];
+    type = new int[NumberOfParticles];
+  };
+  ~ParticleBufferHandler() {
+    for (int dim = 0; dim < MAX_DIMENSION; dim++) {
+      delete[] pos;
+      delete[] vel;
+    }
+    delete[] Mass;
+    delete[] BirthTime;
+    delete[] DynamicalTime;
+    delete[] Metallicity;
+    delete[] Identifier;
+    delete[] level;
+    delete[] GridID;
+    delete[] type;
+  };
   /*virtual void WriteBuffers(hid_t group);*/
+
+protected:
+  FLOAT	*pos[MAX_DIMENSION];
+  float *vel[MAX_DIMENSION];
+  double *Mass;		// Msun
+  float *BirthTime;
+  float *DynamicalTime;      
+  float *Metallicity;
+  PINT *Identifier;
+  int *level;
+  int *GridID;
+  int *type;
+
 };
 
 class ActiveParticleType_info
@@ -242,7 +288,7 @@ public:
   (std::string this_name,
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
-   ParticleBufferHandler *(*abfunc)(int NumberOfParticles),
+   ParticleBufferHandler *(*abfunc)(ActiveParticleType **particles, int NumberOfParticles),
    int (*ifunc)(),
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*writefunc)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id),

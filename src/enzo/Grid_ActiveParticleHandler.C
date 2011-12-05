@@ -107,22 +107,11 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
    * array */
 
   if (NumberOfNewParticles > 0) {
-    int OldNumberOfActiveParticles = this->NumberOfActiveParticles;
-    ActiveParticleType **OldActiveParticles = this->ActiveParticles;
-
-    this->AppendNewActiveParticles(supplemental_data.NewParticles, NumberOfNewParticles);
-    this->NumberOfActiveParticles += NumberOfNewParticles;
-    this->ActiveParticles = new ActiveParticleType*[this->NumberOfActiveParticles];
-    for (i = 0; i < OldNumberOfActiveParticles; i++) {
-      this->ActiveParticles[i] = OldActiveParticles[i];
-    }
-    for (i = 0; i < NumberOfNewParticles; i++) {
-      this->ActiveParticles[OldNumberOfActiveParticles + i] =
-        supplemental_data.NewParticles[i];
-    }
-    assert((NumberOfNewParticles + OldNumberOfActiveParticles)
-        == this->NumberOfActiveParticles);
-    delete[] OldActiveParticles; 
+    // Add new particles to "normal" particle arrays and ActiveParticles
+    this->AppendNewActiveParticles(supplemental_data.NewParticles, 
+				   NumberOfNewParticles);
+    this->AddActiveParticles(supplemental_data.NewParticles,
+			     NumberOfNewParticles);
     printf("Creating %d new active particles\n", NumberOfNewParticles);
   }
 

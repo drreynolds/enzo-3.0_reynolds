@@ -260,16 +260,23 @@ int ActiveParticleType_SpringelHernquist::ReadFromOutput(ActiveParticleType **pa
   return SUCCESS;
 }
 
-class SpringelHernquistParticleBufferHandler : public ParticleBufferHandler
+class SpringelHernquistBufferHandler : public ParticleBufferHandler
 {
 public:
-  SpringelHernquistParticleBufferHandler(int NumberOfParticles) { }
+  // No extra fields in SpringelHernquist.  Same base constructor.
+  SpringelHernquistBufferHandler(int NumberOfParticles) :
+    ParticleBufferHandler(NumberOfParticles) {};
 };
 
-ParticleBufferHandler *ActiveParticleType_SpringelHernquist::AllocateBuffers(int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_SpringelHernquist::AllocateBuffers
+(ActiveParticleType **particles, int NumberOfParticles)
 {
-  SpringelHernquistParticleBufferHandler *handler = new SpringelHernquistParticleBufferHandler(NumberOfParticles);
-  return handler;
+  SpringelHernquistBufferHandler *buffer = 
+    new SpringelHernquistBufferHandler(NumberOfParticles);
+  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  return buffer;
 }
 
 namespace {

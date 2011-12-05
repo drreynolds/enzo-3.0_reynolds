@@ -22,6 +22,7 @@ OBJS_CONFIG_LIB = \
 	ActiveParticleRoutines.o \
         ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
+	ActiveParticle_FillBuffer.o \
         ActiveParticle_Kravtsov.o \
         ActiveParticle_PopIII.o \
 	ActiveParticle_MirrorToParticle.o \
@@ -307,6 +308,7 @@ OBJS_CONFIG_LIB = \
 	Grid_AccelerationBoundaryRoutines.o \
 	Grid_AccessBaryonFields.o \
 	Grid_ActiveParticleHandler.o \
+	Grid_AddActiveParticles.o \
 	Grid_AddBaryonsToGravitatingMassField.o \
 	Grid_AddExternalAcceleration.o \
 	Grid_AddExternalPotentialField.o \
@@ -482,7 +484,6 @@ OBJS_CONFIG_LIB = \
 	Grid_KHInitializeGrid.o \
         Grid_MagneticFieldResetter.o \
 	Grid_MirrorStarParticles.o \
-	Grid_MirrorActiveParticles.o \
 	Grid_MoveAllParticles.o \
 	Grid_MoveAllStars.o \
 	Grid_MoveParticlesFOF.o \

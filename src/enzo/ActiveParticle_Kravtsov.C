@@ -267,13 +267,20 @@ int ActiveParticleType_Kravtsov::ReadFromOutput(ActiveParticleType **particles_t
 class KravtsovParticleBufferHandler : public ParticleBufferHandler
 {
   public:
-    KravtsovParticleBufferHandler(int NumberOfParticles) { }
+  // No extra fields in CenOstriker.  Same base constructor.
+  KravtsovParticleBufferHandler(int NumberOfParticles) :
+    ParticleBufferHandler(NumberOfParticles) {};
 };
 
-ParticleBufferHandler *ActiveParticleType_Kravtsov::AllocateBuffers(int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers
+(ActiveParticleType **particles, int NumberOfParticles)
 {
-    KravtsovParticleBufferHandler *handler = new KravtsovParticleBufferHandler(NumberOfParticles);
-    return handler;
+  KravtsovParticleBufferHandler *buffer = 
+    new KravtsovParticleBufferHandler(NumberOfParticles);
+  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  return buffer;
 }
 
 namespace {

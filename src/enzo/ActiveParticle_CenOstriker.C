@@ -643,16 +643,21 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
 
 class CenOstrikerBufferHandler : public ParticleBufferHandler
 {
-  public:
-    CenOstrikerBufferHandler(int NumberOfParticles) { }
+public:
+  // No extra fields in CenOstriker.  Same base constructor.
+  CenOstrikerBufferHandler(int NumberOfParticles) :
+    ParticleBufferHandler(NumberOfParticles) {};
 };
 
-ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers(int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers
+(ActiveParticleType **particles, int NumberOfParticles)
 {
-    CenOstrikerBufferHandler *handler = new CenOstrikerBufferHandler(NumberOfParticles);
-    return handler;
+  CenOstrikerBufferHandler *buffer = new CenOstrikerBufferHandler(NumberOfParticles);
+  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  return buffer;
 }
-
 
 namespace {
   ActiveParticleType_info *CenOstrikerInfo = 

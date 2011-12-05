@@ -27,7 +27,7 @@
  
 int grid::TransferSubgridParticles(grid* Subgrids[], int NumberOfSubgrids, 
 				   int* &NumberToMove, int StartIndex, 
-				   int EndIndex, particle_data* &List, 
+				   int EndIndex, particle_data* &List,
 				   bool KeepLocal, bool ParticlesAreLocal,
 				   int CopyDirection, int IncludeGhostZones,
 				   int CountOnly)
@@ -127,18 +127,10 @@ int grid::TransferSubgridParticles(grid* Subgrids[], int NumberOfSubgrids,
 
     if (TotalToMove > PreviousTotalToMove) {
 
-      // Increase the size of the list to include the particles from
-      // this grid
+      /* Sort by particle number to put the particles that represent
+	 active particles at the end. */
 
-//      particle_data *NewList = new particle_data[TotalToMove];
-//      memcpy(NewList, List, PreviousTotalToMove * sizeof(particle_data));
-//      delete [] List;
-//      List = NewList;
-//      particle_data *TempList = List;
-//      List = new particle_data[TotalToMove];
-//      for (i = 0; i < PreviousTotalToMove; i++)
-//	List[i] = TempList[i];
-//      delete [] TempList;
+      //this->SortParticlesByNumber();
 
       /* Compute the increase in mass for particles moving to the subgrid. */
  

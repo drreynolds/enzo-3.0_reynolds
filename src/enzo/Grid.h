@@ -2224,7 +2224,9 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   /* Append and detach active particles data to 'normal' particle
      arrays */
-
+  
+  int AddActiveParticles(ActiveParticleType **NewParticles,
+			 int NumberOfNewParticles);
   int AppendActiveParticles(void);
   int AppendNewActiveParticles(ActiveParticleType **NewParticles,
 			       int NumberOfNewParticles);

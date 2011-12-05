@@ -296,23 +296,26 @@ int ActiveParticleType_PopIII::ReadFromOutput(ActiveParticleType **particles_to_
 
 class PopIIIParticleBufferHandler : public ParticleBufferHandler
 {
-  public:
-    PopIIIParticleBufferHandler(int NumberOfParticles);
-  private:
+public:
+  PopIIIParticleBufferHandler(int NumberOfParticles) :
+    ParticleBufferHandler(NumberOfParticles) {
+    Lifetime = new float[NumberOfParticles];
+  };
+private:
     float *Lifetime;
-    float *Metallicity;
 };
 
-ParticleBufferHandler *ActiveParticleType_PopIII::AllocateBuffers(int NumberOfParticles)
+ParticleBufferHandler *ActiveParticleType_PopIII::AllocateBuffers
+(ActiveParticleType **particles, int NumberOfParticles)
 {
-    PopIIIParticleBufferHandler *handler = new PopIIIParticleBufferHandler(NumberOfParticles);
-    return handler;
-}
-
-PopIIIParticleBufferHandler::PopIIIParticleBufferHandler(int NumberOfParticles)
-{
-    this->Lifetime = new float[NumberOfParticles];
-    this->Metallicity = new float[NumberOfParticles];
+  int i;
+  PopIIIParticleBufferHandler *buffer = new PopIIIBufferHandler(NumberOfParticles);
+  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
+  // Extra fields go here
+  for (i = 0; i < NumberOfParticles; i++) {
+    buffer->Lifetime[i] = particles[i]->Lifetime;
+  }
+  return buffer;
 }
 
 namespace {
