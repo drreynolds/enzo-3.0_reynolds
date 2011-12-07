@@ -357,6 +357,7 @@ void ActiveParticleType::DestroyData(grid *_grid,
 
 }
 
+#ifdef UNUSED
 ParticleBufferHandler **grid::GetParticleBuffers() {
   if ((this->NumberOfActiveParticles == 0) ||
       (EnabledActiveParticlesCount == 0)) return NULL;
@@ -422,7 +423,7 @@ ParticleBufferHandler **grid::GetParticleBuffers(bool *mask) {
   delete[] hist;
   return buffer;
 }
-
+#endif /* UNUSED */
 
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
 

@@ -98,7 +98,11 @@ public:
 
 private:
 
+  friend class ParticleBufferHandler;
+
 };
+
+/* Defaults for parameters */
 
 float ActiveParticleType_CenOstriker::OverdensityThreshold = FLOAT_UNDEFINED;
 float ActiveParticleType_CenOstriker::MassEfficiency = FLOAT_UNDEFINED;
@@ -646,18 +650,52 @@ class CenOstrikerBufferHandler : public ParticleBufferHandler
 {
 public:
   // No extra fields in CenOstriker.  Same base constructor.
-  CenOstrikerBufferHandler() : ParticleBufferHandler() {};
+  CenOstrikerBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
+    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
+    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+#ifdef EXAMPLE
+    this->field = new float[this->NumberOfBuffers];
+    index = 0;
+    for (i = 0; i < NumberOfParticles; i++)
+      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
+	this->field[index] = np[i]->field;
+	index++;
+      }
+    this->ElementSizeInBytes += 1*sizeof(float);
+#endif /* EXAMPLE */
+  };
+  ~CenOstrikerBufferHandler() {
+#ifdef EXAMPLE
+    delete[] this->field;
+#endif
+  };
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
+			     int &buffer_size, int &nbuffers, int proc=-1);
 };
 
-ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffer(ActiveParticleType *np)
+void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
+					      char *buffer, int &buffer_size, int &nbuffers,
+					      int proc)
 {
-  CenOstrikerBufferHandler *buffer = new CenOstrikerBufferHandler();
-  buffer->FillBuffer(np);
+  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
+  int type_num = dummy->GetEnabledParticleID();
+  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(np, NumberOfParticles, type_num, proc);
+  int position;
+  pbuffer->_AllocateBuffer(buffer, buffer_size, position);
+  nbuffers = pbuffer->NumberOfBuffers;
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
-  return buffer;
+  // Example below is defined out
+#ifdef EXAMPLE
+  MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+	   &position, MPI_COMM_WORLD);
+#endif /* EXAMPLE */
+  delete dummy;
+  delete pbuffer;
+  return;
 }
 
+#ifdef UNUSED
 void ActiveParticleType_CenOstriker::UnpackBuffer
 (ActiveParticleType *np, ParticleBufferHandler **buffer, int place)
 {
@@ -667,8 +705,9 @@ void ActiveParticleType_CenOstriker::UnpackBuffer
   // transferred to the buffer here.
   return;
 }
+#endif
 
 namespace {
   ActiveParticleType_info *CenOstrikerInfo = 
-    register_ptype <ActiveParticleType_CenOstriker> ("CenOstriker");
+    register_ptype <ActiveParticleType_CenOstriker, CenOstrikerBufferHandler> ("CenOstriker");
 }

@@ -1571,7 +1571,7 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
   
   int TransferSubgridActiveParticles(grid* Subgrids[], int NumberOfSubgrids, 
 				     int* &NumberToMove, int StartIndex, 
-				     int EndIndex, ParticleBufferHandler **List, 
+				     int EndIndex, ActiveParticleType **List, 
 				     bool KeepLocal, bool ParticlesAreLocal, 
 				     int CopyDirection, 
 				     int IncludeGhostZones = FALSE, 
@@ -2233,7 +2233,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
      arrays */
   
   int AddActiveParticles(ActiveParticleType **NewParticles,
-			 int NumberOfNewParticles);
+			 int NumberOfNewParticles, int start=0);
   int AppendActiveParticles(void);
   int AppendNewActiveParticles(ActiveParticleType **NewParticles,
 			       int NumberOfNewParticles);

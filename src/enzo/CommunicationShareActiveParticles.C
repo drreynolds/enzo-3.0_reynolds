@@ -1,0 +1,185 @@
+/***********************************************************************
+/
+/  COMMUNICATION ROUTINE: DISTRIBUTE ACTIVE PARTICLES TO PROCESSORS
+/
+/  written by: John Wise
+/  date:       May, 2009
+/  modified1   July, 2009 by John Wise: adapted for stars
+/  modified2:  December, 2011 by John Wise: adapted for active particles
+/
+/  PURPOSE: Takes a list of active particles moves and sends/receives
+/           them to all processors
+/
+************************************************************************/
+
+#ifdef USE_MPI
+#include "mpi.h"
+#endif /* USE_MPI */
+
+#include <map>
+#include <iostream>
+#include <stdexcept>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <algorithm>
+#include "ErrorExceptions.h"
+#include "macros_and_parameters.h"
+#include "typedefs.h"
+#include "global_data.h"
+#include "ActiveParticle.h"
+#include "SortCompareFunctions.h"
+
+void my_exit(int status);
+
+int CommunicationShareActiveParticles(int *NumberToMove, 
+				      ActiveParticleType **SendList,
+				      int &NumberOfReceives, 
+				      ActiveParticleType **SharedList)
+{
+
+  int i, type, proc;
+  int NumberOfSends;
+  ActiveParticleType_info *ap_info;
+
+  // In order to call Alltoallv, we need to sort the list by
+  // destination processor
+
+  int TotalNumberToMove = 0;
+  int star_data_size = sizeof(star_data);
+  for (proc = 0; proc < NumberOfProcessors; proc++)
+    TotalNumberToMove += NumberToMove[proc];
+  std::sort(SendList, SendList+TotalNumberToMove, cmp_ap_proc());
+
+  SharedList = NULL;
+
+#ifdef USE_MPI
+  MPI_Arg Count;
+  MPI_Arg SendCount;
+  MPI_Arg RecvCount;
+  MPI_Arg stat;
+#endif /* USE_MPI */
+
+  if (NumberOfProcessors > 1) {
+
+#ifdef USE_MPI
+
+    /* We will have one collective communication per particle type.
+       In the future, there might be a way to consolidate all of the
+       buffers into one buffer and communicate it as a whole. */
+
+    for (type = 0; type < EnabledActiveParticleCount; type++) {
+
+      ap_info = EnabledActiveParticles[type];
+
+      /* Create a MPI packed buffer from the active particles */
+
+      int *mpi_buffer_size, *mpi_recv_buffer_size;
+      char **mpi_buffer, *mpi_recv_buffer;
+      mpi_buffer = new char*[NumberOfProcessors];
+      mpi_buffer_size = new int[NumberOfProcessors];
+      mpi_recv_buffer_size = new int[NumberOfProcessors];
+
+      for (proc = 0; proc < NumberOfProcessors; proc++)
+	ap_info->allocate_buffer(SendList, TotalNumberToMove,
+				 mpi_buffer[proc], mpi_buffer_size[proc], proc);
+
+      /* Get counts from each processor to allocate buffers. */
+
+      MPI_Arg *MPI_SendListCount = new MPI_Arg[NumberOfProcessors];
+      MPI_Arg *MPI_SendListDisplacements = new MPI_Arg[NumberOfProcessors];
+
+      int *RecvListCount = new int[NumberOfProcessors];
+      MPI_Arg *MPI_RecvListCount = new MPI_Arg[NumberOfProcessors];
+      MPI_Arg *MPI_RecvListDisplacements = new MPI_Arg[NumberOfProcessors];
+
+      int jjj;
+
+      for (jjj = 0; jjj < NumberOfProcessors; jjj++) {
+	RecvListCount[jjj] = 0;
+	MPI_RecvListCount[jjj] = 0;
+	MPI_RecvListDisplacements[jjj] = 0;
+      }
+
+      NumberOfSends = 0;
+      for (jjj = 0; jjj < NumberOfProcessors; jjj++) {
+	MPI_SendListDisplacements[jjj] = NumberOfSends;
+	NumberOfSends += mpi_buffer_size[jjj]
+	MPI_SendListCount[jjj] = mpi_buffer_size[jjj];
+      }
+
+      SendCount = 1;
+      RecvCount = 1;
+
+#ifdef MPI_INSTRUMENTATION
+      starttime = MPI_Wtime();
+#endif /* MPI_INSTRUMENTATION */
+
+      /*****************************************
+         Share the active particle type counts
+      ******************************************/
+    
+      stat = MPI_Alltoall(mpi_buffer_size, SendCount, IntDataType,
+			  mpi_recv_buffer_size, RecvCount, IntDataType, MPI_COMM_WORLD);
+      if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
+
+      /* Allocate buffers and generate displacement list. */
+
+      NumberOfReceives = 0;  
+      for (i = 0; i < NumberOfProcessors; i++) {
+	MPI_RecvListDisplacements[i] = NumberOfReceives;
+	NumberOfReceives += mpi_recv_buffer_size[i];
+	MPI_RecvListCount[i] = mpi_recv_buffer_size[i];
+      }
+
+      for (proc = 0; proc < NumberOfProcessors; proc++) {
+	mpi_recv_buffer[proc] = new char[mpi_recv_buffer_size[i]];
+      }
+
+      /********************************
+          Share the active particles
+      *********************************/
+
+      stat = MPI_Alltoallv(mpi_buffer, MPI_SendListCount, MPI_SendListDisplacements,
+			   MPI_PACKED,
+			   mpi_recv_buffer, MPI_RecvListCount, MPI_RecvListDisplacements,
+			   MPI_PACKED,
+			   MPI_COMM_WORLD);
+      if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
+
+      /* TODO: Unpack the MPI buffers into an array of active particles */
+
+#ifdef MPI_INSTRUMENTATION
+      endtime = MPI_Wtime();
+      timer[9] += endtime-starttime;
+      counter[9] ++;
+      timer[10] += double(NumberOfReceives);
+      GlobalCommunication += endtime-starttime;
+      CommunicationTime += endtime-starttime;
+#endif /* MPI_INSTRUMENTATION */
+ 
+      delete [] MPI_SendListCount;
+      delete [] MPI_SendListDisplacements;
+
+      delete [] RecvListCount;
+      delete [] MPI_RecvListCount;
+      delete [] MPI_RecvListDisplacements;
+
+    } // ENDFOR types
+
+#endif /* USE_MPI */    
+
+  } // ENDIF multi-processor
+  else {
+    NumberOfReceives = TotalNumberToMove;
+    SharedList = SendList;
+  }
+  
+  // First sort the list by destination grid, so the searching for
+  // grids is more efficient.
+  //qsort(SharedList, NumberOfReceives, star_data_size, compare_star_grid);
+  std::sort(SharedList, SharedList+NumberOfReceives, cmp_ap_grid());
+
+  return SUCCESS;
+
+}

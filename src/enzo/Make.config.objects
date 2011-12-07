@@ -20,6 +20,7 @@
 #        ActiveParticle_SampleParticle.o \
 #        ActiveParticle_SpringelHernquist.o \
 #	ActiveParticle_SinkParticle.o \
+#	ActiveParticle_UnpackBuffer.o \
 
 
 OBJS_CONFIG_LIB = \
@@ -30,10 +31,8 @@ OBJS_CONFIG_LIB = \
 	ActiveParticleRoutines.o \
         ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
-	ActiveParticle_FillBuffer.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
-	ActiveParticle_UnpackBuffer.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
         AdjustMustRefineParticlesRefineToLevel.o \
@@ -685,6 +684,8 @@ OBJS_CONFIG_LIB = \
 	OutputSmoothedDarkMatterOnly.o \
         P_ColumnFormat.o \
 	ParticleMergeRoutines.o \
+	ParticleBufferHandler.o \
+	ParticleBufferHandler_AllocateBuffer.o \
         ParticleSplitter.o \
 	performance.o \
         pgas2d_dual.o \

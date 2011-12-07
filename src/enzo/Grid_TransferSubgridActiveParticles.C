@@ -33,14 +33,14 @@
 
 int grid::TransferSubgridActiveParticles
 (grid* Subgrids[], int NumberOfSubgrids, int* &NumberToMove, int StartIndex, 
- int EndIndex, ParticleBufferHandler **List, bool KeepLocal, 
+ int EndIndex, ActiveParticleType **List, bool KeepLocal, 
  bool ParticlesAreLocal, int CopyDirection, int IncludeGhostZones, 
  int CountOnly)
 {
  
   /* Declarations. */
 
-  int i, j, index, dim, n1, grid, proc;
+  int i, j, index, dim, n1, grid, proc, type;
   int i0, j0, k0;
 
   /* ----------------------------------------------------------------- */
@@ -137,36 +137,27 @@ int grid::TransferSubgridActiveParticles
       NumberToMoveThisGrid = TotalToMove - PreviousTotalToMove;
       ParticlesLeft = NumberOfActiveParticles - NumberToMoveThisGrid;
 
-      /* Create particle mask that will be moved */
-
-      bool *mask = new bool[NumberOfActiveParticles];
-      for (i = 0; i < NumberOfActiveParticles; i++)
-	mask[i] = (subgrid[i] >= 0);
-
-      /* Create particle buffer and delete those particles */
+      /* Move particles from grid array to a separate list. */
 
       n1 = PreviousTotalToMove;
-      ParticleBufferHandler **TempList = new ParticleBufferHandler*[NumberToMoveThisGrid];
-      TempList = this->GetParticleBuffers(mask);
 
       ActiveParticleType **OldActiveParticles = ActiveParticles;
       ActiveParticles = new ActiveParticleType*[ParticlesLeft];
 
       index = 0;
       for (i = 0; i < NumberOfActiveParticles; i++) {
-	if (mask) {
-	  List[n1]->set_grid(subgrid[i]);
+	if (subgrid[i] >= 0) {
+	  List[n1] = OldActiveParticles[i];
 	  proc = (KeepLocal) ? MyProcessorNumber : Subgrids[subgrid[i]]->ReturnProcessorNumber();
-	  List[n1]->set_proc(proc);
+	  List[n1]->SetDestProcessor(proc);
+	  List[n1]->SetGridID(subgrid[i]);
 	  n1++;
-	  delete OldActiveParticles[i];
 	} // ENDIF subgrid
 	else {
 	  ActiveParticles[index++] = OldActiveParticles[i];
 	}
       } // ENDFOR particles
 
-      delete[] mask;
       delete[] OldActiveParticles;
       NumberOfActiveParticles = ParticlesLeft;
 
@@ -192,25 +183,13 @@ int grid::TransferSubgridActiveParticles
     /* Copy stars from buffer into linked list */
     
     if (NumberOfNewActiveParticles > 0) {
+
+      // Increase the level if moving to a subgrid
+      if (IncludeGhostZones == FALSE)
+	for (i = StartIndex; i < EndIndex; i++)
+	  List[i]->IncreaseLevel();
       
-      NewParticles = new ActiveParticleType*[NumberOfNewActiveParticles];
-      index = 0;
-
-      for (itype = 0; itype < EnabledActiveParticlesCount; itype++) {
-	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-	for (i = StartIndex; i < EndIndex; i++) {
-	  if (List[i]->return_type() == itype) {
-	    ActiveParticleTypeToEvaluate->unpack_buffer(NewParticles[index], List, i);
-	    NewParticles[index]->CurrentGrid = this;
-	    // FALSE if going to a subgrid
-	    if (IncludeGhostZones == FALSE)
-	      NewParticles[index]->IncreaseLevel();
-	    index++;
-	  } // ENDIF matching type
-	} // ENDFOR particles
-      } // ENDFOR particle types
-
-      this->AddActiveParticles(NewParticles, NumberOfNewActiveParticles);
+      this->AddActiveParticles(List, NumberOfNewActiveParticles, StartIndex);
 
     } // ENDIF new particles
   

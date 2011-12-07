@@ -44,6 +44,7 @@
 #include "LevelHierarchy.h"
 #include "ActiveParticle.h"
 #include "CommunicationUtilities.h"
+#include "ActiveParticle.h"
 #include "SortCompareFunctions.h"
 
 void my_exit(int status);
@@ -57,9 +58,9 @@ int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],
 int CommunicationShareParticles(int *NumberToMove, particle_data* &SendList,
 				int &NumberOfReceives,
 				particle_data* &SharedList);
-int CommunicationShareActiveParticles(int *NumberToMove, star_data* &SendList,
+int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType **SendList,
 				      int &NumberOfReceives, 
-				      ParticleBufferHandler *SharedList);
+				      ActiveParticleType **SharedList);
 
 #define NO_DEBUG_CCP
 #define GRIDS_PER_LOOP 100000
@@ -105,8 +106,8 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
   particle_data *SendList = NULL;
   particle_data *SharedList = NULL;
-  ParticleBufferHandler **APSendList = NULL;
-  ParticleBufferHandler **APSharedList = NULL;
+  ActiveParticleType **APSendList = NULL;
+  ActiveParticleType **APSharedList = NULL;
 
   int NumberOfReceives, APNumberOfReceives, TotalNumber, APTotalNumber;
   int *NumberToMove = new int[NumberOfProcessors];
@@ -206,7 +207,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
       APNumberToMove[j] = 0;
     }
     SendList = new particle_data[TotalNumber];
-    APSendList = new ParticleBufferHandler*[APTotalNumber];
+    APSendList = new ActiveParticleType*[APTotalNumber];
 
     for (j = 0; j < NumberOfGrids; j++)
       if (GridHierarchyPointer[j]->NextGridNextLevel != NULL) {
@@ -295,7 +296,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
     if (APNumberOfReceives > 0)
       for (j = 0; j < NumberOfSubgrids && jend < APNumberOfReceives; j++) {
-	while (APSharedList[jend]->return_grid() <= j) {
+	while (APSharedList[jend]->ReturnDestProcessor() <= j) {
 	  jend++;
 	  if (jend == APNumberOfReceives) break;
 	}
@@ -437,7 +438,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
     /* Count the number of particles needed to move */
 
     SendList = new particle_data[TotalNumberToMove];
-    APSendList = new ParticleBufferHandler*[TotalActiveParticlesToMove];
+    APSendList = new ActiveParticleType*[TotalActiveParticlesToMove];
 
     for (i = 0; i < NumberOfProcessors; i++) {
       NumberToMove[i] = 0;
@@ -510,7 +511,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
     // Copy shared stars to grids, if any
     if (APNumberOfReceives > 0)
       for (j = StartGrid; j < EndGrid && jend < APNumberOfReceives; j++) {
-	while (APSharedList[jend]->return_grid() <= j) {
+	while (APSharedList[jend]->ReturnDestProcessor() <= j) {
 	  jend++;
 	  if (jend == APNumberOfReceives) break;
 	}

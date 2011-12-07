@@ -33,7 +33,7 @@
 #include "ActiveParticle.h"
 
 int grid::AddActiveParticles(ActiveParticleType **NewParticles,
-			     int NumberOfNewParticles)
+			     int NumberOfNewParticles, int start)
 {
 
   if (NumberOfNewParticles == 0)
@@ -48,7 +48,7 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
   for (i = 0; i < OldNumberOfActiveParticles; i++) {
     this->ActiveParticles[i] = OldActiveParticles[i];
   }
-  for (i = 0, index = OldNumberOfActiveParticles; i < NumberOfNewParticles; 
+  for (i = start, index = OldNumberOfActiveParticles; i < NumberOfNewParticles; 
        i++, index++) {
     this->ActiveParticles[index] = NewParticles[i];
   }
