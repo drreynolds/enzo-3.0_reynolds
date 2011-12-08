@@ -44,6 +44,7 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			   int level, int TotalStarParticleCountPrevious[])
 {
+  int i;
 
   if (!StarParticleCreation && !StarParticleFeedback)
     return SUCCESS;
@@ -62,21 +63,17 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
     Grids[grid_num]->GridData->MirrorActiveParticles(COPY_IN);
   } // ENDFOR grids
+  
+  /* Call finalization routines for each active particle type  */
 
-  /* TODO Items:
-     1. Add feedback spheres
-     2. Accretion from grid to particles (or from pre-determined rates)
-     3. Output sink particle information
-     4. Change particle statuses for stellar births and deaths
-     5. Reset accretion rates
-     6. Store MBH mass accretion history
-     7. Merge star particles.  It is probably not necessary here and
-        should be done in ActiveParticleInitialize.
+  for (i = 0 ; i < EnabledActiveParticlesCount; i++) {
+    
+    ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
 
-     JHW Thought: this should be done in a "finalize" routine for each
-     active particle type.
+    ActiveParticleTypeToEvaluate->after_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
+							     level,TotalStarParticleCountPrevious);
 
-   */
+  }
 
   LCAPERF_STOP("ActiveParticleFinalize");
   return SUCCESS;

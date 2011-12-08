@@ -75,6 +75,9 @@ public:
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			       int ThisLevel, int TotalStarParticleCountPrevious[]);
+  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			       int ThisLevel, int TotalStarParticleCountPrevious[]);
   static int InitializeParticleType();
 
   // Sink routines:
@@ -255,6 +258,16 @@ int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], 
 
   return SUCCESS;
 }
+
+int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						      int ThisLevel, int TotalStarParticleCountPrevious[])
+{
+
+
+  return SUCCESS;
+}
+
 
 int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength)
 {

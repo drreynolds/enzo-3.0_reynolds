@@ -244,6 +244,9 @@ public:
    int (*belfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[]),
+   int (*aelfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
+		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+		  int ThisLevel, int TotalStarParticleCountPrevious[]),
    ActiveParticleType *particle
    ){
     this->formation_function = ffunc;
@@ -255,6 +258,7 @@ public:
     this->write_function = writefunc;
     this->read_function = readfunc;
     this->before_evolvelevel_function = belfunc;
+    this->after_evolvelevel_function = aelfunc;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -274,6 +278,9 @@ public:
   int (*write_function)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   int (*before_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
+				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				     int ThisLevel, int TotalStarParticleCountPrevious[]);
+  int (*after_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				     int ThisLevel, int TotalStarParticleCountPrevious[]);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
@@ -302,6 +309,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::WriteToOutput),
      (&active_particle_class::ReadFromOutput),
      (&active_particle_class::BeforeEvolveLevel),
+     (&active_particle_class::AfterEvolveLevel),
      pp);
   return pinfo;
 }
