@@ -220,6 +220,7 @@ OBJS_CONFIG_LIB = \
 	FOF_subfind.o \
 	FOF_subgroups.o \
 	FOF_unbind.o \
+	FofLib.o \
 	fortio.o \
 	fourn.o \
 	FreeRealMem.o \

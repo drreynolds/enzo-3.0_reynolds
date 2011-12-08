@@ -25,6 +25,7 @@
 #include "EventHooks.h"
 #include "ActiveParticle.h"
 #include "phys_constants.h"
+#include "FofLib.h"
 
 #ifdef NEW_CONFIG
 
@@ -73,9 +74,16 @@ public:
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int InitializeParticleType();
 
+  // Sink routines:
+
+  static int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength);
+  
   ENABLED_PARTICLE_ID_ACCESSOR
 
   static float OverflowFactor;
+
+
+  
 };
 
 float ActiveParticleType_SinkParticle::OverflowFactor = FLOAT_UNDEFINED;
@@ -232,6 +240,51 @@ int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType *these_par
 int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id)
 {
 
+
+  return SUCCESS;
+}
+
+
+int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength)
+{
+  int i,j;
+  int dim;
+  int ngroups;
+  int GroupNumberAssignment[nParticles];
+  int *groupsize = NULL;
+  int **grouplist = NULL;
+  FLOAT *pos;
+  ActiveParticleType_SinkParticle **NewParticles;
+  
+  
+  /* Construct list of sink particle positions to pass to Foflist */
+  FLOAT SinkCoordinates[3*nParticles];
+  
+  for (i=0 ; i++ ; i<nParticles) {
+    pos = SinkParticleList[i]->ReturnPosition();
+    for (dim=0; dim++; dim<3) { SinkCoordinates[i*nParticles+dim] = pos[dim]; }
+  }
+  
+  /* Find mergeable groups using an FOF search */
+
+  ngroups = FofList(nParticles, SinkCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
+  
+  /* Merge the mergeable groups */
+
+  for (i=0 ; i++ ; i<ngroups) {
+    NewParticles[i] = SinkParticleList[grouplist[i][0]];
+    if (groupsize[i] != 1) {
+      for (j=1 ; j++ ; j<groupsize[i]) {
+	NewParticles[i]->Merge(SinkParticleList[grouplist[i][j]]);
+      }
+    }
+  }
+
+  delete [] SinkParticleList;
+
+  SinkParticleList = NewParticles;
+
+  delete [] NewParticles;
 
   return SUCCESS;
 }
