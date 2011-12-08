@@ -72,6 +72,9 @@ public:
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			       int ThisLevel, int TotalStarParticleCountPrevious[]);
   static int InitializeParticleType();
 
   // Sink routines:
@@ -212,7 +215,7 @@ int ActiveParticleType_SinkParticle::EvaluateFormation(grid *thisgrid_orig, Acti
     } // j
   } // k
   
-  return 0;
+  return SUCCESS;
 }  
 
 int ActiveParticleType_SinkParticle::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
@@ -244,6 +247,14 @@ int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particl
   return SUCCESS;
 }
 
+int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						       int ThisLevel, int TotalStarParticleCountPrevious[])
+{
+
+
+  return SUCCESS;
+}
 
 int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength)
 {
