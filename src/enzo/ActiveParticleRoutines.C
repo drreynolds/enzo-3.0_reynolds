@@ -116,6 +116,23 @@ ActiveParticleType::ActiveParticleType(grid *_grid, int _id, int _level)
   this->ConvertMassToSolar();
 }
 
+ActiveParticleType::ActiveParticleType(ParticleBufferHandler *buffer, int index)
+{
+  int dim;
+  for (dim = 0; dim < MAX_DIMENSION; dim++) {
+    pos[dim] = buffer->pos[dim][index];
+    vel[dim] = buffer->vel[dim][index];
+  }
+  Mass = buffer->Mass[index];
+  BirthTime = buffer->BirthTime[index];
+  DynamicalTime = buffer->DynamicalTime[index];
+  Metallicity = buffer->Metallicity[index];
+  Identifier = buffer->Identifier[index];
+  level = buffer->level[index];
+  GridID = buffer->GridID[index];
+  type = buffer->type[index];
+}
+
 /* No need to delete the accretion arrays because the pointers are
    stored in the copies located in the grid class. */
 

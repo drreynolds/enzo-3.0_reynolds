@@ -686,6 +686,7 @@ OBJS_CONFIG_LIB = \
 	ParticleMergeRoutines.o \
 	ParticleBufferHandler.o \
 	ParticleBufferHandler_AllocateBuffer.o \
+	ParticleBufferHandler_UnpackBuffer.o \
         ParticleSplitter.o \
 	performance.o \
         pgas2d_dual.o \

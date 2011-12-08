@@ -56,6 +56,7 @@ public:
   ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
   ActiveParticleType(grid *_grid, int _id, int _level);
   ActiveParticleType(ActiveParticleType*& part);
+  ActiveParticleType(ParticleBufferHandler *buffer, int index);
   ~ActiveParticleType(void);
 
   void operator=(ActiveParticleType *a);
@@ -260,13 +261,22 @@ void EnableActiveParticleType(char *active_particle_type_name);
 class ParticleBufferHandler
 {
 public:
+  ParticleBufferHandler(void);
+  ParticleBufferHandler(int NumberOfParticles);
   ParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
   ~ParticleBufferHandler();
   /*virtual void WriteBuffers(hid_t group);*/
   int _AllocateBuffer(char *buffer, int &buffer_size, int &position); // helper function for derived classes
+  void CalculateElementSize(void);
+  void AllocateMemory(void);
+  int ReturnHeaderSize(void) { return HeaderSizeInBytes; };
+  int ReturnElementSize(void) { return ElementSizeInBytes; };
+  int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
+  int _UnpackBuffer(char *buffer, int buffer_size, int &position);
 
 protected:
   int NumberOfBuffers;
+  int HeaderSizeInBytes;
   int ElementSizeInBytes;
   FLOAT	*pos[MAX_DIMENSION];
   float *vel[MAX_DIMENSION];
@@ -280,6 +290,8 @@ protected:
   int *type;
   int *proc;
 
+  friend class ActiveParticleType;
+
 };
 
 class ActiveParticleType_info
@@ -292,19 +304,22 @@ public:
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
    void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-		  int &nbuffers, int proc),
-   //void (*unfunc)(ActiveParticleType *np, ParticleBufferHandler **buffer, int place),
+		  int &nbuffers, int &position, int proc),
+   void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+		  ActiveParticleType **np, int &npart),
    int (*ifunc)(),
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*writefunc)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id),
    int (*readfunc)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id),
-   ActiveParticleType *particle
+   ActiveParticleType *particle,
+   ParticleBufferHandler *buffer
    ){
     this->formation_function = ffunc;
     this->describe_data_flags = dfunc;
     this->allocate_buffer = abfunc;
-    //this->unpack_buffer = unfunc;
+    this->unpack_buffer = unfunc;
     this->particle_instance = particle;
+    this->buffer_instance = buffer;
     this->initialize = ifunc;
     this->feedback_function = feedfunc;
     this->write_function = writefunc;
@@ -329,9 +344,11 @@ public:
   int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-			  int &nbuffers, int proc);
-  //void (*unpack_buffer)(ActiveParticleType *np, ParticleBufferHandler **buffer, int place);
+			  int &nbuffers, int &position, int proc);
+  void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
+			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;
+  ParticleBufferHandler* buffer_instance;
 
 private:
   /* This is distinct from the global as a redundant error-checking
@@ -346,17 +363,19 @@ template <class active_particle_class, class particle_buffer_handler>
 ActiveParticleType_info *register_ptype(std::string name)
 {
   active_particle_class *pp = new active_particle_class();
+  particle_buffer_handler *buffer = new particle_buffer_handler();
   ActiveParticleType_info *pinfo = new ActiveParticleType_info
     (name,
      (&active_particle_class::EvaluateFormation),
      (&active_particle_class::DescribeSupplementalData),
      (&particle_buffer_handler::AllocateBuffer),
-     //(&active_particle_class::UnpackBuffer),
+     (&particle_buffer_handler::UnpackBuffer),
      (&active_particle_class::InitializeParticleType),
      (&active_particle_class::EvaluateFeedback),
      (&active_particle_class::WriteToOutput),
      (&active_particle_class::ReadFromOutput),
-     pp);
+     pp,
+     buffer);
   return pinfo;
 }
 

@@ -76,13 +76,22 @@ class CenOstrikerGrid : private grid {
 class ActiveParticleType_CenOstriker : public ActiveParticleType
 {
 public:
+  // Constructors
+  ActiveParticleType_CenOstriker(void) : ActiveParticleType() {};
+  ActiveParticleType_CenOstriker(ParticleBufferHandler *buffer, int index) :
+    ActiveParticleType(buffer, index) {
+    // Add any additional fields here
+#ifdef EXAMPLE
+    field = buffer->field[index];
+#endif
+  };
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static void UnpackBuffer(ActiveParticleType *np, ParticleBufferHandler **buffer, int place);
-  static ParticleBufferHandler *AllocateBuffer(ActiveParticleType *np);
+
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
   
@@ -650,6 +659,12 @@ class CenOstrikerBufferHandler : public ParticleBufferHandler
 {
 public:
   // No extra fields in CenOstriker.  Same base constructor.
+  CenOstrikerBufferHandler(void) : ParticleBufferHandler() {};
+  CenOstrikerBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+#ifdef EXAMPLE
+    this->field = new float[NumberOfParticles];
+#endif
+  };
   CenOstrikerBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
     ParticleBufferHandler(np, NumberOfParticles, type, proc) {
     // Any extra fields must be added to the buffer and this->ElementSizeInBytes
@@ -670,17 +685,18 @@ public:
 #endif
   };
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     int &buffer_size, int &nbuffers, int proc=-1);
+			     int &buffer_size, int &nbuffers, int &position, int proc=-1);
+  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+			   ActiveParticleType **np, int &npart);
 };
 
 void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, int &buffer_size, int &nbuffers,
-					      int proc)
+					      int &position, int proc)
 {
   ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
   int type_num = dummy->GetEnabledParticleID();
   CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(np, NumberOfParticles, type_num, proc);
-  int position;
   pbuffer->_AllocateBuffer(buffer, buffer_size, position);
   nbuffers = pbuffer->NumberOfBuffers;
   // If any extra fields are added in the future, then they would be
@@ -695,17 +711,24 @@ void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int Numbe
   return;
 }
 
-#ifdef UNUSED
-void ActiveParticleType_CenOstriker::UnpackBuffer
-(ActiveParticleType *np, ParticleBufferHandler **buffer, int place)
+void CenOstrikerBufferHandler::UnpackBuffer
+(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+ ActiveParticleType **np, int &npart)
 {
-  np = new ActiveParticleType_CenOstriker();
-  buffer[place]->UnpackBuffer(np);
+  int i, position;
+  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(NumberOfParticles);
+  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
+#ifdef EXAMPLE
+  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->field,
+	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+#endif /* EXAMPLE */
+  /* Convert the particle buffer into active particles */
+  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
+    np[npart++] = new ActiveParticleType_CenOstriker(pbuffer, i);
   return;
 }
-#endif
 
 namespace {
   ActiveParticleType_info *CenOstrikerInfo = 

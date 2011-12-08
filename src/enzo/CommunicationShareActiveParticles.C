@@ -39,17 +39,14 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 {
 
   int i, type, proc;
-  int NumberOfSends;
+  int NumberOfSends, NumberOfNewParticles, NumberOfNewParticlesThisProcessor;
   ActiveParticleType_info *ap_info;
-
-  // In order to call Alltoallv, we need to sort the list by
-  // destination processor
 
   int TotalNumberToMove = 0;
   int star_data_size = sizeof(star_data);
   for (proc = 0; proc < NumberOfProcessors; proc++)
     TotalNumberToMove += NumberToMove[proc];
-  std::sort(SendList, SendList+TotalNumberToMove, cmp_ap_proc());
+  //std::sort(SendList, SendList+TotalNumberToMove, cmp_ap_proc());
 
   SharedList = NULL;
 
@@ -74,15 +71,26 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       /* Create a MPI packed buffer from the active particles */
 
+      int position, count, element_size, size;
       int *mpi_buffer_size, *mpi_recv_buffer_size;
-      char **mpi_buffer, *mpi_recv_buffer;
-      mpi_buffer = new char*[NumberOfProcessors];
+      char *mpi_buffer, *mpi_recv_buffer;
       mpi_buffer_size = new int[NumberOfProcessors];
       mpi_recv_buffer_size = new int[NumberOfProcessors];
 
-      for (proc = 0; proc < NumberOfProcessors; proc++)
+      // First determine the buffer size, then we can fill it.
+      header_size = ap_info->buffer_instance->ReturnHeaderSize();
+      element_size = ap_info->buffer_instance->ReturnElementSize();
+      size = 0;
+      for (i = 0; i < TotalNumberToMove; i++)
+	if (SendList[i]->ReturnType() == type) size++;
+      mpi_buffer = new char[header_size+size*element_size];
+
+      // Pack the buffer, ordered by destination processor
+      position = 0;
+      for (proc = 0; proc < NumberOfProcessors; proc++) {
 	ap_info->allocate_buffer(SendList, TotalNumberToMove,
-				 mpi_buffer[proc], mpi_buffer_size[proc], proc);
+				 mpi_buffer+position, mpi_buffer_size[proc], position, proc);
+      }
 
       /* Get counts from each processor to allocate buffers. */
 
@@ -132,9 +140,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 	MPI_RecvListCount[i] = mpi_recv_buffer_size[i];
       }
 
-      for (proc = 0; proc < NumberOfProcessors; proc++) {
-	mpi_recv_buffer[proc] = new char[mpi_recv_buffer_size[i]];
-      }
+      mpi_recv_buffer = new char[NumberOfReceives];
 
       /********************************
           Share the active particles
@@ -147,7 +153,20 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 			   MPI_COMM_WORLD);
       if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
-      /* TODO: Unpack the MPI buffers into an array of active particles */
+      /* Unpack the MPI buffers into an array of active particles */
+
+      // Determine how many particles we have received from the buffer
+      // size (NumberOfReceives is in bytes)
+      NumberOfNewParticles = (NumberOfReceives - NumberOfProcessors*header_size) / element_size; 
+      SharedList = new ActiveParticleType*[NumberOfNewParticles];
+      count = 0;
+      for (proc = 0; proc < NumberOfProcessors; proc++) {
+	NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc] - header_size) / element_size;
+	ap_info->unpack_buffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
+			       NumberOfReceives - MPI_RecvListDisplacements[proc],
+			       NumberOfNewParticlesThisProcessor,
+			       SharedList, count);
+      }
 
 #ifdef MPI_INSTRUMENTATION
       endtime = MPI_Wtime();
