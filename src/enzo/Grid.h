@@ -1547,6 +1547,10 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
 		       int &StartIndex, int &EndIndex, 
 		       particle_data* &List, int CopyDirection);
 
+  int CollectActiveParticles(int GridNum, int* &NumberToMove, 
+			     int &StartIndex, int &EndIndex, 
+			     ActiveParticleType **List, int CopyDirection);
+
   int CollectStars(int GridNum, int* &NumberToMove, 
 		   int &StartIndex, int &EndIndex, 
 		   star_data* &List, int CopyDirection);
@@ -1554,6 +1558,8 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
   // Only used for static hierarchies
   int MoveSubgridStars(int NumberOfSubgrids, grid* ToGrids[],
 		       int AllLocal);
+  int MoveSubgridActiveParticles(int NumberOfSubgrids, grid* ToGrids[],
+				 int AllLocal);
 
   int TransferSubgridParticles(grid* Subgrids[], int NumberOfSubgrids, 
 			       int* &NumberToMove, int StartIndex, 
@@ -2421,6 +2427,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int MoveAllStarsOld(int NumberOfGrids, grid* FromGrid[], int TopGridDimension);
 
   int CommunicationSendStars(grid *ToGrid, int ToProcessor);
+  int CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor);
 
   int FindNewStarParticles(int level);
 

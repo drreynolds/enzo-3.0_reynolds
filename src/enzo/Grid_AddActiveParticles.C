@@ -51,6 +51,8 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
   for (i = start, index = OldNumberOfActiveParticles; i < NumberOfNewParticles; 
        i++, index++) {
     this->ActiveParticles[index] = NewParticles[i];
+    this->ActiveParticles[index]->SetGridID(this->ID);
+    this->ActiveParticles[index]->AssignCurrentGrid(this);
   }
   
   delete[] OldActiveParticles; 

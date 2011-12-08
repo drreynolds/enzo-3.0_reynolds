@@ -304,7 +304,7 @@ public:
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
    void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-		  int &nbuffers, int &position, int proc),
+		  int &position, int proc),
    void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 		  ActiveParticleType **np, int &npart),
    int (*ifunc)(),
@@ -344,7 +344,7 @@ public:
   int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-			  int &nbuffers, int &position, int proc);
+			  int &position, int proc);
   void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
 			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;

@@ -1,15 +1,19 @@
 /***********************************************************************
 /
-/  GRID CLASS (COLLECT PARTICLES INTO ONE PROCESSOR)
+/  GRID CLASS (COLLECT ACTIVE PARTICLES INTO ONE PROCESSOR)
 /
 /  written by: John Wise
 /  date:       May, 2009
-/  modified1:  
+/  modified1:  John Wise -- re-purposing for active particles
+/  date:       December, 2011
 /
 /  PURPOSE:
 /
 ************************************************************************/
  
+#include <map>
+#include <iostream>
+#include <stdexcept>
 #include <stdio.h>
 
 #include "ErrorExceptions.h"
@@ -21,21 +25,16 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
 #include "Hierarchy.h"
+#include "ActiveParticle.h"
 
-void DeleteStarList(Star * &Node);
-Star* StarBufferToList(StarBuffer buffer);
-void InsertStarAfter(Star * &Node, Star * &NewNode);
- 
-int grid::CollectStars(int GridNum, int* &NumberToMove, 
-		       int &StartIndex, int &EndIndex, 
-		       star_data* &List, int CopyDirection)
+int grid::CollectActiveParticles(int GridNum, int* &NumberToMove, 
+				 int &StartIndex, int &EndIndex, 
+				 ActiveParticleType **List, int CopyDirection)
 {
  
   /* Declarations. */
 
   int i, j, dim, n1, grid, proc;
-  Star *MoveStar;
-  StarBuffer *TempBuffer;
 
   /* ----------------------------------------------------------------- */
   /* Copy star out of grid. */
@@ -44,7 +43,7 @@ int grid::CollectStars(int GridNum, int* &NumberToMove,
 
     /* If there are no stars to move, we're done. */
 
-    if (NumberOfStars == 0)
+    if (NumberOfActiveParticles == 0)
       return SUCCESS;
 
     /* If this is the correct processor, no copy-outs required. */
@@ -60,22 +59,21 @@ int grid::CollectStars(int GridNum, int* &NumberToMove,
  
     /* Move and delete stars */
 
-    if (Stars == NULL)
-      ENZO_FAIL("Star pointer cannot be NULL here.  NumberOfStars "
-		"and star pointer are mismatched.");
+    if (ActiveParticles == NULL)
+      ENZO_FAIL("ActiveParticles pointer cannot be NULL here.  "
+		"NumberOfActiveParticles and pointer are mismatched.");
 
     n1 = StartIndex;
-    TempBuffer = Stars->StarListToBuffer(NumberOfStars);
-    DeleteStarList(Stars);
     
     for (i = 0, n1 = StartIndex; i < NumberOfStars; i++, n1++) {
-      List[n1].data = TempBuffer[i];
-      List[n1].grid = GridNum;
-      List[n1].proc = ProcessorNumber;
+      List[n1] = ActiveParticles[i];
+      List[n1]->SetGridID(GridNum);
+      List[n1]->SetDestProcessor(ProcessorNumber);
     } // ENDFOR stars
 
     StartIndex = n1;
-    NumberOfStars = 0;
+    NumberOfActiveParticles = 0;
+    delete[] ActiveParticles;
 
   } // end: if (COPY_OUT)
  
@@ -87,24 +85,9 @@ int grid::CollectStars(int GridNum, int* &NumberToMove,
     if (MyProcessorNumber != ProcessorNumber)
       return SUCCESS;
 
-    /* Count up total number. */
- 
-    int TotalNumberOfStars;
-    int NumberOfNewStars = EndIndex - StartIndex;
-
-    TotalNumberOfStars = NumberOfStars + NumberOfNewStars;
-
-    if (NumberOfNewStars > 0)
-      for (i = StartIndex; i < EndIndex; i++) {
-	MoveStar = StarBufferToList(List[i].data);
-	MoveStar->CurrentGrid = this;
-	MoveStar->GridID = this->ID;
-	InsertStarAfter(this->Stars, MoveStar);
-      }
- 
-    /* Set new number of stars in this grid. */
- 
-    NumberOfStars = TotalNumberOfStars;
+    int NumberOfNewActiveParticles = EndIndex - StartIndex;
+    this->AddActiveParticles(List, NumberOfNewActiveParticles, StartIndex);
+    NumberOfActiveParticles += NumberOfNewActiveParticles;
  
   } // end: if (COPY_IN)
  

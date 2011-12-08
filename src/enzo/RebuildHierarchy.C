@@ -622,9 +622,9 @@ int RebuildHierarchy(TopGridData *MetaData,
 	    ToGrids[k] = SubgridHierarchyPointer[k]->GridData;
 	  }
  
-//	  if (GridHierarchyPointer[j]->GridData->MoveSubgridStars(
-//				 subgrids, ToGrids, FALSE) == FAIL)
-//	    ENZO_FAIL("Error in grid->MoveSubgridStars.");
+	  if (GridHierarchyPointer[j]->GridData->MoveSubgridActiveParticles(
+				 subgrids, ToGrids, FALSE) == FAIL)
+	    ENZO_FAIL("Error in grid->MoveSubgridStars.");
 
 	  if (GridHierarchyPointer[j]->GridData->MoveSubgridParticlesFast(
 				 subgrids, ToGrids, FALSE) == FAIL)

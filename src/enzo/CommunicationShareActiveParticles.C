@@ -27,6 +27,10 @@
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
+#include "Fluxes.h"
+#include "GridList.h"
+#include "ExternalBoundary.h"
+#include "Grid.h"
 #include "ActiveParticle.h"
 #include "SortCompareFunctions.h"
 
@@ -43,7 +47,6 @@ int CommunicationShareActiveParticles(int *NumberToMove,
   ActiveParticleType_info *ap_info;
 
   int TotalNumberToMove = 0;
-  int star_data_size = sizeof(star_data);
   for (proc = 0; proc < NumberOfProcessors; proc++)
     TotalNumberToMove += NumberToMove[proc];
   //std::sort(SendList, SendList+TotalNumberToMove, cmp_ap_proc());
@@ -65,13 +68,13 @@ int CommunicationShareActiveParticles(int *NumberToMove,
        In the future, there might be a way to consolidate all of the
        buffers into one buffer and communicate it as a whole. */
 
-    for (type = 0; type < EnabledActiveParticleCount; type++) {
+    for (type = 0; type < EnabledActiveParticlesCount; type++) {
 
       ap_info = EnabledActiveParticles[type];
 
       /* Create a MPI packed buffer from the active particles */
 
-      int position, count, element_size, size;
+      int position, count, header_size, element_size, size;
       int *mpi_buffer_size, *mpi_recv_buffer_size;
       char *mpi_buffer, *mpi_recv_buffer;
       mpi_buffer_size = new int[NumberOfProcessors];
@@ -112,7 +115,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       NumberOfSends = 0;
       for (jjj = 0; jjj < NumberOfProcessors; jjj++) {
 	MPI_SendListDisplacements[jjj] = NumberOfSends;
-	NumberOfSends += mpi_buffer_size[jjj]
+	NumberOfSends += mpi_buffer_size[jjj];
 	MPI_SendListCount[jjj] = mpi_buffer_size[jjj];
       }
 
@@ -159,6 +162,8 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       // size (NumberOfReceives is in bytes)
       NumberOfNewParticles = (NumberOfReceives - NumberOfProcessors*header_size) / element_size; 
       SharedList = new ActiveParticleType*[NumberOfNewParticles];
+
+      // Now convert the MPI buffer
       count = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
 	NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc] - header_size) / element_size;
@@ -167,6 +172,8 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 			       NumberOfNewParticlesThisProcessor,
 			       SharedList, count);
       }
+
+      NumberOfReceives = NumberOfNewParticles;
 
 #ifdef MPI_INSTRUMENTATION
       endtime = MPI_Wtime();
