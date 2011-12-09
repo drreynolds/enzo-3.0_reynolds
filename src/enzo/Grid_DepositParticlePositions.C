@@ -22,6 +22,9 @@
 #include "mpi.h"
 #endif /* USE_MPI */
 
+#include <map>
+#include <iostream>
+#include <stdexcept>
 #include <stdio.h>
 #include <math.h>
 #include "ErrorExceptions.h"
@@ -32,6 +35,7 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
+#include "ActiveParticle.h"
 #include "communication.h"
  
 /* function prototypes */
@@ -272,21 +276,23 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
     //MyProcessor == Target->ProcessorNumber != this->ProcessorNumber
     this->UpdateParticlePosition(TimeDifference, TRUE);
 
-    /* If using sink particles, then create a second field of unsmoothed sink particles
-       (since we don't want sink particles smoothed -- they are stellar sized). */
+    /*
+       If using sink particles, then create a second field of
+       unsmoothed sink particles (since we don't want sink particles
+       smoothed -- they are stellar sized).
+       
+       The active particles will all be concentrated at the end of the
+       particle arrays.
 
-      /* Note that several types of particles may be appropriate for this,
-         but they will have to be added if needed. */
-    if ((this->ReturnNumberOfStarParticles() > 0) && 
-	(StarParticleCreation == (1 << SINK_PARTICLE)) && SmoothField == TRUE) {
+       Note that several types of particles may be appropriate for this,
+       but they will have to be added if needed.
+    */
+
+    if (NumberOfActiveParticles > 0 && SmoothField == TRUE) {
       ParticleMassPointerSink = new float[NumberOfParticles];
-      for (i = 0; i < NumberOfParticles; i++) {
-	if (ParticleType[i] == PARTICLE_TYPE_STAR) {
-	  ParticleMassPointerSink[i] = ParticleMassPointer[i];
-	  ParticleMassPointer[i] = 0;
-	} else {
-	  ParticleMassPointerSink[i] = 0;
-	}
+      for (i = NumberOfParticles-NumberOfActiveParticles; i < NumberOfParticles; i++) {
+	ParticleMassPointerSink[i] = ParticleMassPointer[i];
+	ParticleMassPointer[i] = 0;
       }
 
       /* Deposit sink particles (only) to field using CIC. */
@@ -328,12 +334,9 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
 	 &DepositPositionsParticleSmoothRadius);
     }
     
-    if ((this->ReturnNumberOfStarParticles() > 0) && 
-	(StarParticleCreation == (1 << SINK_PARTICLE)) && SmoothField == TRUE) {
-      for (i = 0; i < NumberOfParticles; i++) {
-	if (ParticleType[i] == PARTICLE_TYPE_STAR) {
-	  ParticleMassPointer[i] = ParticleMassPointerSink[i];
-	}
+    if (this->NumberOfActiveParticles > 0 && SmoothField == TRUE) {
+      for (i = NumberOfParticles-NumberOfActiveParticles; i < NumberOfParticles; i++) {
+	ParticleMassPointer[i] = ParticleMassPointerSink[i];
       }
       delete [] ParticleMassPointerSink;
     }

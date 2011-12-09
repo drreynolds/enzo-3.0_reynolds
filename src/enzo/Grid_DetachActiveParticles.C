@@ -43,7 +43,7 @@ int grid::DetachActiveParticles(void)
 
   this->SortParticlesByNumber();
 
-  NumberOfParticles -= NumberOfActiveParticles;
+  int NewNumberOfParticles = NumberOfParticles - NumberOfActiveParticles;
 
   /* Create new particle arrays */
 
@@ -52,31 +52,42 @@ int grid::DetachActiveParticles(void)
   float *vel[MAX_DIMENSION];
   float *Mass;
   PINT *Number;
+
+  if (NewNumberOfParticles > 0) {
   
-  for (dim = 0; dim < MAX_DIMENSION; dim++) {
-    pos[dim] = new FLOAT[NumberOfParticles];
-    vel[dim] = new float[NumberOfParticles];
-  }
-  Mass = new float[NumberOfParticles];
-  Number = new PINT[NumberOfParticles];
-
-  /* Copy normal particles.  All active particles are located at the
-     end of the arrays. */
-
-  for (i = 0; i < NumberOfParticles; i++) {
     for (dim = 0; dim < MAX_DIMENSION; dim++) {
-      pos[dim][i] = ParticlePosition[dim][i];
-      vel[dim][i] = ParticleVelocity[dim][i];
+      pos[dim] = new FLOAT[NewNumberOfParticles];
+      vel[dim] = new float[NewNumberOfParticles];
     }
-    Mass[i] = ParticleMass[i];
-    Number[i] = ParticleNumber[i];
+    Mass = new float[NewNumberOfParticles];
+    Number = new PINT[NewNumberOfParticles];
+
+    /* Copy normal particles.  All active particles are located at the
+       end of the arrays. */
+    
+    for (i = 0; i < NewNumberOfParticles; i++) {
+      for (dim = 0; dim < MAX_DIMENSION; dim++) {
+	pos[dim][i] = ParticlePosition[dim][i];
+	vel[dim][i] = ParticleVelocity[dim][i];
+      }
+      Mass[i] = ParticleMass[i];
+      Number[i] = ParticleNumber[i];
+    }
+  } // ENDIF NumberOfParticles > 0
+  else {
+    for (dim = 0; dim < MAX_DIMENSION; dim++) {
+      pos[dim] = NULL;
+      vel[dim] = NULL;
+    }
+    Mass = NULL;
+    Number = NULL;
   }
 
   /* Copy active particle data in the normal particle arrays to
      ActiveParticle variable */
 
   
-  for (i = 0, index = NumberOfParticles; i < NumberOfActiveParticles; 
+  for (i = 0, index = NewNumberOfParticles; i < NumberOfActiveParticles; 
        i++, index++) {
     for (dim = 0; dim < MAX_DIMENSION; dim++) {
       ActiveParticles[i]->pos[dim] = ParticlePosition[dim][index];
@@ -85,9 +96,10 @@ int grid::DetachActiveParticles(void)
     ActiveParticles[i]->Mass = ParticleMass[index];
   }
        
-
   this->DeleteParticles();
   this->SetParticlePointers(Mass, Number, pos, vel);
+
+  NumberOfParticles -= NumberOfActiveParticles;
 
   return SUCCESS;
 

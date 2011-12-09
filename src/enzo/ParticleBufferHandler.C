@@ -139,29 +139,38 @@ void ParticleBufferHandler::CalculateElementSize(void)
   // double: 1 -- Mass
   // int: 3 -- level, GridID, type
   // PINT: 1 -- Identifier
-#ifdef USE_MPI
-  int size;
+
+  int mpi_flag = 0;
   this->ElementSizeInBytes = 0;
-  MPI_Pack_size(6, FloatDataType, MPI_COMM_WORLD, &size);
-  this->ElementSizeInBytes += size;
-  MPI_Pack_size(3, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
-  this->ElementSizeInBytes += size;
-  MPI_Pack_size(1, MPI_DOUBLE, MPI_COMM_WORLD, &size);
-  this->ElementSizeInBytes += size;
-  MPI_Pack_size(3, IntDataType, MPI_COMM_WORLD, &size);
-  this->ElementSizeInBytes += size;
-  MPI_Pack_size(1, PINTDataType, MPI_COMM_WORLD, &size);
-  this->ElementSizeInBytes += size;
-  
-  // Header:
-  // 1. Number of buffers (int)
   this->HeaderSizeInBytes = 0;
-  MPI_Pack_size(1, IntDataType, MPI_COMM_WORLD, &size);
-  this->HeaderSizeInBytes += size;
-#else
-  this->ElementSizeInBytes = 6*sizeof(float) + 3*sizeof(FLOAT) + 1*sizeof(double) +
-    3*sizeof(int) + 1*sizeof(PINT);
-  this->HeaderSizeInBytes = 1*sizeof(int);
+
+#ifdef USE_MPI
+  MPI_Initialized(&mpi_flag);
 #endif
+
+  int size;
+  if (mpi_flag == 1) {
+#ifdef USE_MPI
+    MPI_Pack_size(6, FloatDataType, MPI_COMM_WORLD, &size);
+    this->ElementSizeInBytes += size;
+    MPI_Pack_size(3, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
+    this->ElementSizeInBytes += size;
+    MPI_Pack_size(1, MPI_DOUBLE, MPI_COMM_WORLD, &size);
+    this->ElementSizeInBytes += size;
+    MPI_Pack_size(3, IntDataType, MPI_COMM_WORLD, &size);
+    this->ElementSizeInBytes += size;
+    MPI_Pack_size(1, PINTDataType, MPI_COMM_WORLD, &size);
+    this->ElementSizeInBytes += size;
+  
+    // Header:
+    // 1. Number of buffers (int)
+    MPI_Pack_size(1, IntDataType, MPI_COMM_WORLD, &size);
+    this->HeaderSizeInBytes += size;
+#endif
+  } else {
+    this->ElementSizeInBytes = 6*sizeof(float) + 3*sizeof(FLOAT) + 1*sizeof(double) +
+      3*sizeof(int) + 1*sizeof(PINT);
+    this->HeaderSizeInBytes = 1*sizeof(int);
+  }
   return;
 }

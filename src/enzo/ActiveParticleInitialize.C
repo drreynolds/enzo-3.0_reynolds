@@ -48,7 +48,7 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
      in ActiveParticleFinalize */  
 
   MetaData->NumberOfParticles = FindTotalNumberOfParticles(LevelArray);
-  NumberOfOtherParticles = MetaData->NumberOfParticles - NumberOfActiveParticles;
+  NumberOfOtherParticles = MetaData->NumberOfParticles;// - NumberOfActiveParticles;
   RecordTotalActiveParticleCount(Grids, NumberOfGrids, 
 				 TotalActiveParticleCountPrevious);
 

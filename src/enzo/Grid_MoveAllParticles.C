@@ -174,7 +174,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
   }
 
   this->AddActiveParticles(MoveParticles, NumberOfSubgridActiveParticles);
-  this->NumberOfActiveParticles = TotalNumberOfActiveParticles;
+  //this->NumberOfActiveParticles = TotalNumberOfActiveParticles;
  
   return SUCCESS;
 }
