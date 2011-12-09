@@ -41,6 +41,8 @@ const char config_sink_particle_defaults[] =
 "    ActiveParticles: {\n"
 "        Sink: {\n"
 "            OverflowFactor       = 1.01;\n"
+"            LinkingLength        = 4;\n   "
+"            AccretionRadius      = 4;\n   "
 "        };\n"
 "    };\n"
 "};\n";
@@ -56,6 +58,10 @@ class SinkParticleBufferHandler;
 class SinkParticleGrid : private grid {
   friend class ActiveParticleType_SinkParticle;
 };
+
+// Sink helper functions
+
+int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength, int ngroups);  
 
 /* Note that we only refer to SinkParticleGrid here. 
  * Given a grid object, we static case to get this:
@@ -74,25 +80,25 @@ public:
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			       int ThisLevel, int TotalStarParticleCountPrevious[]);
+			       int ThisLevel, int TotalStarParticleCountPrevious[],
+			       int SinkParticleID);
   static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			       int ThisLevel, int TotalStarParticleCountPrevious[]);
+			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			      int ThisLevel, int TotalStarParticleCountPrevious[],
+			      int SinkParticleID);
   static int InitializeParticleType();
 
-  // Sink routines:
-
-  static int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength);
-  
   ENABLED_PARTICLE_ID_ACCESSOR
 
   static float OverflowFactor;
-
-
+  static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
+  static int LinkingLength;     // Should be equal to AccretionRadius
   
 };
 
 float ActiveParticleType_SinkParticle::OverflowFactor = FLOAT_UNDEFINED;
+int ActiveParticleType_SinkParticle::AccretionRadius = INT_UNDEFINED;
+int ActiveParticleType_SinkParticle::LinkingLength = INT_UNDEFINED;
 
 int ActiveParticleType_SinkParticle::InitializeParticleType()
 {
@@ -252,16 +258,62 @@ int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particl
 
 int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						       int ThisLevel, int TotalStarParticleCountPrevious[])
+						       int ThisLevel, int TotalStarParticleCountPrevious[],
+						       int SinkParticleID)
 {
+  /* Mergers only happen on the maximum refinement level.  If we are on a higher level, this does not concern us */
+  
+  if (ThisLevel == MaximumRefinementLevel)
+    {
+      /* Generate list of all sink particles in the simulation box */
+      
+      int i,nParticles,NumberOfMergedParticles; 
+      ActiveParticleType_SinkParticle **SinkParticleList;
 
+      // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
+      
+      /* Calculate CellWidth on maximum refinement level */
+      
+      FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+      
+      /* Generate new merged list of sink particles */
+      
+      MergeSinks(nParticles,SinkParticleList,LinkingLength*dx,NumberOfMergedParticles);
+      
+      /*  Only rebuild the grid active particle pointers  */
+
+      if (NumberOfMergedParticles < nParticles){
+	LevelHierarchyEntry *Temp = LevelArray[ThisLevel];
+
+	/* Remove active particles of this type from all grids on this level */
+
+	
+
+	/* Iterate over the new sink particle list, assigning the sinks to grids as necessary */
+	
+	ActiveParticleType_SinkParticle *ThisParticle;
+	
+	
+	for (i = 0; i<nParticles; i++) {
+	  ThisParticle = SinkParticleList[i];
+	  
+	  
+	  
+	} 
+      } else if (NumberOfMergedParticles > nParticles){
+	ENZO_FAIL("SinkParticle merging failed");
+      }
+      
+      
+    } // ENDIF: ThisLevel == MaximumRefinementLevel
 
   return SUCCESS;
 }
 
 int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalStarParticleCountPrevious[])
+						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int SinkParticleID)
 {
 
 
@@ -269,11 +321,10 @@ int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], T
 }
 
 
-int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength)
+int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength,int ngroups)
 {
   int i,j;
   int dim;
-  int ngroups;
   int GroupNumberAssignment[nParticles];
   int *groupsize = NULL;
   int **grouplist = NULL;
@@ -309,6 +360,8 @@ int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleTy
   SinkParticleList = NewParticles;
 
   delete [] NewParticles;
+
+  nParticles = ngroups;
 
   return SUCCESS;
 }

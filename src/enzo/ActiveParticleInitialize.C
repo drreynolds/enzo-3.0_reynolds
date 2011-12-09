@@ -67,12 +67,16 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   /* 2. Call initialization routines for each active particle type */
 
+  int ActiveParticleID;
+
   for (i = 0 ; i < EnabledActiveParticlesCount; i++) {
     
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+    ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
 
     ActiveParticleTypeToEvaluate->before_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
-							      ThisLevel,TotalStarParticleCountPrevious);
+							      ThisLevel,TotalStarParticleCountPrevious,
+							      ActiveParticleID);
 
   }
 

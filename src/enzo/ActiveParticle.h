@@ -243,10 +243,12 @@ public:
    int (*readfunc)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id),
    int (*belfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-		  int ThisLevel, int TotalStarParticleCountPrevious[]),
+		  int ThisLevel, int TotalStarParticleCountPrevious[],
+		  int ActiveParticleID),
    int (*aelfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-		  int ThisLevel, int TotalStarParticleCountPrevious[]),
+		  int ThisLevel, int TotalStarParticleCountPrevious[],
+		  int ActiveParticleID),
    ActiveParticleType *particle
    ){
     this->formation_function = ffunc;
@@ -279,10 +281,12 @@ public:
   int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   int (*before_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				     int ThisLevel, int TotalStarParticleCountPrevious[]);
+				     int ThisLevel, int TotalStarParticleCountPrevious[],
+				     int ActiveParticleID);
   int (*after_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				     int ThisLevel, int TotalStarParticleCountPrevious[]);
+				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				    int ThisLevel, int TotalStarParticleCountPrevious[],
+				    int ActiveParticleID);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
   ActiveParticleType* particle_instance;

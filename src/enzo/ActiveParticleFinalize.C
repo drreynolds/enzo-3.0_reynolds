@@ -66,12 +66,17 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
   
   /* Call finalization routines for each active particle type  */
 
+  int ActiveParticleID;
+
   for (i = 0 ; i < EnabledActiveParticlesCount; i++) {
     
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+    ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
+    
 
     ActiveParticleTypeToEvaluate->after_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
-							     level,TotalStarParticleCountPrevious);
+							     level,TotalStarParticleCountPrevious,
+							     ActiveParticleID);
 
   }
 
