@@ -15,8 +15,6 @@
 #-----------------------------------------------------------------------
 
 # Temporarily removing for testing
-#        ActiveParticle_CenOstriker.o \
-#	ActiveParticle_DisableParticle.o \
 #        ActiveParticle_Kravtsov.o \
 #        ActiveParticle_PopIII.o \
 #        ActiveParticle_SampleParticle.o \
@@ -30,9 +28,11 @@ OBJS_CONFIG_LIB = \
 	ActiveParticleFinalize.o \
 	ActiveParticleInitialize.o \
 	ActiveParticleRoutines.o \
+	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
 	ActiveParticle_SinkParticle.o \
+        ActiveParticle_CenOstriker.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
         AdjustMustRefineParticlesRefineToLevel.o \
@@ -526,6 +526,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ReadRandomForcingFields.o \
 	Grid_RemoveForcingFromBaryonFields.o \
 	Grid_RemoveParticle.o \
+	Grid_RemoveActiveParticle.o \
 	Grid_RestoreEnergyConsistency.o \
 	Grid_ReturnFluxDims.o \
 	Grid_ReturnGridInfo.o \

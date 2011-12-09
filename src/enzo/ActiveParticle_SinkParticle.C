@@ -59,10 +59,6 @@ class SinkParticleGrid : private grid {
   friend class ActiveParticleType_SinkParticle;
 };
 
-// Sink helper functions
-
-int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength, int ngroups);  
-
 /* Note that we only refer to SinkParticleGrid here. 
  * Given a grid object, we static case to get this:
  *
@@ -90,6 +86,11 @@ public:
 
   ENABLED_PARTICLE_ID_ACCESSOR
 
+  // sink helper routines
+
+  static int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, 
+			FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[]);  
+
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
@@ -110,10 +111,16 @@ int ActiveParticleType_SinkParticle::InitializeParticleType()
 
   // Retrieve parameters from Param structure
   Param.GetScalar(OverflowFactor, "Physics.ActiveParticles.SinkParticle.OverflowFactor");
+  Param.GetScalar(LinkingLength, "Physics.ActiveParticles.SinkParticle.LinkingLength");
+  Param.GetScalar(AccretionRadius, "Physics.ActiveParticles.SinkParticle.AccretionRadius");
 
 #else
 
+  // Leaving these defaults hardcoded for testing. NJG
+
   OverflowFactor = 1.01;
+  LinkingLength = 4;
+  AccretionRadius = 4;
 
 #endif
 
@@ -278,32 +285,14 @@ int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], 
       
       /* Generate new merged list of sink particles */
       
-      MergeSinks(nParticles,SinkParticleList,LinkingLength*dx,NumberOfMergedParticles);
-      
-      /*  Only rebuild the grid active particle pointers  */
-
-      if (NumberOfMergedParticles < nParticles){
-	LevelHierarchyEntry *Temp = LevelArray[ThisLevel];
-
-	/* Remove active particles of this type from all grids on this level */
-
-	
-
-	/* Iterate over the new sink particle list, assigning the sinks to grids as necessary */
-	
-	ActiveParticleType_SinkParticle *ThisParticle;
-	
-	
-	for (i = 0; i<nParticles; i++) {
-	  ThisParticle = SinkParticleList[i];
-	  
-	  
-	  
-	} 
-      } else if (NumberOfMergedParticles > nParticles){
+      if (MergeSinks(nParticles,SinkParticleList,LinkingLength*dx,NumberOfMergedParticles,LevelArray) == FAIL) {
 	ENZO_FAIL("SinkParticle merging failed");
       }
-      
+   
+      /* Broadcast new global list of active particles */
+
+      // A function that does the communication work should go here. JHW is working on this.
+        
       
     } // ENDIF: ThisLevel == MaximumRefinementLevel
 
@@ -321,7 +310,7 @@ int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], T
 }
 
 
-int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength,int ngroups)
+int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength,int ngroups, LevelHierarchyEntry *LevelArray[])
 {
   int i,j;
   int dim;
@@ -351,6 +340,7 @@ int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleLis
     if (groupsize[i] != 1) {
       for (j=1 ; j++ ; j<groupsize[i]) {
 	NewParticles[i]->Merge(SinkParticleList[grouplist[i][j]]);
+	SinkParticleList[grouplist[i][j]]->DisableParticle(LevelArray);
       }
     }
   }

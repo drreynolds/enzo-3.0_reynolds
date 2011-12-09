@@ -81,6 +81,14 @@ public:
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
+    static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			       int ThisLevel, int TotalStarParticleCountPrevious[],
+			       int CenOstrikerID);
+  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			      int ThisLevel, int TotalStarParticleCountPrevious[],
+			      int CenOstrikerID);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
   
@@ -634,6 +642,26 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
   WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+
+  return SUCCESS;
+}
+
+int ActiveParticleType_CenOstriker::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						       int ThisLevel, int TotalStarParticleCountPrevious[],
+						       int CenOstrikerID)
+{
+
+  return SUCCESS;
+
+}
+
+int ActiveParticleType_CenOstriker::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int CenOstrikerID)
+{
+
 
   return SUCCESS;
 }
