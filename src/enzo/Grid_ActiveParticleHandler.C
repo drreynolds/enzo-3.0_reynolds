@@ -57,6 +57,10 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
   if (NumberOfBaryonFields == 0)
     return SUCCESS;
 
+  /* Get the current particle positions and velocities */
+
+  this->MirrorActiveParticles();
+
   /*fprintf(stderr, "G_APH: Currently have %"ISYM"\n",
           this->NumberOfActiveParticles);*/
  

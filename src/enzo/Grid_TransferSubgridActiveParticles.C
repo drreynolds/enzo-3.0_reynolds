@@ -132,6 +132,13 @@ int grid::TransferSubgridActiveParticles
 
     if (TotalToMove > PreviousTotalToMove) {
 
+      /* Compute the increase in mass for particles moving to the subgrid. */
+ 
+      float RefinementFactors[MAX_DIMENSION], MassIncrease = 1.0;
+      this->ComputeRefinementFactorsFloat(Subgrids[0], RefinementFactors);
+      for (dim = 0; dim < GridRank; dim++)
+	MassIncrease *= RefinementFactors[dim];
+
       /* Move active particles */
       
       NumberToMoveThisGrid = TotalToMove - PreviousTotalToMove;
@@ -151,6 +158,11 @@ int grid::TransferSubgridActiveParticles
 	  proc = (KeepLocal) ? MyProcessorNumber : Subgrids[subgrid[i]]->ReturnProcessorNumber();
 	  List[n1]->SetDestProcessor(proc);
 	  List[n1]->SetGridID(subgrid[i]);
+	  // Increase the level if moving to a subgrid
+	  if (IncludeGhostZones == FALSE) {
+	    List[n1]->IncreaseLevel();
+	    List[n1]->AdjustMassByFactor(MassIncrease);
+	  }
 	  n1++;
 	} // ENDIF subgrid
 	else {
@@ -185,9 +197,9 @@ int grid::TransferSubgridActiveParticles
     if (NumberOfNewActiveParticles > 0) {
 
       // Increase the level if moving to a subgrid
-      if (IncludeGhostZones == FALSE)
-	for (i = StartIndex; i < EndIndex; i++)
-	  List[i]->IncreaseLevel();
+//      if (IncludeGhostZones == FALSE)
+//	for (i = StartIndex; i < EndIndex; i++) {
+//	}
       
       this->AddActiveParticles(List, NumberOfNewActiveParticles, StartIndex);
 

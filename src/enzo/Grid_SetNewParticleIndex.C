@@ -31,11 +31,19 @@
 void grid::SetNewParticleIndex(int &NumberCount1, PINT &NumberCount2)
 {
   int n, abstype;
+  int ori_count = NumberCount1 + NumberCount2;
+  
   for (n = 0; n < NumberOfActiveParticles; n++)
     if (ActiveParticles[n]->Identifier == INT_UNDEFINED) {
       ActiveParticles[n]->Identifier = NumberCount1++ + NumberCount2;
-      printf("New star particle index = %d (%d %d)\n",
-	     ActiveParticles[n]->Identifier, NumberCount1, NumberCount2);
+//      printf("New star particle index = %d (%d %d)\n",
+//	     ActiveParticles[n]->Identifier, NumberCount1, NumberCount2);
     }
+  // Do the same for mirrored particles.  The normal and active new
+  // particles are still in the same order as they were created.
+  for (n = NumberOfParticles-NumberOfActiveParticles; 
+       n < NumberOfParticles; n++)
+    if (ParticleNumber[n] == INT_UNDEFINED)
+      ParticleNumber[n] = ori_count++;
   return;
 }

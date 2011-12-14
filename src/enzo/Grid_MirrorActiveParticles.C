@@ -32,33 +32,26 @@
 #include "CosmologyParameters.h"
 #include "ActiveParticle.h"
 
-int grid::MirrorActiveParticles(int direction)
+int grid::MirrorActiveParticles(void)
 {
 
-  int i;
+  int i, n, dim;
 
   LCAPERF_START("grid_MirrorActiveParticles");
 
-  // Normal -> active particles
-  if (direction == COPY_IN) {
+  this->SortParticlesByNumber();
 
-    for (i = 0; i < NumberOfActiveParticles; i++) {
-      this->ActiveParticles[i]->UpdatePositionVelocity();
+  // Normal -> active particles (position, velocity only!)  Should be
+  // used before ActiveParticleHandler to get the correct position and
+  // velocity for feedback
+
+  n = NumberOfParticles - NumberOfActiveParticles;
+  for (i = 0; i < NumberOfActiveParticles; i++) {
+    for (dim = 0; dim < MAX_DIMENSION; dim++) {
+      this->ActiveParticles[i]->pos[dim] = ParticlePosition[dim][n];
+      this->ActiveParticles[i]->vel[dim] = ParticleVelocity[dim][n];
     }
-
-  }
-
-  // Active -> normal particles
-  else if (direction == COPY_OUT) {
-
-    for (i = 0; i < NumberOfActiveParticles; i++) {
-      this->ActiveParticles[i]->MirrorToParticle();
-    }
-
-  } 
-
-  else {
-    ENZO_FAIL("Bad direction value");
+    n++;
   }
 
   LCAPERF_STOP("grid_MirrorActiveParticles");
