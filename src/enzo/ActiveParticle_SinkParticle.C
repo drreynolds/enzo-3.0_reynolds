@@ -73,7 +73,7 @@ public:
   ActiveParticleType_SinkParticle(ParticleBufferHandler *buffer, int index) :
     ActiveParticleType(buffer, index) {};
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
@@ -253,9 +253,9 @@ void ActiveParticleType_SinkParticle::DescribeSupplementalData(ActiveParticleFor
 }
 
 
-int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
 {
-  ActiveParticleType_SinkParticle *ParticlesToWrite = static_cast<ActiveParticleType_SinkParticle *>(these_particles);
+  //ActiveParticleType_SinkParticle **ParticlesToWrite = static_cast<ActiveParticleType_SinkParticle **>(these_particles);
 
   return SUCCESS;
 }
