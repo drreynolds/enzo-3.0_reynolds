@@ -109,7 +109,7 @@ int ActiveParticleType::WriteDataset(int ndims, hsize_t *dims, char *name, hid_t
   hid_t dset_id;
   hid_t h5_status;
   herr_t h5_error = -1;
-  
+
   file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
   if( file_dsp_id == h5_error )
     ENZO_VFAIL("Error creating dataspace for %s", name)

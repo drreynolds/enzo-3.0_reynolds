@@ -605,7 +605,8 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
 {
   /* Create a new subgroup within the active particle group for active particles of type CenOstriker */
 
-  hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
+  hid_t CenOstrikerGroupID;
+  CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
 
   writeScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
 
@@ -659,6 +660,8 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
   WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+
+  H5Gclose(CenOstrikerGroupID);
 
   return SUCCESS;
 }
