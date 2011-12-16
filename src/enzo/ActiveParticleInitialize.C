@@ -38,6 +38,8 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int ThisLevel, int TotalActiveParticleCountPrevious[])
 {
 
+  int i;
+
   /* Return if this does not concern us */
   if (EnabledActiveParticlesCount == 0) return SUCCESS;
 
@@ -52,8 +54,7 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
   RecordTotalActiveParticleCount(Grids, NumberOfGrids, 
 				 TotalActiveParticleCountPrevious);
 
-  /* TODO: Merging */
-
+  
   /* Active particle initialization
      1. copy quantities from active to normal particles
   */
@@ -62,6 +63,21 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
     Grids[grid_num]->GridData->AppendActiveParticles();
   } // ENDFOR grids
+
+  /* 2. Call initialization routines for each active particle type */
+
+  int ActiveParticleID;
+
+  for (i = 0 ; i < EnabledActiveParticlesCount; i++) {
+    
+    ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+    ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
+
+    ActiveParticleTypeToEvaluate->before_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
+							      ThisLevel,TotalActiveParticleCountPrevious,
+							      ActiveParticleID);
+
+  }
 
   LCAPERF_STOP("ActiveParticleInitialize");
   return SUCCESS;

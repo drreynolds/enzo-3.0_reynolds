@@ -1,10 +1,10 @@
 /***********************************************************************
 /
-/  DISABLE THE ASSOCIATED NORMAL PARTICLE (set mass to tiny)
+/  DISABLE THE ASSOCIATED ACTIVE PARTICLE (Delete frrom particle list)
 /
 /  written by: John Wise
 /  date:       December, 2009
-/  modified1:
+/  modified1:  Nathan Goldbaum, December 2011 (porting to active particles)
 /
 ************************************************************************/
 
@@ -42,7 +42,7 @@ int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[])
   
   NumberOfGrids = GenerateGridArray(LevelArray, this->level, &Grids);
   for (i = 0; i < NumberOfGrids; i++) {
-    found = Grids[i]->GridData->RemoveParticle(this->Identifier, true);
+    found = Grids[i]->GridData->RemoveActiveParticle(this->ReturnID());
     if (found) {
       changedGrid = i;
       break;
@@ -63,7 +63,7 @@ int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[])
 	       "particle %"ISYM" not found...\n", this->Identifier)
   }
 
-  Grids[changedGrid]->GridData->NumberOfStars--;
+  Grids[changedGrid]->GridData->NumberOfActiveParticles--;
 
   delete [] Grids;
 

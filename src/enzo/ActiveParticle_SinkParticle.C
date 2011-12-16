@@ -25,6 +25,7 @@
 #include "EventHooks.h"
 #include "ActiveParticle.h"
 #include "phys_constants.h"
+#include "FofLib.h"
 
 #ifdef NEW_CONFIG
 
@@ -40,6 +41,8 @@ const char config_sink_particle_defaults[] =
 "    ActiveParticles: {\n"
 "        Sink: {\n"
 "            OverflowFactor       = 1.01;\n"
+"            LinkingLength        = 4;\n   "
+"            AccretionRadius      = 4;\n   "
 "        };\n"
 "    };\n"
 "};\n";
@@ -65,20 +68,42 @@ class SinkParticleGrid : private grid {
 class ActiveParticleType_SinkParticle : public ActiveParticleType
 {
 public:
+  // Constructors
+  ActiveParticleType_SinkParticle(void) : ActiveParticleType() {};
+  ActiveParticleType_SinkParticle(ParticleBufferHandler *buffer, int index) :
+    ActiveParticleType(buffer, index) {};
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			       int ThisLevel, int TotalStarParticleCountPrevious[],
+			       int SinkParticleID);
+  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			      int ThisLevel, int TotalStarParticleCountPrevious[],
+			      int SinkParticleID);
   static int InitializeParticleType();
 
   ENABLED_PARTICLE_ID_ACCESSOR
 
+  // sink helper routines
+
+  static int MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, 
+			FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[]);  
+
   static float OverflowFactor;
+  static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
+  static int LinkingLength;     // Should be equal to AccretionRadius
+  
 };
 
 float ActiveParticleType_SinkParticle::OverflowFactor = FLOAT_UNDEFINED;
+int ActiveParticleType_SinkParticle::AccretionRadius = INT_UNDEFINED;
+int ActiveParticleType_SinkParticle::LinkingLength = INT_UNDEFINED;
 
 int ActiveParticleType_SinkParticle::InitializeParticleType()
 {
@@ -90,10 +115,16 @@ int ActiveParticleType_SinkParticle::InitializeParticleType()
 
   // Retrieve parameters from Param structure
   Param.GetScalar(OverflowFactor, "Physics.ActiveParticles.SinkParticle.OverflowFactor");
+  Param.GetScalar(LinkingLength, "Physics.ActiveParticles.SinkParticle.LinkingLength");
+  Param.GetScalar(AccretionRadius, "Physics.ActiveParticles.SinkParticle.AccretionRadius");
 
 #else
 
+  // Leaving these defaults hardcoded for testing. NJG
+
   OverflowFactor = 1.01;
+  LinkingLength = 4;
+  AccretionRadius = 4;
 
 #endif
 
@@ -204,7 +235,7 @@ int ActiveParticleType_SinkParticle::EvaluateFormation(grid *thisgrid_orig, Acti
     } // j
   } // k
   
-  return 0;
+  return SUCCESS;
 }  
 
 int ActiveParticleType_SinkParticle::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
@@ -236,27 +267,147 @@ int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particl
   return SUCCESS;
 }
 
+int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						       int ThisLevel, int TotalStarParticleCountPrevious[],
+						       int SinkParticleID)
+{
+  /* Mergers only happen on the maximum refinement level.  If we are on a higher level, this does not concern us */
+  
+  if (ThisLevel == MaximumRefinementLevel)
+    {
+      /* Generate list of all sink particles in the simulation box */
+      
+      int i,nParticles,NumberOfMergedParticles; 
+      ActiveParticleType_SinkParticle **SinkParticleList;
+
+      // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
+      
+      /* Calculate CellWidth on maximum refinement level */
+      
+      FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+      
+      /* Generate new merged list of sink particles */
+      
+      if (MergeSinks(nParticles,SinkParticleList,LinkingLength*dx,NumberOfMergedParticles,LevelArray) == FAIL) {
+	ENZO_FAIL("SinkParticle merging failed");
+      }
+   
+      /* Broadcast new global list of active particles */
+
+      // A function that does the communication work should go here. JHW is working on this.
+        
+      
+    } // ENDIF: ThisLevel == MaximumRefinementLevel
+
+  return SUCCESS;
+}
+
+int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int SinkParticleID)
+{
+
+
+  return SUCCESS;
+}
+
+
+int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength,int ngroups, LevelHierarchyEntry *LevelArray[])
+{
+  int i,j;
+  int dim;
+  int GroupNumberAssignment[nParticles];
+  int *groupsize = NULL;
+  int **grouplist = NULL;
+  FLOAT *pos;
+  ActiveParticleType_SinkParticle **NewParticles;
+  
+  
+  /* Construct list of sink particle positions to pass to Foflist */
+  FLOAT SinkCoordinates[3*nParticles];
+  
+  for (i=0 ; i++ ; i<nParticles) {
+    pos = SinkParticleList[i]->ReturnPosition();
+    for (dim=0; dim++; dim<3) { SinkCoordinates[i*nParticles+dim] = pos[dim]; }
+  }
+  
+  /* Find mergeable groups using an FOF search */
+
+  ngroups = FofList(nParticles, SinkCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
+  
+  /* Merge the mergeable groups */
+
+  for (i=0 ; i++ ; i<ngroups) {
+    NewParticles[i] = SinkParticleList[grouplist[i][0]];
+    if (groupsize[i] != 1) {
+      for (j=1 ; j++ ; j<groupsize[i]) {
+	NewParticles[i]->Merge(SinkParticleList[grouplist[i][j]]);
+	SinkParticleList[grouplist[i][j]]->DisableParticle(LevelArray);
+      }
+    }
+  }
+
+  delete [] SinkParticleList;
+
+  SinkParticleList = NewParticles;
+
+  delete [] NewParticles;
+
+  nParticles = ngroups;
+
+  return SUCCESS;
+}
+
 
 class SinkParticleBufferHandler : public ParticleBufferHandler
 {
 public:
   // No extra fields in SinkParticle.  Same base constructor.
-  SinkParticleBufferHandler(int NumberOfParticles) :
-    ParticleBufferHandler(NumberOfParticles) {};
+  SinkParticleBufferHandler(void) : ParticleBufferHandler() {};
+  SinkParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+  };
+  SinkParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
+    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
+    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+  };
+  ~SinkParticleBufferHandler() {};
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
+			     int &buffer_size, int &position, int proc=-1);
+  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+			   ActiveParticleType **np, int &npart);
 };
 
-ParticleBufferHandler *ActiveParticleType_SinkParticle::AllocateBuffers
-(ActiveParticleType **particles, int NumberOfParticles)
+void SinkParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
+					      char *buffer, int &buffer_size,
+					      int &position, int proc)
 {
-  SinkParticleBufferHandler *buffer = new SinkParticleBufferHandler(NumberOfParticles);
-  buffer = ActiveParticleType::FillBuffer(buffer, particles, NumberOfParticles);
-  // If any extra fields are added in the future, then they would be
-  // transferred to the buffer here.
-  return buffer;
+  ActiveParticleType_SinkParticle *dummy = new ActiveParticleType_SinkParticle();
+  int type_num = dummy->GetEnabledParticleID();
+  SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(np, NumberOfParticles, type_num, proc);
+  pbuffer->_AllocateBuffer(buffer, buffer_size, position);
+  delete dummy;
+  delete pbuffer;
+  return;
+}
+
+void SinkParticleBufferHandler::UnpackBuffer
+(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+ ActiveParticleType **np, int &npart)
+{
+  int i, position;
+  SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(NumberOfParticles);
+  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
+  /* Convert the particle buffer into active particles */
+  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
+    np[npart++] = new ActiveParticleType_SinkParticle(pbuffer, i);
+  return;
 }
 
 
 namespace {
   ActiveParticleType_info *SinkParticleInfo = 
-    register_ptype <ActiveParticleType_SinkParticle> ("SinkParticle");
+    register_ptype <ActiveParticleType_SinkParticle, SinkParticleBufferHandler> 
+    ("SinkParticle");
 }

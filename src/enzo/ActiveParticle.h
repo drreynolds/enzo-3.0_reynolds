@@ -311,6 +311,14 @@ public:
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*writefunc)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id),
    int (*readfunc)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id),
+   int (*belfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
+		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+		  int ThisLevel, int TotalStarParticleCountPrevious[],
+		  int ActiveParticleID),
+   int (*aelfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
+		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+		  int ThisLevel, int TotalStarParticleCountPrevious[],
+		  int ActiveParticleID),
    ActiveParticleType *particle,
    ParticleBufferHandler *buffer
    ){
@@ -324,6 +332,8 @@ public:
     this->feedback_function = feedfunc;
     this->write_function = writefunc;
     this->read_function = readfunc;
+    this->before_evolvelevel_function = belfunc;
+    this->after_evolvelevel_function = aelfunc;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -342,6 +352,14 @@ public:
   int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*write_function)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
   int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
+  int (*before_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
+				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				     int ThisLevel, int TotalStarParticleCountPrevious[],
+				     int ActiveParticleID);
+  int (*after_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
+				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				    int ThisLevel, int TotalStarParticleCountPrevious[],
+				    int ActiveParticleID);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
 			  int &position, int proc);
@@ -374,6 +392,8 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::EvaluateFeedback),
      (&active_particle_class::WriteToOutput),
      (&active_particle_class::ReadFromOutput),
+     (&active_particle_class::BeforeEvolveLevel),
+     (&active_particle_class::AfterEvolveLevel),
      pp,
      buffer);
   return pinfo;

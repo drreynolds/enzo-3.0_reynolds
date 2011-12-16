@@ -14,14 +14,13 @@
 # Default Enzo object files
 #-----------------------------------------------------------------------
 
-# Removed temporarily
+# Temporarily removing for testing
 #        ActiveParticle_Kravtsov.o \
 #        ActiveParticle_PopIII.o \
 #        ActiveParticle_SampleParticle.o \
 #        ActiveParticle_SpringelHernquist.o \
 #	ActiveParticle_SinkParticle.o \
 #	ActiveParticle_UnpackBuffer.o \
-
 
 OBJS_CONFIG_LIB = \
         acml_st1.o \
@@ -32,6 +31,7 @@ OBJS_CONFIG_LIB = \
         ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
+	ActiveParticle_SinkParticle.o \
 	ActiveParticle_SphereContained.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
@@ -226,6 +226,7 @@ OBJS_CONFIG_LIB = \
 	FOF_subfind.o \
 	FOF_subgroups.o \
 	FOF_unbind.o \
+	FofLib.o \
 	fortio.o \
 	fourn.o \
 	FreeRealMem.o \
@@ -534,6 +535,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ReadRandomForcingFields.o \
 	Grid_RemoveForcingFromBaryonFields.o \
 	Grid_RemoveParticle.o \
+	Grid_RemoveActiveParticle.o \
 	Grid_RestoreEnergyConsistency.o \
 	Grid_ReturnFluxDims.o \
 	Grid_ReturnGridInfo.o \
