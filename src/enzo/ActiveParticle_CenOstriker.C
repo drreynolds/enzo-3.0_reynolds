@@ -100,11 +100,6 @@ public:
   static bool JeansMassCriterion, StochasticStarFormation, UnigridVelocities, 
     PhysicalOverdensity, dtDependence;
 
-  float ReturnMetallicity(void) {return Metallicity; };
-
-private:
-  float Metallicity;
-
 };
 
 float ActiveParticleType_CenOstriker::OverdensityThreshold = FLOAT_UNDEFINED;

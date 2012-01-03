@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <iostream>
+#include "hdf5.h"
+#include "h5utilities.h"
+
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -94,6 +97,7 @@ public:
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
+  float AccretionRate;
   
 };
 
@@ -251,7 +255,61 @@ void ActiveParticleType_SinkParticle::DescribeSupplementalData(ActiveParticleFor
 
 int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
 {
+  hid_t SinkParticleGroupID = H5Gcreate(group_id,"SinkParticle",0);
+
+  writeScalarAttribute(SinkParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);  
+
   ActiveParticleType_SinkParticle *ParticlesToWrite = static_cast<ActiveParticleType_SinkParticle *>(these_particles);
+
+    char *ParticlePositionLabel[] =
+     {"position_x", "position_y", "position_z"};
+  char *ParticleVelocityLabel[] =
+     {"velocity_x", "velocity_y", "velocity_z"};
+
+  /* Create temporary buffers to store particle data */
+
+  FLOAT Position[GridRank][n];
+  float Velocity[GridRank][n]; 
+  double Mass[n];
+  float BirthTime[n];
+  float DynamicalTime[n];
+  float Metallicity[n];
+  
+  FLOAT *pos;
+  float *vel;
+
+  int i,dim;
+
+  hsize_t TempInt;
+  TempInt = n;
+    
+  for (i=0;i<n;i++) {
+    pos = ParticlesToWrite[i].ReturnPosition();
+    vel = ParticlesToWrite[i].ReturnVelocity();
+        for (dim = 0; dim < GridRank; dim++) {
+      Position[dim][i] = pos[dim];
+      Velocity[dim][i] = vel[dim];
+    }
+    Mass[i] = ParticlesToWrite[i].ReturnMass();
+    BirthTime[i] = ParticlesToWrite[i].ReturnBirthTime();
+    DynamicalTime[i] = ParticlesToWrite[i].ReturnDynamicalTime();
+    Metallicity[i] = ParticlesToWrite[i].ReturnMetallicity();
+  }
+
+  for (dim = 0; dim < GridRank; dim++) {
+    WriteDataset(1,&TempInt,ParticlePositionLabel[dim],
+		 SinkParticleGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
+  }
+  
+  for (dim = 0; dim < GridRank; dim++) {
+    WriteDataset(1,&TempInt,ParticleVelocityLabel[dim],
+		  SinkParticleGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
+  }
+  
+  WriteDataset(1,&TempInt,"mass",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"creation_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
+  WriteDataset(1,&TempInt,"dynamical_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
+  WriteDataset(1,&TempInt,"metallicity_fraction",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
 
   return SUCCESS;
 }
@@ -259,7 +317,55 @@ int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType *these_par
 int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id)
 {
 
+  hid_t SinkParticleGroupID = H5Gopen(group_id,"SinkParticle");
 
+  readAttribute(SinkParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",n);
+
+  char *ParticlePositionLabel[] =
+     {"position_x", "position_y", "position_z"};
+  char *ParticleVelocityLabel[] =
+     {"velocity_x", "velocity_y", "velocity_z"};
+
+  FLOAT Position[GridRank][*n];
+  float Velocity[GridRank][*n]; 
+  double Mass[*n];
+  float BirthTime[*n];
+  float DynamicalTime[*n];
+  float Metallicity[*n];
+  
+  int i,dim;
+
+  hsize_t TempInt;
+  TempInt = *n;
+  
+  for (dim = 0; dim < GridRank; dim++) {
+    ReadDataset(1,&TempInt,ParticlePositionLabel[dim],
+		  SinkParticleGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
+  }
+
+  for (dim = 0; dim < GridRank; dim++) {
+    ReadDataset(1,&TempInt,ParticleVelocityLabel[dim],
+		  SinkParticleGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
+  }
+  ReadDataset(1,&TempInt,"mass",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
+  ReadDataset(1,&TempInt,"creation_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
+  ReadDataset(1,&TempInt,"dynamical_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
+  ReadDataset(1,&TempInt,"metallicity_fraction",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+
+  for (i = 0; i < *n; i++) {
+    ActiveParticleType_SinkParticle *np = new ActiveParticleType_SinkParticle;
+    particles_to_read[i] = np;
+    np = new ActiveParticleType_SinkParticle();
+    np->Mass = Mass[i];
+    np->type = SinkParticle;
+    np->BirthTime = DynamicalTime[i];
+    np->Metallicity = Metallicity[i];
+    for (dim = 0; dim < GridRank; dim++){
+      np->pos[dim] = Position[dim][i];
+      np->vel[dim] = Velocity[dim][i];
+    }
+  }
+  return SUCCESS;
   return SUCCESS;
 }
 

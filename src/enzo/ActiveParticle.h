@@ -74,8 +74,9 @@ public:
   void  AssignCurrentGrid(grid *a) { this->CurrentGrid = a; };
   void  AddMass(double dM) { Mass += dM; };
 
-  FLOAT *ReturnPosition(void) { return pos; }
-  float *ReturnVelocity(void) { return vel; }
+  FLOAT *ReturnPosition(void) { return pos; };
+  float *ReturnVelocity(void) { return vel; };
+  float ReturnMetallicity(void) { return Metallicity; };
   void   ConvertAllMassesToSolar(void);
   void   ConvertMassToSolar(void);
   void   Merge(ActiveParticleType *a);
