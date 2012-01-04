@@ -53,8 +53,10 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   /* Update the star particle counters. */
 
-  CommunicationUpdateStarParticleCount(Grids, MetaData, NumberOfGrids,
-				       TotalStarParticleCountPrevious);
+  // Needs to be implimented
+
+  //CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
+  //                                       TotalStarParticleCountPrevious);
 
   /* Update position and velocity of star particles from the actual
      particles */

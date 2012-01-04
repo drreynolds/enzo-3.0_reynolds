@@ -374,13 +374,13 @@ int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], 
 						       int ThisLevel, int TotalStarParticleCountPrevious[],
 						       int SinkParticleID)
 {
-  /* Mergers only happen on the maximum refinement level.  If we are on a higher level, this does not concern us */
+  /* Sink particles live on the maximum refinement level.  If we are on a lower level, this does not concern us */
   
   if (ThisLevel == MaximumRefinementLevel)
     {
       /* Generate list of all sink particles in the simulation box */
       
-      int i,nParticles,NumberOfMergedParticles; 
+      int nParticles,NumberOfMergedParticles; 
       ActiveParticleType_SinkParticle **SinkParticleList;
 
       // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
@@ -404,17 +404,6 @@ int ActiveParticleType_SinkParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], 
 
   return SUCCESS;
 }
-
-int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalStarParticleCountPrevious[],
-						      int SinkParticleID)
-{
-
-
-  return SUCCESS;
-}
-
 
 int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleType_SinkParticle** SinkParticleList, FLOAT LinkingLength,int ngroups, LevelHierarchyEntry *LevelArray[])
 {
@@ -462,6 +451,41 @@ int ActiveParticleType_SinkParticle::MergeSinks(int nParticles, ActiveParticleTy
   return SUCCESS;
 }
 
+int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int SinkParticleID)
+{
+
+  /* Sink particles live on the maximum refinement level.  If we are on a lower level, this does not concern us */
+
+  if (ThisLevel == MaximumRefinementLevel)
+    {
+
+      /* Generate a list of all sink particles in the simulation box */
+      int i,nParticles;
+      ActiveParticelType_SinkParticle **SinkParticleList ;
+
+      // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
+
+      /* Calculate CellWidth on maximum refinement level */
+
+      FLOAT dx = (RomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+
+      /* Accrete gas onto each particle */
+      
+      for (i=0;i++;i<nParticles) {
+	if (SinkAccrete(SinkParticleList[i],AccretionRadius*dx,LevelArray) == FAIL){
+	  ENZO_FAIL("SinkParticle accretion failed")
+	}
+      }
+
+    }
+
+  return SUCCESS;
+}
+
+int ActiveParticleType_SinkParticle::SinkAccrete(ActiveParticleType_SinkParticle* SinkParticle, FLOAT AccretionRadius, )
 
 class SinkParticleBufferHandler : public ParticleBufferHandler
 {
