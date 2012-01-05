@@ -29,6 +29,7 @@
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
+class ParticleBufferHandler;
 
 class ActiveParticleType
 {
@@ -42,6 +43,7 @@ public:
 			  hid_t data_type, void *data);
   int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			 hid_t data_type, void *read_to);
+
   /* Several pure virtual functions */
   
   /* This should return the number of new star particles created, and should
@@ -51,8 +53,10 @@ public:
 //  ActiveParticleType(ActiveParticleType*& part){};
 
   ActiveParticleType(void);
+  ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
   ActiveParticleType(grid *_grid, int _id, int _level);
   ActiveParticleType(ActiveParticleType*& part);
+  ActiveParticleType(ParticleBufferHandler *buffer, int index);
   ~ActiveParticleType(void);
 
   void operator=(ActiveParticleType *a);
@@ -63,16 +67,21 @@ public:
   double ReturnMass(void) { return Mass; };
   float ReturnBirthTime(void) { return BirthTime; };
   float ReturnDynamicalTime(void) { return DynamicalTime; };
-  star_type ReturnType(void) {return type; };
+  float ReturnMetallicity(void) { return Metallicity; };
+  int   ReturnType(void) { return type; };
   int   ReturnLevel(void) { return level; };
+  int   ReturnDestProcessor(void) { return dest_processor; };
+  int   ReturnGridID(void) { return GridID; };
+  grid *ReturnCurrentGrid(void) { return CurrentGrid; };
 
   void  ReduceLevel(void) { level--; };
   void  IncreaseLevel(void) { level++; };
   void  SetLevel(int i) { level = i; };
   void  SetGridID(int i) { GridID = i; };
-  grid *ReturnCurrentGrid(void) { return CurrentGrid; };
+  void  SetDestProcessor(int i) { dest_processor = i; };
   void  AssignCurrentGrid(grid *a) { this->CurrentGrid = a; };
   void  AddMass(double dM) { Mass += dM; };
+  void  AdjustMassByFactor(double factor) { Mass *= factor; };
 
   FLOAT *ReturnPosition(void) { return pos; };
   float *ReturnVelocity(void) { return vel; };
@@ -80,8 +89,7 @@ public:
   void   ConvertAllMassesToSolar(void);
   void   ConvertMassToSolar(void);
   void   Merge(ActiveParticleType *a);
-  bool  Mergable(ActiveParticleType *a);
-  bool  MergableMBH(ActiveParticleType *a);
+  //bool  MergableMBH(ActiveParticleType *a);
   float Separation(ActiveParticleType *a);
   float Separation2(ActiveParticleType *a);
   float RelativeVelocity2(ActiveParticleType *a);
@@ -99,6 +107,7 @@ public:
   /* Virtual and pure virtual functions in this base class */
 
   virtual bool IsARadiationSource(FLOAT Time) { return FALSE; };
+  virtual bool Mergable(ActiveParticleType *a);
   virtual int GetEnabledParticleID(int id = -1) = 0;
 
 #ifdef TRANSFER
@@ -116,7 +125,8 @@ protected:
   PINT Identifier;
   int level;
   int GridID;
-  star_type type;
+  int dest_processor;  // used for communication
+  int type;
   
   bool Active;
   int EnabledParticleID;
@@ -125,8 +135,33 @@ private: /* Cannot be accessed by subclasses! */
   
   friend class grid;
   friend class ActiveParticleType_info;
+  friend class ParticleBufferHandler;
 
 };
+
+/* Comparer functions for sorting particle buffers with std::sort */
+
+struct cmp_ap_grid {
+  bool operator()(ActiveParticleType* const& a, ActiveParticleType* const& b) const {
+    if (a->ReturnGridID() < b->ReturnGridID()) return true;
+    else return false;
+  }
+};
+
+struct cmp_ap_proc {
+  bool operator()(ActiveParticleType* const& a, ActiveParticleType* const& b) const {
+    if (a->ReturnDestProcessor() < b->ReturnDestProcessor()) return true;
+    else return false;
+  }
+};
+
+struct cmp_ap_type {
+  bool operator()(ActiveParticleType* const& a, ActiveParticleType* const& b) const {
+    if (a->ReturnType() < b->ReturnType()) return true;
+    else return false;
+  }
+};
+
 
 struct ActiveParticleFormationData {
   int NumberOfNewParticles;
@@ -155,8 +190,10 @@ struct ActiveParticleFormationData {
   int TENum;
   int GENum;
   int MetalNum;
+  int MetalIaNum;
   int ColourNum;
   int level;
+  int GridID;
 };
 
 const struct ActiveParticleFormationData data_default = {
@@ -182,8 +219,10 @@ const struct ActiveParticleFormationData data_default = {
   -1,       // TENum
   -1,       // GENum
   -1,       // MetalNum
+  -1,       // MetalIaNum
   -1,       // ColourNum
-  -1        // level
+  -1,       // level
+  -1        // GridID
 };
 
 
@@ -223,9 +262,37 @@ void EnableActiveParticleType(char *active_particle_type_name);
 class ParticleBufferHandler
 {
 public:
-  ParticleBufferHandler() {};
-  ~ParticleBufferHandler() {};
+  ParticleBufferHandler(void);
+  ParticleBufferHandler(int NumberOfParticles);
+  ParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
+  ~ParticleBufferHandler();
   /*virtual void WriteBuffers(hid_t group);*/
+  int _AllocateBuffer(char *buffer, int &buffer_size, int &position); // helper function for derived classes
+  void CalculateElementSize(void);
+  void AllocateMemory(void);
+  int ReturnHeaderSize(void) { return HeaderSizeInBytes; };
+  int ReturnElementSize(void) { return ElementSizeInBytes; };
+  int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
+  int _UnpackBuffer(char *buffer, int buffer_size, int &position);
+
+protected:
+  int NumberOfBuffers;
+  int HeaderSizeInBytes;
+  int ElementSizeInBytes;
+  FLOAT	*pos[MAX_DIMENSION];
+  float *vel[MAX_DIMENSION];
+  double *Mass;		// Msun
+  float *BirthTime;
+  float *DynamicalTime;      
+  float *Metallicity;
+  PINT *Identifier;
+  int *level;
+  int *GridID;
+  int *type;
+  int *proc;
+
+  friend class ActiveParticleType;
+
 };
 
 class ActiveParticleType_info
@@ -237,10 +304,13 @@ public:
   (std::string this_name,
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
-   ParticleBufferHandler *(*abfunc)(int NumberOfParticles),
+   void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
+		  int &position, int proc),
+   void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+		  ActiveParticleType **np, int &npart),
    int (*ifunc)(),
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
-   int (*writefunc)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id),
+   int (*writefunc)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id),
    int (*readfunc)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id),
    int (*belfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -250,12 +320,15 @@ public:
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
-   ActiveParticleType *particle
+   ActiveParticleType *particle,
+   ParticleBufferHandler *buffer
    ){
     this->formation_function = ffunc;
     this->describe_data_flags = dfunc;
-    this->allocate_buffers = abfunc;
+    this->allocate_buffer = abfunc;
+    this->unpack_buffer = unfunc;
     this->particle_instance = particle;
+    this->buffer_instance = buffer;
     this->initialize = ifunc;
     this->feedback_function = feedfunc;
     this->write_function = writefunc;
@@ -278,7 +351,7 @@ public:
   int (*initialize)(void);
   int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  int (*write_function)(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  int (*write_function)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   int (*before_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -289,8 +362,13 @@ public:
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
-  ParticleBufferHandler* (*allocate_buffers)(int NumberOfParticles);
+  void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
+			  int &position, int proc);
+  void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
+			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;
+  ParticleBufferHandler* buffer_instance;
+
 private:
   /* This is distinct from the global as a redundant error-checking
      pattern */
@@ -300,22 +378,25 @@ private:
 
 };
 
-template <class active_particle_class>
+template <class active_particle_class, class particle_buffer_handler>
 ActiveParticleType_info *register_ptype(std::string name)
 {
   active_particle_class *pp = new active_particle_class();
+  particle_buffer_handler *buffer = new particle_buffer_handler();
   ActiveParticleType_info *pinfo = new ActiveParticleType_info
     (name,
      (&active_particle_class::EvaluateFormation),
      (&active_particle_class::DescribeSupplementalData),
-     (&active_particle_class::AllocateBuffers),
+     (&particle_buffer_handler::AllocateBuffer),
+     (&particle_buffer_handler::UnpackBuffer),
      (&active_particle_class::InitializeParticleType),
      (&active_particle_class::EvaluateFeedback),
      (&active_particle_class::WriteToOutput),
      (&active_particle_class::ReadFromOutput),
      (&active_particle_class::BeforeEvolveLevel),
      (&active_particle_class::AfterEvolveLevel),
-     pp);
+     pp,
+     buffer);
   return pinfo;
 }
 

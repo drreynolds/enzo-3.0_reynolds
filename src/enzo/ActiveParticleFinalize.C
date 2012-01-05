@@ -34,37 +34,35 @@
 
 /* prototypes */
 
-int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
+int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 					 TopGridData *MetaData,
 					 int NumberOfGrids,
-					 int TotalStarParticleCountPrevious[]);
+					 int TotalActiveParticleCountPrevious[]);
 
 
 int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int level, int TotalStarParticleCountPrevious[])
+			   int level, int TotalActiveParticleCountPrevious[])
 {
   int i;
 
-  if (!StarParticleCreation && !StarParticleFeedback)
-    return SUCCESS;
+  if (EnabledActiveParticlesCount == 0) return SUCCESS;
 
   LCAPERF_START("ActiveParticleFinalize");
 
   /* Update the star particle counters. */
 
-  // Needs to be implimented
-
-  //CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
-  //                                       TotalStarParticleCountPrevious);
-
+  CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
+					 TotalActiveParticleCountPrevious);
   /* Update position and velocity of star particles from the actual
-     particles */
+     particles.  Moved to after RebuildHierarchy in EvolveLevel. */
 
+#ifdef UNUSED
   int grid_num;
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
-    Grids[grid_num]->GridData->MirrorActiveParticles(COPY_IN);
+    Grids[grid_num]->GridData->DetachActiveParticles();
   } // ENDFOR grids
+#endif
   
   /* Call finalization routines for each active particle type  */
 
@@ -76,9 +74,10 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
     ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
     
 
-    ActiveParticleTypeToEvaluate->after_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
-							     level,TotalStarParticleCountPrevious,
-							     ActiveParticleID);
+    ActiveParticleTypeToEvaluate->
+      after_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
+				 level,TotalActiveParticleCountPrevious,
+				 ActiveParticleID);
 
   }
 

@@ -46,13 +46,13 @@ void grid::SortParticlesByNumber()
  
   float **DragList1 = new float*[GridRank+1+NumberOfParticleAttributes];
   FLOAT **DragList2 = new FLOAT*[GridRank];
-  int   **DragList3 = new int*[1];
+  //int   **DragList3 = new int*[FieldsToDrag];
   for (dim = 0; dim < GridRank; dim++) {
     DragList2[dim] = ParticlePosition[dim];
     DragList1[dim] = ParticleVelocity[dim];
   }
   DragList1[GridRank] = ParticleMass;
-  DragList3[0]        = ParticleType;
+  //DragList3[0]        = ParticleType;
   for (j = 0; j < NumberOfParticleAttributes; j++)
     DragList1[GridRank+1+j] = ParticleAttribute[j];
  
@@ -60,13 +60,13 @@ void grid::SortParticlesByNumber()
  
   QuickSortAndDrag(ParticleNumber, 0, NumberOfParticles-1,
 		   GridRank+1+NumberOfParticleAttributes, DragList1,
-		   GridRank, DragList2, 1, DragList3);
+		   GridRank, DragList2, 0, NULL);
  
   /* Clean up. */
  
   delete [] DragList1;
   delete [] DragList2;
-  delete [] DragList3;
+  //delete [] DragList3;
  
   return;
 }

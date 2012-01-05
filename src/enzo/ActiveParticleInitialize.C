@@ -29,14 +29,13 @@
 #include "LevelHierarchy.h"
 #include "ActiveParticle.h"
 
-int StarParticlePopIII_IMFInitialize(void);
 int FindTotalNumberOfParticles(LevelHierarchyEntry *LevelArray[]);
-void RecordTotalStarParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
-				  int TotalStarParticleCountPrevious[]);
+void RecordTotalActiveParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
+				    int TotalActiveParticleCountPrevious[]);
 
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			     int ThisLevel, int TotalStarParticleCountPrevious[])
+			     int ThisLevel, int TotalActiveParticleCountPrevious[])
 {
 
   int i;
@@ -46,23 +45,23 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   LCAPERF_START("ActiveParticleInitialize");
 
-  /* Set MetaData->NumberOfParticles and prepare TotalStarParticleCountPrevious
-     these are to be used in CommunicationUpdateStarParticleCount 
-     in StarParticleFinalize */  
+  /* Set MetaData->NumberOfParticles and prepare TotalActiveParticleCountPrevious
+     these are to be used in CommunicationUpdateActiveParticleCount 
+     in ActiveParticleFinalize */  
 
   MetaData->NumberOfParticles = FindTotalNumberOfParticles(LevelArray);
-  NumberOfOtherParticles = MetaData->NumberOfParticles - NumberOfStarParticles;
-  RecordTotalStarParticleCount(Grids, NumberOfGrids, 
-			       TotalStarParticleCountPrevious);
+  NumberOfOtherParticles = MetaData->NumberOfParticles;// - NumberOfActiveParticles;
+  RecordTotalActiveParticleCount(Grids, NumberOfGrids, 
+				 TotalActiveParticleCountPrevious);
 
   
   /* Active particle initialization
-     1. mirror quantities from active to normal particles
+     1. copy quantities from active to normal particles
   */
 
   int grid_num;
   for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
-    Grids[grid_num]->GridData->MirrorActiveParticles(COPY_OUT);
+    Grids[grid_num]->GridData->AppendActiveParticles();
   } // ENDFOR grids
 
   /* 2. Call initialization routines for each active particle type */
@@ -75,7 +74,7 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
     ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
 
     ActiveParticleTypeToEvaluate->before_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
-							      ThisLevel,TotalStarParticleCountPrevious,
+							      ThisLevel,TotalActiveParticleCountPrevious,
 							      ActiveParticleID);
 
   }

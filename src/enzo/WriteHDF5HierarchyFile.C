@@ -118,7 +118,7 @@ int WriteHDF5HierarchyFile(char *base_name, HierarchyEntry *TopGrid, TopGridData
 
   if (StarParticleCreation) {
     // Add NumberOfStarParticles attribute to the root group
-    HDF5_WriteAttribute(file_id, "NumberOfStarParticles", NumberOfStarParticles, log_fptr);
+    HDF5_WriteAttribute(file_id, "NumberOfActiveParticles", NumberOfActiveParticles, log_fptr);
     
     // Add NumberOfOtherParticles attribute to the root group
     HDF5_WriteAttribute(file_id, "NumberOfOtherParticles", NumberOfOtherParticles, log_fptr);

@@ -49,7 +49,12 @@ ActiveParticleType::ActiveParticleType(void)
   for (dim = 0; dim < MAX_DIMENSION; dim++)
     pos[dim] = vel[dim] = 0.0;
   Mass = BirthTime = DynamicalTime = 0.0;
-  Identifier = level = GridID = type = 0;
+  level = GridID = type = 0;
+  Active = false;
+
+  /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
+     in ActiveParticleFinalize.*/
+  Identifier = INT_UNDEFINED;
 }
 
 ActiveParticleType::ActiveParticleType(ActiveParticleType*& part)
@@ -59,8 +64,31 @@ ActiveParticleType::ActiveParticleType(ActiveParticleType*& part)
   for (dim = 0; dim < MAX_DIMENSION; dim++)
     pos[dim] = vel[dim] = 0.0;
   Mass = BirthTime = DynamicalTime = 0.0;
-  Identifier = level = GridID = type = 0;
+  level = GridID = type = 0;
+  Active = false;
+
+  /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
+     in ActiveParticleFinalize.*/
+  Identifier = INT_UNDEFINED;
 }
+
+ActiveParticleType::ActiveParticleType(grid *_grid, ActiveParticleFormationData &data)
+{
+  int dim;
+  CurrentGrid = _grid;
+  for (dim = 0; dim < MAX_DIMENSION; dim++)
+    pos[dim] = vel[dim] = 0.0;
+  Mass = BirthTime = DynamicalTime = 0.0;
+  type = 0;
+  level = data.level;
+  GridID = data.GridID;
+  Active = false;
+
+  /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
+     in ActiveParticleFinalize.*/
+  Identifier = INT_UNDEFINED;
+}
+
 
 ActiveParticleType::ActiveParticleType(grid *_grid, int _id, int _level)
 {
@@ -74,6 +102,7 @@ ActiveParticleType::ActiveParticleType(grid *_grid, int _id, int _level)
   }
   CurrentGrid = _grid;
   level = _level;
+  Active = false;
 
   GridID = _grid->ID;
   type = _grid->ParticleType[_id];
@@ -85,6 +114,23 @@ ActiveParticleType::ActiveParticleType(grid *_grid, int _id, int _level)
 //  DynamicalTime = _grid->ParticleAttribute[1][_id];
 //  Metallicity = _grid->ParticleAttribute[2][_id];
   this->ConvertMassToSolar();
+}
+
+ActiveParticleType::ActiveParticleType(ParticleBufferHandler *buffer, int index)
+{
+  int dim;
+  for (dim = 0; dim < MAX_DIMENSION; dim++) {
+    pos[dim] = buffer->pos[dim][index];
+    vel[dim] = buffer->vel[dim][index];
+  }
+  Mass = buffer->Mass[index];
+  BirthTime = buffer->BirthTime[index];
+  DynamicalTime = buffer->DynamicalTime[index];
+  Metallicity = buffer->Metallicity[index];
+  Identifier = buffer->Identifier[index];
+  level = buffer->level[index];
+  GridID = buffer->GridID[index];
+  type = buffer->type[index];
 }
 
 /* No need to delete the accretion arrays because the pointers are
@@ -200,11 +246,13 @@ bool ActiveParticleType::Mergable(ActiveParticleType *a)
   return type == a->type && type < 0;
 }
 
+#ifdef UNUSED
 bool ActiveParticleType::MergableMBH(ActiveParticleType *a)
 {
   // Merge MBH particle with another 
   return type == a->type && type == MBH;
 }
+#endif
 
 float ActiveParticleType::Separation2(ActiveParticleType *a)
 {

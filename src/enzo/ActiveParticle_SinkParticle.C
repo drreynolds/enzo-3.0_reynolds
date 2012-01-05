@@ -71,8 +71,12 @@ class SinkParticleGrid : private grid {
 class ActiveParticleType_SinkParticle : public ActiveParticleType
 {
 public:
+  // Constructors
+  ActiveParticleType_SinkParticle(void) : ActiveParticleType() {};
+  ActiveParticleType_SinkParticle(ParticleBufferHandler *buffer, int index) :
+    ActiveParticleType(buffer, index) {};
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
@@ -257,13 +261,12 @@ void ActiveParticleType_SinkParticle::DescribeSupplementalData(ActiveParticleFor
 }
 
 
-int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
 {
   hid_t SinkParticleGroupID = H5Gcreate(group_id,"SinkParticle",0);
 
   writeScalarAttribute(SinkParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);  
 
-  ActiveParticleType_SinkParticle *ParticlesToWrite = static_cast<ActiveParticleType_SinkParticle *>(these_particles);
 
     char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};
@@ -499,18 +502,51 @@ int ActiveParticleType_SinkParticle::SinkAccrete(int nParticles, ActiveParticleT
 
 class SinkParticleBufferHandler : public ParticleBufferHandler
 {
-  public:
-    SinkParticleBufferHandler(int NumberOfParticles) { }
+public:
+  // No extra fields in SinkParticle.  Same base constructor.
+  SinkParticleBufferHandler(void) : ParticleBufferHandler() {};
+  SinkParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+  };
+  SinkParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
+    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
+    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+  };
+  ~SinkParticleBufferHandler() {};
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
+			     int &buffer_size, int &position, int proc=-1);
+  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+			   ActiveParticleType **np, int &npart);
 };
 
-ParticleBufferHandler *ActiveParticleType_SinkParticle::AllocateBuffers(int NumberOfParticles)
+void SinkParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
+					      char *buffer, int &buffer_size,
+					      int &position, int proc)
 {
-    SinkParticleBufferHandler *handler = new SinkParticleBufferHandler(NumberOfParticles);
-    return handler;
+  ActiveParticleType_SinkParticle *dummy = new ActiveParticleType_SinkParticle();
+  int type_num = dummy->GetEnabledParticleID();
+  SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(np, NumberOfParticles, type_num, proc);
+  pbuffer->_AllocateBuffer(buffer, buffer_size, position);
+  delete dummy;
+  delete pbuffer;
+  return;
+}
+
+void SinkParticleBufferHandler::UnpackBuffer
+(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+ ActiveParticleType **np, int &npart)
+{
+  int i, position;
+  SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(NumberOfParticles);
+  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
+  /* Convert the particle buffer into active particles */
+  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
+    np[npart++] = new ActiveParticleType_SinkParticle(pbuffer, i);
+  return;
 }
 
 
 namespace {
   ActiveParticleType_info *SinkParticleInfo = 
-    register_ptype <ActiveParticleType_SinkParticle> ("SinkParticle");
+    register_ptype <ActiveParticleType_SinkParticle, SinkParticleBufferHandler> 
+    ("SinkParticle");
 }

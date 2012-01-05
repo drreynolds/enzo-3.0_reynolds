@@ -57,6 +57,10 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
   if (NumberOfBaryonFields == 0)
     return SUCCESS;
 
+  /* Get the current particle positions and velocities */
+
+  this->MirrorActiveParticles();
+
   /*fprintf(stderr, "G_APH: Currently have %"ISYM"\n",
           this->NumberOfActiveParticles);*/
  
@@ -83,6 +87,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   struct ActiveParticleFormationData supplemental_data = data_default;
   supplemental_data.level = level;
+  supplemental_data.GridID = this->ID;
 
   ActiveParticleType::ConstructData(this, flags, supplemental_data);
 
@@ -106,31 +111,23 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
    * array */
 
   if (NumberOfNewParticles > 0) {
-    int OldNumberOfActiveParticles = this->NumberOfActiveParticles;
-    ActiveParticleType **OldActiveParticles = this->ActiveParticles;
-
-    this->NumberOfActiveParticles += NumberOfNewParticles;
-    this->ActiveParticles = new ActiveParticleType*[this->NumberOfActiveParticles];
-    for (i = 0; i < OldNumberOfActiveParticles; i++) {
-      this->ActiveParticles[i] = OldActiveParticles[i];
-    }
-    for (i = 0; i < NumberOfNewParticles; i++) {
-      this->ActiveParticles[OldNumberOfActiveParticles + i] =
-        supplemental_data.NewParticles[i];
-    }
-    assert((NumberOfNewParticles + OldNumberOfActiveParticles)
-        == this->NumberOfActiveParticles);
-    delete[] OldActiveParticles; 
+    // Add new particles to "normal" particle arrays and ActiveParticles
+    this->AppendNewActiveParticles(supplemental_data.NewParticles, 
+				   NumberOfNewParticles);
+    this->AddActiveParticles(supplemental_data.NewParticles,
+			     NumberOfNewParticles);
+    printf("Creating %d new active particles\n", NumberOfNewParticles);
   }
 
   /******************** FEEDBACK ********************/
 
   /* Now we iterate */
-  for (i = 0; i < EnabledActiveParticlesCount; i++)
-  {
-    ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-    ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
-  }
+  if (NumberOfActiveParticles > 0)
+    for (i = 0; i < EnabledActiveParticlesCount; i++)
+      {
+	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+	ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
+      }
   
   ActiveParticleType::DestroyData(this, supplemental_data);
 

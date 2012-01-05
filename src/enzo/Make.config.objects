@@ -19,8 +19,8 @@
 #        ActiveParticle_PopIII.o \
 #        ActiveParticle_SampleParticle.o \
 #        ActiveParticle_SpringelHernquist.o \
-
-
+#	ActiveParticle_SinkParticle.o \
+#	ActiveParticle_UnpackBuffer.o \
 
 OBJS_CONFIG_LIB = \
         acml_st1.o \
@@ -28,11 +28,11 @@ OBJS_CONFIG_LIB = \
 	ActiveParticleFinalize.o \
 	ActiveParticleInitialize.o \
 	ActiveParticleRoutines.o \
+        ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
-	ActiveParticle_SphereContained.o \
 	ActiveParticle_SinkParticle.o \
-        ActiveParticle_CenOstriker.o \
+	ActiveParticle_SphereContained.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
         AdjustMustRefineParticlesRefineToLevel.o \
@@ -94,6 +94,7 @@ OBJS_CONFIG_LIB = \
         CommunicationReceiveFluxes.o \
         CommunicationReceiveHandler.o \
         CommunicationSendFluxes.o \
+	CommunicationShareActiveParticles.o \
         CommunicationShareGrids.o \
         CommunicationShareParticles.o \
         CommunicationShareStars.o \
@@ -102,6 +103,7 @@ OBJS_CONFIG_LIB = \
         CommunicationTransferStarsOpt.o \
 	CommunicationTransferSubgridParticles.o \
         CommunicationTranspose.o \
+        CommunicationUpdateActiveParticleCount.o \
         CommunicationUpdateStarParticleCount.o \
         CommunicationUtilities.o \
 	ConductionBubbleInitialize.o \
@@ -311,6 +313,7 @@ OBJS_CONFIG_LIB = \
 	Grid_AccelerationBoundaryRoutines.o \
 	Grid_AccessBaryonFields.o \
 	Grid_ActiveParticleHandler.o \
+	Grid_AddActiveParticles.o \
 	Grid_AddBaryonsToGravitatingMassField.o \
 	Grid_AddExternalAcceleration.o \
 	Grid_AddExternalPotentialField.o \
@@ -323,7 +326,9 @@ OBJS_CONFIG_LIB = \
 	Grid_AddToBoundaryFluxes.o \
 	Grid_AllocateGrids.o \
 	Grid_AnalyzeTrackPeaks.o \
+	Grid_AppendActiveParticles.o \
 	Grid_AppendForcingToBaryonFields.o \
+	Grid_AppendNewActiveParticles.o \
 	Grid_ApplyTimeAction.o \
 	Grid_AveragedVelocityAtCell.o \
 	Grid_CalculateAngularMomentum.o \
@@ -343,12 +348,14 @@ OBJS_CONFIG_LIB = \
 	Grid_ClearParticleAccelerations.o \
 	Grid_ClearParticleMassFlaggingField.o \
 	Grid_CollapseTestInitializeGrid.o \
+	Grid_CollectActiveParticles.o \
         Grid_CollectGridInformation.o \
         Grid_CollectParticles.o \
         Grid_CollectParticleMassFlaggingField.o \
         Grid_CollectStars.o \
 	Grid_CommunicationMoveGrid.o \
 	Grid_CommunicationReceiveRegion.o \
+	Grid_CommunicationSendActiveParticles.o \
 	Grid_CommunicationSendParticles.o \
 	Grid_CommunicationSendStars.o \
 	Grid_CommunicationSendRegion.o \
@@ -413,6 +420,7 @@ OBJS_CONFIG_LIB = \
 	Grid_DepositParticlePositionsLocal.o \
 	Grid_DepositPositions.o \
 	Grid_destructor.o \
+	Grid_DetachActiveParticles.o \
 	Grid_DetachForcingFromBaryonFields.o \
 	Grid_DoubleMachInitializeGrid.o \
 	Grid_FastSiblingLocatorAddGrid.o \
@@ -482,11 +490,12 @@ OBJS_CONFIG_LIB = \
         Grid_InterpolateStarParticlesToGrid.o \
 	Grid_KHInitializeGrid.o \
         Grid_MagneticFieldResetter.o \
-	Grid_MirrorStarParticles.o \
 	Grid_MirrorActiveParticles.o \
+	Grid_MirrorStarParticles.o \
 	Grid_MoveAllParticles.o \
 	Grid_MoveAllStars.o \
 	Grid_MoveParticlesFOF.o \
+	Grid_MoveSubgridActiveParticles.o \
 	Grid_MoveSubgridParticlesFast.o \
 	Grid_MoveSubgridParticles.o \
 	Grid_MoveSubgridStars.o \
@@ -576,6 +585,7 @@ OBJS_CONFIG_LIB = \
         Grid_TracerParticleCreateParticles.o \
         Grid_TracerParticleOutputData.o \
         Grid_TracerParticleSetVelocity.o \
+        Grid_TransferSubgridActiveParticles.o \
         Grid_TransferSubgridParticles.o \
         Grid_TransferSubgridStars.o \
         Grid_TurbulenceSimulationInitialize.o \
@@ -681,6 +691,9 @@ OBJS_CONFIG_LIB = \
 	OutputSmoothedDarkMatterOnly.o \
         P_ColumnFormat.o \
 	ParticleMergeRoutines.o \
+	ParticleBufferHandler.o \
+	ParticleBufferHandler_AllocateBuffer.o \
+	ParticleBufferHandler_UnpackBuffer.o \
         ParticleSplitter.o \
 	performance.o \
         pgas2d_dual.o \
@@ -751,6 +764,7 @@ OBJS_CONFIG_LIB = \
         RebuildHierarchy.o \
         RecalibrateAccretingMass.o \
         RecalibrateMBHFeedbackThermalRadius.o \
+	RecordTotalActiveParticleCount.o \
         ReduceFragmentation.o \
         remap.o \
         ReportMemoryUsage.o \

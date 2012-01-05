@@ -8,6 +8,7 @@
 #include <map>
 #include <iostream>
 #include <stdexcept>
+#include <typeinfo>
 #include <vector>
 #include <stdio.h>
 #include <math.h>
@@ -75,19 +76,29 @@ class CenOstrikerGrid : private grid {
 class ActiveParticleType_CenOstriker : public ActiveParticleType
 {
 public:
+  // Constructors
+  ActiveParticleType_CenOstriker(void) : ActiveParticleType() {};
+  ActiveParticleType_CenOstriker(ParticleBufferHandler *buffer, int index) :
+    ActiveParticleType(buffer, index) {
+    // Add any additional fields here
+#ifdef EXAMPLE
+    field = buffer->field[index];
+#endif
+  };
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
-  static int WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id);
+  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
+  static void UnpackBuffer(ActiveParticleType *np, ParticleBufferHandler **buffer, int place);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
-    static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			       int ThisLevel, int TotalStarParticleCountPrevious[],
+			       int ThisLevel, int TotalActiveParticleCountPrevious[],
 			       int CenOstrikerID);
   static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			      int ThisLevel, int TotalStarParticleCountPrevious[],
+			      int ThisLevel, int TotalActiveParticleCountPrevious[],
 			      int CenOstrikerID);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -100,7 +111,10 @@ public:
   static bool JeansMassCriterion, StochasticStarFormation, UnigridVelocities, 
     PhysicalOverdensity, dtDependence;
 
+  friend class ParticleBufferHandler;
 };
+
+/* Defaults for parameters */
 
 float ActiveParticleType_CenOstriker::OverdensityThreshold = FLOAT_UNDEFINED;
 float ActiveParticleType_CenOstriker::MassEfficiency = FLOAT_UNDEFINED;
@@ -278,11 +292,14 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker();
 	data.NewParticles[data.NumberOfNewParticles++] = np;
 
+	np->level = data.level;
+	np->GridID = data.GridID;
+	np->CurrentGrid = thisgrid_orig;
+
 	np->Mass = StarFraction*density[index];
-	np->type = CenOstriker;
+	np->type = np->GetEnabledParticleID();
 	np->BirthTime = thisGrid->ReturnTime();
 	np->DynamicalTime = DynamicalTime;
-
 
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
@@ -321,8 +338,6 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 {
   CenOstrikerGrid *thisGrid =
     static_cast<CenOstrikerGrid *>(thisGrid_orig);
-  ActiveParticleType_CenOstriker *particles = 
-    static_cast<ActiveParticleType_CenOstriker*>(*thisGrid->ActiveParticles);
   
   float *density = thisGrid->BaryonField[data.DensNum];
   float *velx = thisGrid->BaryonField[data.Vel1Num];
@@ -350,7 +365,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   FLOAT ystart = thisGrid->CellLeftEdge[1][0];
   FLOAT zstart = thisGrid->CellLeftEdge[2][0];
 
-  int npart = thisGrid->NumberOfParticles;
+  int npart = thisGrid->NumberOfActiveParticles;
   int GridXSize = thisGrid->GridDimension[0];
   int GridYSize = thisGrid->GridDimension[1];
   int GridZSize = thisGrid->GridDimension[2];
@@ -361,23 +376,27 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   
   int n,i,j,k,ic,kc,jc,stepk,stepj,cellstep,DistIndex,index;
 
-  for (n=0;npart-1;n++) {
-    if (thisGrid->ActiveParticles[n]->ReturnType() == CenOstriker)
-      continue;
-  
-    //xpos = thisGrid->ActiveParticles[n]->pos[0];
-    xpos = particles[n].pos[0];
-    ypos = particles[n].pos[1];
-    zpos = particles[n].pos[2];
-  
-    xvel = particles[n].vel[0];
-    yvel = particles[n].vel[1];
-    zvel = particles[n].vel[2];
+  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
+  int type_num = dummy->GetEnabledParticleID();
+  delete dummy;
 
-    ParticleBirthTime = particles[n].BirthTime;
-    ParticleDynamicalTimeAtBirth = particles[n].DynamicalTime;
-    ParticleMass = particles[n].Mass;
-    ParticleMetalFraction = particles[n].Metallicity;
+  for (n=0; n < npart-1; n++) {
+    ActiveParticleType_CenOstriker *particle = 
+      static_cast<ActiveParticleType_CenOstriker*>(thisGrid->ActiveParticles[n]);
+    if (particle->type != type_num) continue;
+
+    xpos = particle->pos[0];
+    ypos = particle->pos[1];
+    zpos = particle->pos[2];
+  
+    xvel = particle->vel[0];
+    yvel = particle->vel[1];
+    zvel = particle->vel[2];
+
+    ParticleBirthTime = particle->BirthTime;
+    ParticleDynamicalTimeAtBirth = particle->DynamicalTime;
+    ParticleMass = particle->Mass;
+    ParticleMetalFraction = particle->Metallicity;
     
     // Determine how much of a given star particle would have been
     // turned into stars during this timestep.  Then, calculate the
@@ -410,7 +429,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
     // Check bounds - if star particle is outside of this grid then give a warning and continue
     
     if (i < 0 || i > GridXSize-1 || j < 0 || j > GridYSize-1 || k < 0 || k > GridZSize-1){
-      fprintf(stdout, "Particle out of grid; xind, yind, zind, level = %d, $d, $d, $d\n",i,j,k);
+      fprintf(stdout, "Particle out of grid; xind, yind, zind = %d, %d, %d\n",i,j,k);
       continue;
     }
       
@@ -445,7 +464,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     // Save particle mass
 
-    particles[n].Mass = ParticleMass;
+    particle->Mass = ParticleMass;
 
     // Record amount of star formation in this grid
 
@@ -577,15 +596,14 @@ int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **particle
   return SUCCESS;
 }
 
-int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_particles, int n, int GridRank, hid_t group_id)
+int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
 {
   /* Create a new subgroup within the active particle group for active particles of type CenOstriker */
 
-  hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
+  hid_t CenOstrikerGroupID;
+  CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
 
   writeScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
-
-  ActiveParticleType_CenOstriker *ParticlesToWrite = static_cast<ActiveParticleType_CenOstriker*>(these_particles);
 
   char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};
@@ -594,33 +612,34 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
 
   /* Create temporary buffers to store particle data */
 
-  FLOAT Position[GridRank][n];
-  float Velocity[GridRank][n]; 
-  double Mass[n];
-  float BirthTime[n];
-  float DynamicalTime[n];
-  float Metallicity[n];
+  FLOAT *Position[MAX_DIMENSION];
+  float *Velocity[MAX_DIMENSION]; 
+  double *Mass = new double [n];
+  float *BirthTime = new float[n];
+  float *DynamicalTime = new float[n];
+  float *Metallicity = new float[n];
   
-  FLOAT *pos;
-  float *vel;
-
   int i,dim;
+
+  for (dim = 0; dim < GridRank; dim++) {
+    Position[dim] = new FLOAT[n];
+    Velocity[dim] = new float[n];
+  }
 
   hsize_t TempInt;
   TempInt = n;
     
-
+  ActiveParticleType_CenOstriker *ParticleToWrite;
   for (i=0;i<n;i++) {
-    pos = ParticlesToWrite[i].ReturnPosition();
-    vel = ParticlesToWrite[i].ReturnVelocity();
+    ParticleToWrite = static_cast<ActiveParticleType_CenOstriker*>(these_particles[i]);
     for (dim = 0; dim < GridRank; dim++) {
-      Position[dim][i] = pos[dim];
-      Velocity[dim][i] = vel[dim];
+      Position[dim][i] = ParticleToWrite->pos[dim];
+      Velocity[dim][i] = ParticleToWrite->vel[dim];
     }
-    Mass[i] = ParticlesToWrite[i].ReturnMass();
-    BirthTime[i] = ParticlesToWrite[i].ReturnBirthTime();
-    DynamicalTime[i] = ParticlesToWrite[i].ReturnDynamicalTime();
-    Metallicity[i] = ParticlesToWrite[i].ReturnMetallicity();
+    Mass[i] = ParticleToWrite->Mass;
+    BirthTime[i] = ParticleToWrite->BirthTime;
+    DynamicalTime[i] = ParticleToWrite->DynamicalTime;
+    Metallicity[i] = ParticleToWrite->Metallicity;
   }
 
   for (dim = 0; dim < GridRank; dim++) {
@@ -630,20 +649,33 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType *these_part
 
   for (dim = 0; dim < GridRank; dim++) {
     WriteDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  CenOstrikerGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
+		  CenOstrikerGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
   }
   
-  WriteDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
-  WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
-  WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
-  WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+  WriteDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) BirthTime);
+  WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
+  WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_REAL,(VOIDP) Metallicity);
+
+  /* Clean up */
+
+  for (dim = 0; dim < GridRank; dim++) {
+    delete[] Position[dim];
+    delete[] Velocity[dim];
+  }
+  delete[] Mass;
+  delete[] BirthTime;
+  delete[] DynamicalTime;
+  delete[] Metallicity;
+
+  H5Gclose(CenOstrikerGroupID);
 
   return SUCCESS;
 }
 
 int ActiveParticleType_CenOstriker::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						       int ThisLevel, int TotalStarParticleCountPrevious[],
+						       int ThisLevel, int TotalActiveParticleCountPrevious[],
 						       int CenOstrikerID)
 {
 
@@ -653,7 +685,7 @@ int ActiveParticleType_CenOstriker::BeforeEvolveLevel(HierarchyEntry *Grids[], T
 
 int ActiveParticleType_CenOstriker::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int ThisLevel, int TotalActiveParticleCountPrevious[],
 						      int CenOstrikerID)
 {
 
@@ -663,18 +695,79 @@ int ActiveParticleType_CenOstriker::AfterEvolveLevel(HierarchyEntry *Grids[], To
 
 class CenOstrikerBufferHandler : public ParticleBufferHandler
 {
-  public:
-    CenOstrikerBufferHandler(int NumberOfParticles) { }
+public:
+  // No extra fields in CenOstriker.  Same base constructor.
+  CenOstrikerBufferHandler(void) : ParticleBufferHandler() {};
+  CenOstrikerBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+#ifdef EXAMPLE
+    this->field = new float[NumberOfParticles];
+#endif
+  };
+  CenOstrikerBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
+    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
+    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+#ifdef EXAMPLE
+    this->field = new float[this->NumberOfBuffers];
+    index = 0;
+    for (i = 0; i < NumberOfParticles; i++)
+      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
+	this->field[index] = np[i]->field;
+	index++;
+      }
+    this->ElementSizeInBytes += 1*sizeof(float);
+#endif /* EXAMPLE */
+  };
+  ~CenOstrikerBufferHandler() {
+#ifdef EXAMPLE
+    delete[] this->field;
+#endif
+  };
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
+			     int &buffer_size, int &position, int proc=-1);
+  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+			   ActiveParticleType **np, int &npart);
 };
 
-ParticleBufferHandler *ActiveParticleType_CenOstriker::AllocateBuffers(int NumberOfParticles)
+void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
+					      char *buffer, int &buffer_size,
+					      int &position, int proc)
 {
-    CenOstrikerBufferHandler *handler = new CenOstrikerBufferHandler(NumberOfParticles);
-    return handler;
+  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
+  int type_num = dummy->GetEnabledParticleID();
+  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(np, NumberOfParticles, type_num, proc);
+  pbuffer->_AllocateBuffer(buffer, buffer_size, position);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  // Example below is defined out
+#ifdef EXAMPLE
+  MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+	   &position, MPI_COMM_WORLD);
+#endif /* EXAMPLE */
+  delete dummy;
+  delete pbuffer;
+  return;
 }
 
+void CenOstrikerBufferHandler::UnpackBuffer
+(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+ ActiveParticleType **np, int &npart)
+{
+  int i, position;
+  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(NumberOfParticles);
+  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+#ifdef EXAMPLE
+  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->field,
+	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+#endif /* EXAMPLE */
+  /* Convert the particle buffer into active particles */
+  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
+    np[npart++] = new ActiveParticleType_CenOstriker(pbuffer, i);
+  return;
+}
 
 namespace {
   ActiveParticleType_info *CenOstrikerInfo = 
-    register_ptype <ActiveParticleType_CenOstriker> ("CenOstriker");
+    register_ptype <ActiveParticleType_CenOstriker, CenOstrikerBufferHandler> ("CenOstriker");
 }

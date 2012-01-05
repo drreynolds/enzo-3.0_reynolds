@@ -40,7 +40,7 @@ Eint32 compare_proc(const void *a, const void *b)
 
 /************************************************************************/
 
-Eint32 compare_star_grid(const void *a, const void *b)
+Eint32 compare_ap_grid(const void *a, const void *b)
 {
   struct star_data *ia = (struct star_data*) a;
   struct star_data *ib = (struct star_data*) b;
@@ -52,7 +52,7 @@ Eint32 compare_star_grid(const void *a, const void *b)
 }
 /***********************************************************************/
 
-Eint32 compare_star_proc(const void *a, const void *b)
+Eint32 compare_ap_proc(const void *a, const void *b)
 {
   struct star_data *ia = (struct star_data*) a;
   struct star_data *ib = (struct star_data*) b;

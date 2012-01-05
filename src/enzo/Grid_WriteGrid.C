@@ -644,7 +644,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     delete [] temp;
 
   } // end: if (NumberOfParticles > 0)
- 
+
   /* ------------------------------------------------------------------- */
   /* 4) Save active particle quantities. */
 
@@ -683,7 +683,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 	
 	/* Write them to disk */
 
-	ActiveParticleTypeToEvaluate->write_function(*ActiveParticlesOfThisType,
+	ActiveParticleTypeToEvaluate->write_function(ActiveParticlesOfThisType,
 						     NumberOfActiveParticlesOfThisType,
 						     GridRank,
 						     ActiveParticleGroupID);
@@ -693,7 +693,9 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 	delete [] ActiveParticlesOfThisType;
 
       }
-    
+
+    H5Gclose(ActiveParticleGroupID);
+
   }  // end: if (NumberOfActiveParticles > 0)
   
   /* Close HDF group and file. */

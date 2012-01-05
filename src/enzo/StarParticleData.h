@@ -35,6 +35,7 @@ struct ParticleEntry {
 /* Number of Star particles. */
 
 SPEXTERN int NumberOfStarParticles;
+SPEXTERN int NumberOfActiveParticles;
 SPEXTERN int NumberOfDeletedParticles;
 SPEXTERN PINT NumberOfOtherParticles; //all the particles other than type=2
 SPEXTERN int G_TotalNumberOfStars;
