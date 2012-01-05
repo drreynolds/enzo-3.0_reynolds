@@ -42,7 +42,7 @@ const char config_sink_particle_defaults[] =
 "\n"
 "Physics: {\n"
 "    ActiveParticles: {\n"
-"        Sink: {\n"
+"        SinkParticle: {\n"
 "            OverflowFactor       = 1.01;\n"
 "            LinkingLength        = 4;\n   "
 "            AccretionRadius      = 4;\n   "
