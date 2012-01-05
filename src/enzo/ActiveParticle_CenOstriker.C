@@ -487,14 +487,14 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 #endif /* SHARE_ENERGY */
 
     // Add energy to the energy field
-    for (kc = k - FeedbackDistRadius; kc > k + FeedbackDistRadius; kc++){
+    for (kc = k - FeedbackDistRadius; kc <= k + FeedbackDistRadius; kc++){
       stepk = fabs(kc - k);
-      for (jc = j - FeedbackDistRadius; jc > j + FeedbackDistRadius; jc++){
+      for (jc = j - FeedbackDistRadius; jc <= j + FeedbackDistRadius; jc++){
 	stepj = stepk + fabs(jc - j);
-	for (ic = i - FeedbackDistRadius; ic > i + FeedbackDistRadius; ic++){
+	for (ic = i - FeedbackDistRadius; ic <= i + FeedbackDistRadius; ic++){
 	  cellstep = stepj + fabs(ic - i);
 	  DistIndex = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0],jc,kc);
-	  if (cellstep < StarFeedbackDistCellStep) {
+	  if (cellstep <= StarFeedbackDistCellStep) {
 	    DensityRatio = 1.0/(density[DistIndex] + DensityToAddToEachCell);
 	    totalenergy[DistIndex] = ((totalenergy[DistIndex]*density[DistIndex]) + 
 				      SupernovaEnergyThisTimestep)*DensityRatio;
