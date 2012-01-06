@@ -266,7 +266,7 @@ public:
   ParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
   ~ParticleBufferHandler();
   /*virtual void WriteBuffers(hid_t group);*/
-  int _AllocateBuffer(char *buffer, int &buffer_size, int &position); // helper function for derived classes
+  int _AllocateBuffer(char *&buffer, int &buffer_size, int &position); // helper function for derived classes
   void CalculateElementSize(void);
   void AllocateMemory(void);
   int ReturnHeaderSize(void) { return HeaderSizeInBytes; };
@@ -303,7 +303,8 @@ public:
   (std::string this_name,
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
-   void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
+   void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, 
+		  char *&buffer, int &buffer_size,
 		  int &position, int proc),
    void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 		  ActiveParticleType **np, int &npart),
@@ -361,7 +362,8 @@ public:
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
-  void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
+  void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, 
+			  char *&buffer, int &buffer_size,
 			  int &position, int proc);
   void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
 			ActiveParticleType **np, int &npart);

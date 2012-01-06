@@ -727,14 +727,15 @@ public:
     delete[] this->field;
 #endif
   };
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     int &buffer_size, int &position, int proc=-1);
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
+			     char *&buffer, int &buffer_size, 
+			     int &position, int proc=-1);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
 };
 
 void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
-					      char *buffer, int &buffer_size,
+					      char *&buffer, int &buffer_size,
 					      int &position, int proc)
 {
   ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();

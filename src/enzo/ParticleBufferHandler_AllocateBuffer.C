@@ -31,7 +31,7 @@
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
 
-int ParticleBufferHandler::_AllocateBuffer(char *buffer, int &buffer_size,
+int ParticleBufferHandler::_AllocateBuffer(char * &buffer, int &buffer_size,
 					   int &position)
 {
 
@@ -75,6 +75,15 @@ int ParticleBufferHandler::_AllocateBuffer(char *buffer, int &buffer_size,
 	     &position, MPI_COMM_WORLD);
     MPI_Pack(this->type, NumberOfBuffers, IntDataType, buffer, buffer_size,
 	     &position, MPI_COMM_WORLD);
+
+#define NO_TEST
+#ifdef TEST
+    int test_position = 0;
+    ParticleBufferHandler *test = new ParticleBufferHandler(this->NumberOfBuffers);
+    printf("P%d: Testing particle buffer with %d particles\n", 
+	   MyProcessorNumber, this->NumberOfBuffers);
+    test->_UnpackBuffer(buffer, buffer_size, test_position);
+#endif /* TEST */
 
   } // ENDIF NumberOfBuffers > 0
 

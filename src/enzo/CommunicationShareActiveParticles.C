@@ -76,7 +76,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       int position, count, header_size, element_size, size;
       int *mpi_buffer_size, *mpi_recv_buffer_size;
-      char *mpi_buffer, *mpi_recv_buffer;
+      char *mpi_buffer, *mpi_recv_buffer, *temp_buffer;
       mpi_buffer_size = new int[NumberOfProcessors];
       mpi_recv_buffer_size = new int[NumberOfProcessors];
 
@@ -90,9 +90,12 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       // Pack the buffer, ordered by destination processor
       position = 0;
+      temp_buffer = mpi_buffer;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
-	ap_info->allocate_buffer(SendList, TotalNumberToMove,
-				 mpi_buffer+position, mpi_buffer_size[proc], position, proc);
+	ap_info->allocate_buffer(SendList, size,
+				 temp_buffer, mpi_buffer_size[proc], 
+				 position, proc);
+	temp_buffer = mpi_buffer + position;
       }
 
       /* Get counts from each processor to allocate buffers. */
@@ -167,10 +170,11 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       count = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
 	NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc] - header_size) / element_size;
-	ap_info->unpack_buffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
-			       NumberOfReceives - MPI_RecvListDisplacements[proc],
-			       NumberOfNewParticlesThisProcessor,
-			       SharedList, count);
+	if (NumberOfNewParticlesThisProcessor > 0)
+	  ap_info->unpack_buffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
+				 NumberOfReceives - MPI_RecvListDisplacements[proc],
+				 NumberOfNewParticlesThisProcessor,
+				 SharedList, count);
       }
 
       NumberOfReceives = NumberOfNewParticles;
@@ -190,6 +194,10 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       delete [] RecvListCount;
       delete [] MPI_RecvListCount;
       delete [] MPI_RecvListDisplacements;
+
+      delete [] mpi_buffer_size;
+      delete [] mpi_recv_buffer_size;
+      delete [] mpi_buffer;
 
     } // ENDFOR types
 
