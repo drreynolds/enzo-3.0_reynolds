@@ -89,6 +89,7 @@ public:
 			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			      int ThisLevel, int TotalStarParticleCountPrevious[],
 			      int SinkParticleID);
+  static int SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level);
   static int InitializeParticleType();
 
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -263,44 +264,47 @@ void ActiveParticleType_SinkParticle::DescribeSupplementalData(ActiveParticleFor
 
 int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
 {
+  /* Create a new subgroup within the active particle group for active particles of type SinkParticle */
   hid_t SinkParticleGroupID = H5Gcreate(group_id,"SinkParticle",0);
 
   writeScalarAttribute(SinkParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);  
 
 
-    char *ParticlePositionLabel[] =
+  char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};
   char *ParticleVelocityLabel[] =
      {"velocity_x", "velocity_y", "velocity_z"};
 
   /* Create temporary buffers to store particle data */
 
-  FLOAT Position[GridRank][n];
-  float Velocity[GridRank][n]; 
-  double Mass[n];
-  float BirthTime[n];
-  float DynamicalTime[n];
-  float Metallicity[n];
+  FLOAT *Position[MAX_DIMENSION];
+  float *Velocity[MAX_DIMENSION]; 
+  double *Mass = new double[n];
+  float *BirthTime = new float[n];
+  float *DynamicalTime = new float[n];
+  float *Metallicity = new float[n];
   
-  FLOAT *pos;
-  float *vel;
-
   int i,dim;
+
+  for (dim = 0; dim < GridRank; dim++) {
+    Position[dim] = new FLOAT[n];
+    Velocity[dim] = new float[n];
+  }
 
   hsize_t TempInt;
   TempInt = n;
     
+  ActiveParticleType_SinkParticle *ParticleToWrite;
   for (i=0;i<n;i++) {
-    pos = ParticlesToWrite[i].ReturnPosition();
-    vel = ParticlesToWrite[i].ReturnVelocity();
-        for (dim = 0; dim < GridRank; dim++) {
-      Position[dim][i] = pos[dim];
-      Velocity[dim][i] = vel[dim];
+    ParticleToWrite = static_cast<ActiveParticleType_SinkParticle*>(these_particles[i]);
+    for (dim = 0; dim < GridRank; dim++) {
+      Position[dim][i] = ParticleToWrite->pos[dim];
+      Velocity[dim][i] = ParticleToWrite->vel[dim];
     }
-    Mass[i] = ParticlesToWrite[i].ReturnMass();
-    BirthTime[i] = ParticlesToWrite[i].ReturnBirthTime();
-    DynamicalTime[i] = ParticlesToWrite[i].ReturnDynamicalTime();
-    Metallicity[i] = ParticlesToWrite[i].ReturnMetallicity();
+    Mass[i] = ParticleToWrite->Mass;
+    BirthTime[i] = ParticleToWrite->BirthTime;
+    DynamicalTime[i] = ParticleToWrite->DynamicalTime;
+    Metallicity[i] = ParticleToWrite->Metallicity;
   }
 
   for (dim = 0; dim < GridRank; dim++) {
@@ -317,6 +321,19 @@ int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType **these_pa
   WriteDataset(1,&TempInt,"creation_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+
+  /* Clean up */
+
+  for (dim = 0; dim < GridRank; dim++) {
+    delete[] Position[dim];
+    delete[] Velocity[dim];
+  }
+  delete[] Mass;
+  delete[] BirthTime;
+  delete[] DynamicalTime;
+  delete[] Metallicity;
+
+  H5Gclose(SinkParticleGroupID);
 
   return SUCCESS;
 }
@@ -484,7 +501,7 @@ int ActiveParticleType_SinkParticle::AfterEvolveLevel(HierarchyEntry *Grids[], T
       /* Do accretion */
       
       if (SinkAccrete(nParticles,SinkParticleList,AccretionRadius*dx,LevelArray) == FAIL){
-	ENZO_FAIL("Sink Particle accretion failed")
+	ENZO_FAIL("Sink Particle accretion failed. \n")
 	  }
 
     }
@@ -506,10 +523,24 @@ public:
   // No extra fields in SinkParticle.  Same base constructor.
   SinkParticleBufferHandler(void) : ParticleBufferHandler() {};
   SinkParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+    // Any extra fields must be added to the buffer as in the following example:
+#ifdef EXAMPLE
+    this->field = new float[NumberOfParticles];
+#endif
   };
   SinkParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
     ParticleBufferHandler(np, NumberOfParticles, type, proc) {
     // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+#ifdef EXAMPLE
+    this->field = new float[this->NumberOfBuffers];
+    index = 0;
+    for (i = 0; i < NumberOfParticles; i++)
+      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
+	this->field[index] = np[i]->field;
+	index++;
+      }
+    this->ElementSizeInBytes += 1*sizeof(float);
+#endif /* EXAMPLE */
   };
   ~SinkParticleBufferHandler() {};
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
@@ -517,6 +548,49 @@ public:
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
 };
+
+int ActiveParticleType_SinkParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level)
+{
+  /* Generate a list of all sink particles in the simulation box */
+  int i,dim,nParticles;
+  FLOAT *pos,LeftCorner[3],dx,AccretionRadius;
+  ActiveParticleType_SinkParticle **SinkParticleList ;
+  LevelHierarchyEntry *Temp;
+  
+  // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
+  
+  /* Calculate CellWidth on maximum refinement level */
+  
+  dx = (DomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+  
+  for (i=0 ; i++ ; i<nParticles){
+    pos = SinkParticleList[i]->ReturnPosition();
+    for (Temp = LevelArray[level]; Temp; Temp = Temp->NextGridThisLevel)
+      if (Temp->GridData->DepositAccretionZone(level,pos,AccretionRadius*dx) == FAIL) {
+	ENZO_FAIL("Error in grid->DepositAccretionZone.\n")
+	  }
+  }
+
+  return SUCCESS;
+}
+
+void SinkParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+ ActiveParticleType **np, int &npart)
+{
+  int i, position;
+  SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(NumberOfParticles);
+  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+#ifdef EXAMPLE
+  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->field,
+	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+#endif /* EXAMPLE */
+  /* Convert the particle buffer into active particles */
+  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
+    np[npart++] = new ActiveParticleType_SinkParticle(pbuffer, i);
+  return;
+}
 
 void SinkParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, int &buffer_size,
@@ -526,24 +600,17 @@ void SinkParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int Numb
   int type_num = dummy->GetEnabledParticleID();
   SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(np, NumberOfParticles, type_num, proc);
   pbuffer->_AllocateBuffer(buffer, buffer_size, position);
+  // If any extra fields are added in the future, then they would be
+  // transferred to the buffer here.
+  // Example below is defined out
+#ifdef EXAMPLE
+  MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+	   &position, MPI_COMM_WORLD);
+#endif /* EXAMPLE */
   delete dummy;
   delete pbuffer;
   return;
 }
-
-void SinkParticleBufferHandler::UnpackBuffer
-(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
- ActiveParticleType **np, int &npart)
-{
-  int i, position;
-  SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(NumberOfParticles);
-  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
-  /* Convert the particle buffer into active particles */
-  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
-    np[npart++] = new ActiveParticleType_SinkParticle(pbuffer, i);
-  return;
-}
-
 
 namespace {
   ActiveParticleType_info *SinkParticleInfo = 

@@ -85,7 +85,6 @@ public:
 
   FLOAT *ReturnPosition(void) { return pos; };
   float *ReturnVelocity(void) { return vel; };
-  float ReturnMetallicity(void) { return Metallicity; };
   void   ConvertAllMassesToSolar(void);
   void   ConvertMassToSolar(void);
   void   Merge(ActiveParticleType *a);
@@ -320,6 +319,7 @@ public:
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
+   int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level),
    ActiveParticleType *particle,
    ParticleBufferHandler *buffer
    ){
@@ -335,6 +335,7 @@ public:
     this->read_function = readfunc;
     this->before_evolvelevel_function = belfunc;
     this->after_evolvelevel_function = aelfunc;
+    this->flagging_function = flagfunc;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -361,6 +362,7 @@ public:
 				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
+  int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
 			  int &position, int proc);
@@ -395,6 +397,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::ReadFromOutput),
      (&active_particle_class::BeforeEvolveLevel),
      (&active_particle_class::AfterEvolveLevel),
+     (&active_particle_class::SetFlaggingField),
      pp,
      buffer);
   return pinfo;

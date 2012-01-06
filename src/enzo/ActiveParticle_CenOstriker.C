@@ -100,6 +100,7 @@ public:
 			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			      int ThisLevel, int TotalActiveParticleCountPrevious[],
 			      int CenOstrikerID);
+  static int SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
   
@@ -599,9 +600,7 @@ int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **particle
 int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
 {
   /* Create a new subgroup within the active particle group for active particles of type CenOstriker */
-
-  hid_t CenOstrikerGroupID;
-  CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
+  hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
 
   writeScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
 
@@ -689,6 +688,12 @@ int ActiveParticleType_CenOstriker::AfterEvolveLevel(HierarchyEntry *Grids[], To
 						      int CenOstrikerID)
 {
 
+
+  return SUCCESS;
+}
+
+int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level)
+{
 
   return SUCCESS;
 }

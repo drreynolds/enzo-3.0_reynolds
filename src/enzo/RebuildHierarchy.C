@@ -46,6 +46,8 @@ void WriteListOfInts(FILE *fptr, int N, int nums[]);
 int ReportMemoryUsage(char *header = NULL);
 int DepositParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
 				     int level, bool AllLocal);
+int DepositActiveParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
+					   int level);
 int CommunicationShareGrids(HierarchyEntry *GridHierarchyPointer[], int grids,
 			    int ShareParticles = TRUE); 
 int CommunicationLoadBalanceGrids(HierarchyEntry *GridHierarchyPointer[],
@@ -371,6 +373,19 @@ int RebuildHierarchy(TopGridData *MetaData,
 
       tt0 = ReturnWallTime();
       DepositParticleMassFlaggingField(LevelArray, i, ParticlesAreLocal);
+      tt1 = ReturnWallTime();
+      RHperf[3] += tt1-tt0;
+
+      /* Deposit flagging field for active particles.
+
+	 NJG:  This is a hack so that the accretion zone of sink particles are resolved at all times.
+	       While this will work fine for small number of particles, there will be scaling issues if one
+	       tries to do nonlocal refinement on large numbers of particles
+       */
+
+
+      tt0 = ReturnWallTime();
+      DepositActiveParticleMassFlaggingField(LevelArray,i);
       tt1 = ReturnWallTime();
       RHperf[3] += tt1-tt0;
 

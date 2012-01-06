@@ -785,6 +785,10 @@ public:
 
    int DepositMustRefineParticles(int pmethod, int level);
 
+/* Particles: deposit regions in the accretion zone to ensure flagging */
+
+   int DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT AccretionRadius); 
+
 /* baryons: add baryon density to mass flaggin field (so the mass flagging
             field contains the mass in the cell (not the density) 
             (gg #3) */
