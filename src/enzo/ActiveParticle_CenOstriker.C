@@ -728,14 +728,14 @@ public:
 #endif
   };
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     int &buffer_size, int &position, int proc=-1);
+			     int &buffer_size, Eint32 &position, int proc=-1);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
 };
 
 void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, int &buffer_size,
-					      int &position, int proc)
+					      Eint32 &position, int proc)
 {
   ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
   int type_num = dummy->GetEnabledParticleID();
@@ -757,7 +757,8 @@ void CenOstrikerBufferHandler::UnpackBuffer
 (char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
  ActiveParticleType **np, int &npart)
 {
-  int i, position;
+  int i;
+  Eint32 position;
   CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(NumberOfParticles);
   pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
   // If any extra fields are added in the future, then they would be

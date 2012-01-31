@@ -56,7 +56,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
     return SUCCESS;
 
   char *buffer;
-  int i, j, size, type, dim, index, position, TransferSize, 
+  Eint32 position;
+  int npart, i, j, size, type, dim, index, TransferSize, 
     NumberOfNewParticles;
   int header_size, element_size, buffer_size;
   ActiveParticleType_info *ap_info;
@@ -193,9 +194,9 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
 #endif /* USE_MPI */    
     NewParticles = new ActiveParticleType*[NumberOfNewParticles];
     buffer_size = header_size + NumberOfNewParticles*element_size;
-    position = 0;
+    npart = 0;
     ap_info->unpack_buffer(buffer, buffer_size, NumberOfNewParticles,
-			   NewParticles, position);
+			   NewParticles, npart);
 
     for (i = 0; i < NumberOfNewParticles; i++)
       NewParticles[i]->AssignCurrentGrid(ToGrid);

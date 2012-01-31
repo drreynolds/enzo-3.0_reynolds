@@ -544,7 +544,7 @@ public:
   };
   ~SinkParticleBufferHandler() {};
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     int &buffer_size, int &position, int proc=-1);
+			     int &buffer_size, Eint32 &position, int proc=-1);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
 };
@@ -577,7 +577,8 @@ int ActiveParticleType_SinkParticle::SetFlaggingField(LevelHierarchyEntry *Level
 void SinkParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
  ActiveParticleType **np, int &npart)
 {
-  int i, position;
+  int i;
+  Eint32 position;
   SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(NumberOfParticles);
   pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
   // If any extra fields are added in the future, then they would be
@@ -594,7 +595,7 @@ void SinkParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_si
 
 void SinkParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, int &buffer_size,
-					      int &position, int proc)
+					      Eint32 &position, int proc)
 {
   ActiveParticleType_SinkParticle *dummy = new ActiveParticleType_SinkParticle();
   int type_num = dummy->GetEnabledParticleID();

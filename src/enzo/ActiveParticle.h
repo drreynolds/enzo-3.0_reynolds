@@ -266,13 +266,13 @@ public:
   ParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
   ~ParticleBufferHandler();
   /*virtual void WriteBuffers(hid_t group);*/
-  int _AllocateBuffer(char *buffer, int &buffer_size, int &position); // helper function for derived classes
+  int _AllocateBuffer(char *buffer, int &buffer_size, Eint32 &position); // helper function for derived classes
   void CalculateElementSize(void);
   void AllocateMemory(void);
   int ReturnHeaderSize(void) { return HeaderSizeInBytes; };
   int ReturnElementSize(void) { return ElementSizeInBytes; };
   int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
-  int _UnpackBuffer(char *buffer, int buffer_size, int &position);
+  int _UnpackBuffer(char *buffer, int buffer_size, Eint32 &position);
 
 protected:
   int NumberOfBuffers;
@@ -304,7 +304,7 @@ public:
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
    void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-		  int &position, int proc),
+		  Eint32 &position, int proc),
    void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 		  ActiveParticleType **np, int &npart),
    int (*ifunc)(),
@@ -365,7 +365,7 @@ public:
   int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-			  int &position, int proc);
+			  Eint32 &position, int proc);
   void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
 			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;

@@ -140,7 +140,7 @@ void ParticleBufferHandler::CalculateElementSize(void)
   // int: 3 -- level, GridID, type
   // PINT: 1 -- Identifier
 
-  int mpi_flag = 0;
+  Eint32 mpi_flag = 0;
   this->ElementSizeInBytes = 0;
   this->HeaderSizeInBytes = 0;
 
@@ -148,7 +148,7 @@ void ParticleBufferHandler::CalculateElementSize(void)
   MPI_Initialized(&mpi_flag);
 #endif
 
-  int size;
+  Eint32 size;
   if (mpi_flag == 1) {
 #ifdef USE_MPI
     MPI_Pack_size(6, FloatDataType, MPI_COMM_WORLD, &size);

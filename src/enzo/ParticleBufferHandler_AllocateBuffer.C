@@ -32,11 +32,12 @@
 #include "ActiveParticle.h"
 
 int ParticleBufferHandler::_AllocateBuffer(char *buffer, int &buffer_size,
-					   int &position)
+					   Eint32 &position)
 {
 
 #ifdef USE_MPI
-  int i, header_size;
+  int i;
+  Eint32 header_size;
 
   /* Calculate the buffer size */
 

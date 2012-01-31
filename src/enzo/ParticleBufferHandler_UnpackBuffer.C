@@ -33,7 +33,7 @@
 #include "ActiveParticle.h"
 
 int ParticleBufferHandler::_UnpackBuffer(char *buffer, int buffer_size,
-					 int &position)
+					 Eint32 &position)
 {
 
   position = 0;
