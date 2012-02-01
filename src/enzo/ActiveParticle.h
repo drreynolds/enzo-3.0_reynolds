@@ -336,6 +336,7 @@ public:
     this->before_evolvelevel_function = belfunc;
     this->after_evolvelevel_function = aelfunc;
     this->flagging_function = flagfunc;
+    this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -370,6 +371,8 @@ public:
 			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;
   ParticleBufferHandler* buffer_instance;
+  std::string particle_name;
+
 
 private:
   /* This is distinct from the global as a redundant error-checking

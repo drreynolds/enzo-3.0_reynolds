@@ -216,8 +216,6 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 		ENZO_FAIL("Error reading GravityBoundaryType.");
       }
 
-    /* 5) Read active particle info */
-    
     // If HierarchyFile has different Ghostzones (which should be a parameter not a macro ...)
     // (useful in a restart with different hydro/mhd solvers) 
     int ghosts =DEFAULT_GHOST_ZONES;

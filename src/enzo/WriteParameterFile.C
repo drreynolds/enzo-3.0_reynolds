@@ -288,16 +288,8 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   fprintf(fptr, "NumberOfParticles      = %"PISYM" (do not modify)\n",
 	  MetaData.NumberOfParticles);
 
-  if (EnabledActiveParticlesCount > 0) {
-
-    ActiveParticleMap map = get_active_particle_types();
-
-    ActiveParticleMap::const_iterator end = map.end();
-    
-    for (ActiveParticleMap::const_iterator it = map.begin(); it != end; ++it) {
-      fprintf(fptr, "AppendActiveParticleType =%s\n", it->first.c_str());
-    }
-
+  for (int i = 0; i<EnabledActiveParticlesCount; i++){
+    fprintf(fptr, "AppendActiveParticleType = %s\n", EnabledActiveParticles[i]->particle_name.c_str());
   }
 
   fprintf(fptr, "CourantSafetyNumber    = %"FSYM"\n",
