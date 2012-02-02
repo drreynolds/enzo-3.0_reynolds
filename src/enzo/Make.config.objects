@@ -30,7 +30,6 @@ OBJS_CONFIG_LIB = \
         ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
-	ActiveParticle_SinkParticle.o \
 	ActiveParticle_SphereContained.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
