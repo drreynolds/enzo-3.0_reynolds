@@ -578,7 +578,7 @@ void SinkParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_si
  ActiveParticleType **np, int &npart)
 {
   int i;
-  Eint32 position;
+  Eint32 position = 0;
   SinkParticleBufferHandler *pbuffer = new SinkParticleBufferHandler(NumberOfParticles);
   pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
   // If any extra fields are added in the future, then they would be

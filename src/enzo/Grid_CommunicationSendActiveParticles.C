@@ -56,7 +56,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
     return SUCCESS;
 
   char *buffer;
-  Eint32 position;
+  Eint32 position = 0;
   int npart, i, j, size, type, dim, index, TransferSize, 
     NumberOfNewParticles;
   int header_size, element_size, buffer_size;

@@ -74,7 +74,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       /* Create a MPI packed buffer from the active particles */
       
-      Eint32 position;
+      Eint32 position = 0;
       int count, header_size, element_size, size;
       int *mpi_buffer_size, *mpi_recv_buffer_size;
       char *mpi_buffer, *mpi_recv_buffer;
