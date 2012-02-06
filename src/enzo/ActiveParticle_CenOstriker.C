@@ -651,7 +651,7 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType **these_par
 		  CenOstrikerGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
   }
   
-  WriteDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_R8,(VOIDP) Mass);
   WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_REAL,(VOIDP) Metallicity);
