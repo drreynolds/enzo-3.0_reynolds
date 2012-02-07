@@ -409,6 +409,7 @@ OBJS_CONFIG_LIB = \
 	Grid_CreateFieldArray.o \
 	Grid_CreateParticleTypeGrouping.o \
 	Grid_DebugCheck.o \
+	Grid_DebugActiveParticles.o \
 	Grid_DeleteAllButParticles.o \
 	Grid_DeleteAllFields.o \
 	Grid_DeleteBaryonFields.o \

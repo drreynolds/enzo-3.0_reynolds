@@ -2249,6 +2249,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			       int NumberOfNewParticles);
   int DetachActiveParticles(void);
   int MirrorActiveParticles(void);
+  int DebugActiveParticles(int level);
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 

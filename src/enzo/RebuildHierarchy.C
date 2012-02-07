@@ -669,6 +669,14 @@ int RebuildHierarchy(TopGridData *MetaData,
     for (Temp = LevelArray[i], j = 0; Temp; Temp = Temp->NextGridThisLevel, j++)
       Temp->GridData->SetGridID(j);
 
+
+#ifdef DEBUG_AP
+  for (i = level; i < MAX_DEPTH_OF_HIERARCHY-1; i++)
+    for (Temp = LevelArray[i], j = 0; Temp; Temp = Temp->NextGridThisLevel, j++)
+      Temp->GridData->DebugActiveParticles(i);
+#endif /* DEBUG_AP */
+
+
   /* update all SubgridMarkers */
 
 #ifdef TRANSFER

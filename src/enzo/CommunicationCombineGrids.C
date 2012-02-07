@@ -87,6 +87,7 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
     /* Compute region to send. */
  
     grid *OldGrid = Temp->GridData;
+    OldGrid->DebugActiveParticles(0);
     OldGrid->ReturnGridInfo(&Rank, TempDims, Left, Right);
     for (dim = 0; dim < MAX_DIMENSION; dim++) {
       SendOffset[dim] = (dim < Rank)? DEFAULT_GHOST_ZONES : 0;
@@ -130,12 +131,10 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
     /* Copy particles. */
  
 //    if (MyProcessorNumber == NewProc || MyProcessorNumber == OldProc)
-      if (OldGrid->CommunicationSendParticles(NewGrid, NewProc, 0,
-			    OldGrid->ReturnNumberOfParticles(), -1) == FAIL) {
-	ENZO_FAIL("Error in grid->CommunicationSendParticles.\n");
+    OldGrid->CommunicationSendParticles(NewGrid, NewProc, 0,
+					OldGrid->ReturnNumberOfParticles(), -1);
+    OldGrid->CommunicationSendActiveParticles(NewGrid, NewProc);
 
-      }
- 
     /* Next Grid */
  
     Temp = Temp->NextGridThisLevel;
