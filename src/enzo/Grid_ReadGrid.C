@@ -516,9 +516,9 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
     /* Loop over enabled active particle types */
 
-    int NumberOfActiveParticlesOnDisk;
+    int NumberOfActiveParticlesOnDisk = 0;
     
-    ActiveParticleType **ActiveParticlesOnDisk;
+    ActiveParticleType **ActiveParticlesOnDisk = NULL;
 
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
@@ -536,7 +536,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 	/* Read the active particles from disk */
 
 	ActiveParticleTypeToEvaluate->read_function(ActiveParticlesOfThisTypeOnDisk,
-						    &NumberOfActiveParticlesOfThisType,
+						    NumberOfActiveParticlesOfThisType,
 						    GridRank,
 						    ActiveParticleGroupID);
 
@@ -567,6 +567,8 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
     /* Assign the active particle buffer to this grid */
 
     this->ActiveParticles = ActiveParticlesOnDisk;
+    for (i = 0; i < NumberOfActiveParticles; i++)
+      this->ActiveParticles[i]->AssignCurrentGrid(this); // this->ID not defined yet
 
   } // end: if (NumberOfActiveParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
 

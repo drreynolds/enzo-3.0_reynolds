@@ -77,7 +77,7 @@ public:
     ActiveParticleType(buffer, index) {};
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  static int ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
+  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
@@ -338,29 +338,35 @@ int ActiveParticleType_SinkParticle::WriteToOutput(ActiveParticleType **these_pa
   return SUCCESS;
 }
 
-int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id)
+int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id)
 {
+
+  int i,dim;
+  hsize_t TempInt;
 
   hid_t SinkParticleGroupID = H5Gopen(group_id,"SinkParticle");
 
-  readAttribute(SinkParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",n);
+  readAttribute(SinkParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
 
   char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};
   char *ParticleVelocityLabel[] =
      {"velocity_x", "velocity_y", "velocity_z"};
 
-  FLOAT Position[GridRank][*n];
-  float Velocity[GridRank][*n]; 
-  double Mass[*n];
-  float BirthTime[*n];
-  float DynamicalTime[*n];
-  float Metallicity[*n];
-  
-  int i,dim;
+  FLOAT *Position[MAX_DIMENSION];
+  float *Velocity[MAX_DIMENSION];
+  double *Mass = new double[n];
+  float *BirthTime = new float[n];
+  float *DynamicalTime = new float[n];
+  float *Metallicity = new float[n];
+  PINT  *ID = new PINT[n];
 
-  hsize_t TempInt;
-  TempInt = *n;
+  for (dim = 0; dim < GridRank; dim++) {
+    Position[dim] = new FLOAT[n];
+    Velocity[dim] = new float[n];
+  }
+  
+  TempInt = n;
   
   for (dim = 0; dim < GridRank; dim++) {
     ReadDataset(1,&TempInt,ParticlePositionLabel[dim],
@@ -369,27 +375,41 @@ int ActiveParticleType_SinkParticle::ReadFromOutput(ActiveParticleType **particl
 
   for (dim = 0; dim < GridRank; dim++) {
     ReadDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  SinkParticleGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
+		  SinkParticleGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
   }
-  ReadDataset(1,&TempInt,"mass",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
-  ReadDataset(1,&TempInt,"creation_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
-  ReadDataset(1,&TempInt,"dynamical_time",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
-  ReadDataset(1,&TempInt,"metallicity_fraction",SinkParticleGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+  ReadDataset(1,&TempInt,"mass",SinkParticleGroupID,HDF5_R8,(VOIDP) Mass);
+  ReadDataset(1,&TempInt,"creation_time",SinkParticleGroupID,HDF5_REAL,(VOIDP) BirthTime);
+  ReadDataset(1,&TempInt,"dynamical_time",SinkParticleGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
+  ReadDataset(1,&TempInt,"metallicity_fraction",SinkParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
+  ReadDataset(1,&TempInt,"identifier",SinkParticleGroupID,HDF5_PINT,(VOIDP) ID);
 
-  for (i = 0; i < *n; i++) {
-    ActiveParticleType_SinkParticle *np = new ActiveParticleType_SinkParticle;
+  for (i = 0; i < n; i++) {
+    ActiveParticleType_SinkParticle *np = new ActiveParticleType_SinkParticle();
     particles_to_read[i] = np;
-    np = new ActiveParticleType_SinkParticle();
     np->Mass = Mass[i];
     np->type = SinkParticle;
-    np->BirthTime = DynamicalTime[i];
+    np->BirthTime = BirthTime[i];
+    np->DynamicalTime = DynamicalTime[i];
     np->Metallicity = Metallicity[i];
+    np->Identifier = ID[i];
     for (dim = 0; dim < GridRank; dim++){
       np->pos[dim] = Position[dim][i];
       np->vel[dim] = Velocity[dim][i];
     }
   }
-  return SUCCESS;
+
+  delete[] Mass;
+  delete[] BirthTime;
+  delete[] DynamicalTime;
+  delete[] Metallicity;
+  delete[] ID;
+  
+  for (dim = 0; dim < GridRank; dim++) {
+    delete[] Position[dim];
+    delete[] Velocity[dim];
+  }
+  H5Gclose(SinkParticleGroupID);
+  
   return SUCCESS;
 }
 

@@ -310,7 +310,7 @@ public:
    int (*ifunc)(),
    int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*writefunc)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id),
-   int (*readfunc)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id),
+   int (*readfunc)(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id),
    int (*belfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
@@ -354,7 +354,7 @@ public:
   int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*write_function)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  int (*read_function)(ActiveParticleType **particles_to_read, int *n, int GridRank, hid_t group_id);
+  int (*read_function)(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   int (*before_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				     int ThisLevel, int TotalStarParticleCountPrevious[],
