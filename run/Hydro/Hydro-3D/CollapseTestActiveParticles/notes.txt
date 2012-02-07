@@ -12,9 +12,9 @@ Radiative cooling is turned off, so the sphere will bounce and reach
 an equilibrium state.
 
 This test runs to completion (t = 15) and produces 16 outputs in
-roughly 3-5 minutes on a single processor.  In plot.py, we plot the
-evolution of the peak density versus time create density projections
-for each output.
+roughly 3-5 minutes on a single processor.  Active particles start
+forming after t = 13.  In plot.py, we plot the evolution of the peak
+density versus time create density projections for each output.
 
 Note for comparing with Enzo 1.5 - By default, Enzo 2.0 performs 4
 iterations of the multigrid gravity solver (configurable with the
