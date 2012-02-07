@@ -54,7 +54,20 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
     this->ActiveParticles[index]->SetGridID(this->ID);
     this->ActiveParticles[index]->AssignCurrentGrid(this);
   }
-  
+
+#define NO_DEBUG
+#ifdef DEBUG
+  int dim, inside;
+  FLOAT *pos;
+  bool inside;
+  for (i = 0; i < this->NumberOfActiveParticles; i++) {
+    pos = this->ActiveParticles[i]->ReturnPosition();
+    inside = this->PointInGrid(pos);
+    if (inside == FALSE)
+      ENZO_FAIL("ActiveParticle outside!\n");
+  }
+#endif /* DEBUG */  
+
   delete[] OldActiveParticles; 
 
   return SUCCESS;

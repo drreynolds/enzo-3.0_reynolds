@@ -295,7 +295,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
     if (APNumberOfReceives > 0)
       for (j = 0; j < NumberOfSubgrids && jend < APNumberOfReceives; j++) {
-	while (APSharedList[jend]->ReturnDestProcessor() <= j) {
+	while (APSharedList[jend]->ReturnGridID() <= j) {
 	  jend++;
 	  if (jend == APNumberOfReceives) break;
 	}
