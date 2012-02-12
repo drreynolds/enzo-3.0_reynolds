@@ -48,8 +48,8 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
   for (i = 0; i < OldNumberOfActiveParticles; i++) {
     this->ActiveParticles[i] = OldActiveParticles[i];
   }
-  for (i = start, index = OldNumberOfActiveParticles; i < NumberOfNewParticles; 
-       i++, index++) {
+  for (i = start, index = OldNumberOfActiveParticles; 
+       index < this->NumberOfActiveParticles; i++, index++) {
     this->ActiveParticles[index] = NewParticles[i];
     this->ActiveParticles[index]->SetGridID(this->ID);
     this->ActiveParticles[index]->AssignCurrentGrid(this);
@@ -59,7 +59,6 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
 #ifdef DEBUG
   int dim, inside;
   FLOAT *pos;
-  bool inside;
   for (i = 0; i < this->NumberOfActiveParticles; i++) {
     pos = this->ActiveParticles[i]->ReturnPosition();
     inside = this->PointInGrid(pos);
