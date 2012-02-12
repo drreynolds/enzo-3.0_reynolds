@@ -163,7 +163,6 @@ int grid::CommunicationTransferParticles(grid* Grids[], int NumberOfGrids,
 	  }
 	  List[n1].mass = ParticleMass[i];
 	  List[n1].id = ParticleNumber[i];
-	  List[n1].type = ParticleType[i];
 	  for (j = 0; j < NumberOfParticleAttributes; j++)
 	    List[n1].attribute[j] = ParticleAttribute[j][i];
 	  List[n1].grid = grid;
@@ -220,13 +219,12 @@ int grid::CommunicationTransferParticles(grid* Grids[], int NumberOfGrids,
     float *Velocity[MAX_DIMENSION], *Mass,
       *Attribute[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
     PINT *Number;
-    int *Type;
+    int *Type = NULL;
 
     if (TotalNumberOfParticles > 0) {
  
       Mass = new float[TotalNumberOfParticles];
       Number = new PINT[TotalNumberOfParticles];
-      Type = new int[TotalNumberOfParticles];
       for (dim = 0; dim < GridRank; dim++) {
 	Position[dim] = new FLOAT[TotalNumberOfParticles];
 	Velocity[dim] = new float[TotalNumberOfParticles];
@@ -250,7 +248,6 @@ int grid::CommunicationTransferParticles(grid* Grids[], int NumberOfGrids,
 	if (ParticleMass[i] >= 0) {
 	  Mass[n] = ParticleMass[i];
 	  Number[n] = ParticleNumber[i];
-	  Type[n] = ParticleType[i];
 	  n++;
 	}
 
@@ -288,7 +285,6 @@ int grid::CommunicationTransferParticles(grid* Grids[], int NumberOfGrids,
       
 	Mass[n] = List[i].mass;
 	Number[n] = List[i].id;
-	Type[n] = List[i].type;
 	for (j = 0; j < NumberOfParticleAttributes; j++)
 	  Attribute[j][n] = List[i].attribute[j];
       

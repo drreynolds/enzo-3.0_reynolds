@@ -174,7 +174,7 @@ int grid::CosmologyReadParticles3D(
     types = new int[size];
     for (i = 0; i < size; i++)
       types[i] = (int) int_tempbuffer[i];
-  } // ENDIF read masses
+  } // ENDIF read types
 
   // Cleanup
   delete [] tempbuffer;
@@ -323,7 +323,6 @@ int grid::CosmologyReadParticles3D(
   if (mass != NULL)
     delete [] mass;
   if (types != NULL)
-
     delete [] types;
 
   return SUCCESS;

@@ -100,7 +100,7 @@ int grid::WriteNewMovieDataSeparateParticles(FLOAT RegionLeftEdge[], FLOAT Regio
     FLOAT *TempPosition[3];
     float *TempVelocity[3], *TempMass;
     float *TempAttr[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
-    int *TempType;
+    int *TempType = NULL;
     PINT *TempNumber;
     
     for (i = 0; i < NumberOfParticles; i++)
@@ -119,7 +119,6 @@ int grid::WriteNewMovieDataSeparateParticles(FLOAT RegionLeftEdge[], FLOAT Regio
       TempMass = new float[NumberOfNonDMParticles];
       for (i = 0; i < NumberOfParticleAttributes; i++)
 	TempAttr[i] = new float[NumberOfNonDMParticles];
-      TempType = new int[NumberOfNonDMParticles];
       TempNumber = new PINT[NumberOfNonDMParticles];
     } // ENDIF non-DM particles > 0
 
@@ -134,7 +133,6 @@ int grid::WriteNewMovieDataSeparateParticles(FLOAT RegionLeftEdge[], FLOAT Regio
       TempMass[i] = ParticleMass[j];
       for (iattr = 0; iattr < NumberOfParticleAttributes; iattr++)
 	TempAttr[iattr][i] = ParticleAttribute[iattr][j];
-      TempType[i] = ParticleType[j];
       TempNumber[i] = ParticleNumber[j];
     } // ENDFOR non-DM particles
 
@@ -165,7 +163,6 @@ int grid::WriteNewMovieDataSeparateParticles(FLOAT RegionLeftEdge[], FLOAT Regio
       for (i = 0; i < NumberOfParticleAttributes; i++)
 	delete [] TempAttr[i];
       delete [] TempMass;
-      delete [] TempType;
       delete [] TempNumber;
     } // ENDIF non-DM particles > 0
 

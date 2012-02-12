@@ -63,14 +63,13 @@ int grid::AddParticlesFromList(ParticleEntry *List, const int &Size,
      get rid of the old one. */
 
   PINT *Number;
-  int *Type;
   FLOAT *Position[MAX_DIMENSION];
   float *Velocity[MAX_DIMENSION];
+  int   *Type = NULL;
   float *Mass;
   float *Attribute[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
 
   Number = new PINT[NumberOfParticles];
-  Type = new int[NumberOfParticles];
   Mass = new float[NumberOfParticles];
   for (int dim = 0; dim < GridRank; dim++) {
     Position[dim] = new FLOAT[NumberOfParticles];
@@ -85,7 +84,6 @@ int grid::AddParticlesFromList(ParticleEntry *List, const int &Size,
 
     Mass[i]   = ParticleMass[i];
     Number[i] = ParticleNumber[i];
-    Type[i]   = ParticleType[i];
     for (int dim = 0; dim < GridRank; dim++) {
       Position[dim][i] = ParticlePosition[dim][i];
       Velocity[dim][i] = ParticleVelocity[dim][i];
@@ -100,7 +98,6 @@ int grid::AddParticlesFromList(ParticleEntry *List, const int &Size,
   for (int i = NumberOfParticles - Count, j = 0; i < NumberOfParticles; i++, j++) {
     Mass[i]   = List[NewIndex[j]].Mass/pow(CellWidth[0][0],3);
     Number[i] = List[NewIndex[j]].Number;
-    Type[i]   = List[NewIndex[j]].Type;
     for (int dim = 0; dim < GridRank; dim++) {
       Position[dim][i] = List[NewIndex[j]].Position[dim];
       Velocity[dim][i] = List[NewIndex[j]].Velocity[dim];

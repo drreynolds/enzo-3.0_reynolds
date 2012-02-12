@@ -589,7 +589,6 @@ int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **&particl
   ReadDataset(1,&TempInt,"identifier",CenOstrikerGroupID,HDF5_PINT,(VOIDP) ID);
 
   particles_to_read = new ActiveParticleType*[n];
-  ActiveParticleType **test = new ActiveParticleType*[10];
   for (i = 0; i < n; i++) {
     ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker();
     particles_to_read[i] = np;

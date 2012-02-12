@@ -35,6 +35,10 @@ int grid::ChangeParticleTypeBeforeSN(int _type, int level,
 				     int *ParticleBufferSize)
 {
 
+  if (EnabledActiveParticlesCount > 0)
+    ENZO_FAIL("Pre-refinement for blastwaves not implemented with"
+	      " active particles.");
+
   /* If there are no stars in this grid, return. */
 
   if (Stars == NULL)
