@@ -1610,6 +1610,17 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       ENZO_FAIL("SetAccelerationBoundary (-D SAB) does not work with zeus_hydro !\n");
 #endif 
 
+  /* If ParticleTypeInFile is on and active particles are used, turn
+     off ParticleTypeInFile because particles are grouped by active
+     particle type.  Types are no longer used. */
+
+  if (EnabledActiveParticlesCount > 0 && ParticleTypeInFile == TRUE) {
+    if (debug) 
+      fprintf(stderr, "Particle types are not used with active particles.\n"
+	      "Turning OFF ParticleTypeInFile.\n");
+    ParticleTypeInFile = FALSE;
+  }
+
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
 
 
