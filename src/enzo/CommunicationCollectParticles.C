@@ -59,8 +59,8 @@ int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],
 int CommunicationShareParticles(int *NumberToMove, particle_data* &SendList,
 				int &NumberOfReceives,
 				particle_data* &SharedList);
-int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType **SendList,
-				      int &NumberOfReceives, ActiveParticleType **SharedList);
+int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType** &SendList,
+				      int &NumberOfReceives, ActiveParticleType** &SharedList);
 
 #define NO_DEBUG_CCP
 #define GRIDS_PER_LOOP 100000

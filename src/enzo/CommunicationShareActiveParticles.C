@@ -37,9 +37,9 @@
 void my_exit(int status);
 
 int CommunicationShareActiveParticles(int *NumberToMove, 
-				      ActiveParticleType **SendList,
+				      ActiveParticleType** &SendList,
 				      int &NumberOfReceives, 
-				      ActiveParticleType **SharedList)
+				      ActiveParticleType** &SharedList)
 {
 
   int i, type, proc;
