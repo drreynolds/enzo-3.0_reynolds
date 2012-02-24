@@ -85,6 +85,7 @@ public:
     field = buffer->field[index];
 #endif
   };
+
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
@@ -589,7 +590,6 @@ int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **&particl
   ReadDataset(1,&TempInt,"identifier",CenOstrikerGroupID,HDF5_PINT,(VOIDP) ID);
 
   particles_to_read = new ActiveParticleType*[n];
-  ActiveParticleType **test = new ActiveParticleType*[10];
   for (i = 0; i < n; i++) {
     ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker();
     particles_to_read[i] = np;
@@ -756,17 +756,15 @@ public:
 #endif
   };
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     int &buffer_size, Eint32 &position, int proc=-1);
+			     int &buffer_size, Eint32 &position, int type_num, int proc=-1);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
 };
 
 void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, int &buffer_size,
-					      Eint32 &position, int proc)
+					      Eint32 &position, int type_num, int proc)
 {
-  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
-  int type_num = dummy->GetEnabledParticleID();
   CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(np, NumberOfParticles, type_num, proc);
   pbuffer->_AllocateBuffer(buffer, buffer_size, position);
   // If any extra fields are added in the future, then they would be
@@ -776,7 +774,6 @@ void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int Numbe
   MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
 	   &position, MPI_COMM_WORLD);
 #endif /* EXAMPLE */
-  delete dummy;
   delete pbuffer;
   return;
 }

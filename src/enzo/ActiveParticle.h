@@ -304,7 +304,7 @@ public:
    int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
    void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-		  Eint32 &position, int proc),
+		  Eint32 &position, int ap_id, int proc),
    void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 		  ActiveParticleType **np, int &npart),
    int (*ifunc)(),
@@ -366,7 +366,7 @@ public:
   int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, int &buffer_size,
-			  Eint32 &position, int proc);
+			  Eint32 &position, int ap_id, int proc);
   void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
 			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;

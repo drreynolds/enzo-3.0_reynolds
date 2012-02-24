@@ -58,12 +58,6 @@ int grid::DebugActiveParticles(int level)
 
   }
 
-  if (NumberOfActiveParticles != NumberOfParticles) {
-    printf("level %d, grid %d\n", level, this->ID);
-    ENZO_VFAIL("NumberOfActiveParticles (%d) != NumberOfParticles (%d)", 
-	       NumberOfActiveParticles, NumberOfParticles);
-  }
-
   return SUCCESS;
 
 }

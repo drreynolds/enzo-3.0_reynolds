@@ -36,7 +36,6 @@ int grid::RemoveParticle(int ID, bool disable)
   for (i = 0; i < NumberOfParticles; i++)
     if (ParticleNumber[i] == ID) {
       if (disable) {
-	ParticleType[i] = PARTICLE_TYPE_DARK_MATTER;
 	ParticleMass[i] = tiny_number;
       } else
 	ParticleMass[i] = FLOAT_UNDEFINED;

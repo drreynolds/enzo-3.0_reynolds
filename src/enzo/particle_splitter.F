@@ -127,7 +127,7 @@ c
       ii = 0
 c
       do n = 1, npart
-         if (mpold(n) .gt. 0 .and. typeold(n) .le. 2) then    
+         if (mpold(n) .gt. 0) then    
 c
 c           Check bounds [1] - if the particle is outside of RefineRegion
 c           then give a warning and exit.
@@ -356,7 +356,6 @@ c
                up(ii+m) = upold(n)
                vp(ii+m) = vpold(n)
                wp(ii+m) = wpold(n)
-               type(ii+m) = typeold(n)
 c
                if (imetal .eq. 1) then
                   metalf(ii+m) = metalfold(n)    !in here metal is a fraction

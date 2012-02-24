@@ -99,7 +99,6 @@ int grid::CommunicationSendParticles(grid *ToGrid, int ToProcessor,
     for (i = FromStart; i < FromEnd; i++, index++) {
       buffer[index].mass = ParticleMass[i];
       buffer[index].id = ParticleNumber[i];
-      buffer[index].type = ParticleType[i];
     } // ENDFOR particles
 
     for (j = 0; j < NumberOfParticleAttributes; j++) {
@@ -116,7 +115,7 @@ int grid::CommunicationSendParticles(grid *ToGrid, int ToProcessor,
   float  *TempVel[MAX_DIMENSION], *TempMass,
         *TempAttribute[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
   PINT *TempNumber;
-  int NewNumber = FromNumber, *TempType;
+  int NewNumber = FromNumber;
   if (ToStart == -1)
     NewNumber += ToGrid->NumberOfParticles;
  
@@ -128,7 +127,6 @@ int grid::CommunicationSendParticles(grid *ToGrid, int ToProcessor,
     if (ToStart == -1) {
       TempMass = ToGrid->ParticleMass;
       TempNumber = ToGrid->ParticleNumber;
-      TempType = ToGrid->ParticleType;
       for (dim = 0; dim < MAX_DIMENSION; dim++) {
 	TempPos[dim] = ToGrid->ParticlePosition[dim];
 	TempVel[dim] = ToGrid->ParticleVelocity[dim];
@@ -153,7 +151,6 @@ int grid::CommunicationSendParticles(grid *ToGrid, int ToProcessor,
       for (i = 0; i < ToGrid->NumberOfParticles; i++) {
 	ToGrid->ParticleNumber[i] = TempNumber[i];
 	ToGrid->ParticleMass[i]   = TempMass[i];
-	ToGrid->ParticleType[i]   = TempType[i];
       }
       for (dim = 0; dim < GridRank; dim++)
 	for (i = 0; i < ToGrid->NumberOfParticles; i++) {
@@ -166,7 +163,6 @@ int grid::CommunicationSendParticles(grid *ToGrid, int ToProcessor,
 	
       delete [] TempNumber;
       delete [] TempMass;
-      delete [] TempType;
       for (dim = 0; dim < GridRank; dim++) {
 	delete [] TempPos[dim];
 	delete [] TempVel[dim];
@@ -261,7 +257,6 @@ int grid::CommunicationSendParticles(grid *ToGrid, int ToProcessor,
     index = 0;
     for (i = ToStart; i < ToEnd; i++, index++) {
       ToGrid->ParticleMass[i] = buffer[index].mass;
-      ToGrid->ParticleType[i] = buffer[index].type;
       ToGrid->ParticleNumber[i] = buffer[index].id;
     }
 

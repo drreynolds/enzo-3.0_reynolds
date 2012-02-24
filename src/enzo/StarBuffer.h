@@ -34,7 +34,6 @@ struct StarBuffer {
   int		level;
   int		GridID;
   bool          AddedEmissivity;
-  star_type	type;
   float         accreted_angmom[MAX_DIMENSION];  
   double        NotEjectedMass;
 };

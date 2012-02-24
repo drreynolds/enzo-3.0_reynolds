@@ -47,7 +47,6 @@ int ParticleBufferHandler::_AllocateBuffer(char *buffer, int &buffer_size,
 
   /* Allocate buffer and pack the data */
 
-  buffer = new char[buffer_size];
   position = 0;
   MPI_Pack(&this->NumberOfBuffers, 1, IntDataType, buffer, buffer_size, 
 	   &position, MPI_COMM_WORLD);

@@ -37,12 +37,12 @@
 void my_exit(int status);
 
 int CommunicationShareActiveParticles(int *NumberToMove, 
-				      ActiveParticleType **SendList,
+				      ActiveParticleType** &SendList,
 				      int &NumberOfReceives, 
-				      ActiveParticleType **SharedList)
+				      ActiveParticleType** &SharedList)
 {
 
-  int i, type, proc;
+  int i, type, proc, ap_id;
   int NumberOfSends, NumberOfNewParticles, NumberOfNewParticlesThisProcessor;
   ActiveParticleType_info *ap_info;
 
@@ -71,10 +71,11 @@ int CommunicationShareActiveParticles(int *NumberToMove,
     for (type = 0; type < EnabledActiveParticlesCount; type++) {
 
       ap_info = EnabledActiveParticles[type];
+      ap_id = ap_info->GetEnabledParticleID();
 
       /* Create a MPI packed buffer from the active particles */
       
-      Eint32 position = 0;
+      Eint32 position = 0, position_on_proc = 0;
       int count, header_size, element_size, size;
       int *mpi_buffer_size, *mpi_recv_buffer_size;
       char *mpi_buffer, *mpi_recv_buffer, *temp_buffer;
@@ -93,9 +94,11 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       position = 0;
       temp_buffer = mpi_buffer;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
-	ap_info->allocate_buffer(SendList, size,
+	position_on_proc = 0;
+	ap_info->allocate_buffer(SendList, size, 
 				 temp_buffer, mpi_buffer_size[proc], 
-				 position, proc);
+				 position_on_proc, proc, ap_id);
+	position += position_on_proc;
 	temp_buffer = mpi_buffer + position;
       }
 
@@ -173,7 +176,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 	NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc] - header_size) / element_size;
 	if (NumberOfNewParticlesThisProcessor > 0)
 	  ap_info->unpack_buffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
-				 NumberOfReceives - MPI_RecvListDisplacements[proc],
+				 MPI_RecvListCount[proc],
 				 NumberOfNewParticlesThisProcessor,
 				 SharedList, count);
       }

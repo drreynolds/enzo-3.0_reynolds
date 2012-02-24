@@ -50,8 +50,8 @@ int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],
 int CommunicationShareParticles(int *NumberToMove, particle_data* &SendList,
 				int &NumberOfReceives,
 				particle_data* &SharedList);
-int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType** SendList,
-				      int &NumberOfReceives, ActiveParticleType** SharedList);
+int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType** &SendList,
+				      int &NumberOfReceives, ActiveParticleType** &SharedList);
 
 int CommunicationTransferSubgridParticles(LevelHierarchyEntry *LevelArray[],
 					  TopGridData *MetaData, int level)

@@ -68,7 +68,6 @@ int grid::TestOrbitInitializeGrid(int NumberOfTestParticles,
 
   for (i = 0; i < NumberOfParticles; i++) {
     ParticleNumber[i] = i;
-    ParticleType[i] = PARTICLE_TYPE_DARK_MATTER;
   }
 
   /* Set central particle. */

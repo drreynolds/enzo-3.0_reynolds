@@ -72,7 +72,6 @@ void Star::MirrorToParticle(void)
     CurrentGrid->ParticleVelocity[dim][place] = this->vel[dim];
   }
   CurrentGrid->ParticleMass[place] = (float)(this->Mass) / MassConversion;
-  CurrentGrid->ParticleType[place] = this->type;
   CurrentGrid->ParticleAttribute[0][place] = this->BirthTime;
   CurrentGrid->ParticleAttribute[1][place] = this->LifeTime;
   CurrentGrid->ParticleAttribute[2][place] = this->Metallicity;

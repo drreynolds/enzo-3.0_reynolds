@@ -85,7 +85,6 @@ Star::Star(grid *_grid, int _id, int _level)
   FeedbackFlag = NO_FEEDBACK;
 
   GridID = _grid->ID;
-  type = _grid->ParticleType[_id];
   Identifier = _grid->ParticleNumber[_id];
   Mass = FinalMass = (double)(_grid->ParticleMass[_id]);
   BirthTime = _grid->ParticleAttribute[0][_id];
@@ -129,7 +128,6 @@ Star::Star(StarBuffer *buffer, int n)
   Identifier = buffer[n].Identifier;
   level = buffer[n].level;
   GridID = buffer[n].GridID;
-  type = buffer[n].type;
   AddedEmissivity = buffer[n].AddedEmissivity;
   NextStar = NULL;
   PrevStar = NULL;
@@ -170,7 +168,6 @@ Star::Star(StarBuffer buffer)
   Identifier = buffer.Identifier;
   level = buffer.level;
   GridID = buffer.GridID;
-  type = buffer.type;
   NextStar = NULL;
   PrevStar = NULL;
 }
@@ -485,7 +482,7 @@ void Star::PrintInfo(void)
   printf("\t FeedbackFlag = %"ISYM"\n", FeedbackFlag);
   printf("\t accreted_angmom = %"FSYM" %"FSYM" %"FSYM"\n", accreted_angmom[0],
 	 accreted_angmom[1], accreted_angmom[2]);
-  printf("\t this = %x, PrevStar = %x, NextStar = %x\n", this, PrevStar, NextStar);
+  printf("\t this = %p, PrevStar = %p, NextStar = %p\n", this, PrevStar, NextStar);
   return;
 }
 
@@ -553,7 +550,6 @@ StarBuffer* Star::StarListToBuffer(int n)
     result[count].Identifier = tmp->Identifier;
     result[count].level = tmp->level;
     result[count].GridID = tmp->GridID;
-    result[count].type = tmp->type;
     result[count].AddedEmissivity = tmp->AddedEmissivity;
     count++;
     tmp = tmp->NextStar;

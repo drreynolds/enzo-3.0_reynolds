@@ -13,6 +13,7 @@
 /  PURPOSE:
 /
 ************************************************************************/
+#define NO_DEBUG_AP
 
 #ifdef USE_MPI
 #include "mpi.h"

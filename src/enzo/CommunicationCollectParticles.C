@@ -18,6 +18,7 @@
 /         bit inefficient but reduced the number of if-statements.
 /
 ************************************************************************/
+#define NO_DEBUG_AP
  
 #ifdef USE_MPI
 #include "mpi.h"
@@ -58,8 +59,8 @@ int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],
 int CommunicationShareParticles(int *NumberToMove, particle_data* &SendList,
 				int &NumberOfReceives,
 				particle_data* &SharedList);
-int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType **SendList,
-				      int &NumberOfReceives, ActiveParticleType **SharedList);
+int CommunicationShareActiveParticles(int *NumberToMove, ActiveParticleType** &SendList,
+				      int &NumberOfReceives, ActiveParticleType** &SharedList);
 
 #define NO_DEBUG_CCP
 #define GRIDS_PER_LOOP 100000
@@ -306,7 +307,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
 	jstart = jend;
       } // ENDFOR grids
-
+    
     } // ENDIF MoveActiveParticles
 
     /************************************************************************
@@ -338,6 +339,13 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 	     SubgridHierarchyPointer[i]->GridData->ReturnNumberOfParticles(),
 	     SubgridHierarchyPointer[i]->GridData->ReturnNumberOfActiveParticles());
 #endif /* DEBUG_CCP */
+
+#ifdef DEBUG_AP
+    for (i = 0; i < NumberOfGrids; i++)
+      GridHierarchyPointer[i]->GridData->DebugActiveParticles(level);
+    for (i = 0; i < NumberOfSubgrids; i++)
+      SubgridHierarchyPointer[i]->GridData->DebugActiveParticles(level+1);
+#endif /* DEBUG_AP */
 
     /* Cleanup. */
 
@@ -510,7 +518,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
     // Copy shared stars to grids, if any
     if (APNumberOfReceives > 0)
       for (j = StartGrid; j < EndGrid && jend < APNumberOfReceives; j++) {
-	while (APSharedList[jend]->ReturnDestProcessor() <= j) {
+	while (APSharedList[jend]->ReturnGridID() <= j) {
 	  jend++;
 	  if (jend == APNumberOfReceives) break;
 	}
@@ -560,6 +568,11 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 	    GridHierarchyPointer[i]->GridData->SetNumberOfActiveParticles(0);
 	}
     }
+
+#ifdef DEBUG_AP
+    for (i = 0; i < NumberOfGrids; i++)
+      GridHierarchyPointer[i]->GridData->DebugActiveParticles(level);
+#endif /* DEBUG_AP */
 
   } // ENDIF sibling grids and multi-processor
 

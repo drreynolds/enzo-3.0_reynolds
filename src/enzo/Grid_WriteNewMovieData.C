@@ -413,6 +413,9 @@ int grid::WriteNewMovieData(FLOAT RegionLeftEdge[], FLOAT RegionRightEdge[],
        element.  We don't store the data first because we need the
        particle number first. */
 
+    if (EnabledActiveParticlesCount == 0)
+      ENZO_FAIL("Streaming output of non-DM particles not implemented.");
+
     int *NonDMParticleIndices = new int[NumberOfParticles];
     int NumberOfNonDMParticles = 0;
     int ii, iattr;
@@ -420,7 +423,7 @@ int grid::WriteNewMovieData(FLOAT RegionLeftEdge[], FLOAT RegionRightEdge[],
     FLOAT *TempPosition[3];
     float *TempVelocity[3], *TempMass;
     float *TempAttr[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
-    int *TempType;
+    int *TempType = NULL;
     PINT *TempNumber;
     
     for (i = 0; i < NumberOfParticles; i++)
@@ -439,7 +442,6 @@ int grid::WriteNewMovieData(FLOAT RegionLeftEdge[], FLOAT RegionRightEdge[],
       TempMass = new float[NumberOfNonDMParticles];
       for (i = 0; i < NumberOfParticleAttributes; i++)
 	TempAttr[i] = new float[NumberOfNonDMParticles];
-      TempType = new int[NumberOfNonDMParticles];
       TempNumber = new PINT[NumberOfNonDMParticles];
     } // ENDIF non-DM particles > 0
 
@@ -454,7 +456,6 @@ int grid::WriteNewMovieData(FLOAT RegionLeftEdge[], FLOAT RegionRightEdge[],
       TempMass[i] = ParticleMass[j];
       for (iattr = 0; iattr < NumberOfParticleAttributes; iattr++)
 	TempAttr[iattr][i] = ParticleAttribute[iattr][j];
-      TempType[i] = ParticleType[j];
       TempNumber[i] = ParticleNumber[j];
     } // ENDFOR non-DM particles
 

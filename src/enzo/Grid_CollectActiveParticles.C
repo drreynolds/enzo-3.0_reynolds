@@ -29,7 +29,7 @@
 
 int grid::CollectActiveParticles(int GridNum, int* &NumberToMove, 
 				 int &StartIndex, int &EndIndex, 
-				 ActiveParticleType **List, int CopyDirection)
+				 ActiveParticleType** &List, int CopyDirection)
 {
  
   /* Declarations. */

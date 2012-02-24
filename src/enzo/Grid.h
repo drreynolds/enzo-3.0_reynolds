@@ -1553,7 +1553,7 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
 
   int CollectActiveParticles(int GridNum, int* &NumberToMove, 
 			     int &StartIndex, int &EndIndex, 
-			     ActiveParticleType **List, int CopyDirection);
+			     ActiveParticleType** &List, int CopyDirection);
 
   int CollectStars(int GridNum, int* &NumberToMove, 
 		   int &StartIndex, int &EndIndex, 
@@ -1581,7 +1581,7 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
   
   int TransferSubgridActiveParticles(grid* Subgrids[], int NumberOfSubgrids, 
 				     int* &NumberToMove, int StartIndex, 
-				     int EndIndex, ActiveParticleType **List, 
+				     int EndIndex, ActiveParticleType** &List, 
 				     bool KeepLocal, bool ParticlesAreLocal, 
 				     int CopyDirection, 
 				     int IncludeGhostZones = FALSE, 

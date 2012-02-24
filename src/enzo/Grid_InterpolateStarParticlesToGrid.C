@@ -46,7 +46,10 @@ int grid::InterpolateStarParticlesToGrid(int NumberOfSPFields)
 
   if (NumberOfBaryonFields == 0 || OutputGriddedStarParticle <= 0)
     return SUCCESS;
- 
+
+  if (EnabledActiveParticlesCount > 0) 
+    ENZO_FAIL("Star particle interpolation to grid not implemented.");
+
   /* initialize */
  
   int dim, i, j, k, size, field;

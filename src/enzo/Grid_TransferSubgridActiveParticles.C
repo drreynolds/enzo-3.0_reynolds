@@ -33,7 +33,7 @@
 
 int grid::TransferSubgridActiveParticles
 (grid* Subgrids[], int NumberOfSubgrids, int* &NumberToMove, int StartIndex, 
- int EndIndex, ActiveParticleType **List, bool KeepLocal, 
+ int EndIndex, ActiveParticleType** &List, bool KeepLocal, 
  bool ParticlesAreLocal, int CopyDirection, int IncludeGhostZones, 
  int CountOnly)
 {
@@ -186,12 +186,8 @@ int grid::TransferSubgridActiveParticles
 
     /* Count up total number. */
  
-    ActiveParticleType **NewParticles;
-    int itype, TotalNumberOfActiveParticles;
     int NumberOfNewActiveParticles = EndIndex - StartIndex;
 
-    TotalNumberOfActiveParticles = NumberOfActiveParticles + NumberOfNewActiveParticles;
- 
     /* Copy stars from buffer into linked list */
     
     if (NumberOfNewActiveParticles > 0) {
@@ -204,6 +200,8 @@ int grid::TransferSubgridActiveParticles
       this->AddActiveParticles(List, NumberOfNewActiveParticles, StartIndex);
 
     } // ENDIF new particles
+
+    this->DebugActiveParticles(-1);
   
   } // end: if (COPY_IN)
 

@@ -564,7 +564,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 	
       } // end: for EnabledActiveParticlesCount
 
-    /* Assign the active particle buffer to this grid */
+    /* Assign the active particle buffer to this grid. */
 
     this->ActiveParticles = ActiveParticlesOnDisk;
     for (i = 0; i < NumberOfActiveParticles; i++)

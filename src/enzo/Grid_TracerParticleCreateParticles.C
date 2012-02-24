@@ -87,7 +87,6 @@ int grid::TracerParticleCreateParticles(FLOAT LeftEdge[], FLOAT RightEdge[],
  
   TempMass = ParticleMass;
   TempNumber = ParticleNumber;
-  TempType = ParticleType;
  
   for (dim = 0; dim < GridRank; dim++) {
     TempPos[dim] = ParticlePosition[dim];
@@ -105,7 +104,6 @@ int grid::TracerParticleCreateParticles(FLOAT LeftEdge[], FLOAT RightEdge[],
   for (i = 0; i < NumberOfParticles; i++) {
     ParticleMass[i]   = TempMass[i];
     ParticleNumber[i] = TempNumber[i];
-    ParticleType[i]   = TempType[i];
   }
   for (dim = 0; dim < GridRank; dim++)
     for (i = 0; i < NumberOfParticles; i++) {
@@ -118,7 +116,6 @@ int grid::TracerParticleCreateParticles(FLOAT LeftEdge[], FLOAT RightEdge[],
 	
   delete [] TempMass;
   delete [] TempNumber;
-  delete [] TempType;
   for (dim = 0; dim < GridRank; dim++) {
     delete [] TempPos[dim];
     delete [] TempVel[dim];
@@ -164,7 +161,6 @@ int grid::TracerParticleCreateParticles(FLOAT LeftEdge[], FLOAT RightEdge[],
 	// Set particle mass and type
  
 	ParticleMass[index] = 1.0e-10;  // BWO: particle mass set to nonzero!
-	ParticleType[index] = PARTICLE_TYPE_TRACER;
  
 	// Set particle index.  Note that there is currently a problem
 	// with star particles, which may overlap this range of indexes
