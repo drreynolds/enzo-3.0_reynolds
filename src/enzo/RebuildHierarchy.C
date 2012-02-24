@@ -62,6 +62,8 @@ int CommunicationTransferParticles(grid *GridPointer[], int NumberOfGrids,
 				   int TopGridDims[]);
 int CommunicationTransferStars(grid *GridPointer[], int NumberOfGrids,
 			       int TopGridDims[]);
+int CommunicationTransferActiveParticles(grid *GridPointer[], int NumberOfGrids, 
+					 int TopGridDims[]);
 int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[], int level,
 				  bool ParticlesAreLocal,
 				  bool SyncNumberOfParticles, 
@@ -255,6 +257,7 @@ int RebuildHierarchy(TopGridData *MetaData,
     }
 
     CommunicationTransferParticles(GridPointer, grids, MetaData->TopGridDims);
+    CommunicationTransferActiveParticles(GridPointer, grids, MetaData->TopGridDims);
     //CommunicationTransferStars(GridPointer, grids, MetaData->TopGridDims);
 
     /* We need to collect particles again */
@@ -640,7 +643,7 @@ int RebuildHierarchy(TopGridData *MetaData,
  
 	  if (GridHierarchyPointer[j]->GridData->MoveSubgridActiveParticles(
 				 subgrids, ToGrids, FALSE) == FAIL)
-	    ENZO_FAIL("Error in grid->MoveSubgridStars.");
+	    ENZO_FAIL("Error in grid->MoveSubgridActiveParticles.");
 
 	  if (GridHierarchyPointer[j]->GridData->MoveSubgridParticlesFast(
 				 subgrids, ToGrids, FALSE) == FAIL)
