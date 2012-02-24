@@ -42,7 +42,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 				      ActiveParticleType** &SharedList)
 {
 
-  int i, type, proc;
+  int i, type, proc, ap_id;
   int NumberOfSends, NumberOfNewParticles, NumberOfNewParticlesThisProcessor;
   ActiveParticleType_info *ap_info;
 
@@ -71,6 +71,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
     for (type = 0; type < EnabledActiveParticlesCount; type++) {
 
       ap_info = EnabledActiveParticles[type];
+      ap_id = ap_info->GetEnabledParticleID();
 
       /* Create a MPI packed buffer from the active particles */
       
@@ -94,9 +95,9 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       temp_buffer = mpi_buffer;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
 	position_on_proc = 0;
-	ap_info->allocate_buffer(SendList, size,
+	ap_info->allocate_buffer(SendList, size, 
 				 temp_buffer, mpi_buffer_size[proc], 
-				 position_on_proc, proc);
+				 position_on_proc, proc, ap_id);
 	position += position_on_proc;
 	temp_buffer = mpi_buffer + position;
       }
