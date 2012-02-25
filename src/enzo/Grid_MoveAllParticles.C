@@ -21,6 +21,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <stdio.h>
+#include <math.h>
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -60,10 +61,11 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
  
   /* Debugging info. */
 
-  if (debug1) printf("MoveAllParticles: %"ISYM",%"ISYM
-		     " (before: ThisGrid = %"ISYM",%"ISYM").\n",
-		     TotalNumberOfParticles, TotalNumberOfActiveParticles,
-		     NumberOfParticles, NumberOfActiveParticles);
+  if (debug1) 
+    printf("MoveAllParticles: %"ISYM",%"ISYM
+	   " (before: ThisGrid = %"ISYM",%"ISYM").\n",
+	   TotalNumberOfParticles, TotalNumberOfActiveParticles, 
+	   NumberOfParticles, NumberOfActiveParticles);
  
   /* Allocate space for the particles. */
  
@@ -159,16 +161,19 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
   ActiveParticleType **MoveParticles = 
     new ActiveParticleType*[NumberOfSubgridActiveParticles];
 
+  int dlevel = logf(RefinementFactors[0]) / logf(RefineBy);
+
   Index = 0;
   for (grid = 0; grid < NumberOfGrids; grid++) {
     for (i = 0; i < FromGrid[grid]->NumberOfActiveParticles; i++) {
       FromGrid[grid]->ActiveParticles[i]->AdjustMassByFactor(MassDecrease);
-      FromGrid[grid]->ActiveParticles[i]->ReduceLevel();
+      FromGrid[grid]->ActiveParticles[i]->ReduceLevel(dlevel);
       FromGrid[grid]->ActiveParticles[i]->AssignCurrentGrid(this);
       FromGrid[grid]->ActiveParticles[i]->SetGridID(this->ID);
       MoveParticles[Index++] = FromGrid[grid]->ActiveParticles[i];
     }
     FromGrid[grid]->NumberOfActiveParticles = 0;
+    FromGrid[grid]->ActiveParticles = NULL;
   }
 
   this->AddActiveParticles(MoveParticles, NumberOfSubgridActiveParticles);

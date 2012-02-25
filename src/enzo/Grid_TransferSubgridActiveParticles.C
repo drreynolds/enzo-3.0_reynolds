@@ -102,7 +102,7 @@ int grid::TransferSubgridActiveParticles
  
       /* Find and store subgrid number of this star, and add to
 	 count. */
- 
+
       subgrid[i] = nint(BaryonField[NumberOfBaryonFields][index])-1;
       if (subgrid[i] >= 0) {
 	if (KeepLocal)
@@ -115,7 +115,7 @@ int grid::TransferSubgridActiveParticles
 	ENZO_VFAIL("star subgrid (%"ISYM"/%"ISYM") out of range\n", 
 		subgrid[i], NumberOfSubgrids)
       }
-      
+
     } // ENDFOR particles
 
     if (CountOnly == TRUE) {
@@ -201,7 +201,7 @@ int grid::TransferSubgridActiveParticles
 
     } // ENDIF new particles
 
-    this->DebugActiveParticles(-1);
+    //this->DebugActiveParticles(-1);
   
   } // end: if (COPY_IN)
 

@@ -67,7 +67,7 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
   }
 #endif /* DEBUG */  
 
-  delete[] OldActiveParticles; 
+  delete[] OldActiveParticles;
 
   return SUCCESS;
 

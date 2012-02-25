@@ -493,10 +493,10 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
  
   /* Move Particles (while still on same processor). */
 
-  if (!ParallelRootGridIO)
-    if (OldGrid->MoveSubgridParticlesFast(gridcounter, SubGrids, TRUE) == FAIL) {
-      ENZO_FAIL("Error in grid->MoveSubgridParticlesFast.");
-    }
+  if (!ParallelRootGridIO) {
+    OldGrid->MoveSubgridParticlesFast(gridcounter, SubGrids, TRUE);
+    OldGrid->MoveSubgridActiveParticles(gridcounter, SubGrids, TRUE);
+  }
  
   int *PartitionProcessorNumbers = NULL;
   if (LoadBalancing == 4)

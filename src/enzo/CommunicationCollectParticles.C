@@ -436,10 +436,11 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 	     StartGrid, EndGrid-1);  
 
     for (i = StartGrid; i < EndGrid; i++)
-      printf("CCP[P%"ISYM"BB]: grid %"ISYM", %"ISYM" proc, %"ISYM" particles\n",
+      printf("CCP[P%"ISYM"BB]: grid %"ISYM", %"ISYM" proc, %"ISYM" (%"ISYM") particles\n",
 	     MyProcessorNumber, i,
 	     GridHierarchyPointer[i]->GridData->ReturnProcessorNumber(),
-	     GridHierarchyPointer[i]->GridData->ReturnNumberOfParticles());
+	     GridHierarchyPointer[i]->GridData->ReturnNumberOfParticles(),
+	     GridHierarchyPointer[i]->GridData->ReturnNumberOfActiveParticles());
 #endif /* DEBUG_CCP */
 
     /* Count the number of particles needed to move */

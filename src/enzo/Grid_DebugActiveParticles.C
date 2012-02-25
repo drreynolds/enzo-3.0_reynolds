@@ -41,6 +41,10 @@ int grid::DebugActiveParticles(int level)
   int i, inside;
   FLOAT *pos;
 
+  if (NumberOfActiveParticles != NumberOfParticles)
+    ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
+	       NumberOfActiveParticles, NumberOfParticles);
+
   /* Check if the active particles are within the grid */
 
   for (i = 0; i < NumberOfActiveParticles; i++) {

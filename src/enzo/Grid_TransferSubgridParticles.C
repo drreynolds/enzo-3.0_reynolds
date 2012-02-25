@@ -271,7 +271,7 @@ int grid::TransferSubgridParticles(grid* Subgrids[], int NumberOfSubgrids,
     /* Set new number of particles in this grid. */
  
     NumberOfParticles = TotalNumberOfParticles;
- 
+
     /* Copy new ones into place. */
  
     this->DeleteParticles();

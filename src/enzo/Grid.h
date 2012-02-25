@@ -1546,6 +1546,10 @@ int CreateParticleTypeGrouping(hid_t ptype_dset,
 				 star_data *&List, int *Layout, 
 				 int *GStartIndex[], int *GridMap, 
 				 int CopyDirection);
+  int CommunicationTransferActiveParticles(grid* Grids[], int NumberOfGrids, 
+	   int ThisGridNum, int TopGridDims[], int *&NumberToMove, 
+	   int StartIndex, int EndIndex, ActiveParticleType** &List, 
+	   int *Layout, int *GStartIndex[], int *GridMap, int CopyDirection);
 
   int CollectParticles(int GridNum, int* &NumberToMove, 
 		       int &StartIndex, int &EndIndex, 
