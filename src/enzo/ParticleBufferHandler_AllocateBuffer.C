@@ -31,8 +31,8 @@
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
 
-int ParticleBufferHandler::_AllocateBuffer(char *buffer, int &buffer_size,
-					   Eint32 &position)
+int ParticleBufferHandler::_AllocateBuffer(char *buffer, Eint32 total_buffer_size,
+					   int &buffer_size, Eint32 &position)
 {
 
 #ifdef USE_MPI
@@ -47,33 +47,33 @@ int ParticleBufferHandler::_AllocateBuffer(char *buffer, int &buffer_size,
 
   /* Allocate buffer and pack the data */
 
-  position = 0;
-  MPI_Pack(&this->NumberOfBuffers, 1, IntDataType, buffer, buffer_size, 
+  //position = 0;
+  MPI_Pack(&this->NumberOfBuffers, 1, IntDataType, buffer, total_buffer_size, 
 	   &position, MPI_COMM_WORLD);
 
   if (this->NumberOfBuffers > 0) {
 
     for (i = 0; i < MAX_DIMENSION; i++)
-      MPI_Pack(this->pos[i], NumberOfBuffers, MY_MPIFLOAT, buffer, buffer_size,
+      MPI_Pack(this->pos[i], NumberOfBuffers, MY_MPIFLOAT, buffer, total_buffer_size,
 	       &position, MPI_COMM_WORLD);
     for (i = 0; i < MAX_DIMENSION; i++)
-      MPI_Pack(this->vel[i], NumberOfBuffers, FloatDataType, buffer, buffer_size,
+      MPI_Pack(this->vel[i], NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
 	       &position, MPI_COMM_WORLD);
-    MPI_Pack(this->Mass, NumberOfBuffers, MPI_DOUBLE, buffer, buffer_size,
+    MPI_Pack(this->Mass, NumberOfBuffers, MPI_DOUBLE, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->BirthTime, NumberOfBuffers, FloatDataType, buffer, buffer_size,
+    MPI_Pack(this->BirthTime, NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->DynamicalTime, NumberOfBuffers, FloatDataType, buffer, buffer_size,
+    MPI_Pack(this->DynamicalTime, NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->Metallicity, NumberOfBuffers, FloatDataType, buffer, buffer_size,
+    MPI_Pack(this->Metallicity, NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->Identifier, NumberOfBuffers, PINTDataType, buffer, buffer_size,
+    MPI_Pack(this->Identifier, NumberOfBuffers, PINTDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->level, NumberOfBuffers, IntDataType, buffer, buffer_size,
+    MPI_Pack(this->level, NumberOfBuffers, IntDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->GridID, NumberOfBuffers, IntDataType, buffer, buffer_size,
+    MPI_Pack(this->GridID, NumberOfBuffers, IntDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
-    MPI_Pack(this->type, NumberOfBuffers, IntDataType, buffer, buffer_size,
+    MPI_Pack(this->type, NumberOfBuffers, IntDataType, buffer, total_buffer_size,
 	     &position, MPI_COMM_WORLD);
 
   } // ENDIF NumberOfBuffers > 0

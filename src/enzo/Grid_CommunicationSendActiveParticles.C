@@ -57,7 +57,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
 
   char *buffer;
   Eint32 position = 0;
-  int npart, i, j, size, type, dim, index, TransferSize, 
+  Eint32 TransferSize;
+  int npart, i, j, size, type, dim, index,
     NumberOfNewParticles;
   int header_size, element_size, buffer_size;
   ActiveParticleType_info *ap_info;
@@ -111,7 +112,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
   if (MyProcessorNumber == ProcessorNumber) {
     position = 0;
     ap_info->allocate_buffer(ActiveParticles, NumberOfActiveParticles,
-			     buffer, buffer_size, position, -1);
+			     buffer, TransferSize, buffer_size, position, -1);
     for (i = 0; i < NumberOfActiveParticles; i++)
       if (ActiveParticles[i]->ReturnType() == type)
 	delete ActiveParticles[i];

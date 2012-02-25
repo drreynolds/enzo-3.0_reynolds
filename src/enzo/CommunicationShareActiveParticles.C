@@ -76,6 +76,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       
       Eint32 position = 0, position_on_proc = 0;
       int count, header_size, element_size, size;
+      Eint32 total_buffer_size;
       int *mpi_buffer_size, *mpi_recv_buffer_size;
       char *mpi_buffer, *mpi_recv_buffer, *temp_buffer;
       mpi_buffer_size = new int[NumberOfProcessors];
@@ -87,19 +88,15 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       size = 0;
       for (i = 0; i < TotalNumberToMove; i++)
 	if (SendList[i]->ReturnType() == type) size++;
-      mpi_buffer = new char[header_size+size*element_size];
+      total_buffer_size = NumberOfProcessors*header_size + size*element_size;
+      mpi_buffer = new char[total_buffer_size];
 
       // Pack the buffer, ordered by destination processor
       position = 0;
-      temp_buffer = mpi_buffer;
-      for (proc = 0; proc < NumberOfProcessors; proc++) {
-	position_on_proc = 0;
-	ap_info->allocate_buffer(SendList, size,
-				 temp_buffer, mpi_buffer_size[proc], 
-				 position_on_proc, proc);
-	position += position_on_proc;
-	temp_buffer = mpi_buffer + position;
-      }
+      for (proc = 0; proc < NumberOfProcessors; proc++)
+	ap_info->allocate_buffer(SendList, size, mpi_buffer, 
+				 total_buffer_size, mpi_buffer_size[proc], 
+				 position, proc);
 
       /* Get counts from each processor to allocate buffers. */
 
