@@ -566,9 +566,15 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
     /* Assign the active particle buffer to this grid. */
 
+    float dx = (GridRightEdge[0] - GridLeftEdge[0]) / 
+      (GridEndIndex[0] - GridStartIndex[0] + 1);
+    int level = nint(logf(TopGridDx[0]/dx) / logf(RefineBy));
+
     this->ActiveParticles = ActiveParticlesOnDisk;
-    for (i = 0; i < NumberOfActiveParticles; i++)
+    for (i = 0; i < NumberOfActiveParticles; i++) {
       this->ActiveParticles[i]->AssignCurrentGrid(this); // this->ID not defined yet
+      this->ActiveParticles[i]->SetLevel(level);
+    }
 
   } // end: if (NumberOfActiveParticles > 0) && ReadData && (MyProcessorNumber == ProcessorNumber)
 

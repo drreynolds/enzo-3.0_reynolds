@@ -75,7 +75,9 @@ public:
   grid *ReturnCurrentGrid(void) { return CurrentGrid; };
 
   void  ReduceLevel(void) { level--; };
+  void  ReduceLevel(int x) { level -= x; };
   void  IncreaseLevel(void) { level++; };
+  void  IncreaseLevel(int x) { level += x; };
   void  SetLevel(int i) { level = i; };
   void  SetGridID(int i) { GridID = i; };
   void  SetDestProcessor(int i) { dest_processor = i; };

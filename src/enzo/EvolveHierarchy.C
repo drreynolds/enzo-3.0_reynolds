@@ -60,6 +60,7 @@
  
 int RebuildHierarchy(TopGridData *MetaData,
 		     LevelHierarchyEntry *LevelArray[], int level);
+int DetachActiveParticles(LevelHierarchyEntry *LevelArray[], int level);
 
 int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 		int level, float dtLevelAbove, ExternalBoundary *Exterior
@@ -269,7 +270,12 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
   /* Do the first grid regeneration. */
  
   if(CheckpointRestart == FALSE) {
+    // Temporarily attach active particles for first rebuild
+    for (i = 0; i < MAX_DEPTH_OF_HIERARCHY; i++)
+      for (Temp = LevelArray[i]; Temp; Temp = Temp->NextGridThisLevel)
+	Temp->GridData->AppendActiveParticles();
     RebuildHierarchy(&MetaData, LevelArray, 0);
+    DetachActiveParticles(LevelArray, 0);
   }
 
   PrintMemoryUsage("1st rebuild");
@@ -568,8 +574,10 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
 
     PrintMemoryUsage("Pre loop rebuild");
  
-    if (ProblemType != 25 && Restart == FALSE)
+    if (ProblemType != 25 && Restart == FALSE) {
       RebuildHierarchy(&MetaData, LevelArray, 0);
+      DetachActiveParticles(LevelArray, 0);
+    }
 
     PrintMemoryUsage("Post loop rebuild");
 

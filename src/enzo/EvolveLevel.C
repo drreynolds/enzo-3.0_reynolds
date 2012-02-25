@@ -204,6 +204,7 @@ int DeleteSUBlingList(int NumberOfGrids,
 		      LevelHierarchyEntry **SUBlingList);
 #endif
 
+int DetachActiveParticles(LevelHierarchyEntry *LevelArray[], int level);
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			     int ThisLevel, int TotalActiveParticleCountPrevious[]);
@@ -263,7 +264,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   FLOAT When, GridTime;
   //float dtThisLevelSoFar = 0.0, dtThisLevel, dtGrid, dtActual, dtLimit;
   //float dtThisLevelSoFar = 0.0, dtThisLevel;
-  int cycle = 0, counter = 0, grid1, subgrid, grid2;
+  int cycle = 0, counter = 0, grid1, subgrid, grid2, ilvl;
   HierarchyEntry *NextGrid;
   int dummy_int;
 
@@ -686,18 +687,14 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Rebuild the Grids on the next level down.
        Don't bother on the last cycle, as we'll rebuild this grid soon. */
 
-    if (Grids[0]->GridData->ReturnNumberOfActiveParticles() > 0)
-      printf("we have activity.\n");
- 
-    if (dtThisLevelSoFar[level] < dtLevelAbove)
+    /* Remove active particles from normal particle arrays on this and
+       finer levels.  This must be done after RebuildHierarchy because
+       their masses must be deposited into the MassFlaggingField. */
+
+    if (dtThisLevelSoFar[level] < dtLevelAbove) {
       RebuildHierarchy(MetaData, LevelArray, level);
-
-    /* Remove active particles from normal particle arrays.  This must
-       be done after RebuildHierarchy because their masses must be
-       deposited into the MassFlaggingField. */
-
-    for (grid1 = 0; grid1 < NumberOfGrids; grid1++)
-      Grids[grid1]->GridData->DetachActiveParticles();
+      DetachActiveParticles(LevelArray, level);
+    }
 
     /* Count up number of grids on this level. */
 

@@ -593,7 +593,7 @@ int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **&particl
     ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker();
     particles_to_read[i] = np;
     np->Mass = Mass[i];
-    np->type = CenOstriker;
+    np->type = np->GetEnabledParticleID();
     np->BirthTime = BirthTime[i];
     np->DynamicalTime = DynamicalTime[i];
     np->Metallicity = Metallicity[i];

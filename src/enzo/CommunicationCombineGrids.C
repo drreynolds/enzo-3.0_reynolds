@@ -87,7 +87,6 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
     /* Compute region to send. */
  
     grid *OldGrid = Temp->GridData;
-    OldGrid->DebugActiveParticles(0);
     OldGrid->ReturnGridInfo(&Rank, TempDims, Left, Right);
     for (dim = 0; dim < MAX_DIMENSION; dim++) {
       SendOffset[dim] = (dim < Rank)? DEFAULT_GHOST_ZONES : 0;

@@ -53,9 +53,9 @@ int grid::CollectActiveParticles(int GridNum, int* &NumberToMove,
 
     /* Add to the star count to move */
 
-    // NumberOfStars is still the number of local stars, not the
+    // NumberOfActiveParticles is still the number of local stars, not the
     // actual total!
-    NumberToMove[ProcessorNumber] += NumberOfStars;
+    NumberToMove[ProcessorNumber] += NumberOfActiveParticles;
  
     /* Move and delete stars */
 
@@ -65,7 +65,7 @@ int grid::CollectActiveParticles(int GridNum, int* &NumberToMove,
 
     n1 = StartIndex;
     
-    for (i = 0, n1 = StartIndex; i < NumberOfStars; i++, n1++) {
+    for (i = 0, n1 = StartIndex; i < NumberOfActiveParticles; i++, n1++) {
       List[n1] = ActiveParticles[i];
       List[n1]->SetGridID(GridNum);
       List[n1]->SetDestProcessor(ProcessorNumber);
@@ -74,6 +74,7 @@ int grid::CollectActiveParticles(int GridNum, int* &NumberToMove,
     StartIndex = n1;
     NumberOfActiveParticles = 0;
     delete[] ActiveParticles;
+    ActiveParticles = NULL;
 
   } // end: if (COPY_OUT)
  
@@ -87,7 +88,6 @@ int grid::CollectActiveParticles(int GridNum, int* &NumberToMove,
 
     int NumberOfNewActiveParticles = EndIndex - StartIndex;
     this->AddActiveParticles(List, NumberOfNewActiveParticles, StartIndex);
-    NumberOfActiveParticles += NumberOfNewActiveParticles;
  
   } // end: if (COPY_IN)
  

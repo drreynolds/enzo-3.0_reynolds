@@ -147,6 +147,7 @@ OBJS_CONFIG_LIB = \
         DepositParticleMassField.o \
         DepositParticleMassFlaggingField.o \
 	DepositActiveParticleMassFlaggingField.o \
+	DetachActiveParticles.o \
 	DetermineNumberOfNodes.o \
 	DetermineParallelism.o \
 	DetermineSubgridSizeExtrema.o \

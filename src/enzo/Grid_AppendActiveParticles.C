@@ -35,8 +35,13 @@
 int grid::AppendActiveParticles(void)
 {
 
-  if (ProcessorNumber != MyProcessorNumber || NumberOfActiveParticles == 0)
+  if (NumberOfActiveParticles == 0)
     return SUCCESS;
+
+  if (ProcessorNumber != MyProcessorNumber) {
+    this->NumberOfParticles += NumberOfActiveParticles;
+    return SUCCESS;
+  }
 
   int OldNumberOfParticles = NumberOfParticles;
   NumberOfParticles += NumberOfActiveParticles;

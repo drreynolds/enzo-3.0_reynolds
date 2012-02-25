@@ -35,8 +35,13 @@
 int grid::DetachActiveParticles(void)
 {
 
-  if (ProcessorNumber != MyProcessorNumber || NumberOfActiveParticles == 0)
+  if (NumberOfActiveParticles == 0)
     return SUCCESS;
+
+  if (MyProcessorNumber != ProcessorNumber) {
+    this->NumberOfParticles -= NumberOfActiveParticles;
+    return SUCCESS;
+  }
 
   /* Sort the particles by ID, so the active particles are at the end
      of the arrays. */
