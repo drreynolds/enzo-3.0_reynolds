@@ -162,6 +162,7 @@ int grid::CommunicationTransferActiveParticles(grid* Grids[], int NumberOfGrids,
       } // ENDFOR particles
 
       this->NumberOfActiveParticles = NumberLeft;
+      if (NumberLeft == 0) ActiveParticles = NULL;
       
     } // ENDIF NumberToMoveThisProc > 0
 
