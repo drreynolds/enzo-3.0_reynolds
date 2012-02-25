@@ -149,11 +149,13 @@ int RebuildHierarchy(TopGridData *MetaData,
      locally.  Zero out NumberOfParticles on other processors, then
      collect the subgrid particles. */
 
+  int NumberOfParticlesOnOtherProcs = 0;
+
   for (i = level; i < MAX_DEPTH_OF_HIERARCHY; i++)
     for (Temp = LevelArray[i]; Temp; Temp = Temp->NextGridThisLevel)
       if (MyProcessorNumber != Temp->GridData->ReturnProcessorNumber()) {
-	Temp->GridData->SetNumberOfParticles(0);
-	Temp->GridData->SetNumberOfActiveParticles(0);
+	Temp->GridData->SetNumberOfParticles(NumberOfParticlesOnOtherProcs);
+	Temp->GridData->SetNumberOfActiveParticles(NumberOfParticlesOnOtherProcs);
       }
 
   /* The dynamic grids should be distributed enough to store the

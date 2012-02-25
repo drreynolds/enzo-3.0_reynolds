@@ -308,7 +308,7 @@ public:
    void (*dfunc)(ActiveParticleFormationDataFlags &flags),
    void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 		  Eint32 total_buffer_size, int &buffer_size,
-		  Eint32 &position, int proc),
+		  Eint32 &position, int ap_id, int proc),
    void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 		  ActiveParticleType **np, int &npart),
    int (*ifunc)(),
@@ -371,7 +371,7 @@ public:
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 			  Eint32 total_buffer_size, int &buffer_size,
-			  Eint32 &position, int proc);
+			  Eint32 &position, int ap_id, int proc);
   void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
 			ActiveParticleType **np, int &npart);
   ActiveParticleType* particle_instance;

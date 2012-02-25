@@ -85,6 +85,7 @@ public:
     field = buffer->field[index];
 #endif
   };
+
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
@@ -756,17 +757,16 @@ public:
   };
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
-			     int proc=-1);
+			     int type_num, int proc=-1);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
 };
 
 void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, Eint32 total_buffer_size, 
-					      int &buffer_size, Eint32 &position, int proc)
+					      int &buffer_size, Eint32 &position, 
+					      int type_num, int proc)
 {
-  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
-  int type_num = dummy->GetEnabledParticleID();
   CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(np, NumberOfParticles, type_num, proc);
   pbuffer->_AllocateBuffer(buffer, total_buffer_size, buffer_size, position);
   // If any extra fields are added in the future, then they would be
@@ -776,7 +776,6 @@ void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int Numbe
   MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
 	   &position, MPI_COMM_WORLD);
 #endif /* EXAMPLE */
-  delete dummy;
   delete pbuffer;
   return;
 }
