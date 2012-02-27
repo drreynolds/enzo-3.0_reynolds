@@ -70,10 +70,10 @@ int grid::CommunicationMoveGrid(int ToProcessor, int MoveParticles,
       this->CommunicationSendParticles(this, ToProcessor, 0,
 				       NumberOfParticles, 0);
 
-    /* Copy stars */
+    /* Copy active particles */
 
-    if (NumberOfStars > 0 && MoveParticles == TRUE)
-      this->CommunicationSendStars(this, ToProcessor);
+    if (NumberOfActiveParticles > 0 && MoveParticles == TRUE)
+      this->CommunicationSendActiveParticles(this, ToProcessor);
 
     /* Copy photon packages */
 
