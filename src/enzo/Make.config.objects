@@ -32,6 +32,8 @@ OBJS_CONFIG_LIB = \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
+	ReturnNumberOfActiveParticlesOfThisType.o \
+	ActiveParticleFindAll.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
         AdjustMustRefineParticlesRefineToLevel.o \

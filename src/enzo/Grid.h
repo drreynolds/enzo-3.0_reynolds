@@ -1356,6 +1356,7 @@ public:
 
    int ReturnNumberOfParticles() {return NumberOfParticles;};
    int ReturnNumberOfActiveParticles() {return NumberOfActiveParticles;};
+   int ReturnNumberOfActiveParticlesOfThisType(int ActiveParticleIDToFind);
 
    int ReturnNumberOfStarParticles(void);
 

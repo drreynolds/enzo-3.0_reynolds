@@ -26,6 +26,9 @@
 #include "Hierarchy.h"
 #include "LevelHierarchy.h"
 #include "StarBuffer.h"
+#ifdef FLUX_FIX
+#include "TopGridData.h"
+#endif
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
