@@ -20,7 +20,6 @@
 #        ActiveParticle_SampleParticle.o \
 #        ActiveParticle_SpringelHernquist.o \
 #	ActiveParticle_UnpackBuffer.o \
-#	ActiveParticle_SinkParticle.o \
 
 OBJS_CONFIG_LIB = \
         acml_st1.o \
@@ -29,6 +28,7 @@ OBJS_CONFIG_LIB = \
 	ActiveParticleInitialize.o \
 	ActiveParticleRoutines.o \
         ActiveParticle_CenOstriker.o \
+	ActiveParticle_AccretingParticle.o \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
