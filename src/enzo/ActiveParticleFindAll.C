@@ -5,7 +5,7 @@
 /
 /  written by: John Wise
 /  date:       March 2009
-/  modified1:  Nathan Goldbaum
+/  modified1:  Nathan Goldbaum, March 2012
 /              Porting to active particles
 /
 /
@@ -73,14 +73,23 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
 	NumberOfActiveParticlesInGrids = new int[NumberOfGrids];
 	
+	/* In a first pass, find the number of active particles on each grid */
 	for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
 	  
-	  NumberOfActiveParticlesInGrids[GridNum] = 0;
-	  LocalNumberOfActiveParticles += Grids[GridNum]->GridData->
+	  NumberOfActiveParticlesInGrids[GridNum] = Grids[GridNum]->GridData->
 	    ReturnNumberOfActiveParticlesOfThisType(ActiveParticleIDToFind);
+	  LocalNumberOfActiveParticles += NumberOfActiveParticlesInGrids[GridNum]
 	  
 	} /* ENDFOR grids */
 	
+	ActiveParticlesOfThisType = new ActiveParticleType*[LocalNumberOfActiveParticles];
+	
+	/* In a second pass, fill up the local active particle list */
+	for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
+	  Grids[GridNum]->GridData->
+	    AppendActiveParticles(ActiveParticlesOfThisType,GridNum,NumberOfActiveParticlesInGrids);
+	} 
+	  
 	delete [] Grids;
 	delete [] NumberOfActiveParticlesInGrids;
 	
@@ -98,12 +107,28 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
     /*                                                */
     /**************************************************/
 
+    Eint32 *nCount = new Eint32[NumberOfProcessors];
+    Eint32 *displace = new Eint32[NumberOfProcessors];
 
+    MPI_Allgather(&LocalNumberOfActiveParticles, 1, MPI_INT, 
+		  nCount, 1, MPI_INT,MPI_COMM_WORLD);
+
+    for (i = 0; i < NumberOfProcessors; i++) {
+      displace[i] = TotalNumberOfActiveParticles;
+      TotalNumberofActiveParticles += nCount[i];
+    }
+    
     /**************************************************/
     /*                                                */
     /* Gather the active particles on all processors  */
     /*                                                */
     /**************************************************/
+    
+    if (TotalNumberOfActiveParticles > 0) {
+
+      
+
+    }  /* ENDIF number of active particles > 0 */
 
   if (NumberOfProcessors > 1) {
     
