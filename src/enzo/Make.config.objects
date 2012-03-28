@@ -32,7 +32,6 @@ OBJS_CONFIG_LIB = \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
-	ReturnNumberOfActiveParticlesOfThisType.o \
 	ActiveParticleFindAll.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
@@ -547,6 +546,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ReturnFluxDims.o \
 	Grid_ReturnGridInfo.o \
 	Grid_ReturnNumberOfStarParticles.o \
+	Grid_ReturnNumberOfActiveParticlesOfThisType.o \
 	Grid_ReturnParticleEntry.o \
 	Grid_ReturnStarStatistics.o \
 	Grid_RHIonizationClumpInitializeGrid.o \
