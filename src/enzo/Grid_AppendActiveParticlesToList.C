@@ -1,0 +1,46 @@
+/***********************************************************************
+/
+/  GRID CLASS (APPEND ACTIVE PARTICLE DATA TO AN ACTIVE PARTICLE ARRAY)
+/
+/  written by: Nathan Goldbaum
+/  date:       March, 2012
+/  modified1:  
+/
+/  PURPOSE:
+/
+************************************************************************/
+#include <map>
+#include <iostream>
+#include <stdexcept>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+#include "ErrorExceptions.h"
+#include "macros_and_parameters.h"
+#include "typedefs.h"
+#include "global_data.h"
+#include "Fluxes.h"
+#include "GridList.h"
+#include "ExternalBoundary.h"
+#include "Grid.h"
+#include "Hierarchy.h"
+#include "TopGridData.h"
+#include "fortran.def"
+#include "CosmologyParameters.h"
+
+#include "ActiveParticle.h"
+
+int grid::AppendActiveParticlesToList(ActiveParticleType** &APArray, int offset, int search_id) {
+  int PNum, count;
+
+    for (PNum = 0; PNum < NumberOfActiveParticles; PNum++) {
+      if (search_id == ActiveParticles[PNum]->ReturnID()) {
+	APArray[offset+count] = ActiveParticles[PNum];
+	count++;
+      }
+    }
+
+  return SUCCESS;
+} 

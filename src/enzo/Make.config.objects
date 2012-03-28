@@ -330,6 +330,7 @@ OBJS_CONFIG_LIB = \
 	Grid_AllocateGrids.o \
 	Grid_AnalyzeTrackPeaks.o \
 	Grid_AppendActiveParticles.o \
+	Grid_AppendActiveParticlesToList.o \
 	Grid_AppendForcingToBaryonFields.o \
 	Grid_AppendNewActiveParticles.o \
 	Grid_ApplyTimeAction.o \
