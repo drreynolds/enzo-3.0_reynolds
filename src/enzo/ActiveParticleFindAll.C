@@ -39,10 +39,10 @@
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
-int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType** &GlobalList, 
-			  int ActiveParticleIDToFind)
+int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType** GlobalList, 
+			  int GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
 {
-  int i, level, type, ap_id, GridNum, GlobalNumberOfActiveParticles, LocalNumberOfActiveParticles,
+  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles,
     header_size, element_size, count, offset;
   ActiveParticleType **LocalActiveParticlesOfThisType = NULL, **GridActiveParticles = NULL;
   HierarchyEntry **Grids;

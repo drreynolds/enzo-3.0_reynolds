@@ -36,7 +36,7 @@ int grid::AppendActiveParticlesToList(ActiveParticleType** &APArray, int offset,
   int PNum, count;
 
     for (PNum = 0; PNum < NumberOfActiveParticles; PNum++) {
-      if (search_id == ActiveParticles[PNum]->ReturnID()) {
+      if (search_id == ActiveParticles[PNum]->ReturnType()) {
 	APArray[offset+count] = ActiveParticles[PNum];
 	count++;
       }

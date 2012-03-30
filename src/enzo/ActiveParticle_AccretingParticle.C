@@ -23,9 +23,6 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
-#include "Hierarchy.h"
-#include "TopGridData.h"
-#include "EventHooks.h"
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 #include "FofLib.h"
@@ -101,7 +98,6 @@ public:
 
   static int Accrete(int nParticles, ActiveParticleType_AccretingParticle** AccretingParticleList,
 			 FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[]);
-  
 
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
@@ -166,8 +162,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 
   FLOAT dx = data.LengthUnits*thisGrid->CellWidth[0][0];
   
-  
-
   bool HasMetalField = (data.MetalNum != -1 || data.ColourNum != -1);
   bool JeansRefinement = false;
   bool MassRefinement = false;
@@ -267,7 +261,7 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   /* Create a new subgroup within the active particle group for active particles of type AccretingParticle */
   hid_t AccretingParticleGroupID = H5Gcreate(group_id,"AccretingParticle",0);
 
-  writeScalarAttribute(AccretingParticleGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);  
+  writeScalarAttribute(AccretingParticleGroupID,HDF5_INT,"Number of Accreting particles",&n);  
 
 
   char *ParticlePositionLabel[] =
@@ -283,7 +277,8 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   float *BirthTime = new float[n];
   float *DynamicalTime = new float[n];
   float *Metallicity = new float[n];
-  
+  PINT *ID = new PINT[n];
+
   int i,dim;
 
   for (dim = 0; dim < GridRank; dim++) {
@@ -305,6 +300,7 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
     BirthTime[i] = ParticleToWrite->BirthTime;
     DynamicalTime[i] = ParticleToWrite->DynamicalTime;
     Metallicity[i] = ParticleToWrite->Metallicity;
+    ID[i] = ParticleToWrite->Identifier;
   }
 
   for (dim = 0; dim < GridRank; dim++) {
@@ -321,6 +317,7 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   WriteDataset(1,&TempInt,"creation_time",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+  WriteDataset(1,&TempInt,"identifier",AccretingParticleGroupID,HDF5_PINT,(VOIDP) ID);
 
   /* Clean up */
 
@@ -424,32 +421,41 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
     {
       /* Generate list of all sink particles in the simulation box */
       
-      int nParticles,NumberOfMergedParticles; 
+      int nParticles, NumberOfMergedParticles, NumberOfGrids, grid; 
       ActiveParticleType_AccretingParticle **AccretingParticleList;
+      HierarchyEntry **Grids;
 
-      // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
-      
+      ActiveParticleFindAll(LevelArray, static_cast<ActiveParticleType**>(AccretingParticleList), nParticles, AccretingParticleID);
+
       /* Calculate CellWidth on maximum refinement level */
       
+      // This may not work for simulations with MinimumMassForRefinementLevelExponent
       FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
       
       /* Generate new merged list of sink particles */
       
-      if (MergeAccretingParticles(nParticles,AccretingParticleList,LinkingLength*dx,NumberOfMergedParticles,LevelArray) == FAIL) {
+      if (MergeAccretingParticles(nParticles,AccretingParticleList,LinkingLength*dx,NumberOfMergedParticles,LevelArray) == FAIL) 
 	ENZO_FAIL("Accreting Particle merging failed");
-      }
    
-      /* Broadcast new global list of active particles */
+      /* Assign local particles to grids */
 
-      // A function that does the communication work should go here. JHW is working on this.
-        
-      
+      NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
+
+      for (grid = 0; grid < NumberOfGrids; grid++) 
+	if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
+	  if (Grids[grid]->GridData->AddActiveParticlesFromArray(AccretingParticleList,NumberOfMergedParticles) == FAIL) 
+	    ENZO_FAIL("Cannot assign accreting particles to grid");
+	  
+      delete [] Grids;
+      delete [] AccretingParticleList;
     } // ENDIF: ThisLevel == MaximumRefinementLevel
 
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::MergeAccretingParticles(int nParticles, ActiveParticleType_AccretingParticle** AccretingParticleList, FLOAT LinkingLength,int ngroups, LevelHierarchyEntry *LevelArray[])
+int ActiveParticleType_AccretingParticle::MergeAccretingParticles
+(int nParticles, ActiveParticleType_AccretingParticle** AccretingParticleList, 
+FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[])
 {
   int i,j;
   int dim;
@@ -461,16 +467,16 @@ int ActiveParticleType_AccretingParticle::MergeAccretingParticles(int nParticles
   
   
   /* Construct list of sink particle positions to pass to Foflist */
-  FLOAT AccretingCoordinates[3*nParticles];
+  FLOAT ParticleCoordinates[3*nParticles];
   
   for (i=0 ; i++ ; i<nParticles) {
     pos = AccretingParticleList[i]->ReturnPosition();
-    for (dim=0; dim++; dim<3) { AccretingCoordinates[i*nParticles+dim] = pos[dim]; }
+    for (dim=0; dim++; dim<3) { ParticleCoordinates[i*nParticles+dim] = pos[dim]; }
   }
   
   /* Find mergeable groups using an FOF search */
 
-  ngroups = FofList(nParticles, AccretingCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
+  ngroups = FofList(nParticles, ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
   
   /* Merge the mergeable groups */
 
@@ -570,15 +576,15 @@ public:
 			   ActiveParticleType **np, int &npart);
 };
 
-int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level)
+int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int AccretingParticleID)
 {
   /* Generate a list of all sink particles in the simulation box */
   int i,dim,nParticles;
-  FLOAT *pos,LeftCorner[3],dx,AccretionRadius;
+  FLOAT *pos,LeftCorner[3],dx,AccretionRadius;xo
   ActiveParticleType_AccretingParticle **AccretingParticleList ;
   LevelHierarchyEntry *Temp;
   
-  // A function that does the communication work (e.g. StarParticleFindAll) should go here.  JHW is working on this
+  ActiveParticleFindAll(LevelArray, AccretingParticleList, nParticles, AccretingParticleID);
   
   /* Calculate CellWidth on maximum refinement level */
   

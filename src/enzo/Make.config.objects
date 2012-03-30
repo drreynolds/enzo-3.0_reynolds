@@ -317,6 +317,7 @@ OBJS_CONFIG_LIB = \
 	Grid_AccessBaryonFields.o \
 	Grid_ActiveParticleHandler.o \
 	Grid_AddActiveParticles.o \
+	Grid_AddActiveParticlesFromArray.o \
 	Grid_AddBaryonsToGravitatingMassField.o \
 	Grid_AddExternalAcceleration.o \
 	Grid_AddExternalPotentialField.o \
