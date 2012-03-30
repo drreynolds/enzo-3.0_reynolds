@@ -11,8 +11,15 @@
 /
 ************************************************************************/
 
+#include <string.h>
+#include <map>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
+
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -22,42 +29,34 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
 #include "Hierarchy.h"
-#include "TopGridData.h"
-#include "EventHooks.h"
 #include "ActiveParticle.h"
 
-int grid::AddActiveParticlesFromArray(ActiveParticleType** ActiveParticleList, int nParticles)
+int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 {
 
-  int *NewIndex, Count, i;
-  FLOAT pos;
+  bool IsHere;
+  FLOAT* pos;
+  int i;
 
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) return SUCCESS;
 
-  if (nParticles < 1) return SUCCESS;
-		      
-  *NewIndex = new int[Size];
-  Count = 0;
-  for (i = 0; i < nParticles; i++) {
-    pos = ActiveParticleList[i].ReturnPosition();
-    if (pos[0] > GridLeftEdge[0] &&
-	pos[0] < GridRightEdge[0] &&
-	pos[1] > GridLeftEdge[1] &&
-	pos[1] < GridRightEdge[1] &&
-	pos[2] > GridLeftEdge[2] &&
-	pos[2] < GridRightEdge[2]) {
-      NewIndex[Count++] = i;
-      AddedNewParticleNumber[i] = 1;
-    }
+  IsHere = false;
+  pos = ThisParticle->ReturnPosition();
+  if (pos[0] > GridLeftEdge[0] &&
+      pos[0] < GridRightEdge[0] &&
+      pos[1] > GridLeftEdge[1] &&
+      pos[1] < GridRightEdge[1] &&
+      pos[2] > GridLeftEdge[2] &&
+      pos[2] < GridRightEdge[2]) {
+    IsHere = true;
   }
-
-  if (Count == 0) {
-    delete [] NewIndex;
+  
+  if (!IsHere) {
     return SUCCESS;
   }
 
-  NumberOfActiveParticles += Count;
+  NumberOfActiveParticles += 1;
 
   /* Copy the old and new ones to a new list 
      and get rid of the old list */
@@ -65,19 +64,14 @@ int grid::AddActiveParticlesFromArray(ActiveParticleType** ActiveParticleList, i
   ActiveParticleType **OldActiveParticles = ActiveParticles;
   ActiveParticles = new ActiveParticleType*[NumberOfParticles];
 
-  for (i = 0; i < NumberOfActiveParticles - Count; i++) 
+  for (i = 0; i < NumberOfActiveParticles - 1; i++) 
     ActiveParticles[i] = OldActiveParticles[i];
 
   delete [] OldActiveParticles;
 
-  for (i = 0; i < Count; i++)
-    {
-      ActiveParticleList[NewIndex[i]]->SetGridID(ID);
-      ActiveParticleList[NewIndex[i]]->AssignCurrentGrid(this);
-      ActiveParticles[NumberOfActiveParticles - Count + i] = ActiveParticleList[NewIndex[i]];
-    }
-
-  delete [] NewIndex;
+  ThisParticle->SetGridID(ID);
+  ThisParticle->AssignCurrentGrid(this);
+  ActiveParticles[NumberOfActiveParticles-1] = ThisParticle;
 
   return SUCCESS;
 }
