@@ -41,6 +41,8 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) return SUCCESS;
 
+  if (ThisParticle->ReturnID() == ID) return SUCCESS;
+
   IsHere = false;
   pos = ThisParticle->ReturnPosition();
   if (pos[0] > GridLeftEdge[0] &&
@@ -56,22 +58,20 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
     return SUCCESS;
   }
 
-  NumberOfActiveParticles += 1;
-
   /* Copy the old and new ones to a new list 
      and get rid of the old list */
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
   ActiveParticles = new ActiveParticleType*[NumberOfParticles];
 
-  for (i = 0; i < NumberOfActiveParticles - 1; i++) 
+  for (i = 0; i < NumberOfActiveParticles; i++) 
     ActiveParticles[i] = OldActiveParticles[i];
 
   delete [] OldActiveParticles;
 
   ThisParticle->SetGridID(ID);
   ThisParticle->AssignCurrentGrid(this);
-  ActiveParticles[NumberOfActiveParticles-1] = ThisParticle;
+  ActiveParticles[NumberOfActiveParticles++] = ThisParticle;
 
   return SUCCESS;
 }
