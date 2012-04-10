@@ -66,7 +66,7 @@ public:
 
   template <class active_particle_class> active_particle_class *copy(void);
 
-  int   ReturnID(void) { return Identifier; };
+  PINT   ReturnID(void) { return Identifier; };
   double ReturnMass(void) { return Mass; };
   float ReturnBirthTime(void) { return BirthTime; };
   float ReturnDynamicalTime(void) { return DynamicalTime; };

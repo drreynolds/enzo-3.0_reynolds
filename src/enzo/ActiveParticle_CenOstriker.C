@@ -382,7 +382,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   int type_num = dummy->GetEnabledParticleID();
   delete dummy;
 
-  for (n=0; n < npart-1; n++) {
+  for (n=0; n < npart; n++) {
     ActiveParticleType_CenOstriker *particle = 
       static_cast<ActiveParticleType_CenOstriker*>(thisGrid->ActiveParticles[n]);
     if (particle->type != type_num) continue;
@@ -437,7 +437,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
       
     // Calculate serial index
 
-    index = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0],j,k);
+    index = GRIDINDEX_NOGHOST(i,j,k);
 
     // skip if very little mass if formed
 

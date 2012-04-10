@@ -63,7 +63,6 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
       ParticleMassMethod = method;
   }
 
-
   /* Find mass that will trigger refinement */
   
   MustRefineMass = 1.001*MinimumMassForRefinement[ParticleMassMethod] *
@@ -82,9 +81,9 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
     for (j = 0; j < GridDimension[1]; j++)
       for (k = 0; k < GridDimension[2]; k++)
 	if (AccretionRadius > 
-	    sqrt(POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
-		 POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
-		 POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) ))
+	    sqrt( POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
+		  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
+		  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) ))
 	  FlaggingField[i*GridDimension[2]+j*GridDimension[1]+k] = 1;
 
   /* Set ParticleMassFlaggingField appropriately */
@@ -94,6 +93,9 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
       ParticleMassFlaggingField[i] += (FlaggingField[i] > 0) ? MustRefineMass : 0;
       NumberOfFlaggedCells++;
     }
+
+  delete [] FlaggingField;
+  FlaggingField = NULL;
 
   return SUCCESS;
 }
