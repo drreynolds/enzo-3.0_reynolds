@@ -4,6 +4,10 @@
 /
 ************************************************************************/
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif 
+
 #include <string.h>
 #include <map>
 #include <iostream>
@@ -98,7 +102,8 @@ public:
 				     FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[]);  
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
-			 FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[]);
+		     FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[], 
+		     int ThisLevel);
 
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
@@ -246,46 +251,53 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 
 int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
-  int npart = thisgrid_orig->NumberOfActiveParticles;
-  float *density = thisgrid_orig->BaryoneField[data.DensNum];
+  AccretingParticleGrid *thisGrid =
+    static_cast<AccretingParticleGrid *>(thisgrid_orig);
+  
+
+  int npart = thisGrid->NumberOfActiveParticles;
+  float *density = thisGrid->BaryonField[data.DensNum];
   float *velx = thisGrid->BaryonField[data.Vel1Num];
   float *vely = thisGrid->BaryonField[data.Vel2Num];
   float *velz = thisGrid->BaryonField[data.Vel3Num];
   float *totalenergy = thisGrid->BaryonField[data.TENum];
   float *gasenergy = thisGrid->BaryonField[data.GENum];
 
+  int GridDimension[3] = {thisGrid->GridDimension[0],
+                          thisGrid->GridDimension[1],
+                          thisGrid->GridDimension[2]};
+
+  float *vel,CellTemperature;
+  int n,i,j,k,index,dim;
+
+  FLOAT *pos, LeftCorner[MAX_DIMENSION];
+
+  for (dim = 0; dim < 3; dim++) 
+    LeftCorner[dim] = thisGrid->CellLeftEdge[dim][0];
+
+  /* Loop over all of the AccretingParticles on this grid and set the bondi-hoyle radius */
 
   ActiveParticleType_AccretingParticle *dummy = new ActiveParticleType_AccretingParticle();
   int type_num = dummy->GetEnabledParticleID();
-
-  float* vel;
-  float  vInfinity, rhoInfinity;
-
-  int n,i,j,k,index;
-
-  FLOAT *pos, LeftCorner[MAX_DIMENSION]
-
-  for (dim = 0; dim < GridRank; dim++) 
-    LeftCorner[dim] = CellLeftEdge[dim][0];
-
-  /* Loop over all of the AccretingParticles on this grid and set the bondi-hoyle radius */
+  delete dummy;
      
   for (n = 0; n < npart; n++) {
     ActiveParticleType_AccretingParticle *ThisParticle = 
-      static_cast<ActiveParticleType_AccretingParticle>(thisgrid_orig->ActiveParticles[n]);
-    if (particle->ReturnType() != type_num) continue;
+      static_cast<ActiveParticleType_AccretingParticle*>(thisGrid->ActiveParticles[n]);
+    if (ThisParticle->ReturnType() != type_num) continue;
     pos = ThisParticle->ReturnPosition();
     vel = ThisParticle->ReturnVelocity(); 
-    i = int((pos[0] - LeftCorner[0])/CellSize);
-    j = int((pos[1] - LeftCorner[1])/CellSize);
-    k = int((pos[2] - LeftCorner[2])/CellSize);
+    i = int((pos[0] - LeftCorner[0])/thisGrid->CellWidth[0][0]);
+    j = int((pos[1] - LeftCorner[1])/thisGrid->CellWidth[0][0]);
+    k = int((pos[2] - LeftCorner[2])/thisGrid->CellWidth[0][0]);
     index = GRIDINDEX_NOGHOST(i,j,k);
     ThisParticle->vInfinity = sqrt(pow((vel[0] - velx[index]),2) +
 				   pow((vel[1] - vely[index]),2) +
 				   pow((vel[2] - velz[index]),2));
-    CellTemperature = (JeansRefinementColdTemperture > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
+    CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
     ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh));
-    ThisParticle->BondiHoyleRadius = GravConst*ThisParticle->ReturnMass()/(pow(vInfinity,2) + pow(cInfinity,2));
+    ThisParticle->BondiHoyleRadius = GravConst*ThisParticle->ReturnMass()/
+      (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
   }
 
   return SUCCESS;
@@ -559,8 +571,9 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
     {
 
       /* Generate a list of all sink particles in the simulation box */
-      int i,nParticles;
-      HeirarchyEntry **Grids;
+      int i,grid,nParticles,NumberOfMergedParticles;
+      HierarchyEntry **Grids;
+      ActiveParticleType** ParticleList;
 
       ActiveParticleFindAll(LevelArray, ParticleList, nParticles, AccretingParticleID);
 
@@ -593,15 +606,13 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       delete [] ParticleList;
       delete [] MergedParticles;
 
-      /* Regenerate global active particle list */
+      /* Regenerate the global active particle list */
       
-      ActiveParticleType **ParticleList;
-
       ActiveParticleFindAll(LevelArray, ParticleList, nParticles, AccretingParticleID);
 
       /* Do accretion */
       
-      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray) == FAIL)
+      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
 	  
       delete [] ParticleList;
@@ -612,48 +623,75 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 }
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
-						 FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[])
+						  FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[],
+						  int ThisLevel)
 {
   /* For each particle, loop over all of the grids and do accretion 
      if the grid overlaps with the accretion zone                   */
   
   int i, grid, NumberOfGrids;
   HierarchyEntry **Grids;
+  HierarchyEntry *sinkGrid;
+
+  bool SinkIsOnThisGrid;
 
   float WeightedSum = 0, SumOfWeights = 0, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
-    GlobalSubtractedMass;
+    GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
+    AccretionRate;
   int NumberOfCells = 0;
 
-  NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids)
+  NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
 
-  for (i = 0; i<nParticles; i++) 
+  for (i = 0; i<nParticles; i++) {
+    ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
+    vInfinity = temp->vInfinity;
+    cInfinity = temp->cInfinity;
+    BondiHoyleRadius = temp->BondiHoyleRadius;
     for (grid = 0; grid < NumberOfGrids; grid++) {
       if (Grids[grid]->GridData->
-	  FindAverageDensityInAccretionZone(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]),
-					    AccretionRadius, WeightedSum, SumOfWeights, NumberOfCells) == FAIL) {
+	  FindAverageDensityInAccretionZone(ParticleList[i],AccretionRadius, WeightedSum, 
+					    SumOfWeights, NumberOfCells, BondiHoyleRadius) == FAIL) {
 	return FAIL;
       }
       /* sum up rhobar on root and broadcast result to all processors */
+#ifdef USE_MPI
       MPI_Allreduce(&WeightedSum,  &GlobalWeightedSum,  1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-            
       MPI_Allreduce(&SumOfWeights, &GlobalSumOfWeights, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-          
+#else
+      GlobalWeightedSum = WeightedSum;
+      GlobalSumOfWeights = SumOfWeights;
+#endif
+      
       /* Now perform accretion algorithm by modifying the grids locally */
       if (Grids[grid]->GridData->
-	  AccreteOntoAccretingParticle(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]),
-				       AccretionRadius, AverageDensity, SubtractedMass) == FAIL) {
+	  AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, SumOfWeights, SubtractedMass, 
+				       SubtractedMomentum, SinkIsOnThisGrid, vInfinity, cInfinity, 
+				       BondiHoyleRadius, AccretionRate) == FAIL) {
 	return FAIL;
       }
-      
-      MPI_Allreduce(&SubtractedMass, &GlobalSubtractedMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-      
-      if (ParticleList[i]->ReturnCurrentGrid()->ReturnProcessorNumber() == MyProcessorNumber) {
-	
-      }
+      if (SinkIsOnThisGrid)
+	sinkGrid = Grids[grid];
     }
+#ifdef USE_MPI
+    MPI_Allreduce(&SubtractedMass, &GlobalSubtractedMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&SubtractedMomentum, &GlobalSubtractedMomentum, 3, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+#else
+    GlobalSubtractedMass = SubtractedMass;
+    GlobalSubtractedMomentum = SubtractedMomentum;
+#endif
+    temp->AccretionRate = AccretionRate;
 
+    /* Transfer the mass and momentum to the particle */
+    if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
+								  static_cast<ActiveParticleType*>(temp),
+								  LevelArray) == FAIL)
+      return FAIL;
+    
+  }
   return SUCCESS;
 }
+
+
 
 class AccretingParticleBufferHandler : public ParticleBufferHandler
 {
@@ -669,18 +707,19 @@ public:
   AccretingParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
     ParticleBufferHandler(np, NumberOfParticles, type, proc) {
     // Any extra fields must be added to the buffer and this->ElementSizeInBytes
-    int i, index
+    int i, index;
     this->AccretionRate = new float[this->NumberOfBuffers];
     this->cInfinity = new float[this->NumberOfBuffers];
     this->vInfinity = new float[this->NumberOfBuffers];
     this->BondiHoyleRadius = new FLOAT[this->NumberOfBuffers];
     for (i = 0, index=0; i < NumberOfParticles; i++)
       if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
-	this->AccretionRate[index] = np[i]->AccretionRate;
-	this->cInfinity[index] = np[i]->cInfinity;
-	this->vInfinity[index] = np[i]->vInfinity;
-	this->BondiHoyleRadius[index] = np[i]->BondiHoyleRadius;
-	index++
+	ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(np[i]);
+	this->AccretionRate[index] = temp->AccretionRate;
+	this->cInfinity[index] = temp->cInfinity;
+	this->vInfinity[index] = temp->vInfinity;
+	this->BondiHoyleRadius[index] = temp->BondiHoyleRadius;
+	index++;
       }
     this->ElementSizeInBytes += 3*sizeof(float) + sizeof(FLOAT);
   };
@@ -690,6 +729,10 @@ public:
 			     int type_num, int proc);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
+  float* AccretionRate;
+  float* cInfinity;
+  float* vInfinity;
+  FLOAT* BondiHoyleRadius;
 };
 
 int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int AccretingParticleID)
@@ -726,13 +769,13 @@ void AccretingParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
 #ifdef USE_MPI
-  MPI_Pack(this->AccretionRate,this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+  MPI_Pack(pbuffer->AccretionRate,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
 	   &position, MPI_COMM_WORLD);
-  MPI_Pack(this->cInfinity,this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+  MPI_Pack(pbuffer->cInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
 	   &position, MPI_COMM_WORLD);
-  MPI_Pack(this->vInfinity,this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+  MPI_Pack(pbuffer->vInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
 	   &position, MPI_COMM_WORLD);
-  MPI_Pack(this->BondiHoyleRadius,this->NumberOfBuffers, MY_MPIFLOAT, buffer, buffer_size,
+  MPI_Pack(pbuffer->BondiHoyleRadius,pbuffer->NumberOfBuffers, MY_MPIFLOAT, buffer, buffer_size,
 	   &position, MPI_COMM_WORLD);
 #endif /* USE_MPI */
   delete pbuffer;

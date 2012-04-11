@@ -2457,8 +2457,17 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int ReturnStarStatistics(int &Number, float &minLife);
 
-  int FindAccretionZone(ActiveParticleType_AccretingParticle* ThisParticle, FLOAT AccretionRadius
-			float &WeightedSum, float &SumOfWeights, int &NumberOfCells);
+  int FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FLOAT AccretionRadius,
+					float &WeightedSum, float &SumOfWeights, int &NumberOfCells,
+					FLOAT BondiHoyleRadius);
+
+  int AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
+				       float AverageDensity, float SumOfWeights, float &AccretedMass, 
+				       float AccretedMomentum[], bool &SinkIsOnThisGrid, float vInfinity, 
+				   float cInfinity, FLOAT BondiHoyleRadius, float &AccretionRate);
+
+  int AddMassAndMomentumToAccretingParticle(float GlobalSubtractedMass, float GlobalSubtractedMomentum[], 
+					    ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]);
 
 //------------------------------------------------------------------------
 // Radiative transfer methods that don't fit in the TRANSFER define

@@ -28,14 +28,16 @@
 #include "Hierarchy.h"
 #include "ActiveParticle.h"
 
-int grid::FindAverageDesnityInAccretionZone(ActiveParticleType_AccretingParticle* ThisParticle, FLOAT AccretionRadius, 
-					    float &WeightedSum, float &SumOfWeights, int &NumberOfCells) {
+int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
+					    float &WeightedSum, float &SumOfWeights, int &NumberOfCells,
+					    FLOAT BondiHoyleRadius) {
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
 
-  FLOAT *ParticlePosition, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION], CellSize, KernelRadius;
-  int i, j, k, dim, size=1;
+  FLOAT *ParticlePosition, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION], 
+    radius2, CellSize, KernelRadius;
+  int i, j, k, dim, size=1, index;
   
   /* Get indices in BaryonField for density, internal energy, thermal energy, velocity */
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
@@ -63,10 +65,10 @@ int grid::FindAverageDesnityInAccretionZone(ActiveParticleType_AccretingParticle
       LeftCorner[2] > ParticlePosition[2]+AccretionRadius || RightCorner[2] < ParticlePosition[2]-AccretionRadius)
     return SUCCESS;
 
-  if (ThisParticle->BondiHoyleRadius < CellSize/4.0)
+  if (BondiHoyleRadius < CellSize/4.0)
     KernelRadius = CellSize/4.0;
-  else if (ThisParticle->BondiHoyleRadius < AccretionRadius/2.0)
-    KernelRadius = ThisParticle->BondiHoyleRadius;
+  else if (BondiHoyleRadius < AccretionRadius/2.0)
+    KernelRadius = BondiHoyleRadius;
   else
     KernelRadius = AccretionRadius/2.0;
   
@@ -86,6 +88,6 @@ int grid::FindAverageDesnityInAccretionZone(ActiveParticleType_AccretingParticle
     }
   }
 
-  return SUCCESS
+  return SUCCESS;
 
 }

@@ -315,6 +315,7 @@ OBJS_CONFIG_LIB = \
 	GravityEquilibriumTestInitialize.o \
 	Grid_AccelerationBoundaryRoutines.o \
 	Grid_AccessBaryonFields.o \
+	Grid_AccreteOntoAccretingParticle.o \
 	Grid_ActiveParticleHandler.o \
 	Grid_AddActiveParticles.o \
 	Grid_AddActiveParticle.o \
@@ -324,6 +325,7 @@ OBJS_CONFIG_LIB = \
 	Grid_AddFeedbackSphere.o \
 	Grid_AddFieldMassToMassFlaggingField.o \
 	Grid_AddFields.o \
+	Grid_AddMassAndMomentumToAccretingParticle.o \
 	Grid_AddOverlappingParticleMassField.o \
 	Grid_AddParticlesFromList.o \
 	Grid_AddRandomForcing.o \
@@ -434,6 +436,7 @@ OBJS_CONFIG_LIB = \
 	Grid_FastSiblingLocatorAddGrid.o \
 	Grid_FastSiblingLocatorFindSiblings.o \
 	Grid_FindAllStarParticles.o \
+	Grid_FindAverageDensityInAccretionZone.o \
 	Grid_FindMassiveParticles.o \
 	Grid_FindMinimumParticleMass.o \
 	Grid_FindNewStarParticles.o \
