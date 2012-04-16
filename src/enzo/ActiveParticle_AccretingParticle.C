@@ -769,14 +769,16 @@ void AccretingParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
 #ifdef USE_MPI
-  MPI_Pack(pbuffer->AccretionRate,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
-	   &position, MPI_COMM_WORLD);
-  MPI_Pack(pbuffer->cInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
-	   &position, MPI_COMM_WORLD);
-  MPI_Pack(pbuffer->vInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
-	   &position, MPI_COMM_WORLD);
-  MPI_Pack(pbuffer->BondiHoyleRadius,pbuffer->NumberOfBuffers, MY_MPIFLOAT, buffer, buffer_size,
-	   &position, MPI_COMM_WORLD);
+  if (pbuffer->NumberOfBuffers > 0) {
+    MPI_Pack(pbuffer->AccretionRate,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+	     &position, MPI_COMM_WORLD);
+    MPI_Pack(pbuffer->cInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+	     &position, MPI_COMM_WORLD);
+    MPI_Pack(pbuffer->vInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, buffer_size,
+	     &position, MPI_COMM_WORLD);
+    MPI_Pack(pbuffer->BondiHoyleRadius,pbuffer->NumberOfBuffers, MY_MPIFLOAT, buffer, buffer_size,
+	     &position, MPI_COMM_WORLD);
+  }
 #endif /* USE_MPI */
   delete pbuffer;
   return;
@@ -791,14 +793,16 @@ void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buff
   pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
-  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->AccretionRate,
-	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
-  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->cInfinity,
-	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
-  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->vInfinity,
-	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
-  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->BondiHoyleRadius,
-	     pbuffer->NumberOfBuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
+  if (pbuffer->NumberOfBuffers > 0) {
+    MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->AccretionRate,
+	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+    MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->cInfinity,
+	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+    MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->vInfinity,
+	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+    MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->BondiHoyleRadius,
+	       pbuffer->NumberOfBuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
+  }
   /* Convert the particle buffer into active particles */
   for (i = 0; i < pbuffer->NumberOfBuffers; i++)
     np[npart++] = new ActiveParticleType_AccretingParticle(pbuffer, i);
