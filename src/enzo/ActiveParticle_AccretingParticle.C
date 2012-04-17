@@ -221,7 +221,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	data.NewParticles[data.NumberOfNewParticles++] = np;
 
 	ExtraDensity = density[index] - DensityThreshold;
-	np->Mass = ExtraDensity*POW(dx,3);
+	np->Mass = ExtraDensity   // Particle 'masses' are actually densities
 	np->type = AccretingParticle;
 	np->BirthTime = thisGrid->ReturnTime();
 	
