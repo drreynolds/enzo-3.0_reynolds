@@ -264,7 +264,7 @@ ActiveParticleMap &get_active_particle_types();
 void EnableActiveParticleType(char *active_particle_type_name);
 
 int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType** GlobalList, 
-			  int GlobalNumberOfActiveParticles, int ActiveParticleIDToFind);
+			  int &GlobalNumberOfActiveParticles, int ActiveParticleIDToFind);
 
 class ParticleBufferHandler
 {

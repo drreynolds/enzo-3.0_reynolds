@@ -40,7 +40,7 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
 int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType** GlobalList, 
-			  int GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
+			  int &GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
 {
   int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles,
     header_size, element_size, count, offset;
@@ -75,23 +75,27 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	  
 	} /* ENDFOR grids */
 	
-	LocalActiveParticlesOfThisType = new ActiveParticleType*[LocalNumberOfActiveParticles];
-	
-	/* In a second pass, fill up the local active particle list */
 	offset = 0;
-	for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
-	  Grids[GridNum]->GridData->
-	    AppendActiveParticlesToList(LocalActiveParticlesOfThisType,offset,ActiveParticleIDToFind);
-	  offset += NumberOfActiveParticlesInGrids[GridNum];
+	if (LocalNumberOfActiveParticles > 0) {
+
+	  LocalActiveParticlesOfThisType = new ActiveParticleType*[LocalNumberOfActiveParticles];
+	
+	  /* In a second pass, fill up the local active particle list */
+	  for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
+	    Grids[GridNum]->GridData->
+	      AppendActiveParticlesToList(LocalActiveParticlesOfThisType,offset,ActiveParticleIDToFind);
+	    offset += NumberOfActiveParticlesInGrids[GridNum];
+	  } 
+	
 	} 
-	  
+	else 
+	  ActiveParticleType* LocalActiveParticlesOfThisType = NULL;
+	
 	delete [] Grids;
 	delete [] NumberOfActiveParticlesInGrids;
 	
       } /* ENDFOR level */
       
-      break;
-
     } /* ENDIF id == id to search for
 
   } /* ENDFOR active particle type */
@@ -176,6 +180,12 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       } // ENDIF serial
       
     }  /* ENDIF number of active particles > 0 */
+    else { /* GlobalNumberOfActiveParticles = 0 */
+      // need to clean up still
+
+      delete [] nCount;
+      delete [] displace;
+    }
   } /* ENFOR Active particle types */
 
   return SUCCESS;

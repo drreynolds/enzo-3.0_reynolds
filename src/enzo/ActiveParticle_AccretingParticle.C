@@ -221,7 +221,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	data.NewParticles[data.NumberOfNewParticles++] = np;
 
 	ExtraDensity = density[index] - DensityThreshold;
-	np->Mass = ExtraDensity   // Particle 'masses' are actually densities
+	np->Mass = ExtraDensity;   // Particle 'masses' are actually densities
 	np->type = AccretingParticle;
 	np->BirthTime = thisGrid->ReturnTime();
 	
@@ -578,6 +578,11 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       ActiveParticleType** ParticleList;
 
       ActiveParticleFindAll(LevelArray, ParticleList, nParticles, AccretingParticleID);
+
+      /* Return if there are no accreting particles */
+      
+      if (nParticles == 0)
+	return SUCCESS;
 
       /* Calculate CellWidth on maximum refinement level */
 
