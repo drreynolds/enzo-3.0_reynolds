@@ -146,6 +146,10 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
 
 int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
+  // No need to do the rest if we're not on the maximum refinement level.
+  if (data.level != MaximumRefinementLevel)
+    return SUCCESS;
+
   AccretingParticleGrid *thisGrid =
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
   
@@ -154,21 +158,20 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 			  thisGrid->GridDimension[1],
 			  thisGrid->GridDimension[2]};
 
-  int i,j,k,index,method;
+  int i,j,k,index,method,MassRefinementMethod;
 
   float *density = thisGrid->BaryonField[data.DensNum];
   float *velx = thisGrid->BaryonField[data.Vel1Num];
   float *vely = thisGrid->BaryonField[data.Vel2Num];
   float *velz = thisGrid->BaryonField[data.Vel3Num];
-  float JLSquared = (Gamma*pi*kboltz)/
-    (data.DensityUnits*Mu*mh*GravConst*POW(data.LengthUnits,2));
+  float JeansDensityUnitConversion = (Gamma*pi*kboltz) / (Mu*mh*GravConst);
   float CellTemperature = 0;
   float JeansDensity = 0;
   float MassRefinementDensity = 0;
   float DensityThreshold = huge_number;
   float ExtraDensity = 0;
 
-  FLOAT dx = data.LengthUnits*thisGrid->CellWidth[0][0];
+  FLOAT dx = thisGrid->CellWidth[0][0];
   
   bool HasMetalField = (data.MetalNum != -1 || data.ColourNum != -1);
   bool JeansRefinement = false;
@@ -176,8 +179,10 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 
   // determine refinement criteria
   for (method = 0; method < MAX_FLAGGING_METHODS; method++) {
-    if (CellFlaggingMethod[method] == 2)
+    if (CellFlaggingMethod[method] == 2) {
       MassRefinement = true;
+      MassRefinementMethod = method;
+    }
     if (CellFlaggingMethod[method] == 6) 
       JeansRefinement = true;
   }
@@ -187,26 +192,23 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
       index = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0], j, k);
       for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++, index++) {
 
-	// 0. If no more room for particles, quit
+	// If no more room for particles, throw an ENZO_FAIL
 	if (data.NumberOfNewParticles >= data.MaxNumberOfNewParticles)
-	  continue;
+	  return FAIL;
 
-	// 1. Is the cell on the maximum refinement level?
-	if (data.level != MaximumRefinementLevel)
-	  continue;
-
-	// 2. Does cell violate the Jeans condition?
+	// Does this cell violate the Jeans condition?
 	if (JeansRefinement) {
 	  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
-	  JeansDensity = OverflowFactor*POW(RefineByJeansLengthSafetyFactor,2)*JLSquared*CellTemperature/POW(dx,2);
+	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature / 
+	    POW(data.LengthUnits*dx*RefineByJeansLengthSafetyFactor,2) / data.DensityUnits;
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
 	}
-	else if (MassRefinement) {
-	  MassRefinementDensity = MinimumMassForRefinement[method]*
-	    pow(RefineBy, data.level*MinimumMassForRefinementLevelExponent[method])/POW(dx,3);
+	if (MassRefinement) {
+	  MassRefinementDensity = MinimumMassForRefinement[MassRefinementMethod]*
+	    pow(RefineBy, data.level*MinimumMassForRefinementLevelExponent[MassRefinementMethod])/POW(dx,3);
 	  DensityThreshold = min(DensityThreshold,MassRefinementDensity);
 	}
-	else 
+	if (DensityThreshold == huge_number)
 	  ENZO_FAIL("Error in Accreting Particles: Must refine by jeans length or overdensity!");
 	
 	if (density[index] <= DensityThreshold) 
@@ -224,8 +226,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	np->BirthTime = thisGrid->ReturnTime();
 	
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
-	np->pos[0] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
-	np->pos[0] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
+	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
+	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
 	float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
 	  
