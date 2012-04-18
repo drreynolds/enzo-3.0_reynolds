@@ -222,7 +222,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 
 	ExtraDensity = density[index] - DensityThreshold;
 	np->Mass = ExtraDensity;   // Particle 'masses' are actually densities
-	np->type = AccretingParticle;
+	np->type = np->GetEnabledParticleID();
 	np->BirthTime = thisGrid->ReturnTime();
 	
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
@@ -728,7 +728,23 @@ public:
 	this->BondiHoyleRadius[index] = temp->BondiHoyleRadius;
 	index++;
       }
-    this->ElementSizeInBytes += 3*sizeof(float) + sizeof(FLOAT);
+    Eint32 mpi_flag = 0;
+#ifdef USE_MPI
+    MPI_Initialized(&mpi_flag);
+#endif
+    Eint32 size;
+    if (mpi_flag == 1) {
+#ifdef USE_MPI
+      // float: 3 -- AccretionRate, cInfinity, vInfinity
+      // FLOAT: 1 -- BondiHoyleRadius
+      MPI_Pack_size(3, FloatDataType, MPI_COMM_WORLD, &size);
+      this->ElementSizeInBytes += size;
+      MPI_Pack_size(1, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
+      this->ElementSizeInBytes += size;
+#endif
+    } else {
+      this->ElementSizeInBytes += 3*sizeof(float) + sizeof(FLOAT);
+    }
   };
   ~AccretingParticleBufferHandler() {};
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 

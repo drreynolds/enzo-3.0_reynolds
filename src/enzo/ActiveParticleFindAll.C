@@ -76,10 +76,10 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	} /* ENDFOR grids */
 	
 	offset = 0;
+	LocalActiveParticlesOfThisType = new ActiveParticleType*[LocalNumberOfActiveParticles];
+	
 	if (LocalNumberOfActiveParticles > 0) {
 
-	  LocalActiveParticlesOfThisType = new ActiveParticleType*[LocalNumberOfActiveParticles];
-	
 	  /* In a second pass, fill up the local active particle list */
 	  for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
 	    Grids[GridNum]->GridData->
