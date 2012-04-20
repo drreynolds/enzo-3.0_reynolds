@@ -330,13 +330,15 @@ public:
    int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID),
    int (*headerfunc)(void),
    int (*elementfunc)(void),
-   ActiveParticleType *particle
+   ActiveParticleType *particle,
+   ParticleBufferHandler *buffer
    ){
     this->formation_function = ffunc;
     this->describe_data_flags = dfunc;
     this->allocate_buffer = abfunc;
     this->unpack_buffer = unfunc;
     this->particle_instance = particle;
+    this->buffer_instance = buffer;
     this->initialize = ifunc;
     this->feedback_function = feedfunc;
     this->write_function = writefunc;
@@ -383,6 +385,7 @@ public:
   int (*return_header_size)(void);
   int (*return_element_size)(void);
   ActiveParticleType* particle_instance;
+  ParticleBufferHandler* buffer_instance;
   std::string particle_name;
 
 
@@ -399,6 +402,7 @@ template <class active_particle_class, class particle_buffer_handler>
 ActiveParticleType_info *register_ptype(std::string name)
 {
   active_particle_class *pp = new active_particle_class();
+  particle_buffer_handler *bb = new particle_buffer_handler();
   ActiveParticleType_info *pinfo = new ActiveParticleType_info
     (name,
      (&active_particle_class::EvaluateFormation),
@@ -414,7 +418,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::SetFlaggingField),
      (&particle_buffer_handler::ReturnHeaderSize),
      (&particle_buffer_handler::ReturnElementSize),
-     pp);
+     pp, bb);
   return pinfo;
 }
 

@@ -739,8 +739,8 @@ public:
 			     int type_num, int proc);
   static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
 			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return AccretingParticleBufferHandler::HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return AccretingParticleBufferHandler::ElementSizeInBytes; }
+  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
+  static int ReturnElementSize(void) {return ElementSizeInBytes; }
   void CalculateAccretingParticleElementSize(void) {
     Eint32 mpi_flag = 0;
 #ifdef USE_MPI
