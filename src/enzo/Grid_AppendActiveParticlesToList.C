@@ -32,13 +32,12 @@
 
 #include "ActiveParticle.h"
 
-int grid::AppendActiveParticlesToList(ActiveParticleType** &APArray, int offset, int search_id) {
+int grid::AppendActiveParticlesToList(ActiveParticleType** APArray, int offset, int search_id) {
   int PNum, count=0;
 
     for (PNum = 0; PNum < NumberOfActiveParticles; PNum++) 
       if (search_id == ActiveParticles[PNum]->ReturnType()) 
-	*APArray[offset+count++] = ActiveParticles[PNum];
+	APArray[offset+count++] = ActiveParticles[PNum];
       
-
   return SUCCESS;
 } 

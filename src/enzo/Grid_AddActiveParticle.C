@@ -35,7 +35,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 {
 
   bool IsHere;
-  FLOAT* pos;
+  FLOAT* TPpos;
   int i;
 
   /* Return if this doesn't involve us */
@@ -44,13 +44,13 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   if (ThisParticle->ReturnID() == ID) return SUCCESS;
 
   IsHere = false;
-  pos = ThisParticle->ReturnPosition();
-  if (pos[0] > GridLeftEdge[0] &&
-      pos[0] < GridRightEdge[0] &&
-      pos[1] > GridLeftEdge[1] &&
-      pos[1] < GridRightEdge[1] &&
-      pos[2] > GridLeftEdge[2] &&
-      pos[2] < GridRightEdge[2]) {
+  TPpos = ThisParticle->ReturnPosition();
+  if (TPpos[0] > GridLeftEdge[0] &&
+      TPpos[0] < GridRightEdge[0] &&
+      TPpos[1] > GridLeftEdge[1] &&
+      TPpos[1] < GridRightEdge[1] &&
+      TPpos[2] > GridLeftEdge[2] &&
+      TPpos[2] < GridRightEdge[2]) {
     IsHere = true;
   }
   
@@ -58,7 +58,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
     return SUCCESS;
   }
 
-  /* Copy the old and new ones to a new list 
+  /* Copy the old and new active particles to a new list 
      and get rid of the old list */
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
@@ -77,6 +77,49 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   ThisParticle->SetGridID(ID);
   ThisParticle->AssignCurrentGrid(this);
   ActiveParticles[NumberOfActiveParticles++] = ThisParticle;
+
+  int OldNumberOfParticles = NumberOfParticles;
+  NumberOfParticles += 1;
+
+    /* Create new particle arrays */
+
+  int index, dim;
+  FLOAT *pos[MAX_DIMENSION];
+  float *vel[MAX_DIMENSION];
+  float *Mass;
+  PINT *Number;
+  
+  for (dim = 0; dim < MAX_DIMENSION; dim++) {
+    pos[dim] = new FLOAT[NumberOfParticles];
+    vel[dim] = new float[NumberOfParticles];
+  }
+  Mass = new float[NumberOfParticles];
+  Number = new PINT[NumberOfParticles];
+
+  /* Copy existing particles */
+
+  for (i = 0; i < OldNumberOfParticles; i++) {
+    for (dim = 0; dim < MAX_DIMENSION; dim++) {
+      pos[dim][i] = ParticlePosition[dim][i];
+      vel[dim][i] = ParticleVelocity[dim][i];
+    }
+    Mass[i] = ParticleMass[i];
+    Number[i] = ParticleNumber[i];
+  }
+
+  /* Copy new active particle data */
+
+  for (dim = 0; dim < MAX_DIMENSION; dim++) {
+    pos[dim][OldNumberOfParticles] = ThisParticle->pos[dim];
+    vel[dim][OldNumberOfParticles] = ThisParticle->vel[dim];
+  }
+  Mass[OldNumberOfParticles] = ThisParticle->Mass;
+  Number[OldNumberOfParticles] = ThisParticle->Identifier;
+
+    /* Delete old particle arrays and copy new ones */
+
+  this->DeleteParticles();
+  this->SetParticlePointers(Mass, Number, pos, vel);
 
   return SUCCESS;
 }

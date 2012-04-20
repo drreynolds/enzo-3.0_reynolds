@@ -755,6 +755,8 @@ public:
     delete[] this->field;
 #endif
   };
+  static int ReturnHeaderSize(void) {return CenOstrikerBufferHandler::HeaderSizeInBytes; }
+  static int ReturnElementSize(void) {return CenOstrikerBufferHandler::ElementSizeInBytes; }
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
 			     int type_num, int proc=-1);

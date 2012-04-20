@@ -42,9 +42,11 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType** GlobalList, 
 			  int &GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
 {
-  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles,
-    header_size, element_size, count, offset;
-  ActiveParticleType **LocalActiveParticlesOfThisType = NULL, **GridActiveParticles = NULL;
+  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, 
+    LocalNumberOfActiveParticlesOnThisLevel, header_size, element_size, count, offset;
+  ActiveParticleType **LocalActiveParticlesOfThisType, **LocalActiveParticlesOnThisLevel;
+  ActiveParticleType **temp;
+  
   HierarchyEntry **Grids;
   int NumberOfGrids, *NumberOfActiveParticlesInGrids;
   ActiveParticleType_info *ap_info;
@@ -62,34 +64,57 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       /* Traverse the hierarchy and generate a buffer of all of the active 
 	 particles of this type on this processor */
       
-      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
+      for (level = 0; level <= MaximumRefinementLevel; level++) {
 	NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
 	NumberOfActiveParticlesInGrids = new int[NumberOfGrids];
-	
+	LocalNumberOfActiveParticlesOnThisLevel = 0;
+
 	/* In a first pass, find the number of active particles on each grid */
 	for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
 	  
 	  NumberOfActiveParticlesInGrids[GridNum] = Grids[GridNum]->GridData->
 	    ReturnNumberOfActiveParticlesOfThisType(ActiveParticleIDToFind);
-	  LocalNumberOfActiveParticles += NumberOfActiveParticlesInGrids[GridNum];
-	  
+	  LocalNumberOfActiveParticlesOnThisLevel += NumberOfActiveParticlesInGrids[GridNum];
 	} /* ENDFOR grids */
 	
 	offset = 0;
-	LocalActiveParticlesOfThisType = new ActiveParticleType*[LocalNumberOfActiveParticles];
 	
-	if (LocalNumberOfActiveParticles > 0) {
+	if (LocalNumberOfActiveParticlesOnThisLevel > 0) {
 
-	  /* In a second pass, fill up the local active particle list */
+	  /* If we've already found active particles, save the list */
+
+	  if (LocalNumberOfActiveParticles != 0) 
+	    temp = LocalActiveParticlesOfThisType;
+	    
+	  LocalActiveParticlesOnThisLevel = new ActiveParticleType*[LocalNumberOfActiveParticlesOnThisLevel];
+
+	  /* In a second pass, fill up the active particle list for this level*/
 	  for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
 	    Grids[GridNum]->GridData->
-	      AppendActiveParticlesToList(LocalActiveParticlesOfThisType,offset,ActiveParticleIDToFind);
+	      AppendActiveParticlesToList(LocalActiveParticlesOnThisLevel,offset,ActiveParticleIDToFind);
 	    offset += NumberOfActiveParticlesInGrids[GridNum];
 	  } 
+
+	  LocalActiveParticlesOfThisType = new ActiveParticleType*[offset];
+	  
+	  /* If we've already found active particles, copy the cached
+	     list to the new one and delete the old list */
+	  if (LocalNumberOfActiveParticles != 0) {
+	    for (i = 0; i < LocalNumberOfActiveParticles; i++)
+	      LocalActiveParticlesOfThisType[i] = temp[i];
+	    delete [] temp;
+	  }
+
+	  /* Finally, append the new active particles to the list */
+	  for(i = LocalNumberOfActiveParticles; i < offset; i++)
+	    LocalActiveParticlesOfThisType[i] = LocalActiveParticlesOnThisLevel[i - LocalNumberOfActiveParticles];
+
+	  LocalNumberOfActiveParticles += LocalNumberOfActiveParticlesOnThisLevel;
+	    
+	  /* Delete the list for this level */
+	  delete [] LocalActiveParticlesOnThisLevel;
 	
 	} 
-	else 
-	  ActiveParticleType* LocalActiveParticlesOfThisType = NULL;
 	
 	delete [] Grids;
 	delete [] NumberOfActiveParticlesInGrids;
@@ -144,11 +169,11 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	Eint32 total_buffer_size, local_buffer_size, position = 0;
 	int mpi_buffer_size;
 	char *send_buffer, *recv_buffer;
-	header_size = ap_info->buffer_instance->ReturnHeaderSize();
-	element_size = ap_info->buffer_instance->ReturnElementSize();
+	header_size = ap_info->return_header_size();
+	element_size = ap_info->return_element_size();
 	
 	local_buffer_size = LocalNumberOfActiveParticles*element_size;
-	total_buffer_size = NumberOfProcessors*header_size+GlobalNumberOfActiveParticles*element_size;
+	total_buffer_size = header_size+LocalNumberOfActiveParticles*element_size;
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	

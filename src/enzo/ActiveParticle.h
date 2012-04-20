@@ -278,15 +278,13 @@ public:
 		      Eint32 &position); // helper function for derived classes
   void CalculateElementSize(void);
   void AllocateMemory(void);
-  int ReturnHeaderSize(void) { return HeaderSizeInBytes; };
-  int ReturnElementSize(void) { return ElementSizeInBytes; };
   int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
   int _UnpackBuffer(char *buffer, int buffer_size, Eint32 &position);
 
 protected:
   int NumberOfBuffers;
-  int HeaderSizeInBytes;
-  int ElementSizeInBytes;
+  static int HeaderSizeInBytes;
+  static int ElementSizeInBytes;
   FLOAT	*pos[MAX_DIMENSION];
   float *vel[MAX_DIMENSION];
   double *Mass;		// Msun
@@ -330,15 +328,15 @@ public:
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
    int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID),
-   ActiveParticleType *particle,
-   ParticleBufferHandler *buffer
+   int (*headerfunc)(void),
+   int (*elementfunc)(void),
+   ActiveParticleType *particle
    ){
     this->formation_function = ffunc;
     this->describe_data_flags = dfunc;
     this->allocate_buffer = abfunc;
     this->unpack_buffer = unfunc;
     this->particle_instance = particle;
-    this->buffer_instance = buffer;
     this->initialize = ifunc;
     this->feedback_function = feedfunc;
     this->write_function = writefunc;
@@ -346,6 +344,8 @@ public:
     this->before_evolvelevel_function = belfunc;
     this->after_evolvelevel_function = aelfunc;
     this->flagging_function = flagfunc;
+    this->return_header_size = headerfunc;
+    this->return_element_size = elementfunc;
     this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
   }
@@ -380,8 +380,9 @@ public:
 			  Eint32 &position, int ap_id, int proc);
   void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
 			ActiveParticleType **np, int &npart);
+  int (*return_header_size)(void);
+  int (*return_element_size)(void);
   ActiveParticleType* particle_instance;
-  ParticleBufferHandler* buffer_instance;
   std::string particle_name;
 
 
@@ -398,7 +399,6 @@ template <class active_particle_class, class particle_buffer_handler>
 ActiveParticleType_info *register_ptype(std::string name)
 {
   active_particle_class *pp = new active_particle_class();
-  particle_buffer_handler *buffer = new particle_buffer_handler();
   ActiveParticleType_info *pinfo = new ActiveParticleType_info
     (name,
      (&active_particle_class::EvaluateFormation),
@@ -412,8 +412,9 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::BeforeEvolveLevel),
      (&active_particle_class::AfterEvolveLevel),
      (&active_particle_class::SetFlaggingField),
-     pp,
-     buffer);
+     (&particle_buffer_handler::ReturnHeaderSize),
+     (&particle_buffer_handler::ReturnElementSize),
+     pp);
   return pinfo;
 }
 

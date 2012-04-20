@@ -89,8 +89,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
       // determine the number of active particles with this type on
       // the other processor.
 
-      header_size = ap_info->buffer_instance->ReturnHeaderSize();
-      element_size = ap_info->buffer_instance->ReturnElementSize();
+      header_size = ap_info->return_header_size();
+      element_size = ap_info->return_element_size();
       if (MyProcessorNumber == ProcessorNumber) {
 	size = 0;
 	for (i = 0; i < NumberOfActiveParticles; i++)

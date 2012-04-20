@@ -2251,7 +2251,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			 int NumberOfNewParticles, int start=0);
   int AddActiveParticle(ActiveParticleType* ThisParticle);
   int AppendActiveParticles(void);
-  int AppendActiveParticlesToList(ActiveParticleType** &APArray, 
+  int AppendActiveParticlesToList(ActiveParticleType** APArray, 
 				  int offset, int search_id);
   int AppendNewActiveParticles(ActiveParticleType **NewParticles,
 			       int NumberOfNewParticles);

@@ -426,4 +426,7 @@ ParticleBufferHandler **grid::GetParticleBuffers(bool *mask) {
 #endif /* UNUSED */
 
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
+int ParticleBufferHandler::ElementSizeInBytes;
+int ParticleBufferHandler::HeaderSizeInBytes;
+
 
