@@ -133,13 +133,14 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 
     Eint32 *nCount = NULL;
     Eint32 *displace = NULL;
+    int MaxLocalNumberOfActiveParticles = 0;
+
 
     if (NumberOfProcessors > 1) {
 #ifdef USE_MPI
       
       nCount = new Eint32[NumberOfProcessors];
       displace = new Eint32[NumberOfProcessors];
-      int MaxLocalNumberOfParticles = 0;
 
       MPI_Allgather(&LocalNumberOfActiveParticles, 1, MPI_INT, 
 		    nCount, 1, MPI_INT,MPI_COMM_WORLD);
@@ -147,7 +148,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       for (i = 0; i < NumberOfProcessors; i++) {
 	displace[i] = GlobalNumberOfActiveParticles;
 	GlobalNumberOfActiveParticles += nCount[i];
-	MaxLocalNumberOfParticles = max(MaxLocalNumberOfParticles,nCount[i]);
+	MaxLocalNumberOfActiveParticles = max(MaxLocalNumberOfActiveParticles,nCount[i]);
       }
 #endif /* USE_MPI */
     } /* ENDIF Number of processors > 1 */
@@ -175,7 +176,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	element_size = ap_info->return_element_size();
 	
 	local_buffer_size = header_size+MaxLocalNumberOfActiveParticles*element_size;
-	total_buffer_size = NumberOfProcessors*local_buffer_size
+	total_buffer_size = NumberOfProcessors*local_buffer_size;
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	
