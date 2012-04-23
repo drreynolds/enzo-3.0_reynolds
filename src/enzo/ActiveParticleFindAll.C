@@ -42,7 +42,7 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType** GlobalList, 
 			  int &GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
 {
-  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, 
+  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, proc, buffer_size, 
     LocalNumberOfActiveParticlesOnThisLevel, header_size, element_size, count, offset;
   ActiveParticleType **LocalActiveParticlesOfThisType, **LocalActiveParticlesOnThisLevel;
   ActiveParticleType **ParticlesOnThisProc;
@@ -173,7 +173,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	element_size = ap_info->return_element_size();
 	
 	local_buffer_size = header_size+LocalNumberOfActiveParticles*element_size;
-	total_buffer_size = NumberOfProcessors*headersize+GlobalNumberOfActiveParticles*element_size;
+	total_buffer_size = NumberOfProcessors*header_size+GlobalNumberOfActiveParticles*element_size;
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	
