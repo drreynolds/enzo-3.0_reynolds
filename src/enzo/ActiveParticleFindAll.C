@@ -172,7 +172,8 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	header_size = ap_info->return_header_size();
 	element_size = ap_info->return_element_size();
 	
-	for (i = 1; i <= NumberOfProcessors; i++) {
+	displace[0] = position;
+	for (i = 1; i < NumberOfProcessors; i++) {
 	  if (nCount[i-1] > 0)
 	    position += header_size + nCount[i-1]*element_size;
 	  displace[i] = position;
