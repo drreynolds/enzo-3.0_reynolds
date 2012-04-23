@@ -175,14 +175,14 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	displace[0] = position;
 	for (i = 1; i < NumberOfProcessors; i++) {
 	  if (nCount[i-1] > 0)
-	    position += header_size + nCount[i-1]*element_size;
+	    position += nCount[i-1];
 	  displace[i] = position;
 	}
 
 	position = 0;
 
-	local_buffer_size = header_size+LocalNumberOfActiveParticles*element_size;
-	total_buffer_size = NumberOfProcessors*header_size+GlobalNumberOfActiveParticles*element_size;
+	local_buffer_size = LocalNumberOfActiveParticles*(header_size+element_size);
+	total_buffer_size = GlobalNumberOfActiveParticles*(header_size+element_size);
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	
