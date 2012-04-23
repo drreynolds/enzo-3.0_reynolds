@@ -143,10 +143,13 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       MPI_Allgather(&LocalNumberOfActiveParticles, 1, MPI_INT, 
 		    nCount, 1, MPI_INT,MPI_COMM_WORLD);
       
-      for (i = 0; i < NumberOfProcessors; i++) {
-	displace[i] = GlobalNumberOfActiveParticles;
-	GlobalNumberOfActiveParticles += nCount[i];
+      for (i = 1; i < NumberOfProcessors; i++) {
+	if (nCount[i-1] > 0) {
+	  displace[i] += header_size + nCount[i-1]*element_size;
+	  GlobalNumberOfActiveParticles += nCount[i-1];
+	}
       }
+      GlobalNumberOfActiveParticles += nCount[NumberOfProcessors-1];
 #endif /* USE_MPI */
     } /* ENDIF Number of processors > 1 */
     else {
@@ -191,7 +194,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	for (proc = 0; proc < NumberOfProcessors; proc++) {
 	  if (nCount[proc] > 0) {
 	    ParticlesOnThisProc = new ActiveParticleType*[nCount[proc]];
-	    buffer_size = header_size*nCount[proc]*element_size;
+	    buffer_size = header_size+(nCount[proc]*element_size);
 	    ap_info->unpack_buffer(recv_buffer+displace[i],buffer_size,nCount[proc],
 				   ParticlesOnThisProc, count);
 	    for (i = count; i < nCount[proc]; i++) 
