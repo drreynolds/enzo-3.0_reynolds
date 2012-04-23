@@ -752,7 +752,7 @@ public:
       // float: 3 -- AccretionRate, cInfinity, vInfinity
       // FLOAT: 1 -- BondiHoyleRadius
       MPI_Pack_size(3, FloatDataType, MPI_COMM_WORLD, &size);
-      this->ElementSizeInBytes += 3*size;
+      this->ElementSizeInBytes += size;
       MPI_Pack_size(1, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
       this->ElementSizeInBytes += size;
 #endif
