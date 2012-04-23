@@ -45,7 +45,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
   int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, 
     LocalNumberOfActiveParticlesOnThisLevel, header_size, element_size, count, offset;
   ActiveParticleType **LocalActiveParticlesOfThisType, **LocalActiveParticlesOnThisLevel;
-  ActiveParticleType **temp;
+  ActiveParticleType **ParticlesOnThisProc;
   
   HierarchyEntry **Grids;
   int NumberOfGrids, *NumberOfActiveParticlesInGrids;
@@ -84,7 +84,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	  /* If we've already found active particles, save the list */
 
 	  if (LocalNumberOfActiveParticles != 0) 
-	    temp = LocalActiveParticlesOfThisType;
+	    ParticlesOnThisProc = LocalActiveParticlesOfThisType;
 	    
 	  LocalActiveParticlesOnThisLevel = new ActiveParticleType*[LocalNumberOfActiveParticlesOnThisLevel];
 
@@ -101,8 +101,8 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	     list to the new one and delete the old list */
 	  if (LocalNumberOfActiveParticles != 0) {
 	    for (i = 0; i < LocalNumberOfActiveParticles; i++)
-	      LocalActiveParticlesOfThisType[i] = temp[i];
-	    delete [] temp;
+	      LocalActiveParticlesOfThisType[i] = ParticlesOnThisProc[i];
+	    delete [] ParticlesOnThisProc;
 	  }
 
 	  /* Finally, append the new active particles to the list */
@@ -133,9 +133,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 
     Eint32 *nCount = NULL;
     Eint32 *displace = NULL;
-    int MaxLocalNumberOfActiveParticles = 0;
-
-
+    
     if (NumberOfProcessors > 1) {
 #ifdef USE_MPI
       
@@ -148,7 +146,6 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       for (i = 0; i < NumberOfProcessors; i++) {
 	displace[i] = GlobalNumberOfActiveParticles;
 	GlobalNumberOfActiveParticles += nCount[i];
-	MaxLocalNumberOfActiveParticles = max(MaxLocalNumberOfActiveParticles,nCount[i]);
       }
 #endif /* USE_MPI */
     } /* ENDIF Number of processors > 1 */
@@ -175,8 +172,8 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	header_size = ap_info->return_header_size();
 	element_size = ap_info->return_element_size();
 	
-	local_buffer_size = header_size+MaxLocalNumberOfActiveParticles*element_size;
-	total_buffer_size = NumberOfProcessors*local_buffer_size;
+	local_buffer_size = header_size+LocalNumberOfActiveParticles*element_size;
+	total_buffer_size = NumberOfProcessors*headersize+GlobalNumberOfActiveParticles*element_size;
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	
@@ -191,10 +188,19 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
 	/* Unpack MPI buffers, generate global active particles list */
 
 	count = 0;
+	for (proc = 0; proc < NumberOfProcessors; proc++) {
+	  if (nCount[proc] > 0) {
+	    ParticlesOnThisProc = new ActiveParticleType*[nCount[proc]];
+	    buffer_size = header_size*nCount[proc]*element_size;
+	    ap_info->unpack_buffer(recv_buffer+displace[i],buffer_size,nCount[proc],
+				   ParticlesOnThisProc, count);
+	    for (i = count; i < nCount[proc]; i++) 
+	      GlobalList[count+i] = ParticlesOnThisProc[i];
+	    count += nCount[proc];
+	    delete [] ParticlesOnThisProc;
+	  }
+	}
 
-	ap_info->unpack_buffer(recv_buffer,total_buffer_size,GlobalNumberOfActiveParticles,
-			       GlobalList, count);
-	
 	delete [] nCount;
 	delete [] displace;
 	delete [] send_buffer;
