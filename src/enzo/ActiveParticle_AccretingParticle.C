@@ -526,8 +526,6 @@ FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[])
   int GroupNumberAssignment[*nParticles];
   int *groupsize = NULL;
   int **grouplist = NULL;
-  FLOAT pos[3];
-  
   
   /* Construct list of sink particle positions to pass to Foflist */
   FLOAT ParticleCoordinates[3*(*nParticles)];
