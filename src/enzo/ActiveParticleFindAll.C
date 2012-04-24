@@ -159,40 +159,52 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
     if (GlobalNumberOfActiveParticles > 0) {
 
       Eint32 *displace = new Eint32[NumberOfProcessors];
-  
+      Eint32 *all_buffer_sizes = new Eint32[NumberOfProcessors];
+
       GlobalList = new ActiveParticleType*[GlobalNumberOfActiveParticles];
       
       if (NumberOfProcessors > 1) {
 	
 #ifdef USE_MPI
 	/* Construct the MPI packed  buffer from the list of local particles*/
-	Eint32 total_buffer_size, local_buffer_size, position = 0;
+	Eint32 total_buffer_size=0, local_buffer_size, position = 0;
 	int mpi_buffer_size;
 	char *send_buffer, *recv_buffer;
 	header_size = ap_info->return_header_size();
 	element_size = ap_info->return_element_size();
 	
+	for (i = 0; i < NumberOfProcessors; i++) {
+	  if (nCount[i] > 0)
+	    all_buffer_sizes[i] = header_size + nCount[i]*element_size;
+	  else
+	    all_buffer_sizes[i] = 0;
+	  total_buffer_size += all_buffer_sizes[i];
+	}
+
 	displace[0] = position;
 	for (i = 1; i < NumberOfProcessors; i++) {
 	  if (nCount[i-1] > 0)
-	    position += nCount[i-1];
+	    position += all_buffer_sizes[i-1];
 	  displace[i] = position;
 	}
 
 	position = 0;
 
-	local_buffer_size = LocalNumberOfActiveParticles*(header_size+element_size);
-	total_buffer_size = GlobalNumberOfActiveParticles*(header_size+element_size);
+	if (LocalNumberOfActiveParticles > 0)
+	  local_buffer_size = header_size + LocalNumberOfActiveParticles*element_size;
+	else
+	  local_buffer_size = header_size;
+
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	
 	ap_info->allocate_buffer(LocalActiveParticlesOfThisType, LocalNumberOfActiveParticles, send_buffer,
-				 total_buffer_size, mpi_buffer_size, position, ap_id, -1);
+				 local_buffer_size, mpi_buffer_size, position, ap_id, -1);
 
 	/* Share all data with all processors */
 
 	MPI_Allgatherv(send_buffer, LocalNumberOfActiveParticles, MPI_PACKED,
-		       recv_buffer, nCount, displace, MPI_PACKED, MPI_COMM_WORLD);
+		       recv_buffer, all_buffer_sizes, displace, MPI_PACKED, MPI_COMM_WORLD);
 
 	/* Unpack MPI buffers, generate global active particles list */
 
