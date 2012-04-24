@@ -161,8 +161,8 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       Eint32 *displace = new Eint32[NumberOfProcessors];
       Eint32 *all_buffer_sizes = new Eint32[NumberOfProcessors];
 
-      GlobalList = new ActiveParticleType*[GlobalNumberOfActiveParticles];
-      
+      ap_info->allocate_list(GlobalList,GlobalNumberOfActiveParticles);
+
       if (NumberOfProcessors > 1) {
 	
 #ifdef USE_MPI

@@ -91,15 +91,16 @@ public:
 			      int ThisLevel, int TotalStarParticleCountPrevious[],
 			      int AccretingParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID);
+  static int AllocateList(ActiveParticleType** ParticleList, int nparticles);
   static int InitializeParticleType();
 
   ENABLED_PARTICLE_ID_ACCESSOR
 
   // sink helper routines
 
-  static int MergeAccretingParticles(int nParticles, ActiveParticleType** AccretingParticleList,
+  static int MergeAccretingParticles(int *nParticles, ActiveParticleType** AccretingParticleList,
 				     ActiveParticleType_AccretingParticle** MergedParticles,
-				     FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[]);  
+				     FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[]);  
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
 		     FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[], 
@@ -517,34 +518,34 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
 }
 
 int ActiveParticleType_AccretingParticle::MergeAccretingParticles
-(int nParticles, ActiveParticleType** ParticleList, ActiveParticleType_AccretingParticle** MergedParticles, 
-FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[])
+(int *nParticles, ActiveParticleType** ParticleList, ActiveParticleType_AccretingParticle** MergedParticles, 
+FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[])
 {
   int i,j;
   int dim;
-  int GroupNumberAssignment[nParticles];
+  int GroupNumberAssignment[*nParticles];
   int *groupsize = NULL;
   int **grouplist = NULL;
-  FLOAT *pos;
+  FLOAT pos[3];
   
   
   /* Construct list of sink particle positions to pass to Foflist */
-  FLOAT ParticleCoordinates[3*nParticles];
+  FLOAT ParticleCoordinates[3*(*nParticles)];
   
-  for (i=0 ; i++ ; i<nParticles) {
-    pos = ParticleList[i]->ReturnPosition();
-    for (dim=0; dim++; dim<3) { ParticleCoordinates[i*nParticles+dim] = pos[dim]; }
+  for (i=0; i<(*nParticles); i++) {
+    for (dim=0; dim<3; dim++) 
+      ParticleCoordinates[3*i+dim] = ParticleList[i]->ReturnPosition()[i];
   }
   
   /* Find mergeable groups using an FOF search */
 
-  ngroups = FofList(nParticles, ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
+  *ngroups = FofList((*nParticles), ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
   
-  MergedParticles = new ActiveParticleType_AccretingParticle*[ngroups];
+  MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups];
 
   /* Merge the mergeable groups */
 
-  for (i=0 ; i++ ; i<ngroups) {
+  for (i=0; i<*ngroups; i++) {
     MergedParticles[i] = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][0]]);
     if (groupsize[i] != 1) {
       for (j=1 ; j++ ; j<groupsize[i]) {
@@ -554,7 +555,7 @@ FLOAT LinkingLength, int ngroups, LevelHierarchyEntry *LevelArray[])
     }
   }
 
-  nParticles = ngroups;
+  *nParticles = *ngroups;
 
   return SUCCESS;
 }
@@ -595,8 +596,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       /* Generate new merged list of sink particles */
       
-      if (MergeAccretingParticles(nParticles,ParticleList, MergedParticles, 
-				  LinkingLength*dx,NumberOfMergedParticles,LevelArray) == FAIL) 
+      if (MergeAccretingParticles(&nParticles,ParticleList, MergedParticles, 
+				  LinkingLength*dx,&NumberOfMergedParticles,LevelArray) == FAIL) 
 	ENZO_FAIL("Accreting Particle merging failed");
    
       /* Assign local particles to grids */
@@ -789,6 +790,15 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   }
 
   return SUCCESS;
+}
+
+int ActiveParticleType_AccretingParticle::AllocateList(ActiveParticleType** ParticleList, int nparticles) {
+
+  ActiveParticleType_AccretingParticle** TempList = new ActiveParticleType_AccretingParticle*[nparticles];
+  *ParticleList = static_cast<ActiveParticleType*>(*TempList);
+
+  return SUCCESS;
+
 }
 
 void AccretingParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 

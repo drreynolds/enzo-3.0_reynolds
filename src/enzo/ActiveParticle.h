@@ -328,6 +328,7 @@ public:
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
    int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID),
+   int (*allocfunc)(ActiveParticleType** ParticleList, int nparticles),
    int (*headerfunc)(void),
    int (*elementfunc)(void),
    ActiveParticleType *particle,
@@ -346,6 +347,7 @@ public:
     this->before_evolvelevel_function = belfunc;
     this->after_evolvelevel_function = aelfunc;
     this->flagging_function = flagfunc;
+    this->allocate_list = allocfunc;
     this->return_header_size = headerfunc;
     this->return_element_size = elementfunc;
     this->particle_name = this_name;
@@ -376,6 +378,7 @@ public:
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
   int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID);
+  int (*allocate_list)(ActiveParticleType** ParticleList, int nparticles);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 			  Eint32 total_buffer_size, int &buffer_size,
@@ -416,6 +419,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&active_particle_class::BeforeEvolveLevel),
      (&active_particle_class::AfterEvolveLevel),
      (&active_particle_class::SetFlaggingField),
+     (&active_particle_class::AllocateList),
      (&particle_buffer_handler::ReturnHeaderSize),
      (&particle_buffer_handler::ReturnElementSize),
      pp, bb);
