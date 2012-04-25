@@ -11,15 +11,6 @@
 /
 ************************************************************************/
  
-#ifdef USE_MPI
-#include "mpi.h"
-#endif /* USE_MPI */
- 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <algorithm>
- 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -31,8 +22,6 @@
 #include "TopGridData.h"
 #include "Hierarchy.h"
 #include "LevelHierarchy.h"
-#include "communication.h"
-#include "SortCompareFunctions.h"
 
 #include "ActiveParticle.h"
 

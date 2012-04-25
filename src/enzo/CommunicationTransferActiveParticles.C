@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <map>
  
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -35,6 +36,7 @@
 #include "CommunicationUtilities.h"
 #include "SortCompareFunctions.h"
 #include "ActiveParticle.h"
+
 void my_exit(int status);
  
 // function prototypes
