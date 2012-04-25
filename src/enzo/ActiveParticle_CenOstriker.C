@@ -67,7 +67,45 @@ const char config_cen_ostriker_particle_defaults[] =
  * necessary to make sure that grid is 'friend' to this particle type. */
 
 class ActiveParticleType_CenOstriker;
-class CenOstrikerBufferHandler;
+class CenOstrikerBufferHandler : public ParticleBufferHandler
+{
+public:
+  // No extra fields in CenOstriker.  Same base constructor.
+  CenOstrikerBufferHandler(void) : ParticleBufferHandler() {};
+  CenOstrikerBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+#ifdef EXAMPLE
+    this->field = new float[NumberOfParticles];
+#endif
+  };
+  CenOstrikerBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
+    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
+    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+#ifdef EXAMPLE
+    this->field = new float[this->NumberOfBuffers];
+    index = 0;
+    for (i = 0; i < NumberOfParticles; i++)
+      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
+	this->field[index] = np[i]->field;
+	index++;
+      }
+    this->ElementSizeInBytes += 1*sizeof(float);
+#endif /* EXAMPLE */
+  };
+  ~CenOstrikerBufferHandler() {
+#ifdef EXAMPLE
+    delete[] this->field;
+#endif
+  };
+  static int ReturnHeaderSize(void) {return CenOstrikerBufferHandler::HeaderSizeInBytes; }
+  static int ReturnElementSize(void) {return CenOstrikerBufferHandler::ElementSizeInBytes; }
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
+			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
+			     int type_num, int proc=-1);
+  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+			   ActiveParticleType **np, int &npart);
+};
+
+
 
 class CenOstrikerGrid : private grid {
   friend class ActiveParticleType_CenOstriker;
@@ -734,45 +772,6 @@ int ActiveParticleType_CenOstriker::AllocateList(ActiveParticleType** ParticleLi
 
   return SUCCESS;
 }
-
-class CenOstrikerBufferHandler : public ParticleBufferHandler
-{
-public:
-  // No extra fields in CenOstriker.  Same base constructor.
-  CenOstrikerBufferHandler(void) : ParticleBufferHandler() {};
-  CenOstrikerBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
-#ifdef EXAMPLE
-    this->field = new float[NumberOfParticles];
-#endif
-  };
-  CenOstrikerBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
-    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
-    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
-#ifdef EXAMPLE
-    this->field = new float[this->NumberOfBuffers];
-    index = 0;
-    for (i = 0; i < NumberOfParticles; i++)
-      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
-	this->field[index] = np[i]->field;
-	index++;
-      }
-    this->ElementSizeInBytes += 1*sizeof(float);
-#endif /* EXAMPLE */
-  };
-  CenOstrikerBufferHandler(const ParticleBufferHandler& buffer) {};
-  ~CenOstrikerBufferHandler() {
-#ifdef EXAMPLE
-    delete[] this->field;
-#endif
-  };
-  static int ReturnHeaderSize(void) {return CenOstrikerBufferHandler::HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return CenOstrikerBufferHandler::ElementSizeInBytes; }
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
-			     int type_num, int proc=-1);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-};
 
 void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					      char *buffer, Eint32 total_buffer_size, 
