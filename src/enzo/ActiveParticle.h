@@ -281,8 +281,9 @@ public:
   int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
   int _UnpackBuffer(char *buffer, int buffer_size, Eint32 &position);
 
-protected:
   int NumberOfBuffers;
+
+protected:
   static int HeaderSizeInBytes;
   static int ElementSizeInBytes;
   FLOAT	*pos[MAX_DIMENSION];

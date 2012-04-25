@@ -122,7 +122,7 @@ public:
   // Constructors
   ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {};
   ActiveParticleType_AccretingParticle(AccretingParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {
+    ActiveParticleType(dynamic_cast<ParticleBufferHandler*>(buffer), index) {
     AccretionRate = buffer->AccretionRate[index];
     vInfinity = buffer->vInfinity[index];
     cInfinity = buffer->cInfinity[index];
@@ -316,6 +316,13 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	else
 	  np->Metallicity = 0.0;
 
+	np->vInfinity = 0.0;  // Since np->vel = tvel
+	np->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh));
+	// Particle "Mass" is actually a density
+	np->BondiHoyleRadius = GravConst*(np->ReturnMass()/POW(dx,3))/
+	  (pow(np->vInfinity,2) + pow(np->cInfinity,2));
+	np->AccretionRate = 0.0;
+	
 	// Remove mass from grid
 
 	density[index] = DensityThreshold;
@@ -350,6 +357,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 
   FLOAT *pos, LeftCorner[MAX_DIMENSION];
 
+  FLOAT dx = thisGrid->CellWidth[0][0];
+
   for (dim = 0; dim < 3; dim++) 
     LeftCorner[dim] = thisGrid->CellLeftEdge[dim][0];
 
@@ -374,7 +383,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 				   pow((vel[2] - velz[index]),2));
     CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
     ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh));
-    ThisParticle->BondiHoyleRadius = GravConst*ThisParticle->ReturnMass()/
+    ThisParticle->BondiHoyleRadius = GravConst*(ThisParticle->ReturnMass()/POW(dx,3))/
       (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
   }
 
@@ -850,6 +859,7 @@ void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buff
 	       pbuffer->NumberOfBuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
   }
   /* Convert the particle buffer into active particles */
+  
   for (i = 0; i < pbuffer->NumberOfBuffers; i++)
     np[npart++] = new ActiveParticleType_AccretingParticle(pbuffer, i);
   delete pbuffer;
