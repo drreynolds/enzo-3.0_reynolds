@@ -57,7 +57,54 @@ const char config_sink_particle_defaults[] =
  * necessary to make sure that grid is 'friend' to this particle type. */
 
 class ActiveParticleType_AccretingParticle;
-class AccretingParticleBufferHandler;
+
+class AccretingParticleBufferHandler : public ParticleBufferHandler
+{
+public:
+  AccretingParticleBufferHandler(void) : ParticleBufferHandler() {
+    this->CalculateAccretingParticleElementSize();
+};
+  AccretingParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
+    // Any extra fields must be added to the buffer
+    this->AccretionRate = new float[NumberOfParticles];
+    this->cInfinity = new float[NumberOfParticles];
+    this->vInfinity = new float[NumberOfParticles];
+    this->BondiHoyleRadius = new FLOAT[NumberOfParticles];
+    this->CalculateAccretingParticleElementSize();
+  };
+  AccretingParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
+  ~AccretingParticleBufferHandler() {};
+  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
+			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
+			     int type_num, int proc);
+  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
+			   ActiveParticleType **np, int &npart);
+  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
+  static int ReturnElementSize(void) {return ElementSizeInBytes; }
+  void CalculateAccretingParticleElementSize(void) {
+    Eint32 mpi_flag = 0;
+#ifdef USE_MPI
+    MPI_Initialized(&mpi_flag);
+#endif
+    Eint32 size;
+    if (mpi_flag == 1) {
+#ifdef USE_MPI
+      // float: 3 -- AccretionRate, cInfinity, vInfinity
+      // FLOAT: 1 -- BondiHoyleRadius
+      MPI_Pack_size(3, FloatDataType, MPI_COMM_WORLD, &size);
+      this->ElementSizeInBytes += size;
+      MPI_Pack_size(1, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
+      this->ElementSizeInBytes += size;
+#endif
+    } else {
+      this->ElementSizeInBytes += 3*sizeof(float) + sizeof(FLOAT);
+    }
+  };
+  float* AccretionRate;
+  float* cInfinity;
+  float* vInfinity;
+  FLOAT* BondiHoyleRadius;
+};
 
 class AccretingParticleGrid : private grid {
   friend class ActiveParticleType_AccretingParticle;
@@ -74,8 +121,13 @@ class ActiveParticleType_AccretingParticle : public ActiveParticleType
 public:
   // Constructors
   ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {};
-  ActiveParticleType_AccretingParticle(ParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(buffer, index) {};
+  ActiveParticleType_AccretingParticle(AccretingParticleBufferHandler *buffer, int index) :
+    ActiveParticleType(dynamic_cast<ParticleBufferHandler*>(buffer), index) {
+    AccretionRate = buffer->AccretionRate[index];
+    vInfinity = buffer->vInfinity[index];
+    cInfinity = buffer->cInfinity[index];
+    BondiHoyleRadius = buffer->BondiHoyleRadius[index];
+};
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
@@ -114,6 +166,29 @@ public:
   float cInfinity;
   FLOAT BondiHoyleRadius;
 };
+
+AccretingParticleBufferHandler::AccretingParticleBufferHandler
+(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
+  ParticleBufferHandler(np, NumberOfParticles, type, proc) 
+  {
+    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
+    int i, index;
+    this->AccretionRate = new float[this->NumberOfBuffers];
+    this->cInfinity = new float[this->NumberOfBuffers];
+    this->vInfinity = new float[this->NumberOfBuffers];
+    this->BondiHoyleRadius = new FLOAT[this->NumberOfBuffers];
+    for (i = 0, index=0; i < NumberOfParticles; i++)
+      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
+	ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(np[i]);
+	this->AccretionRate[index] = temp->AccretionRate;
+	this->cInfinity[index] = temp->cInfinity;
+	this->vInfinity[index] = temp->vInfinity;
+	this->BondiHoyleRadius[index] = temp->BondiHoyleRadius;
+	index++;
+      }
+    this->CalculateAccretingParticleElementSize();
+  };
+
 
 float ActiveParticleType_AccretingParticle::OverflowFactor = FLOAT_UNDEFINED;
 int ActiveParticleType_AccretingParticle::AccretionRadius = INT_UNDEFINED;
@@ -241,6 +316,13 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	else
 	  np->Metallicity = 0.0;
 
+	np->vInfinity = 0.0;  // Since np->vel = tvel
+	np->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh));
+	// Particle "Mass" is actually a density
+	np->BondiHoyleRadius = GravConst*(np->ReturnMass()/POW(dx,3))/
+	  (pow(np->vInfinity,2) + pow(np->cInfinity,2));
+	np->AccretionRate = 0.0;
+	
 	// Remove mass from grid
 
 	density[index] = DensityThreshold;
@@ -275,6 +357,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 
   FLOAT *pos, LeftCorner[MAX_DIMENSION];
 
+  FLOAT dx = thisGrid->CellWidth[0][0];
+
   for (dim = 0; dim < 3; dim++) 
     LeftCorner[dim] = thisGrid->CellLeftEdge[dim][0];
 
@@ -299,7 +383,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 				   pow((vel[2] - velz[index]),2));
     CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
     ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh));
-    ThisParticle->BondiHoyleRadius = GravConst*ThisParticle->ReturnMass()/
+    ThisParticle->BondiHoyleRadius = GravConst*(ThisParticle->ReturnMass()/POW(dx,3))/
       (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
   }
 
@@ -697,74 +781,6 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   return SUCCESS;
 }
 
-
-
-class AccretingParticleBufferHandler : public ParticleBufferHandler
-{
-public:
-  AccretingParticleBufferHandler(void) : ParticleBufferHandler() {
-    this->CalculateAccretingParticleElementSize();
-};
-  AccretingParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
-    // Any extra fields must be added to the buffer
-    this->AccretionRate = new float[NumberOfParticles];
-    this->cInfinity = new float[NumberOfParticles];
-    this->vInfinity = new float[NumberOfParticles];
-    this->BondiHoyleRadius = new FLOAT[NumberOfParticles];
-    this->CalculateAccretingParticleElementSize();
-  };
-  AccretingParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) : 
-    ParticleBufferHandler(np, NumberOfParticles, type, proc) {
-    // Any extra fields must be added to the buffer and this->ElementSizeInBytes
-    int i, index;
-    this->AccretionRate = new float[this->NumberOfBuffers];
-    this->cInfinity = new float[this->NumberOfBuffers];
-    this->vInfinity = new float[this->NumberOfBuffers];
-    this->BondiHoyleRadius = new FLOAT[this->NumberOfBuffers];
-    for (i = 0, index=0; i < NumberOfParticles; i++)
-      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
-	ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(np[i]);
-	this->AccretionRate[index] = temp->AccretionRate;
-	this->cInfinity[index] = temp->cInfinity;
-	this->vInfinity[index] = temp->vInfinity;
-	this->BondiHoyleRadius[index] = temp->BondiHoyleRadius;
-	index++;
-      }
-    this->CalculateAccretingParticleElementSize();
-  };
-  ~AccretingParticleBufferHandler() {};
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
-			     int type_num, int proc);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return ElementSizeInBytes; }
-  void CalculateAccretingParticleElementSize(void) {
-    Eint32 mpi_flag = 0;
-#ifdef USE_MPI
-    MPI_Initialized(&mpi_flag);
-#endif
-    Eint32 size;
-    if (mpi_flag == 1) {
-#ifdef USE_MPI
-      // float: 3 -- AccretionRate, cInfinity, vInfinity
-      // FLOAT: 1 -- BondiHoyleRadius
-      MPI_Pack_size(3, FloatDataType, MPI_COMM_WORLD, &size);
-      this->ElementSizeInBytes += size;
-      MPI_Pack_size(1, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
-      this->ElementSizeInBytes += size;
-#endif
-    } else {
-      this->ElementSizeInBytes += 3*sizeof(float) + sizeof(FLOAT);
-    }
-  };
-  float* AccretionRate;
-  float* cInfinity;
-  float* vInfinity;
-  FLOAT* BondiHoyleRadius;
-};
-
 int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int AccretingParticleID)
 {
   /* Generate a list of all sink particles in the simulation box */
@@ -843,8 +859,10 @@ void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buff
 	       pbuffer->NumberOfBuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
   }
   /* Convert the particle buffer into active particles */
+  
   for (i = 0; i < pbuffer->NumberOfBuffers; i++)
     np[npart++] = new ActiveParticleType_AccretingParticle(pbuffer, i);
+  delete pbuffer;
   return;
 }
 
