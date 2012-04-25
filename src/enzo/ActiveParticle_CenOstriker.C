@@ -78,8 +78,8 @@ class ActiveParticleType_CenOstriker : public ActiveParticleType
 public:
   // Constructors
   ActiveParticleType_CenOstriker(void) : ActiveParticleType() {};
-  ActiveParticleType_CenOstriker(ParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(buffer, index) {
+  ActiveParticleType_CenOstriker(CenOstrikerBufferHandler *buffer, int index) :
+    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {
     // Add any additional fields here
 #ifdef EXAMPLE
     field = buffer->field[index];
@@ -759,6 +759,7 @@ public:
     this->ElementSizeInBytes += 1*sizeof(float);
 #endif /* EXAMPLE */
   };
+  CenOstrikerBufferHandler(const ParticleBufferHandler& buffer) {};
   ~CenOstrikerBufferHandler() {
 #ifdef EXAMPLE
     delete[] this->field;
