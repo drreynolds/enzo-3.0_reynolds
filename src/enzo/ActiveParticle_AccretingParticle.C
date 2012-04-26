@@ -142,7 +142,7 @@ public:
 			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			      int ThisLevel, int TotalStarParticleCountPrevious[],
 			      int AccretingParticleID);
-  static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID);
+  static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
 
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -668,8 +668,9 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       /* Calculate CellWidth on maximum refinement level */
 
-      // This may not work for simulations with MinimumMassForRefinementLevelExponent
-      FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+      // This assumes a cubic box and may not work for simulations with MinimumMassForRefinementLevelExponent
+      FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
+	(MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
 
       /* Do Merging   */
 
@@ -738,8 +739,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     BondiHoyleRadius = temp->BondiHoyleRadius;
     for (grid = 0; grid < NumberOfGrids; grid++) {
       if (Grids[grid]->GridData->
-	  FindAverageDensityInAccretionZone(ParticleList[i],AccretionRadius, WeightedSum, 
-					    SumOfWeights, NumberOfCells, BondiHoyleRadius) == FAIL) {
+	  FindAverageDensityInAccretionZone(ParticleList[i],AccretionRadius, &WeightedSum, 
+					    &SumOfWeights, &NumberOfCells, BondiHoyleRadius) == FAIL) {
 	return FAIL;
       }
       /* sum up rhobar on root and broadcast result to all processors */
@@ -780,7 +781,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int AccretingParticleID)
+int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, 
+							   int TopGridDims[], int AccretingParticleID)
 {
   /* Generate a list of all sink particles in the simulation box */
   int i,dim,nParticles;
@@ -792,7 +794,9 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   
   /* Calculate CellWidth on maximum refinement level */
   
-  dx = (DomainRightEdge[0] - DomainLeftEdge[0])/(POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+  // this will fail for noncubic boxes or simulations with MinimimRefinementLevelExponent
+  dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
+    (TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
   
   for (i=0 ; i++ ; i<nParticles){
     pos = AccretingParticleList[i]->ReturnPosition();

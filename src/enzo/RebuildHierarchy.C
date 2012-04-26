@@ -48,7 +48,7 @@ int ReportMemoryUsage(char *header = NULL);
 int DepositParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
 				     int level, bool AllLocal);
 int DepositActiveParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
-					   int level);
+					   int level, int TopGridDims[]);
 int CommunicationShareGrids(HierarchyEntry *GridHierarchyPointer[], int grids,
 			    int ShareParticles = TRUE); 
 int CommunicationLoadBalanceGrids(HierarchyEntry *GridHierarchyPointer[],
@@ -391,7 +391,7 @@ int RebuildHierarchy(TopGridData *MetaData,
 
 
       tt0 = ReturnWallTime();
-      DepositActiveParticleMassFlaggingField(LevelArray,i);
+      DepositActiveParticleMassFlaggingField(LevelArray,i,MetaData->TopGridDims);
       tt1 = ReturnWallTime();
       RHperf[3] += tt1-tt0;
 

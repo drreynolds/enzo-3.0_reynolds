@@ -328,7 +328,7 @@ public:
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
-   int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID),
+   int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    int (*headerfunc)(void),
    int (*elementfunc)(void),
    ActiveParticleType *particle,
@@ -376,7 +376,7 @@ public:
 				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
-  int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID);
+  int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
   void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 			  Eint32 total_buffer_size, int &buffer_size,

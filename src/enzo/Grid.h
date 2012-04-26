@@ -2458,7 +2458,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int ReturnStarStatistics(int &Number, float &minLife);
 
   int FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FLOAT AccretionRadius,
-					float &WeightedSum, float &SumOfWeights, int &NumberOfCells,
+					float *WeightedSum, float *SumOfWeights, int *NumberOfCells,
 					FLOAT BondiHoyleRadius);
 
   int AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 

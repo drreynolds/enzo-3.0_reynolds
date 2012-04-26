@@ -139,7 +139,7 @@ public:
 			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			      int ThisLevel, int TotalActiveParticleCountPrevious[],
 			      int CenOstrikerID);
-  static int SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level, int ActiveParticleID);
+  static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
   
@@ -754,11 +754,10 @@ int ActiveParticleType_CenOstriker::AfterEvolveLevel(HierarchyEntry *Grids[], To
 						      int CenOstrikerID)
 {
 
-
   return SUCCESS;
 }
 
-int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level, int ActiveParticleID)
+int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level, int TopGridDims[], int ActiveParticleID)
 {
 
   return SUCCESS;

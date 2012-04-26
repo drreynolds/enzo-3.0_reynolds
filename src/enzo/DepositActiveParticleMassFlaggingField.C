@@ -27,7 +27,7 @@
 
 
 int DepositActiveParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
-					   int level)
+					   int level, int TopGridDims[] )
 {
 
   int i,ActiveParticleID;
@@ -35,7 +35,7 @@ int DepositActiveParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
   for (i = 0 ; i < EnabledActiveParticlesCount ; i++) {
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
     ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
-    ActiveParticleTypeToEvaluate->flagging_function(LevelArray,level,ActiveParticleID);
+    ActiveParticleTypeToEvaluate->flagging_function(LevelArray,level,TopGridDims,ActiveParticleID);
   }
   
   return SUCCESS;

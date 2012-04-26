@@ -29,7 +29,7 @@
 #include "ActiveParticle.h"
 
 int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
-					    float &WeightedSum, float &SumOfWeights, int &NumberOfCells,
+					    float *WeightedSum, float *SumOfWeights, int *NumberOfCells,
 					    FLOAT BondiHoyleRadius) {
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
@@ -80,9 +80,9 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
-	  WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius)); 
-	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
-	  NumberOfCells++;
+	  *WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius)); 
+	  *SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
+	  (*NumberOfCells)++;
 	}
       }
     }
