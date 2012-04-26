@@ -143,7 +143,7 @@ public:
 			      int ThisLevel, int TotalStarParticleCountPrevious[],
 			      int AccretingParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID);
-  static int AllocateList(ActiveParticleType** ParticleList, int nparticles);
+  static int AllocateList(ActiveParticleType*** ParticleList, int nparticles);
   static int InitializeParticleType();
 
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -806,10 +806,11 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::AllocateList(ActiveParticleType** ParticleList, int nparticles) {
+int ActiveParticleType_AccretingParticle::AllocateList(ActiveParticleType*** ParticleList, int nparticles) {
 
   ActiveParticleType_AccretingParticle** TempList = new ActiveParticleType_AccretingParticle*[nparticles];
-  *ParticleList = static_cast<ActiveParticleType*>(*TempList);
+  ActiveParticleType* baseTemp = static_cast<ActiveParticleType*>(*TempList);
+  *ParticleList = &baseTemp;
 
   return SUCCESS;
 

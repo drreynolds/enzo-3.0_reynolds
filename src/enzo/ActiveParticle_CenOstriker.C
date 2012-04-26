@@ -140,7 +140,7 @@ public:
 			      int ThisLevel, int TotalActiveParticleCountPrevious[],
 			      int CenOstrikerID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level, int ActiveParticleID);
-  static int AllocateList(ActiveParticleType** ParticleList, int nparticles);
+  static int AllocateList(ActiveParticleType*** ParticleList, int nparticles);
   static int InitializeParticleType();
   ENABLED_PARTICLE_ID_ACCESSOR
   
@@ -765,10 +765,11 @@ int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelA
   return SUCCESS;
 }
 
-int ActiveParticleType_CenOstriker::AllocateList(ActiveParticleType** ParticleList, int nparticles) {
+int ActiveParticleType_CenOstriker::AllocateList(ActiveParticleType*** ParticleList, int nparticles) {
 
   ActiveParticleType_CenOstriker** TempList = new ActiveParticleType_CenOstriker*[nparticles];
-  *ParticleList = static_cast<ActiveParticleType*>(*TempList);
+  ActiveParticleType* baseTemp = static_cast<ActiveParticleType*>(*TempList);
+  *ParticleList = &baseTemp;
 
   return SUCCESS;
 }

@@ -131,15 +131,17 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
     /*                                                */
     /**************************************************/
 
-    Eint32 *nCount = NULL;
+    int *nCount = NULL;
         
     if (NumberOfProcessors > 1) {
 #ifdef USE_MPI
       
-      nCount = new Eint32[NumberOfProcessors];
+      nCount = new int[NumberOfProcessors];
       
-      MPI_Allgather(&LocalNumberOfActiveParticles, 1, MPI_INT, 
-		    nCount, 1, MPI_INT,MPI_COMM_WORLD);
+      MPI_Datatype DataTypeInt = (sizeof(int) == 4) ? MPI_INT : MPI_LONG_LONG_INT;
+
+      MPI_Allgather(&LocalNumberOfActiveParticles, 1, DataTypeInt, 
+		    nCount, 1, DataTypeInt, MPI_COMM_WORLD);
       
       for (i = 0; i < NumberOfProcessors; i++) {
 	GlobalNumberOfActiveParticles += nCount[i];
@@ -161,7 +163,7 @@ int ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], ActiveParticleType*
       Eint32 *displace = new Eint32[NumberOfProcessors];
       Eint32 *all_buffer_sizes = new Eint32[NumberOfProcessors];
 
-      ap_info->allocate_list(GlobalList,GlobalNumberOfActiveParticles);
+      ap_info->allocate_list(&GlobalList,GlobalNumberOfActiveParticles);
 
       if (NumberOfProcessors > 1) {
 	
