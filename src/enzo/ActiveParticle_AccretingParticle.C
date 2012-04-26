@@ -143,7 +143,6 @@ public:
 			      int ThisLevel, int TotalStarParticleCountPrevious[],
 			      int AccretingParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int ActiveParticleID);
-  static int AllocateList(ActiveParticleType*** ParticleList, int nparticles);
   static int InitializeParticleType();
 
   ENABLED_PARTICLE_ID_ACCESSOR
@@ -660,7 +659,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       HierarchyEntry **Grids;
       ActiveParticleType** ParticleList;
 
-      ActiveParticleFindAll(LevelArray, ParticleList, nParticles, AccretingParticleID);
+      ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
       /* Return if there are no accreting particles */
       
@@ -678,7 +677,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       /* Generate new merged list of sink particles */
       
-      if (MergeAccretingParticles(&nParticles,ParticleList, MergedParticles, 
+      if (MergeAccretingParticles(&nParticles, ParticleList, MergedParticles, 
 				  LinkingLength*dx,&NumberOfMergedParticles,LevelArray) == FAIL) 
 	ENZO_FAIL("Accreting Particle merging failed");
    
@@ -698,7 +697,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       /* Regenerate the global active particle list */
       
-      ActiveParticleFindAll(LevelArray, ParticleList, nParticles, AccretingParticleID);
+      ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
       /* Do accretion */
       
@@ -804,16 +803,6 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   }
 
   return SUCCESS;
-}
-
-int ActiveParticleType_AccretingParticle::AllocateList(ActiveParticleType*** ParticleList, int nparticles) {
-
-  ActiveParticleType_AccretingParticle** TempList = new ActiveParticleType_AccretingParticle*[nparticles];
-  ActiveParticleType* baseTemp = static_cast<ActiveParticleType*>(*TempList);
-  *ParticleList = &baseTemp;
-
-  return SUCCESS;
-
 }
 
 void AccretingParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
