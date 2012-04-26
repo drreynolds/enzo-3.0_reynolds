@@ -149,9 +149,9 @@ public:
 
   // sink helper routines
 
-  static int MergeAccretingParticles(int *nParticles, ActiveParticleType** AccretingParticleList,
-				     ActiveParticleType_AccretingParticle** MergedParticles,
-				     FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[]);  
+  static ActiveParticleType_AccretingParticle**  MergeAccretingParticles
+  (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
+   int *ngroups, LevelHierarchyEntry *LevelArray[]);
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
 		     FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[], 
@@ -600,16 +600,16 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::MergeAccretingParticles
-(int *nParticles, ActiveParticleType** ParticleList, ActiveParticleType_AccretingParticle** MergedParticles, 
-FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[])
+ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::MergeAccretingParticles
+(int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[])
 {
   int i,j;
   int dim;
   int GroupNumberAssignment[*nParticles];
   int *groupsize = NULL;
   int **grouplist = NULL;
-  
+  ActiveParticleType_AccretingParticle **MergedParticles = NULL;
+
   /* Construct list of sink particle positions to pass to Foflist */
   FLOAT ParticleCoordinates[3*(*nParticles)];
   
@@ -638,7 +638,7 @@ FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[])
 
   *nParticles = *ngroups;
 
-  return SUCCESS;
+  return MergedParticles;
 }
 
 
@@ -677,9 +677,9 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       /* Generate new merged list of sink particles */
       
-      if (MergeAccretingParticles(&nParticles, ParticleList, MergedParticles, 
-				  LinkingLength*dx,&NumberOfMergedParticles,LevelArray) == FAIL) 
-	ENZO_FAIL("Accreting Particle merging failed");
+      
+      MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
+						&NumberOfMergedParticles,LevelArray);
    
       /* Assign local particles to grids */
 
