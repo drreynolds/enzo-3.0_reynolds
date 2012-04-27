@@ -318,7 +318,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	np->vInfinity = 0.0;  // Since np->vel = tvel
 	np->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/data.LengthUnits*data.TimeUnits;
 	// Particle "Mass" is actually a density
-	np->BondiHoyleRadius = GravitationalConstant*(np->ReturnMass()/POW(dx,3))/
+	np->BondiHoyleRadius = GravitationalConstant*(np->ReturnMass()*POW(dx,3))/
 	  (pow(np->vInfinity,2) + pow(np->cInfinity,2));
 	np->AccretionRate = 0.0;
 	
@@ -382,7 +382,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
     CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
     ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/data.LengthUnits*data.TimeUnits;
     // Convert sound speed to enzo internal units.
-    ThisParticle->BondiHoyleRadius = GravitationalConstant*(ThisParticle->ReturnMass()/POW(dx,3))/
+    ThisParticle->BondiHoyleRadius = GravitationalConstant*(ThisParticle->ReturnMass()*POW(dx,3))/
       (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
   }
 
