@@ -752,7 +752,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       GlobalSumOfWeights = SumOfWeights;
 #endif
       
-      AverageDensity = WeightedSum / SumOfWeights;
+      AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
 
       /* Now perform accretion algorithm by modifying the grids locally */
       if (Grids[grid]->GridData->
