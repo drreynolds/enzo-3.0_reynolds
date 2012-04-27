@@ -2463,7 +2463,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
 				       float AverageDensity, float SumOfWeights, float &AccretedMass, 
-				       float AccretedMomentum[], bool &SinkIsOnThisGrid, float vInfinity, 
+				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
 				   float cInfinity, FLOAT BondiHoyleRadius, float &AccretionRate);
 
   int AddMassAndMomentumToAccretingParticle(float GlobalSubtractedMass, float GlobalSubtractedMomentum[], 

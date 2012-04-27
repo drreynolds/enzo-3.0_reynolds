@@ -34,7 +34,7 @@ float bondi_alpha(float x);
 
 int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
 				       float AverageDensity, float SumOfWeights, float &AccretedMass, 
-				       float AccretedMomentum[], bool &SinkIsOnThisGrid, float vInfinity, 
+				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
 				       float cInfinity, FLOAT BondiHoyleRadius, float &AccretionRate) {
 
   /* Return if this doesn't involve us */
@@ -84,7 +84,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   if (LeftCorner[0] > ParticlePosition[0] || RightCorner[0] < ParticlePosition[0] ||
       LeftCorner[1] > ParticlePosition[1] || RightCorner[1] < ParticlePosition[1] ||
       LeftCorner[2] > ParticlePosition[2] || RightCorner[2] < ParticlePosition[2])
-    SinkIsOnThisGrid = true;
+    *SinkIsOnThisGrid = true;
 
   // Eqn 13
   if (BondiHoyleRadius < CellSize/4.0)
