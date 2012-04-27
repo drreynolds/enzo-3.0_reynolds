@@ -47,7 +47,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10.;
 
-  float RhoInfinity, *vsink, vgas[3], mcell, etot, eint, Weight, maccreted, 
+  float RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, Weight, maccreted, 
     rhocell, pcell[3], paccrete[3], eaccrete, mnew, rhonew, reff[3], rsqr, 
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew, 
     pnew[3], kenew;
@@ -101,7 +101,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
 		   sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
 
-  vsink = ThisParticle->ReturnVelocity();
+  vsink[0] = ThisParticle->ReturnVelocity()[0];
+  vsink[1] = ThisParticle->ReturnVelocity()[1];
+  vsink[2] = ThisParticle->ReturnVelocity()[2];
 
   for (i = 0; i < GridDimension[0]; i++) {
     for (j = 0; j < GridDimension[1]; j++) {
