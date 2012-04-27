@@ -380,9 +380,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 				   pow((vel[1] - vely[index]),2) +
 				   pow((vel[2] - velz[index]),2));
     CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
-    ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh));
+    ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/data.LengthUnits*data.TimeUnits;
     // Convert sound speed to enzo internal units.
-    ThisParticle->cInfinity = ThisParticle->cInfinity/data.LengthUnits*data.TimeUnits
     ThisParticle->BondiHoyleRadius = GravConst*(ThisParticle->ReturnMass()/POW(dx,3))/
       (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
   }
