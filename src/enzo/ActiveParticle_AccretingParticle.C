@@ -125,14 +125,19 @@ class ActiveParticleType_AccretingParticle : public ActiveParticleType
 {
 public:
   // Constructors
-  ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {};
+  ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {
+    AccretionRate = 0;
+    vInfinity = 0;
+    cInfinity = 0;
+    BondiHoyleRadius = 0;
+  };
   ActiveParticleType_AccretingParticle(AccretingParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(dynamic_cast<ParticleBufferHandler*>(buffer), index) {
+    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {
     AccretionRate = buffer->AccretionRate[index];
     vInfinity = buffer->vInfinity[index];
     cInfinity = buffer->cInfinity[index];
     BondiHoyleRadius = buffer->BondiHoyleRadius[index];
-};
+  };
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
