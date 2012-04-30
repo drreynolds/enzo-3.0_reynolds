@@ -766,29 +766,30 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 					    &SumOfWeights, &NumberOfCells, BondiHoyleRadius) == FAIL) {
 	return FAIL;
       }
-      /* sum up rhobar on root and broadcast result to all processors */
-#ifdef USE_MPI
-      MPI_Allreduce(&WeightedSum,  &GlobalWeightedSum,  1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-      MPI_Allreduce(&SumOfWeights, &GlobalSumOfWeights, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-#else
-      GlobalWeightedSum = WeightedSum;
-      GlobalSumOfWeights = SumOfWeights;
-#endif
-      
-      AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-
-      /* Now perform accretion algorithm by modifying the grids locally */
-      if (Grids[grid]->GridData->
-	  AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
-				       SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
-				       BondiHoyleRadius, &AccretionRate) == FAIL) {
-	return FAIL;
-      }
-      if (SinkIsOnThisGrid) {
-	sinkGrid = Grids[grid];
-	SinkIsOnThisGrid = false;
-      }
     }
+    /* sum up rhobar on root and broadcast result to all processors */
+#ifdef USE_MPI
+    MPI_Allreduce(&WeightedSum,  &GlobalWeightedSum,  1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&SumOfWeights, &GlobalSumOfWeights, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+#else
+    GlobalWeightedSum = WeightedSum;
+    GlobalSumOfWeights = SumOfWeights;
+#endif
+    
+    AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
+
+    /* Now perform accretion algorithm by modifying the grids locally */
+    if (Grids[grid]->GridData->
+	AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
+				     SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
+				     BondiHoyleRadius, &AccretionRate) == FAIL) {
+      return FAIL;
+    }
+    if (SinkIsOnThisGrid) {
+      sinkGrid = Grids[grid];
+      SinkIsOnThisGrid = false;
+    }
+    
 #ifdef USE_MPI
     MPI_Allreduce(&SubtractedMass, &GlobalSubtractedMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(&SubtractedMomentum, &GlobalSubtractedMomentum, 3, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
@@ -803,7 +804,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 								  static_cast<ActiveParticleType*>(temp),
 								  LevelArray) == FAIL)
       return FAIL;
-    
+  
   }
   return SUCCESS;
 }
