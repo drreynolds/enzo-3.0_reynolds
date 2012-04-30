@@ -50,6 +50,7 @@ ActiveParticleType::ActiveParticleType(void)
     pos[dim] = vel[dim] = 0.0;
   Mass = BirthTime = DynamicalTime = 0.0;
   level = GridID = type = 0;
+  dest_processor = -1;
   Active = false;
 
   /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
@@ -65,6 +66,7 @@ ActiveParticleType::ActiveParticleType(ActiveParticleType*& part)
     pos[dim] = vel[dim] = 0.0;
   Mass = BirthTime = DynamicalTime = 0.0;
   level = GridID = type = 0;
+  dest_processor = -1;
   Active = false;
 
   /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
@@ -82,6 +84,7 @@ ActiveParticleType::ActiveParticleType(grid *_grid, ActiveParticleFormationData 
   type = 0;
   level = data.level;
   GridID = data.GridID;
+  dest_processor = -1;
   Active = false;
 
   /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
@@ -109,6 +112,9 @@ ActiveParticleType::ActiveParticleType(grid *_grid, int _id, int _level)
   Identifier = _grid->ParticleNumber[_id];
   Mass = (double)(_grid->ParticleMass[_id]);
 
+  dest_processor = -1;
+
+
   // No more attributes.  Everything stored in active particles.
 //  BirthTime = _grid->ParticleAttribute[0][_id];
 //  DynamicalTime = _grid->ParticleAttribute[1][_id];
@@ -131,6 +137,7 @@ ActiveParticleType::ActiveParticleType(ParticleBufferHandler *buffer, int index)
   level = buffer->level[index];
   GridID = buffer->GridID[index];
   type = buffer->type[index];
+  dest_processor = buffer->proc[index];
 }
 
 /* No need to delete the accretion arrays because the pointers are

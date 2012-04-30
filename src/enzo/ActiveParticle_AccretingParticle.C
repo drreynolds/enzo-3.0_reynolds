@@ -126,6 +126,7 @@ class ActiveParticleType_AccretingParticle : public ActiveParticleType
 public:
   // Constructors
   ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {
+    
     AccretionRate = 0;
     vInfinity = 0;
     cInfinity = 0;
