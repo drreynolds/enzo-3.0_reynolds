@@ -803,11 +803,12 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     temp->AccretionRate = AccretionRate;
     
     /* Transfer the mass and momentum to the particle */
-    if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
-								  static_cast<ActiveParticleType*>(temp),
-								  LevelArray) == FAIL)
-      return FAIL;
-  
+    if (SinkIsOnThisProc)
+      if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
+								    static_cast<ActiveParticleType*>(temp),
+								    LevelArray) == FAIL)
+	return FAIL;
+    
   }
   return SUCCESS;
 }
