@@ -41,8 +41,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
   
-  FLOAT *ParticlePosition, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION], 
-    CellSize, KernelRadius, radius2;
+  FLOAT *ParticlePosition,CellSize, KernelRadius, radius2;
   int i, j, k, dim, index, size=1;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10.;
@@ -78,8 +77,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
   for (dim = 0; dim < GridRank; dim++) {
     size *= GridDimension[dim];
-    LeftCorner[dim] = CellLeftEdge[dim][0];
-    RightCorner[dim] = LeftCorner[dim] + CellSize*(GridDimension[dim]);
     CellVolume*=CellWidth[dim][0];
   }
 
@@ -87,16 +84,16 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
-  if (LeftCorner[0] > ParticlePosition[0]+AccretionRadius || RightCorner[0] < ParticlePosition[0]-AccretionRadius ||
-      LeftCorner[1] > ParticlePosition[1]+AccretionRadius || RightCorner[1] < ParticlePosition[1]-AccretionRadius ||
-      LeftCorner[2] > ParticlePosition[2]+AccretionRadius || RightCorner[2] < ParticlePosition[2]-AccretionRadius)
+  if (GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius || GridRightEdge[0] < ParticlePosition[0]-AccretionRadius ||
+      GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius || GridRightEdge[1] < ParticlePosition[1]-AccretionRadius ||
+      GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius || GridRightEdge[2] < ParticlePosition[2]-AccretionRadius)
     return SUCCESS;
 
 
   /* Check whether the sink lives on this grid */
-  if (LeftCorner[0] < ParticlePosition[0] || RightCorner[0] > ParticlePosition[0] ||
-      LeftCorner[1] < ParticlePosition[1] || RightCorner[1] > ParticlePosition[1] ||
-      LeftCorner[2] < ParticlePosition[2] || RightCorner[2] > ParticlePosition[2])
+  if (GridLeftEdge[0] < ParticlePosition[0] && GridRightEdge[0] > ParticlePosition[0] &&
+      GridLeftEdge[1] < ParticlePosition[1] && GridRightEdge[1] > ParticlePosition[1] &&
+      GridLeftEdge[2] < ParticlePosition[2] && GridRightEdge[2] > ParticlePosition[2])
     *SinkIsOnThisGrid = true;
 
   // Eqn 13
