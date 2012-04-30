@@ -94,9 +94,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
 
   /* Check whether the sink lives on this grid */
-  if (LeftCorner[0] > ParticlePosition[0] || RightCorner[0] < ParticlePosition[0] ||
-      LeftCorner[1] > ParticlePosition[1] || RightCorner[1] < ParticlePosition[1] ||
-      LeftCorner[2] > ParticlePosition[2] || RightCorner[2] < ParticlePosition[2])
+  if (LeftCorner[0] < ParticlePosition[0] || RightCorner[0] > ParticlePosition[0] ||
+      LeftCorner[1] < ParticlePosition[1] || RightCorner[1] > ParticlePosition[1] ||
+      LeftCorner[2] < ParticlePosition[2] || RightCorner[2] > ParticlePosition[2])
     *SinkIsOnThisGrid = true;
 
   // Eqn 13
