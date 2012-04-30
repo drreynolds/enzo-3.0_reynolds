@@ -741,8 +741,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 
   bool SinkIsOnThisGrid = false;
 
-  float WeightedSum = 0, SumOfWeights = 0, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass = 0, 
-    GlobalSubtractedMass = 0, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
+  float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
+    GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
     AccretionRate;
   int NumberOfCells = 0;
 
@@ -754,6 +754,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
 
   for (i = 0; i<nParticles; i++) {
+    WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
+      GlobalSubctractedMass = 0;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
     vInfinity = temp->vInfinity;
     cInfinity = temp->cInfinity;

@@ -35,7 +35,7 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
 
-  FLOAT *ParticlePosition, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION], 
+  FLOAT *ParticlePosition;
     radius2, CellSize, KernelRadius;
   int i, j, k, dim, size=1, index;
   
@@ -50,19 +50,16 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
 
   CellSize = CellWidth[0][0];
 
-  for (dim = 0; dim < GridRank; dim++) {
+  for (dim = 0; dim < GridRank; dim++)
     size *= GridDimension[dim];
-    LeftCorner[dim] = CellLeftEdge[dim][0];
-    RightCorner[dim] = LeftCorner[dim] + CellSize*(GridDimension[dim]);
-  }
 
   ParticlePosition = ThisParticle->ReturnPosition();
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
-  if (LeftCorner[0] > ParticlePosition[0]+AccretionRadius || RightCorner[0] < ParticlePosition[0]-AccretionRadius ||
-      LeftCorner[1] > ParticlePosition[1]+AccretionRadius || RightCorner[1] < ParticlePosition[1]-AccretionRadius ||
-      LeftCorner[2] > ParticlePosition[2]+AccretionRadius || RightCorner[2] < ParticlePosition[2]-AccretionRadius)
+  if (GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius || GridRightEdge[0] < ParticlePosition[0]-AccretionRadius ||
+      GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius || GridRightEdge[1] < ParticlePosition[1]-AccretionRadius ||
+      GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius || GridRightEdge[2] < ParticlePosition[2]-AccretionRadius)
     return SUCCESS;
 
   if (BondiHoyleRadius < CellSize/4.0)
