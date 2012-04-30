@@ -240,9 +240,11 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
   
 
-  int GridDimension[3] = {thisGrid->GridDimension[0],
-			  thisGrid->GridDimension[1],
-			  thisGrid->GridDimension[2]};
+  int GridDimension[MAX_DIMENSION] = {thisGrid->GridDimension[0],
+				      thisGrid->GridDimension[1],
+				      thisGrid->GridDimension[2]};
+
+  float *tvel;
 
   int i,j,k,index,method,MassRefinementMethod;
 
@@ -315,7 +317,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
 	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
-	float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
+	tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
 	  
 	np->vel[0] = tvel[0];
 	np->vel[1] = tvel[1];
@@ -336,6 +338,9 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	// Remove mass from grid
 
 	density[index] = DensityThreshold;
+
+	// Clean up
+	delete [] tvel;
 
       } // i
     } // j
