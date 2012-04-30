@@ -84,17 +84,18 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
-  if (GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius || GridRightEdge[0] < ParticlePosition[0]-AccretionRadius ||
-      GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius || GridRightEdge[1] < ParticlePosition[1]-AccretionRadius ||
-      GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius || GridRightEdge[2] < ParticlePosition[2]-AccretionRadius)
+  if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
+      (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
+      (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
     return SUCCESS;
 
 
   /* Check whether the sink lives on this grid */
-  if (GridLeftEdge[0] < ParticlePosition[0] && GridRightEdge[0] > ParticlePosition[0] &&
-      GridLeftEdge[1] < ParticlePosition[1] && GridRightEdge[1] > ParticlePosition[1] &&
-      GridLeftEdge[2] < ParticlePosition[2] && GridRightEdge[2] > ParticlePosition[2])
+  if ((GridLeftEdge[0] < ParticlePosition[0]) && (GridRightEdge[0] > ParticlePosition[0]) &&
+      (GridLeftEdge[1] < ParticlePosition[1]) && (GridRightEdge[1] > ParticlePosition[1]) &&
+      (GridLeftEdge[2] < ParticlePosition[2]) && (GridRightEdge[2] > ParticlePosition[2])) {
     *SinkIsOnThisGrid = true;
+  }
 
   // Eqn 13
   if (BondiHoyleRadius < CellSize/4.0)
