@@ -191,8 +191,16 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    // Find the radius vector
 	    reff[0] = (CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0];
 	    reff[1] = (CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1];
-	    reff[1] = (CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2];
+	    reff[2] = (CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2];
 	    rsqr = reff[0]*reff[0]+reff[1]*reff[1]+reff[2]*reff[2];
+	    
+	    // Prevent a floating point error if close to central cell
+	    if (rsqr <= POW(1e-7*CellWidth[0][0],2)) {
+	      reff[0] = 0.0;
+	      reff[1] = 0.0;
+	      reff[2] = 0.0;
+	      rsqr = 1.0;
+	    }
 	    
 	    // Compute the parallel component of the momentum density
 	    rdotp = reff[0]*pcell[0]+reff[1]*pcell[1]+reff[2]*pcell[2];
