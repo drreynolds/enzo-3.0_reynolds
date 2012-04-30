@@ -755,7 +755,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 
   for (i = 0; i<nParticles; i++) {
     WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
-      GlobalSubctractedMass = 0;
+      GlobalSubtractedMass = 0;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
     vInfinity = temp->vInfinity;
     cInfinity = temp->cInfinity;

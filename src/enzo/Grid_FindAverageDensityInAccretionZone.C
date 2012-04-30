@@ -35,8 +35,7 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
 
-  FLOAT *ParticlePosition;
-    radius2, CellSize, KernelRadius;
+  FLOAT *ParticlePosition, radius2, CellSize, KernelRadius;
   int i, j, k, dim, size=1, index;
   
   /* Get indices in BaryonField for density, internal energy, thermal energy, velocity */
