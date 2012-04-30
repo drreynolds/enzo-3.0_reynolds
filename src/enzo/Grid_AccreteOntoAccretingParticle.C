@@ -246,7 +246,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    // Compute the amount of energy (not energy density) to be accreted
 	    eaccrete = etot - (eintnew + kenew);
 	    
-	    *AccretedMass += maccreted;
+	    *AccretedMass += maccreted/CellVolume;
 	    AccretedMomentum[0] += paccrete[0];
 	    AccretedMomentum[1] += paccrete[1];
 	    AccretedMomentum[2] += paccrete[2];
