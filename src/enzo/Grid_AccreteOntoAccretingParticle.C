@@ -33,9 +33,9 @@
 float bondi_alpha(float x);
 
 int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
-				       float AverageDensity, float SumOfWeights, float &AccretedMass, 
+				       float AverageDensity, float SumOfWeights, float *AccretedMass, 
 				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
-				       float cInfinity, FLOAT BondiHoyleRadius, float &AccretionRate) {
+				       float cInfinity, FLOAT BondiHoyleRadius, float *AccretionRate) {
 
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
@@ -98,7 +98,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   RhoInfinity = AverageDensity/bondi_alpha(1.2*CellSize/BondiHoyleRadius);  
 
   // Eqn 11
-  AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
+  *AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
 		   sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
 
   vsink[0] = ThisParticle->ReturnVelocity()[0];
@@ -127,7 +127,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
 	  // Calculate mass we need to subtract from this cell
 	  Weight = exp(-radius2/(KernelRadius*KernelRadius))/SumOfWeights;
-	  maccreted =  this->dtFixed * AccretionRate * Weight;
+	  maccreted =  this->dtFixed * (*AccretionRate) * Weight;
 	  if (maccreted > 0.25*mcell) 
 	    maccreted = 0.25*mcell;
 	    
@@ -225,7 +225,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    // Compute the amount of energy (not energy density) to be accreted
 	    eaccrete = etot - (eintnew + kenew);
 	    
-	    AccretedMass += maccreted;
+	    *AccretedMass += maccreted;
 	    AccretedMomentum[0] += paccrete[0];
 	    AccretedMomentum[1] += paccrete[1];
 	    AccretedMomentum[2] += paccrete[2];
@@ -277,7 +277,7 @@ float bondi_alpha(float x) {
 #define XMAX 2.0
 #define NTABLE 51
 
-  float lambda_c, lambda_x, xtable, xtablep1, alpha_exp;
+  float lambda_c, xtable, xtablep1, alpha_exp;
   int idx;
 
   /* This is a precomputed table of alpha values.  These correspond to x values
@@ -300,7 +300,7 @@ float bondi_alpha(float x) {
 
   // deal with the off-the-table cases
   if (x < XMIN) 
-    return lambda_x / sqrt(2.*x*x);
+    return lambda_c / sqrt(2.*x*x);
   else if (x >= XMAX)
     return exp(1./x);
   else {
