@@ -738,21 +738,21 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   int i, grid, NumberOfGrids;
   HierarchyEntry **Grids;
   HierarchyEntry *sinkGrid;
-
+  
   bool SinkIsOnThisGrid = false;
-
+  
   float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
     GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
     AccretionRate;
   int NumberOfCells = 0;
-
+  
   for (i = 0; i < 3; i++) {
     SubtractedMomentum[i] = 0;
     GlobalSubtractedMomentum[i] = 0;
   }
-
+  
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
-
+  
   for (i = 0; i<nParticles; i++) {
     WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
       GlobalSubtractedMass = 0;
@@ -763,9 +763,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     for (grid = 0; grid < NumberOfGrids; grid++) {
       if (Grids[grid]->GridData->
 	  FindAverageDensityInAccretionZone(ParticleList[i],AccretionRadius, &WeightedSum, 
-					    &SumOfWeights, &NumberOfCells, BondiHoyleRadius) == FAIL) {
+					    &SumOfWeights, &NumberOfCells, BondiHoyleRadius) == FAIL)
 	return FAIL;
-      }
     }
     /* sum up rhobar on root and broadcast result to all processors */
 #ifdef USE_MPI
@@ -777,19 +776,21 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 #endif
     
     AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-
-    /* Now perform accretion algorithm by modifying the grids locally */
-    if (Grids[grid]->GridData->
-	AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
-				     SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
-				     BondiHoyleRadius, &AccretionRate) == FAIL) {
-      return FAIL;
-    }
-    if (SinkIsOnThisGrid) {
-      sinkGrid = Grids[grid];
-      SinkIsOnThisGrid = false;
-    }
     
+    /* Now perform accretion algorithm by modifying the grids locally */
+    for (grid = 0; grid < NumberOfGrids; grid++) {
+      if (Grids[grid]->GridData->
+	  AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
+				       SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
+				       BondiHoyleRadius, &AccretionRate) == FAIL) {
+	return FAIL;
+      }
+      if (SinkIsOnThisGrid) {
+	sinkGrid = Grids[grid];
+	SinkIsOnThisGrid = false;
+      }
+    }
+
 #ifdef USE_MPI
     MPI_Allreduce(&SubtractedMass, &GlobalSubtractedMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(&SubtractedMomentum, &GlobalSubtractedMomentum, 3, FloatDataType, MPI_SUM, MPI_COMM_WORLD);

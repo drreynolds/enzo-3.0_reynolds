@@ -52,6 +52,19 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew, 
     pnew[3], kenew;
 
+  for (i = 0; i < 3; i++) {
+    vsink[i] = 0;
+    vgas[i] = 0;
+    pcell[i] = 0;
+    paccrete[i] = 0;
+    reff[i] = 0;
+    prad[i] = 0;
+    ptrans[i] = 0;
+    pradnew[i] = 0;
+    ptransnew[i] = 0;
+    pnew[i] = 0;
+  }
+
   /* Get indices in BaryonField for density, internal energy, thermal energy, velocity */
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
   if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
@@ -105,10 +118,10 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   vsink[1] = ThisParticle->ReturnVelocity()[1];
   vsink[2] = ThisParticle->ReturnVelocity()[2];
 
-  for (i = 0; i < GridDimension[0]; i++) {
+  for (k = 0; k < GridDimension[2]; k++) {
     for (j = 0; j < GridDimension[1]; j++) {
-      index = (i*GridDimension[1] + j)*GridDimension[0];
-      for (k = 0; k < GridDimension[2]; index++, k++) {
+      index = (k*GridDimension[1] + j)*GridDimension[0];
+      for (i = 0; i < GridDimension[0]; index++, i++) {
 	radius2 = POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
