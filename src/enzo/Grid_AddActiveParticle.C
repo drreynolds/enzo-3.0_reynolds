@@ -67,7 +67,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
      and get rid of the old list */
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
-  ActiveParticles = new ActiveParticleType*[NumberOfParticles];
+  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1];
 
   for (i = 0; i < NumberOfActiveParticles; i++) 
     ActiveParticles[i] = OldActiveParticles[i];

@@ -33,6 +33,10 @@
 int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float AccretedMomentum[], 
 						ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]) {
 
+  // Return if this doesn't concern us
+  if (ProcessorNumber != MyProcessorNumber)
+    return SUCCESS;
+
   int i;
   bool found = false;
   float CellVolume = 1.0;
