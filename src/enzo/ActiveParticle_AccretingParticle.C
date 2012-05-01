@@ -312,6 +312,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	np->Mass = ExtraDensity;   // Particle 'masses' are actually densities
 	np->type = np->GetEnabledParticleID();
 	np->BirthTime = thisGrid->ReturnTime();
+
+	np->level = data.level;
 	
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
@@ -400,6 +402,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
     // Convert sound speed to enzo internal units.
     ThisParticle->BondiHoyleRadius = GravitationalConstant*(ThisParticle->ReturnMass()*POW(dx,3))/
       (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
+    ThisParticle->level = data.level;
   }
 
   return SUCCESS;
@@ -788,8 +791,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       }
       if (SinkIsOnThisGrid) {
 	sinkGrid = Grids[grid];
-	SinkIsOnThisProc = true;
 	SinkIsOnThisGrid = false;
+	SinkIsOnThisProc = true;
       }
     }
 

@@ -49,20 +49,6 @@ int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[])
     }
   } // ENDFOR grids
 
-  /* Now clean up deleted particle on the local processor and adjust
-     NumberOfParticles on others */
-
-#ifdef USE_MPI
-  CommunicationAllReduceValues(&changedGrid, 1, MPI_MAX);
-#endif
-
-  if (changedGrid == INT_UNDEFINED) {
-    if (debug)
-      this->PrintInfo();
-    ENZO_VFAIL("DisableParticle: WARNING -- "
-	       "particle %"ISYM" not found...\n", this->Identifier)
-  }
-
   Grids[changedGrid]->GridData->NumberOfActiveParticles--;
 
   delete [] Grids;

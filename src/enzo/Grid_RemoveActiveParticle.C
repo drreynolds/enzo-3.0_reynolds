@@ -56,9 +56,11 @@ int grid::RemoveActiveParticle(PINT ID)
 
   for (j=0; j < i; j++)
     temp[j] = ActiveParticles[j];
-  
+
   for (j=i+1; j < NumberOfActiveParticles; j++)
     temp[j-1] = ActiveParticles[j];
+
+  delete ActiveParticles[i];
 
   delete [] ActiveParticles;
 
