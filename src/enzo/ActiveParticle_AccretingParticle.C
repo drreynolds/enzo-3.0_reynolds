@@ -743,8 +743,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   HierarchyEntry *sinkGrid;
   
   bool SinkIsOnThisGrid = false;
-  bool SinkIsOnThisProc = false;
-
+  
   float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
     GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
     AccretionRate;
@@ -792,7 +791,6 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       if (SinkIsOnThisGrid) {
 	sinkGrid = Grids[grid];
 	SinkIsOnThisGrid = false;
-	SinkIsOnThisProc = true;
       }
     }
 
@@ -806,11 +804,10 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     temp->AccretionRate = AccretionRate;
     
     /* Transfer the mass and momentum to the particle */
-    if (SinkIsOnThisProc)
-      if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
-								    static_cast<ActiveParticleType*>(temp),
-								    LevelArray) == FAIL)
-	return FAIL;
+    if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
+								  static_cast<ActiveParticleType*>(temp),
+								  LevelArray) == FAIL)
+      return FAIL;
     
   }
   return SUCCESS;
