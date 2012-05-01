@@ -40,15 +40,22 @@ int grid::RemoveActiveParticle(PINT ID)
   if (MyProcessorNumber != ProcessorNumber)
     return found;
 
-  ActiveParticleType **temp = new ActiveParticleType*[NumberOfActiveParticles-1];
+  if (NumberOfActiveParticles == 0)
+    return found;
 
   for (i=0; i < NumberOfActiveParticles; i++)
     if (this->ActiveParticles[i]->ReturnID() == ID) {
       found = TRUE;
       break;
-    } else {
-      temp[i] = ActiveParticles[i];
     }
+  
+  if (found == FALSE)
+    return found;
+
+  ActiveParticleType** temp = new ActiveParticleType*[NumberOfActiveParticles-1];
+
+  for (j=0; j < i; j++)
+    temp[j] = ActiveParticles[j];
   
   for (j=i+1; j < NumberOfActiveParticles; j++)
     temp[j-1] = ActiveParticles[j];
