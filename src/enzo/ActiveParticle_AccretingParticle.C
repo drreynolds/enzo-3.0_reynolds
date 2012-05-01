@@ -740,7 +740,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   int i, grid, NumberOfGrids;
   HierarchyEntry **Grids;
-  HierarchyEntry *sinkGrid;
+  HierarchyEntry *sinkGrid = NULL;
   
   bool SinkIsOnThisGrid = false;
   

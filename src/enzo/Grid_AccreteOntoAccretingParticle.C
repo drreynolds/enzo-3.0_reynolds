@@ -37,11 +37,20 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
 				       float cInfinity, FLOAT BondiHoyleRadius, float *AccretionRate) {
 
+  FLOAT *ParticlePosition = ThisParticle->ReturnPosition();
+
+  /* Check whether the sink lives on this grid */
+  if ((GridLeftEdge[0] < ParticlePosition[0]) && (GridRightEdge[0] > ParticlePosition[0]) &&
+      (GridLeftEdge[1] < ParticlePosition[1]) && (GridRightEdge[1] > ParticlePosition[1]) &&
+      (GridLeftEdge[2] < ParticlePosition[2]) && (GridRightEdge[2] > ParticlePosition[2])) {
+    *SinkIsOnThisGrid = true;
+  }
+
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
   
-  FLOAT *ParticlePosition,CellSize, KernelRadius, radius2;
+  FLOAT CellSize, KernelRadius, radius2;
   int i, j, k, dim, index, size=1;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10.;
@@ -79,8 +88,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     size *= GridDimension[dim];
     CellVolume*=CellWidth[dim][0];
   }
-
-  ParticlePosition = ThisParticle->ReturnPosition();
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
@@ -88,14 +95,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
       (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
       (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
     return SUCCESS;
-
-
-  /* Check whether the sink lives on this grid */
-  if ((GridLeftEdge[0] < ParticlePosition[0]) && (GridRightEdge[0] > ParticlePosition[0]) &&
-      (GridLeftEdge[1] < ParticlePosition[1]) && (GridRightEdge[1] > ParticlePosition[1]) &&
-      (GridLeftEdge[2] < ParticlePosition[2]) && (GridRightEdge[2] > ParticlePosition[2])) {
-    *SinkIsOnThisGrid = true;
-  }
 
   // Eqn 13
   if (BondiHoyleRadius < CellSize/4.0)

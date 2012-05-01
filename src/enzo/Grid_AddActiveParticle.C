@@ -58,17 +58,17 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
     return SUCCESS;
   }
 
+  // If this particle is already on the list, we do nothing
+  for (i = 0; i < NumberOfActiveParticles; i++) 
+    if (ThisParticle->ReturnID() == ActiveParticles[i]->ReturnID())
+      return SUCCESS;
+  
   /* Copy the old and new active particles to a new list 
      and get rid of the old list */
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
   ActiveParticles = new ActiveParticleType*[NumberOfParticles];
 
-  // If this particle is already on the list, we do nothing
-  for (i = 0; i < NumberOfActiveParticles; i++) 
-    if (ThisParticle->ReturnID() == ActiveParticles[i]->ReturnID())
-      return SUCCESS;
-  
   for (i = 0; i < NumberOfActiveParticles; i++) 
     ActiveParticles[i] = OldActiveParticles[i];
 
