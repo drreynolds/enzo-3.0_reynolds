@@ -641,7 +641,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
 
   *ngroups = FofList((*nParticles), ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
   
-  MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups];
+  MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups]();
 
   /* Merge the mergeable groups */
 
@@ -675,8 +675,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       /* Generate a list of all sink particles in the simulation box */
       int i,grid,nParticles,NumberOfMergedParticles;
-      HierarchyEntry **Grids;
-      ActiveParticleType** ParticleList;
+      HierarchyEntry **Grids = NULL;
+      ActiveParticleType** ParticleList = NULL;
 
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
@@ -696,7 +696,6 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       ActiveParticleType_AccretingParticle **MergedParticles = NULL;
       
       /* Generate new merged list of sink particles */
-      
       
       MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
 						&NumberOfMergedParticles,LevelArray);
@@ -739,7 +738,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
      if the grid overlaps with the accretion zone                   */
   
   int i, grid, NumberOfGrids;
-  HierarchyEntry **Grids;
+  HierarchyEntry **Grids = NULL;
   HierarchyEntry *sinkGrid = NULL;
   
   bool SinkIsOnThisGrid = false;
@@ -818,11 +817,11 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
 {
   /* Generate a list of all sink particles in the simulation box */
   int i,dim,nParticles;
-  FLOAT *pos,dx,AccretionRadius;
-  ActiveParticleType_AccretingParticle **AccretingParticleList ;
+  FLOAT *pos = NULL,dx,AccretionRadius;
+  ActiveParticleType **AccretingParticleList = NULL ;
   LevelHierarchyEntry *Temp;
   
-  //ActiveParticleFindAll(LevelArray, AccretingParticleList, nParticles, AccretingParticleID);
+  AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
   
   /* Calculate CellWidth on maximum refinement level */
   

@@ -389,7 +389,6 @@ int RebuildHierarchy(TopGridData *MetaData,
 	       tries to do nonlocal refinement on large numbers of particles
        */
 
-
       tt0 = ReturnWallTime();
       DepositActiveParticleMassFlaggingField(LevelArray,i,MetaData->TopGridDims);
       tt1 = ReturnWallTime();

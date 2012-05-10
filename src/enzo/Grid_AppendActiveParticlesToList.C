@@ -33,6 +33,11 @@
 #include "ActiveParticle.h"
 
 int grid::AppendActiveParticlesToList(ActiveParticleType** APArray, int offset, int search_id) {
+  
+  // Return if this does not concern us
+  if (MyProcessorNumber == ProcessorNumber)
+    return SUCCESS;
+
   int PNum, count=0;
 
     for (PNum = 0; PNum < NumberOfActiveParticles; PNum++) 
