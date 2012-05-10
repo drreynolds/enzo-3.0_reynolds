@@ -34,7 +34,7 @@
 int grid::ReturnNumberOfActiveParticlesOfThisType(int ActiveParticleIDToFind) {
 
   // Return if this does not concern us
-  if (MyProcessorNumber == ProcessorNumber)
+  if (MyProcessorNumber != ProcessorNumber)
     return 0;
   
   int NumberOfActiveParticlesOfThisType = 0;
