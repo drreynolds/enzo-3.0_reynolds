@@ -625,6 +625,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   int i,j;
   int dim;
   int GroupNumberAssignment[*nParticles];
+  FLOAT* tempPos = NULL;
   int *groupsize = NULL;
   int **grouplist = NULL;
   ActiveParticleType_AccretingParticle **MergedParticles = NULL;
@@ -633,8 +634,9 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   FLOAT ParticleCoordinates[3*(*nParticles)];
   
   for (i=0; i<(*nParticles); i++) {
-    for (dim=0; dim<3; dim++) 
-      ParticleCoordinates[3*i+dim] = ParticleList[i]->ReturnPosition()[i];
+    tempPos = ParticleList[i]->ReturnPosition();
+    for (dim=0; dim<3; dim++)
+      ParticleCoordinates[3*i+dim] = tempPos[dim];
   }
   
   /* Find mergeable groups using an FOF search */
