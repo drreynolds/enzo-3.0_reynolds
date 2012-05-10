@@ -650,7 +650,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   for (i=0; i<*ngroups; i++) {
     MergedParticles[i] = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][0]]);
     if (groupsize[i] != 1) {
-      for (j=1 ; j++ ; j<groupsize[i]) {
+      for (j=1; j<groupsize[i]; j++) {
 	MergedParticles[i]->Merge(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][j]]));
 	ParticleList[grouplist[i][j]]->DisableParticle(LevelArray);
       }
