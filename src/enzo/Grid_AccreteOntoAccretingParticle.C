@@ -123,49 +123,53 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
-	  // Some useful shorthands
+	  // useful shorthand
 	  vgas[0] = BaryonField[Vel1Num][index];
 	  vgas[1] = BaryonField[Vel2Num][index];
 	  vgas[2] = BaryonField[Vel3Num][index];
 	  mcell = BaryonField[DensNum][index]*CellVolume;
+	  rhocell = BaryonField[DensNum][index];
+	  // These are momentum densities in the frame of the sink.
+	  pcell[0] = rhocell*vgas[0] - vsink[0]*rhocell;
+	  pcell[1] = rhocell*vgas[1] - vsink[1]*rhocell;
+	  pcell[2] = rhocell*vgas[2] - vsink[2]*rhocell;
+	  	  
+	  // TE and GE are stored per unit mass
+	  if (HydroMethod == 0) { // PPM
+	    etot = rhocell*BaryonField[TENum][index];
+	    if (DualEnergyFormalism)
+	      eint = rhocell*BaryonField[GENum][index];
+	    else
+	      eint = etot - 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+	  } else {  // Zeus hydro (total energy is really internal energy)
+	    eint = rhocell*BaryonField[TENum];
+	    etot = eint + 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+	  }
 	  
-	  etot = BaryonField[TENum][index];
-	  if (DualEnergyFormalism)
-	    eint = BaryonField[GENum][index];
-	  else
-	    eint = etot - 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
-
 	  // Calculate mass we need to subtract from this cell
 	  Weight = exp(-radius2/(KernelRadius*KernelRadius))/SumOfWeights;
 	  maccreted =  this->dtFixed * (*AccretionRate) * Weight;
 	  if (maccreted > 0.25*mcell) 
 	    maccreted = 0.25*mcell;
-	    
+	  
 	  /* The true accretion rate is somewhat less than this due to
 	     angular momentum conservation.  Subdivide the cell into
 	     NDIV^2 subcells and estimate the reduction assuming
 	     ballistic orbits. See the discussion near Eqn 15. */
-
 	  
-
-	  // Some conveneint shorthand
-	    rhocell = BaryonField[DensNum][index];
-	    
-	    pcell[0] = rhocell*vgas[0] - vsink[0]*rhocell;
-	    pcell[1] = rhocell*vgas[1] - vsink[1]*rhocell;
-	    pcell[2] = rhocell*vgas[2] - vsink[2]*rhocell;
-
+	  /* Need to impliment this */
+	  
 	  /* Don't worry about conserving angular momentum if we're
 	     accreting no mass from the cell or if we are accreting
 	     all of the mass from it.  Note that paccrete and eaccrete
 	     are total energy and momentum, not energy and momentum
-	     densities. */
+	     densities or specific energy and momentum */
 	  
-	    if ((maccreted == 0) || (mcell-maccreted < 2.0*SmallRhoFac*SmallRho*CellVolume)) {
+	  if ((maccreted == 0) || (mcell-maccreted < 2.0*SmallRhoFac*SmallRho*CellVolume)) {
 	    paccrete[0] = pcell[0]*CellVolume*(maccreted/mcell);
 	    paccrete[1] = pcell[1]*CellVolume*(maccreted/mcell);
 	    paccrete[2] = pcell[2]*CellVolume*(maccreted/mcell);
-	  
+	    
 	    eaccrete = etot*CellVolume*(maccreted/mcell);
 	  } 
 	  
@@ -180,8 +184,10 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    // Keep cell mass well above density floor
 	    if ((mcell - maccreted)/CellVolume > SmallRhoFac*SmallRho)
 	      mnew = mcell - maccreted;
-	    else
+	    else {
 	      mnew = SmallRhoFac*SmallRho*CellVolume;
+	      maccreted = mcell - mnew;
+	    }
 
 	    rhonew = mnew/CellVolume;
 
@@ -225,12 +231,12 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    paccrete[1] = CellVolume*(pcell[1] - pradnew[1] - ptransnew[1]);
 	    paccrete[2] = CellVolume*(pcell[2] - pradnew[2] - ptransnew[2]);
 	    
-	    // Compute new total internal energy (not density)
+	    // Compute new total internal energy (total, not density, not specific)
 	    eintnew = eint * rhonew/rhocell * CellVolume;
 	    
-	    /* Compute the new kintetic energy.  Note that we do not use pcell
-	       here because we need to do this calculation in the grid frame,
-	       not the sink frame. */
+	    /* Compute the new momentum densities.  Note that we do
+	       not use pcell here because we need to do this
+	       calculation in the grid frame, not the sink frame. */
 
 	    pnew[0] = rhocell*vgas[0] - paccrete[0]/CellVolume;
 	    pnew[1] = rhocell*vgas[1] - paccrete[1]/CellVolume;
@@ -241,8 +247,10 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	      (2.0 * rhonew) * CellVolume;
 	  
 	    // Compute the amount of energy (not energy density) to be accreted
-	    eaccrete = etot - (eintnew + kenew);
+	    eaccrete = etot*CellVolume - (eintnew + kenew);
 	    
+	    // This is actually a density since particle masses are stored
+	    // in density units.
 	    *AccretedMass += maccreted/CellVolume;
 	    AccretedMomentum[0] += paccrete[0];
 	    AccretedMomentum[1] += paccrete[1];
@@ -251,9 +259,12 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    // Update the state variables
 	    BaryonField[DensNum][index] -= maccreted/CellVolume;
 	    
-	    BaryonField[TENum][index] -= eaccrete;
-	    if (DualEnergyFormalism)
-	      BaryonField[GENum][index] = eintnew;
+	    if (HydroMethod == 0) { // PPM
+	      BaryonField[TENum][index] -= eaccrete/mnew;
+	      if (DualEnergyFormalism)
+		BaryonField[GENum][index] = eintnew/mnew;
+	    } else // Zeus
+	      BaryonField[TENum] = eintnew/mnew;
 
 	    BaryonField[Vel1Num][index] -= paccrete[0]/mnew;
 	    BaryonField[Vel2Num][index] -= paccrete[1]/mnew;
@@ -267,15 +278,23 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	      BaryonField[Vel1Num][index] = vgas[2];
 	    }
 	    
-	    if (BaryonField[TENum][index] < SmallEFac*SmallEint) {
-	      BaryonField[TENum][index] = SmallEFac*SmallEint + 
-		0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] +
-		       BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
-		       BaryonField[Vel3Num][index]*BaryonField[Vel3Num][index]);
-	      if (DualEnergyFormalism)
-		BaryonField[GENum][index] = SmallEFac*SmallEint;
+	    if (HydroMethod == 0) { // PPM
+	      if (BaryonField[TENum][index] - 
+		  0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] + 
+			 BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
+			 BaryonField[Vel3Num][index]*BaryonField[Vel3Num][index]) 
+		  < SmallEFac*SmallEint) {
+		BaryonField[TENum][index] = SmallEFac*SmallEint + 
+		  0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] +
+			 BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
+			 BaryonField[Vel3Num][index]*BaryonField[Vel3Num][index]);
+		if (DualEnergyFormalism)
+		  BaryonField[GENum][index] = SmallEFac*SmallEint;
+	      }
+	      else  // Zeus
+		if (BaryonField[TENum][index] < SmallEFac*SmallEint)
+		  BaryonField[TENum][index] = SmallEFac*SmallEint;
 	    }
-	    
 	  }
 	}
       }
