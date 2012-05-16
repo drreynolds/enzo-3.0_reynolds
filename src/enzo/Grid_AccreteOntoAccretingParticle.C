@@ -142,7 +142,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    else
 	      eint = etot - 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
 	  } else {  // Zeus hydro (total energy is really internal energy)
-	    eint = rhocell*BaryonField[TENum];
+	    eint = rhocell*BaryonField[TENum][index];
 	    etot = eint + 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
 	  }
 	  
@@ -264,7 +264,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	      if (DualEnergyFormalism)
 		BaryonField[GENum][index] = eintnew/mnew;
 	    } else // Zeus
-	      BaryonField[TENum] = eintnew/mnew;
+	      BaryonField[TENum][index] = eintnew/mnew;
 
 	    BaryonField[Vel1Num][index] -= paccrete[0]/mnew;
 	    BaryonField[Vel2Num][index] -= paccrete[1]/mnew;
