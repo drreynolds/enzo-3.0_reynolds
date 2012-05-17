@@ -37,7 +37,16 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
 				       float cInfinity, FLOAT BondiHoyleRadius, float *AccretionRate) {
 
-  FLOAT *ParticlePosition = ThisParticle->ReturnPosition();
+  /* Return if this doesn't involve us */
+  if (MyProcessorNumber != ProcessorNumber) 
+    return SUCCESS;
+  
+  /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
+
+  if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
+      (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
+      (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
+    return SUCCESS;
 
   /* Check whether the sink lives on this grid */
   if ((GridLeftEdge[0] < ParticlePosition[0]) && (GridRightEdge[0] > ParticlePosition[0]) &&
@@ -46,11 +55,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     *SinkIsOnThisGrid = true;
   }
 
-  /* Return if this doesn't involve us */
-  if (MyProcessorNumber != ProcessorNumber) 
-    return SUCCESS;
-  
-  FLOAT CellSize, KernelRadius, radius2;
+  FLOAT CellSize, KernelRadius, radius2, *ParticlePosition = ThisParticle->ReturnPosition();
+
   int i, j, k, dim, index, size=1;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10.;
@@ -89,13 +95,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     CellVolume*=CellWidth[dim][0];
   }
   
-  /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
-
-  if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
-      (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
-      (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
-    return SUCCESS;
-
   // Eqn 13
   if (BondiHoyleRadius < CellSize/4.0)
     KernelRadius = CellSize/4.0;
