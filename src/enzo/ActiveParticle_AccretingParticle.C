@@ -480,18 +480,18 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   
   for (dim = 0; dim < GridRank; dim++) {
     WriteDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  AccretingParticleGroupID, HDF5_FILE_REAL, (VOIDP) Velocity[dim]);
+		  AccretingParticleGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
   }
   
-  WriteDataset(1,&TempInt,"mass",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) Mass);
-  WriteDataset(1,&TempInt,"creation_time",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) BirthTime);
-  WriteDataset(1,&TempInt,"dynamical_time",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) DynamicalTime);
-  WriteDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) Metallicity);
+  WriteDataset(1,&TempInt,"mass",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"creation_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BirthTime);
+  WriteDataset(1,&TempInt,"dynamical_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
+  WriteDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
   WriteDataset(1,&TempInt,"identifier",AccretingParticleGroupID,HDF5_PINT,(VOIDP) ID);
-  WriteDataset(1,&TempInt,"accretion_rate",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) AccretionRate);
-  WriteDataset(1,&TempInt,"c_infinity",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) cInfinity);
-  WriteDataset(1,&TempInt,"v_infinity",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) vInfinity);
-  WriteDataset(1,&TempInt,"bondi_hoyle_radius",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) BondiHoyleRadius);
+  WriteDataset(1,&TempInt,"accretion_rate",AccretingParticleGroupID,HDF5_REAL,(VOIDP) AccretionRate);
+  WriteDataset(1,&TempInt,"c_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) cInfinity);
+  WriteDataset(1,&TempInt,"v_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) vInfinity);
+  WriteDataset(1,&TempInt,"bondi_hoyle_radius",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BondiHoyleRadius);
  
 
   /* Clean up */
@@ -563,10 +563,10 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
   ReadDataset(1,&TempInt,"dynamical_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
   ReadDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
   ReadDataset(1,&TempInt,"identifier",AccretingParticleGroupID,HDF5_PINT,(VOIDP) ID);
-  ReadDataset(1,&TempInt,"accretion_rate",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) AccretionRate);
-  ReadDataset(1,&TempInt,"c_infinity",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) cInfinity);
-  ReadDataset(1,&TempInt,"v_infinity",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) vInfinity);
-  ReadDataset(1,&TempInt,"bondi_hoyle_radius",AccretingParticleGroupID,HDF5_FILE_REAL,(VOIDP) BondiHoyleRadius);
+  ReadDataset(1,&TempInt,"accretion_rate",AccretingParticleGroupID,HDF5_REAL,(VOIDP) AccretionRate);
+  ReadDataset(1,&TempInt,"c_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) cInfinity);
+  ReadDataset(1,&TempInt,"v_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) vInfinity);
+  ReadDataset(1,&TempInt,"bondi_hoyle_radius",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BondiHoyleRadius);
 
 
   for (i = 0; i < n; i++) {
