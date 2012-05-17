@@ -23,6 +23,7 @@
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
+#include "units.h"
 #include "Fluxes.h"
 #include "GridList.h"
 #include "ExternalBoundary.h"
@@ -155,6 +156,7 @@ public:
 			      int AccretingParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
+  int AdjustBondiHoyle(grid* CurrentGrid);
 
   ENABLED_PARTICLE_ID_ACCESSOR
 
@@ -380,14 +382,9 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 
   /* Loop over all of the AccretingParticles on this grid and set the bondi-hoyle radius */
 
-  ActiveParticleType_AccretingParticle *dummy = new ActiveParticleType_AccretingParticle();
-  int type_num = dummy->GetEnabledParticleID();
-  delete dummy;
-     
   for (n = 0; n < npart; n++) {
     ActiveParticleType_AccretingParticle *ThisParticle = 
       static_cast<ActiveParticleType_AccretingParticle*>(thisGrid->ActiveParticles[n]);
-    if (ThisParticle->ReturnType() != type_num) continue;
     pos = ThisParticle->ReturnPosition();
     vel = ThisParticle->ReturnVelocity(); 
     i = int((pos[0] - LeftCorner[0])/thisGrid->CellWidth[0][0]);
@@ -708,10 +705,12 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       for (grid = 0; grid < NumberOfGrids; grid++) 
 	if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
-	  for (i = 0; i<NumberOfMergedParticles; i++)
+	  for (i = 0; i<NumberOfMergedParticles; i++) {
 	    if (Grids[grid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL) 
 	      ENZO_FAIL("Cannot assign accreting particles to grid");
-	  
+	    MergedParticles[i]->AdjustBondiHoyle(Grids[grid]->GridData);
+	  }
+
       delete [] Grids;
       delete [] ParticleList;
       delete [] MergedParticles;
@@ -838,6 +837,57 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
 	ENZO_FAIL("Error in grid->DepositAccretionZone.\n")
 	  }
   }
+
+  return SUCCESS;
+}
+
+int ActiveParticleType_AccretingParticle::AdjustBondiHoyle(grid* CurrentGrid) {
+  float *density = CurrentGrid->AccessDensity();
+  float *velx = CurrentGrid->AccessVelocity1();
+  float *vely = CurrentGrid->AccessVelocity2();
+  float *velz = CurrentGrid->AccessVelocity3();
+  float *totalenergy = CurrentGrid->AccessTotalEnergy();
+  float *gasenergy = CurrentGrid->AccessGasEnergy();
+
+  float *vel = this->ReturnVelocity();
+  FLOAT *pos = this->ReturnPosition();
+  float CellTemperature;
+
+  int n,i,j,k,index,dim;
+
+  FLOAT LeftCorner[MAX_DIMENSION];
+
+  FLOAT dx = CurrentGrid->GetCellWidth(0);
+
+  int GridStartIndex[3];
+  int GridDimension[3];
+
+  for (dim = 0; dim < 3; dim++) {
+    LeftCorner[dim] = CurrentGrid->GetGridLeftEdge(dim);
+    GridStartIndex[dim] = CurrentGrid->GetGridStartIndex(dim);
+    GridDimension[dim] = CurrentGrid->GetGridDimension(dim);
+  }
+
+  float *temperature = new float[CurrentGrid->GetGridSize()];
+  CurrentGrid->ComputeTemperatureField(temperature);
+
+  i = int((pos[0] - LeftCorner[0])/dx);
+  j = int((pos[1] - LeftCorner[1])/dx);
+  k = int((pos[2] - LeftCorner[2])/dx);
+
+  index = GRIDINDEX(i,j,k);
+  
+  this->vInfinity = sqrt(pow((vel[0] - velx[index]),2) +
+				 pow((vel[1] - vely[index]),2) +
+				 pow((vel[2] - velz[index]),2));
+  
+  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : temperature[index];
+  this->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;
+  
+  this->BondiHoyleRadius = GravitationalConstant*(this->ReturnMass()*POW(dx,3))/
+    (pow(this->vInfinity,2) + pow(this->cInfinity,2));
+  
+  delete[] temperature;
 
   return SUCCESS;
 }

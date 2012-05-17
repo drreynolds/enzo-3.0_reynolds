@@ -93,7 +93,6 @@ public:
   void   ConvertAllMassesToSolar(void);
   void   ConvertMassToSolar(void);
   void   Merge(ActiveParticleType *a);
-  //bool  MergableMBH(ActiveParticleType *a);
   float Separation(ActiveParticleType *a);
   float Separation2(ActiveParticleType *a);
   float RelativeVelocity2(ActiveParticleType *a);

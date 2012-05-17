@@ -41,7 +41,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) return SUCCESS;
 
-  if (ThisParticle->ReturnID() == ID) return SUCCESS;
+  if (ThisParticle->ReturnGridID() == ID) return SUCCESS;
 
   IsHere = false;
   TPpos = ThisParticle->ReturnPosition();
@@ -81,7 +81,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   int OldNumberOfParticles = NumberOfParticles;
   NumberOfParticles += 1;
 
-    /* Create new particle arrays */
+  /* Create new particle arrays */
 
   int index, dim;
   FLOAT *pos[MAX_DIMENSION];
@@ -116,7 +116,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   Mass[OldNumberOfParticles] = ThisParticle->Mass;
   Number[OldNumberOfParticles] = ThisParticle->Identifier;
 
-    /* Delete old particle arrays and copy new ones */
+  /* Delete old particle arrays and copy new ones */
 
   this->DeleteParticles();
   this->SetParticlePointers(Mass, Number, pos, vel);

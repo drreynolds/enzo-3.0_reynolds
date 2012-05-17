@@ -416,14 +416,9 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   
   int n,i,j,k,ic,kc,jc,stepk,stepj,cellstep,DistIndex,index;
 
-  ActiveParticleType_CenOstriker *dummy = new ActiveParticleType_CenOstriker();
-  int type_num = dummy->GetEnabledParticleID();
-  delete dummy;
-
   for (n=0; n < npart; n++) {
     ActiveParticleType_CenOstriker *particle = 
       static_cast<ActiveParticleType_CenOstriker*>(thisGrid->ActiveParticles[n]);
-    if (particle->type != type_num) continue;
 
     xpos = particle->pos[0];
     ypos = particle->pos[1];

@@ -1164,7 +1164,7 @@ public:
    }
    FLOAT GetGridLeftEdge(int Dimension) {return GridLeftEdge[Dimension];}
    FLOAT GetGridRightEdge(int Dimension) {return GridRightEdge[Dimension];}
-
+   FLOAT GetCellWidth(int Dimension) {return CellWidth[Dimension][0];}
 
 #ifdef TRANSFER
 // -------------------------------------------------------------------------
