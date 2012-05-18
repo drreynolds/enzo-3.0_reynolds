@@ -701,8 +701,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
    
       /* Assign local particles to grids */
  
-      Grid* savedGrid = NULL;
-      int level, levelMax;
+      int level, levelMax, savedGrid = -1;
 
       for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
 	NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);     
@@ -710,23 +709,26 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	  if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
 	    for (i = 0; i<NumberOfMergedParticles; i++) 
 	      if (Grids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true) { 
-		savedGrid = Grids[grid]->GridData;
+		savedGrid = grid;
 		levelMax = level;
 	      }
 	delete [] Grids;
 	Grids = NULL;
       }
 
-      delete [] ParticleList;
-      delete [] MergedParticles;
-      
-      if (savedGrid == NULL)
+      if (savedGrid == -1)
 	ENZO_FAIL("Cannot assign accreting particle to grid");
 
-      if (SavedGrid->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+      NumberOfGrids = GenerateGridArray(LevelArray, levelMax, &Grids); 
+
+      if (Grids[savedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	ENZO_FAIL("Active particle grid assignment failed");
 	  
-      MergedParticles[i]->AdjustBondiHoyle(SavedGrid);
+      MergedParticles[i]->AdjustBondiHoyle(Grids[savedGrid]->GridData);
+
+      delete [] Grids;
+      delete [] ParticleList;
+      delete [] MergedParticles;
 
       /* Regenerate the global active particle list */
       
@@ -755,7 +757,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
      the edges of two regions at the maximum refinement level */
 
   if (ThisLevel < MaximumRefinementLevel)
-    return SUCCESS
+    return SUCCESS;
 
   /* For each particle, loop over all of the grids and do accretion 
      if the grid overlaps with the accretion zone                   */
@@ -900,8 +902,8 @@ int ActiveParticleType_AccretingParticle::AdjustBondiHoyle(grid* CurrentGrid) {
   index = GRIDINDEX(i,j,k);
   
   this->vInfinity = sqrt(pow((vel[0] - velx[index]),2) +
-				 pow((vel[1] - vely[index]),2) +
-				 pow((vel[2] - velz[index]),2));
+			 pow((vel[1] - vely[index]),2) +
+			 pow((vel[2] - velz[index]),2));
   
   CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : temperature[index];
   this->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;

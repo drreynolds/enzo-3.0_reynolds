@@ -43,6 +43,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
+  FLOAT *ParticlePosition = ThisParticle->ReturnPosition();
+  
   if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
       (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
       (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
@@ -55,7 +57,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     *SinkIsOnThisGrid = true;
   }
 
-  FLOAT CellSize, KernelRadius, radius2, *ParticlePosition = ThisParticle->ReturnPosition();
+  FLOAT CellSize, KernelRadius, radius2;
 
   int i, j, k, dim, index, size=1;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 

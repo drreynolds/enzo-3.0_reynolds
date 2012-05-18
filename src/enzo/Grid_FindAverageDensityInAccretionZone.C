@@ -37,12 +37,14 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
 
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
+  FLOAT *ParticlePosition = ThisParticle->ReturnPosition();
+
   if (GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius || GridRightEdge[0] < ParticlePosition[0]-AccretionRadius ||
       GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius || GridRightEdge[1] < ParticlePosition[1]-AccretionRadius ||
       GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius || GridRightEdge[2] < ParticlePosition[2]-AccretionRadius)
     return SUCCESS;
 
-  FLOAT *ParticlePosition, radius2, CellSize, KernelRadius;
+  FLOAT radius2, CellSize, KernelRadius;
   int i, j, k, dim, size=1, index;
   
   /* Get indices in BaryonField for density, internal energy, thermal energy, velocity */
@@ -58,8 +60,6 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
 
   for (dim = 0; dim < GridRank; dim++)
     size *= GridDimension[dim];
-
-  ParticlePosition = ThisParticle->ReturnPosition();
   
   if (BondiHoyleRadius < CellSize/4.0)
     KernelRadius = CellSize/4.0;
