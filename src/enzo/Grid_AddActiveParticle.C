@@ -55,7 +55,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   }
   
   if (!IsHere) {
-    return SUCCESS;
+    return FAIL;
   }
 
   // If this particle is already on the list, we do nothing

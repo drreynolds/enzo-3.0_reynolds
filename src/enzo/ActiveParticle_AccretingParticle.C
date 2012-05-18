@@ -700,20 +700,33 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 						&NumberOfMergedParticles,LevelArray);
    
       /* Assign local particles to grids */
+ 
+      Grid* savedGrid = NULL;
+      int level, levelMax;
 
-      NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
-      
-      for (grid = 0; grid < NumberOfGrids; grid++) 
-	if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
-	  for (i = 0; i<NumberOfMergedParticles; i++) {
-	    if (Grids[grid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL) 
-	      ENZO_FAIL("Cannot assign accreting particles to grid");
-	    MergedParticles[i]->AdjustBondiHoyle(Grids[grid]->GridData);
-	  }
+      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
+	NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);     
+	for (grid = 0; grid < NumberOfGrids; grid++) 
+	  if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
+	    for (i = 0; i<NumberOfMergedParticles; i++) 
+	      if (Grids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true) { 
+		savedGrid = Grids[grid]->GridData;
+		levelMax = level;
+	      }
+	delete [] Grids;
+	Grids = NULL;
+      }
 
-      delete [] Grids;
       delete [] ParticleList;
       delete [] MergedParticles;
+      
+      if (savedGrid == NULL)
+	ENZO_FAIL("Cannot assign accreting particle to grid");
+
+      if (SavedGrid->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+	ENZO_FAIL("Active particle grid assignment failed");
+	  
+      MergedParticles[i]->AdjustBondiHoyle(SavedGrid);
 
       /* Regenerate the global active particle list */
       
@@ -735,6 +748,15 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 						  FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[],
 						  int ThisLevel)
 {
+  
+  /* Skip accretion if we're not on the maximum refinement level. 
+     This should only ever happen right after creation and then
+     only in pathological cases where sink creation is happening at 
+     the edges of two regions at the maximum refinement level */
+
+  if (ThisLevel < MaximumRefinementLevel)
+    return SUCCESS
+
   /* For each particle, loop over all of the grids and do accretion 
      if the grid overlaps with the accretion zone                   */
   
