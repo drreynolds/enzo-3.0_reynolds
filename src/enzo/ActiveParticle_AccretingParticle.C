@@ -708,7 +708,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	for (grid = 0; grid < NumberOfGrids; grid++) 
 	  if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
 	    for (i = 0; i<NumberOfMergedParticles; i++) 
-	      if (Grids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true) { 
+	      if (Grids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
+		  Grids[grid]->GridData->isLocal() == true) { 
 		savedGrid = grid;
 		levelMax = level;
 	      }
