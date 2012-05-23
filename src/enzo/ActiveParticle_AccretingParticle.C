@@ -701,7 +701,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
    
       /* Assign local particles to grids */
  
-      int level, levelMax, savedGrid = -1;
+      int level, LevelMax, SavedGrid = -1;
 
       for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
 	NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);     
@@ -710,12 +710,14 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	    for (i = 0; i<NumberOfMergedParticles; i++) 
 	      if (Grids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
 		  Grids[grid]->GridData->isLocal() == true) { 
-		savedGrid = grid;
-		levelMax = level;
+		SavedGrid = grid;
+		LevelMax = level;
 	      }
 	delete [] Grids;
 	Grids = NULL;
       }
+
+      printf("savedGrid = %"ISYM", LevelMax = %"ISYM, SavedGrid, LevelMax);
 
       if (savedGrid == -1)
 	ENZO_FAIL("Cannot assign accreting particle to grid");
