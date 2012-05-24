@@ -267,9 +267,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    } else // Zeus
 	      BaryonField[TENum][index] = eintnew/mnew;
 
-	    BaryonField[Vel1Num][index] -= paccrete[0]/mnew;
-	    BaryonField[Vel2Num][index] -= paccrete[1]/mnew;
-	    BaryonField[Vel3Num][index] -= paccrete[2]/mnew;
+	    BaryonField[Vel1Num][index] = BaryonField[Vel1Num][index]*mcell/mnew - paccrete[0]/mnew;
+	    BaryonField[Vel2Num][index] = BaryonField[Vel2Num][index]*mcell/mnew - paccrete[1]/mnew;
+	    BaryonField[Vel3Num][index] = BaryonField[Vel3Num][index]*mcell/mnew - paccrete[2]/mnew;
 
 	    // Check if mass or energy is too small, correct if necessary
 	    if (BaryonField[DensNum][index] < SmallRhoFac*SmallRho) {

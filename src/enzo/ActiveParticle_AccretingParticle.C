@@ -634,6 +634,9 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     tempPos = ParticleList[i]->ReturnPosition();
     for (dim=0; dim<3; dim++)
       ParticleCoordinates[3*i+dim] = tempPos[dim];
+    if (MyProcessorNumber == 0)
+      fprintf(stderr,"%"ISYM", %"GSYM", %"GSYM", %"GSYM"\n", 
+	      i, tempPos[0], tempPos[1], tempPos[2]);
   }
   
   /* Find mergeable groups using an FOF search */
@@ -698,6 +701,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
 						&NumberOfMergedParticles,LevelArray);
+
+      fprintf(stderr,"Number of Accreting Particles After Merging = %"ISYM"\n",NumberOfMergedParticles);
 
       delete [] ParticleList;
    
@@ -783,7 +788,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   HierarchyEntry **Grids = NULL;
   HierarchyEntry *sinkGrid = NULL;
   
-  bool SinkIsOnThisGrid = false;
+  bool SinkIsOnThisProc = false, SinkIsOnThisGrid = false;
   
   float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
     GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
@@ -797,7 +802,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  for (i = 0; i<nParticles; i++) {
+  for (i = 0; i < nParticles; i++) {
     WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
       GlobalSubtractedMass = 0;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
@@ -823,6 +828,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     
     /* Now perform accretion algorithm by modifying the grids locally */
     for (grid = 0; grid < NumberOfGrids; grid++) {
+      SinkIsOnThisGrid = false;
       if (Grids[grid]->GridData->
 	  AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
 				       SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
@@ -831,7 +837,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       }
       if (SinkIsOnThisGrid) {
 	sinkGrid = Grids[grid];
-	SinkIsOnThisGrid = false;
+	SinkIsOnThisProc = true;
+	break;
       }
     }
 
@@ -845,10 +852,11 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     temp->AccretionRate = AccretionRate;
     
     /* Transfer the mass and momentum to the particle */
-    if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
-								  static_cast<ActiveParticleType*>(temp),
-								  LevelArray) == FAIL)
-      return FAIL;
+    if (SinkIsOnThisProc)
+      if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
+								    static_cast<ActiveParticleType*>(temp),
+								    LevelArray) == FAIL)
+	return FAIL;
     
   }
   return SUCCESS;
