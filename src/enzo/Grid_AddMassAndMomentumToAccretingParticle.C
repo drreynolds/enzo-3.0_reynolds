@@ -49,7 +49,7 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
   }
 
   if (!found)
-    return FAIL;
+    return SUCCESS;
 
   this->ActiveParticles[i]->DisableParticle(LevelArray);
 

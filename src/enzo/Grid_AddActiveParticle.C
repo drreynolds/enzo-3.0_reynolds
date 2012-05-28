@@ -36,7 +36,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   bool IsHere;
   FLOAT* TPpos;
-  int i;
+  int i,j;
 
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) return SUCCESS;
@@ -61,29 +61,37 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   /* Copy the old and new active particles to a new list 
      and get rid of the old list */
 
+  /* If this particle is already on the list, it needs to be moved to
+     the end of the list. This needs to happen since the copy of the
+     particle in the grid list needs to be updated */
+
+  int iskip = -1;
+
   for (i = 0; i < NumberOfActiveParticles; i++) 
     if (ThisParticle->ReturnID() == ActiveParticles[i]->ReturnID())
-      {
-	/* If this particle is already on the list, it needs to be
-	   moved to the end of the list. This needs to happen since
-	   the copy of the particle in the grid list needs to be
-	   updated */
-	NumberOfActiveParticles -= 1;
-	NumberOfParticles -= 1;
-	i -= 1;
-      }
+	iskip = i;   
+
+  if (iskip != -1) {
+    NumberOfActiveParticles--;
+  }
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
-  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1];
+  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles++];
 
-  for (i = 0; i < NumberOfActiveParticles; i++)
-    ActiveParticles[i] = OldActiveParticles[i];
+  j = 0;
+  for (i = 0; i < NumberOfActiveParticles; i++) {
+    if (i != iskip)
+      j++;
+    else
+      continue;
+    ActiveParticles[j] = OldActiveParticles[i];
+  }
 
   delete [] OldActiveParticles;
 
   ThisParticle->SetGridID(ID);
   ThisParticle->AssignCurrentGrid(this);
-  ActiveParticles[NumberOfActiveParticles++] = ThisParticle;
+  ActiveParticles[NumberOfActiveParticles-1] = ThisParticle;
 
   /* Update arrays for the non-active particles*/
 
@@ -91,8 +99,8 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   int SavedIndex = -1;
   for (i = 0; i < NumberOfParticles; i++) 
     if (ParticleNumber[i] == ThisParticle->Identifier) {
-      NumberOfParticles--;
       SavedIndex = i;
+      NumberOfParticles--;
     }
   
   int OldNumberOfParticles = NumberOfParticles;
@@ -115,7 +123,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   /* Copy existing particles */
 
-  int j = 0;
+  j = 0;
   for (i = 0; i < OldNumberOfParticles; i++) {
     if (i != SavedIndex)
       j++;

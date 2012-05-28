@@ -788,7 +788,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   HierarchyEntry **Grids = NULL;
   HierarchyEntry *sinkGrid = NULL;
   
-  bool SinkIsOnThisProc = false, SinkIsOnThisGrid = false;
+  bool SinkIsOnThisProc, SinkIsOnThisGrid;
   
   float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
     GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
@@ -804,7 +804,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   for (i = 0; i < nParticles; i++) {
     WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
-      GlobalSubtractedMass = 0;
+      GlobalSubtractedMass = 0, SinkIsOnThisProc = false;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
     vInfinity = temp->vInfinity;
     cInfinity = temp->cInfinity;
