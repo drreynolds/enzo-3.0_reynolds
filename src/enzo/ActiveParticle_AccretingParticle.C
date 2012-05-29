@@ -626,6 +626,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   int *groupsize = NULL;
   int **grouplist = NULL;
   ActiveParticleType_AccretingParticle **MergedParticles = NULL;
+  bool debug = false;
 
   /* Construct list of sink particle positions to pass to Foflist */
   FLOAT ParticleCoordinates[3*(*nParticles)];
@@ -634,7 +635,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     tempPos = ParticleList[i]->ReturnPosition();
     for (dim=0; dim<3; dim++)
       ParticleCoordinates[3*i+dim] = tempPos[dim];
-    if (MyProcessorNumber == 0)
+    if (MyProcessorNumber == 0 && debug)
       fprintf(stderr,"%"ISYM", %"GSYM", %"GSYM", %"GSYM"\n", 
 	      i, tempPos[0], tempPos[1], tempPos[2]);
   }
@@ -662,7 +663,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   return MergedParticles;
 }
 
-
+int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],int NumberOfGrids);
 
 int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -679,6 +680,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       int i,grid,nParticles,NumberOfMergedParticles;
       HierarchyEntry **Grids = NULL;
       ActiveParticleType** ParticleList = NULL;
+      bool debug = true;
 
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
@@ -701,16 +703,26 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
 						&NumberOfMergedParticles,LevelArray);
-
-      fprintf(stderr,"Number of Accreting Particles After Merging = %"ISYM"\n",NumberOfMergedParticles);
+      if (MyProcessorNumber == 0 && debug)
+	fprintf(stderr,"Number of Accreting Particles After Merging = %"ISYM"\n",NumberOfMergedParticles);
 
       delete [] ParticleList;
    
       /* Assign local particles to grids */
  
-      int level, LevelMax = -1, SavedGrid = -1;
+      int level, LevelMax = -1, SavedGrid = -1, NumberOfGrids = 0;
+      FLOAT* pos = NULL;
+      float mass;
+      LevelHierarchyEntry *Temp = NULL;
+      HierarchyEntry *GridHierarchyPointer[MAX_NUMBER_OF_SUBGRIDS] = {NULL};
 
       for (i = 0; i<NumberOfMergedParticles; i++) {
+	if (MyProcessorNumber == 0 && debug) {
+	  pos = MergedParticles[i]->ReturnPosition();
+	  mass = MergedParticles[i]->ReturnMass();
+	  fprintf(stderr,"%"ISYM", %"GSYM", %"GSYM", %"GSYM", %"FSYM"\n",
+		  i,pos[0],pos[1],pos[2],mass);
+	}
 	for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
 	  NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);     
 	  for (grid = 0; grid < NumberOfGrids; grid++) 
@@ -739,13 +751,24 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	  if (Grids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	    ENZO_FAIL("Active particle grid assignment failed"); 
 	}
+	Temp = LevelArray[recvbuf.value];
 #else // endif parallel
 	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &Grids); 
 	MergedParticles[i]->AdjustBondiHoyle(Grids[SavedGrid]->GridData);
 	if (Grids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	  ENZO_FAIL("Active particle grid assignment failed"); 
+	  ENZO_FAIL("Active particle grid assignment failed");
+	Temp = LevelArray[LevelMax];
 #endif //endif serial
 	
+	/* Sync the updated particle counts accross all proccessors */
+
+	while (Temp != NULL) {
+	  GridHierarchyPointer[NumberOfGrids++] = Temp->GridHierarchyEntry;
+	  Temp = Temp->NextGridThisLevel;
+	}
+
+	CommunicationSyncNumberOfParticles(GridHierarchyPointer, NumberOfGrids);
+
 	delete [] Grids;
 
       }
