@@ -710,13 +710,13 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
    
       /* Assign local particles to grids */
  
-      int level, LevelMax = -1, SavedGrid = -1, NumberOfGrids = 0;
+      int level, LevelMax, SavedGrid, NumberOfGrids;
       FLOAT* pos = NULL;
       float mass;
-      LevelHierarchyEntry *Temp = NULL;
-      HierarchyEntry *GridHierarchyPointer[MAX_NUMBER_OF_SUBGRIDS] = {NULL};
 
       for (i = 0; i<NumberOfMergedParticles; i++) {
+	LevelMax = SavedGrid = -1;
+	NumberOfGrids = 0;
 	if (MyProcessorNumber == 0 && debug) {
 	  pos = MergedParticles[i]->ReturnPosition();
 	  mass = MergedParticles[i]->ReturnMass();
@@ -751,23 +751,19 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	  if (Grids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	    ENZO_FAIL("Active particle grid assignment failed"); 
 	}
-	Temp = LevelArray[recvbuf.value];
+	LevelMax = recvbuf.value;
 #else // endif parallel
 	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &Grids); 
 	MergedParticles[i]->AdjustBondiHoyle(Grids[SavedGrid]->GridData);
 	if (Grids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	  ENZO_FAIL("Active particle grid assignment failed");
-	Temp = LevelArray[LevelMax];
 #endif //endif serial
 	
 	/* Sync the updated particle counts accross all proccessors */
 
-	while (Temp != NULL) {
-	  GridHierarchyPointer[NumberOfGrids++] = Temp->GridHierarchyEntry;
-	  Temp = Temp->NextGridThisLevel;
-	}
+	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &Grids);
 
-	CommunicationSyncNumberOfParticles(GridHierarchyPointer, NumberOfGrids);
+	CommunicationSyncNumberOfParticles(Grids, NumberOfGrids);
 
 	delete [] Grids;
 
