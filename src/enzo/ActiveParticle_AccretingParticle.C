@@ -420,8 +420,7 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   /* Create a new subgroup within the active particle group for active particles of type AccretingParticle */
   hid_t AccretingParticleGroupID = H5Gcreate(group_id,"AccretingParticle",0);
 
-  writeScalarAttribute(AccretingParticleGroupID,HDF5_INT,"Number of Accreting particles",&n);  
-
+  writeScalarAttribute(AccretingParticleGroupID,HDF5_INT,"Number of Accreting Particles",&n);  
 
   char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};
