@@ -677,7 +677,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       /* Generate a list of all sink particles in the simulation box */
       int i,grid,nParticles,NumberOfMergedParticles;
-      HierarchyEntry **Grids = NULL;
+      HierarchyEntry **LevelGrids = NULL;
       ActiveParticleType** ParticleList = NULL;
       bool debug = true;
 
@@ -723,16 +723,16 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 		  i,pos[0],pos[1],pos[2],mass);
 	}
 	for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
-	  NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);     
+	  NumberOfGrids = GenerateGridArray(LevelArray, level, &LevelGrids);     
 	  for (grid = 0; grid < NumberOfGrids; grid++) 
-	    if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
-	      if (Grids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
-		  Grids[grid]->GridData->isLocal() == true) { 
+	    if (LevelGrids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
+	      if (LevelGrids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
+		  LevelGrids[grid]->GridData->isLocal() == true) { 
 		SavedGrid = grid;
 		LevelMax = level;
 	      }
-	  delete [] Grids;
-	  Grids = NULL;
+	  delete [] LevelGrids;
+	  LevelGrids = NULL;
 	}
 	
 	/* Find the processor which has the maximum value of LevelMax
@@ -744,27 +744,25 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	MPI_Comm_rank(MPI_COMM_WORLD, &sendbuf.rank); 
 	sendbuf.value = LevelMax;
 	MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, MPI_COMM_WORLD);
+	NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
 	if (LevelMax == recvbuf.value) {
-	  NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &Grids); 
-	  MergedParticles[i]->AdjustBondiHoyle(Grids[SavedGrid]->GridData);
-	  if (Grids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+	  MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
+	  if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	    ENZO_FAIL("Active particle grid assignment failed"); 
 	}
 	LevelMax = recvbuf.value;
 #else // endif parallel
-	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &Grids); 
-	MergedParticles[i]->AdjustBondiHoyle(Grids[SavedGrid]->GridData);
-	if (Grids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
+	MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
+	if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	  ENZO_FAIL("Active particle grid assignment failed");
 #endif //endif serial
 	
 	/* Sync the updated particle counts accross all proccessors */
 
-	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &Grids);
+	CommunicationSyncNumberOfParticles(LevelGrids, NumberOfGrids);
 
-	CommunicationSyncNumberOfParticles(Grids, NumberOfGrids);
-
-	delete [] Grids;
+	delete [] LevelGrids;
 
       }
 
@@ -877,6 +875,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 	return FAIL;
     
   }
+  CommunicationSyncNumberOfParticles(Grids, NumberOfGrids);
+  delete [] Grids;
   return SUCCESS;
 }
 
