@@ -126,7 +126,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   /* Copy existing particles */
 
   j = 0;
-  for (i = 0; i < NumberOfParticles; i++) {
+  for (i = 0; i < OldNumberOfParticles; i++) {
     if (i != SavedIndex)
       j++;
     else
