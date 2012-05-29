@@ -100,8 +100,10 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   for (i = 0; i < NumberOfParticles; i++) 
     if (ParticleNumber[i] == ThisParticle->Identifier) {
       SavedIndex = i;
-      NumberOfParticles--;
     }
+
+  if (SavedIndex != -1)
+    NumberOfParticles--;
   
   int OldNumberOfParticles = NumberOfParticles;
   NumberOfParticles += 1;
@@ -124,7 +126,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   /* Copy existing particles */
 
   j = 0;
-  for (i = 0; i < OldNumberOfParticles; i++) {
+  for (i = 0; i < NumberOfParticles; i++) {
     if (i != SavedIndex)
       j++;
     else
@@ -150,6 +152,10 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   this->DeleteParticles();
   this->SetParticlePointers(Mass, Number, pos, vel);
+
+  if (NumberOfActiveParticles != NumberOfParticles)
+    ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
+	       NumberOfActiveParticles, NumberOfParticles);
 
   return SUCCESS;
 }

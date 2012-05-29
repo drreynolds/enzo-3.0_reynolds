@@ -227,6 +227,14 @@ void ActiveParticleType::ConvertMassToSolar(void)
   return;
 }
 
+void  ActiveParticleType::AdjustVelocity(float VelocityIncrement[])
+{ 
+  int i;
+  for (i = 0; i<3; i++)
+    vel[i] += VelocityIncrement[i];
+  return;
+}
+
 void ActiveParticleType::Merge(ActiveParticleType *a)
 {
   int dim;

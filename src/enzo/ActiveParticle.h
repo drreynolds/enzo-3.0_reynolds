@@ -87,6 +87,7 @@ public:
   void  AssignCurrentGrid(grid *a) { this->CurrentGrid = a; };
   void  AddMass(double dM) { Mass += dM; };
   void  AdjustMassByFactor(double factor) { Mass *= factor; };
+  void  AdjustVelocity(float VelocityIncrement[]);
 
   FLOAT *ReturnPosition(void) { return pos; };
   float *ReturnVelocity(void) { return vel; };

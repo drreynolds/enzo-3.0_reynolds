@@ -38,31 +38,30 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
     return SUCCESS;
 
   int i;
-  bool found = false;
+  int iFound = -1;
   float CellVolume = 1.0;
 
   for (i = 0; i<NumberOfActiveParticles; i++) {
     if (this->ActiveParticles[i]->ReturnID() == ThisParticle->ReturnID()) {
-      found = true;
+      iFound = i;
       break;
     }
   }
 
-  if (!found)
+  if (iFound == -1)
     return SUCCESS;
-
-  this->ActiveParticles[i]->DisableParticle(LevelArray);
 
   for (i = 0; i < GridRank; i++)
     CellVolume+=CellWidth[i][0];
 
-  // Masses are actually densities
-  ThisParticle->Mass += AccretedMass;
-  ThisParticle->vel[0] += AccretedMomentum[0]/(ThisParticle->Mass*CellVolume);
-  ThisParticle->vel[1] += AccretedMomentum[1]/(ThisParticle->Mass*CellVolume);
-  ThisParticle->vel[2] += AccretedMomentum[2]/(ThisParticle->Mass*CellVolume);
+  float VelocityAdjustment[3] = {
+    AccretedMomentum[0]/(ThisParticle->Mass*CellVolume),
+    AccretedMomentum[1]/(ThisParticle->Mass*CellVolume),
+    AccretedMomentum[2]/(ThisParticle->Mass*CellVolume)};
 
-  this->AddActiveParticle(ThisParticle);
+  // Masses are actually densities
+  this->ActiveParticles[iFound]->AddMass(AccretedMass);
+  this->ActiveParticles[iFound]->AdjustVelocity(VelocityAdjustment);
 
   return SUCCESS;
 }
