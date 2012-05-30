@@ -1,4 +1,4 @@
-/***********************************************************************
+/**********************************************************************
 /
 /  GRID CLASS (ADD PARTICLES BELONGING TO THIS GRID FROM A POINTER ARRAY)
 /
@@ -76,7 +76,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   }
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
-  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles++];
+  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1];
 
   j = 0;
   for (i = 0; i < NumberOfActiveParticles; i++) {
@@ -91,6 +91,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   ThisParticle->SetGridID(ID);
   ThisParticle->AssignCurrentGrid(this);
+  NumberOfActiveParticles++;
   ActiveParticles[NumberOfActiveParticles-1] = ThisParticle;
 
   /* Update arrays for the non-active particles*/
