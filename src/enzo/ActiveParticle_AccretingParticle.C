@@ -568,7 +568,7 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
   for (i = 0; i < n; i++) {
     ActiveParticleType_AccretingParticle *np = new ActiveParticleType_AccretingParticle();
     np->Mass = Mass[i];
-    np->type = AccretingParticle;
+    np->type = np->GetEnabledParticleID();
     np->BirthTime = BirthTime[i];
     np->DynamicalTime = DynamicalTime[i];
     np->Metallicity = Metallicity[i];
