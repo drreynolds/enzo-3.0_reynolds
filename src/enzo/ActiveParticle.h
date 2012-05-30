@@ -133,7 +133,6 @@ protected:
   int type;
   
   bool Active;
-  int EnabledParticleID;
 
 private: /* Cannot be accessed by subclasses! */
   
