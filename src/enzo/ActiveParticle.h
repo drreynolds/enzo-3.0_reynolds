@@ -132,8 +132,6 @@ protected:
   int dest_processor;  // used for communication
   int type;
   
-  bool Active;
-
 private: /* Cannot be accessed by subclasses! */
   
   friend class grid;
