@@ -229,6 +229,9 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
 
 #endif
 
+  AccretingParticleBufferHandler *pbuffer = new AccretingParticleBufferHandler();
+  delete pbuffer;
+
   return SUCCESS;
 }
 
