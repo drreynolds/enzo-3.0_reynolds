@@ -214,6 +214,9 @@ int ActiveParticleType_CenOstriker::InitializeParticleType() {
   PhysicalOverdensity = true;
 
 #endif
+
+  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler();
+  delete pbuffer;
   
   return SUCCESS;
 }
