@@ -66,6 +66,7 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
   int *GridDims[MAX_DIMENSION], *StartIndex[MAX_DIMENSION];
   FLOAT Left[MAX_DIMENSION], Right[MAX_DIMENSION];
   FLOAT LeftEdge[MAX_DIMENSION], RightEdge[MAX_DIMENSION];
+  HierarchyEntry *TempGrid;
  
   if (debug) printf("Enter CommunicationPartitionGrid.\n");
 
@@ -109,6 +110,7 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
   int Nnodes = NumberOfProcessors;
   int Ndims = Rank;
   int LayoutDims[] = {0, 0, 0};
+  int NumberOfGrids;
 
   if (Enzo_Dims_create(Nnodes, Ndims, LayoutDims) != SUCCESS) {
     ENZO_FAIL("Error in Enzo_Dims_create.");
@@ -119,8 +121,11 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
  
   /* Swap layout because we want smallest value to be at Layout[0]. */
  
-  for (dim = 0; dim < Rank; dim++)
+  NumberOfGrids = 1;
+  for (dim = 0; dim < Rank; dim++) {
     Layout[dim] = LayoutTemp[Rank-1-dim] * NumberOfRootGridTilesPerDimensionPerProcessor;
+    NumberOfGrids *= Layout[dim];
+  }
  
   /* Force some distributions if the default is brain-dead. */
 
@@ -204,7 +209,6 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
   float ExactDimsLeft, ThisExactDims;
   FLOAT ParentLeftEdge[MAX_DIMENSION], ParentRightEdge[MAX_DIMENSION];
   bool FoundIt;
-  HierarchyEntry *TempGrid;
 
   if (MyProcessorNumber == ROOT_PROCESSOR) {
 
@@ -608,7 +612,59 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
       }
 
   CommunicationBarrier();
- 
+
+  /* Link level-1 grids to the partitioned grids.  Before this, all
+     level-1 grids are linked to the first root grid.  First, reset
+     the level 0 and 1 hierarchy pointers (except for the level-0
+     NextGridThisLevel). */
+
+  bool match;
+  FLOAT GridCenter[MAX_DIMENSION];
+
+  // head node of list containing all level-1 grids.
+  HierarchyEntry *ChildGrid = Grid->NextGridNextLevel; // save before erasing
+  HierarchyEntry *RootGrid;
+
+  // level 0
+  for (TempGrid = Grid; TempGrid; TempGrid = TempGrid->NextGridThisLevel) {
+    TempGrid->NextGridNextLevel = NULL;
+    TempGrid->ParentGrid = NULL;
+  }
+
+  // level 1
+  for (TempGrid = ChildGrid; TempGrid; TempGrid = TempGrid->NextGridThisLevel) {
+    TempGrid->NextGridThisLevel = NULL;
+    TempGrid->ParentGrid = NULL;
+  }
+
+  while (ChildGrid != NULL) {
+    ChildGrid->GridData->ReturnGridInfo(&Rank, Dims, LeftEdge, RightEdge);
+    for (dim = 0; dim < Rank; dim++)
+      GridCenter[dim] = 0.5 * (LeftEdge[dim] + RightEdge[dim]);
+
+    // Look for parents
+    for (RootGrid = Grid; RootGrid; RootGrid = RootGrid->NextGridThisLevel) {
+      RootGrid->GridData->ReturnGridInfo(&Rank, Dims, LeftEdge, RightEdge);
+      match = true;
+      for (dim = 0; dim < Rank; dim++)
+	match &= (GridCenter[dim] >= LeftEdge[dim]) &&
+	  (GridCenter[dim] <= RightEdge[dim]);
+
+      // If the child grid's center is contained in the parent grid,
+      // then insert the hierarchy entry in the linked list.
+      if (match) {
+	ChildGrid->ParentGrid = RootGrid;
+	ChildGrid->NextGridThisLevel = RootGrid->NextGridNextLevel;
+	RootGrid->NextGridNextLevel = ChildGrid;
+	break;
+      } // ENDIF match
+
+    } // ENDFOR root grids
+
+    ChildGrid = ChildGrid->NextGridThisLevel;
+
+  } // ENDWHILE child grids
+
   /* Clean up. */
 
   if (RandomForcing == 1 && ParallelRootGridIO != 1)

@@ -82,6 +82,8 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
   Temp = LevelArray[level];
   while (Temp != NULL) {
+    if (level == 0)
+      Temp->GridHierarchyEntry->GridData->SetGridID(NumberOfGrids);
     GridHierarchyPointer[NumberOfGrids++] = Temp->GridHierarchyEntry;
     Temp = Temp->NextGridThisLevel;
   }
