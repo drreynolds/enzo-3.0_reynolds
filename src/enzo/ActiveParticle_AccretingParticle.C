@@ -67,18 +67,22 @@ public:
 };
   AccretingParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
     // Any extra fields must be added to the buffer
-    this->AccretionRate = new float[NumberOfParticles];
-    this->cInfinity = new float[NumberOfParticles];
-    this->vInfinity = new float[NumberOfParticles];
-    this->BondiHoyleRadius = new FLOAT[NumberOfParticles];
-    this->CalculateAccretingParticleElementSize();
+    if (this->NumberOfBuffers > 0) {
+      this->AccretionRate = new float[NumberOfParticles];
+      this->cInfinity = new float[NumberOfParticles];
+      this->vInfinity = new float[NumberOfParticles];
+      this->BondiHoyleRadius = new FLOAT[NumberOfParticles];
+      this->CalculateAccretingParticleElementSize();
+    }
   };
   AccretingParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
   ~AccretingParticleBufferHandler() {
-    delete [] AccretionRate;
-    delete [] cInfinity;
-    delete [] vInfinity;
-    delete [] BondiHoyleRadius;
+    if (this->NumberOfBuffers > 0) {
+      delete [] AccretionRate;
+      delete [] cInfinity;
+      delete [] vInfinity;
+      delete [] BondiHoyleRadius;
+    }
   };
   static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
 			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
@@ -185,19 +189,21 @@ AccretingParticleBufferHandler::AccretingParticleBufferHandler
   {
     // Any extra fields must be added to the buffer and this->ElementSizeInBytes
     int i, index;
-    this->AccretionRate = new float[this->NumberOfBuffers];
-    this->cInfinity = new float[this->NumberOfBuffers];
-    this->vInfinity = new float[this->NumberOfBuffers];
-    this->BondiHoyleRadius = new FLOAT[this->NumberOfBuffers];
-    for (i = 0, index=0; i < NumberOfParticles; i++)
-      if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
-	ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(np[i]);
-	this->AccretionRate[index] = temp->AccretionRate;
-	this->cInfinity[index] = temp->cInfinity;
-	this->vInfinity[index] = temp->vInfinity;
-	this->BondiHoyleRadius[index] = temp->BondiHoyleRadius;
+    if (this->NumberOfBuffers > 0) {
+      this->AccretionRate = new float[this->NumberOfBuffers];
+      this->cInfinity = new float[this->NumberOfBuffers];
+      this->vInfinity = new float[this->NumberOfBuffers];
+      this->BondiHoyleRadius = new FLOAT[this->NumberOfBuffers];
+      for (i = 0, index=0; i < NumberOfParticles; i++)
+	if (np[i]->ReturnType() == type && (np[i]->ReturnDestProcessor() == proc || proc==-1)) {
+	  ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(np[i]);
+	  this->AccretionRate[index] = temp->AccretionRate;
+	  this->cInfinity[index] = temp->cInfinity;
+	  this->vInfinity[index] = temp->vInfinity;
+	  this->BondiHoyleRadius[index] = temp->BondiHoyleRadius;
 	index++;
-      }
+	}
+    }
     this->CalculateAccretingParticleElementSize();
   };
 
