@@ -613,17 +613,17 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
 
   CommunicationBarrier();
 
-  /* Link level-1 grids to the partitioned grids.  Before this, all
-     level-1 grids are linked to the first root grid.  First, reset
-     the level 0 and 1 hierarchy pointers (except for the level-0
-     NextGridThisLevel). */
+  /* Link level 1 grids to the partitioned grids.  Before
+     partitioning, all level 1 grids are linked to the first root
+     grid.  */
 
   bool match;
   FLOAT GridCenter[MAX_DIMENSION];
 
   // head node of list containing all level-1 grids.
   HierarchyEntry *ChildGrid = Grid->NextGridNextLevel; // save before erasing
-  HierarchyEntry *RootGrid;
+  HierarchyEntry *RootGrid = NULL;
+  HierarchyEntry *SavedGrid = NULL;
 
   // level 0
   for (TempGrid = Grid; TempGrid; TempGrid = TempGrid->NextGridThisLevel) {
@@ -633,7 +633,6 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
 
   // level 1
   for (TempGrid = ChildGrid; TempGrid; TempGrid = TempGrid->NextGridThisLevel) {
-    TempGrid->NextGridThisLevel = NULL;
     TempGrid->ParentGrid = NULL;
   }
 
@@ -651,17 +650,25 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
 	  (GridCenter[dim] <= RightEdge[dim]);
 
       // If the child grid's center is contained in the parent grid,
-      // then insert the hierarchy entry in the linked list.
+      // then insert the hierarchy entry in the linked list of
+      // subgrids of the root grid under consideration
       if (match) {
+	SavedGrid = ChildGrid->NextGridThisLevel;
 	ChildGrid->ParentGrid = RootGrid;
-	ChildGrid->NextGridThisLevel = RootGrid->NextGridNextLevel;
+	if (RootGrid->NextGridNextLevel != NULL)
+	  ChildGrid->NextGridThisLevel = RootGrid->NextGridNextLevel;
+	else
+	  ChildGrid->NextGridThisLevel = NULL;
 	RootGrid->NextGridNextLevel = ChildGrid;
+	if (ChildGrid->NextGridThisLevel != NULL)
+	  if (ChildGrid->NextGridThisLevel->ParentGrid != ChildGrid->ParentGrid)
+	    fprintf(stderr,"Done fucked up!\n");
 	break;
       } // ENDIF match
 
     } // ENDFOR root grids
-
-    ChildGrid = ChildGrid->NextGridThisLevel;
+    
+    ChildGrid = SavedGrid;
 
   } // ENDWHILE child grids
 
