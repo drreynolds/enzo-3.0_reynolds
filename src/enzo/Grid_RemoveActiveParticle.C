@@ -52,20 +52,26 @@ int grid::RemoveActiveParticle(PINT ID)
   if (found == FALSE)
     return found;
 
-  ActiveParticleType** temp = new ActiveParticleType*[NumberOfActiveParticles-1];
+  if (NumberOfActiveParticles > 1) {
+    ActiveParticleType** temp = new ActiveParticleType*[NumberOfActiveParticles-1];
+    
+    for (j=0; j < i; j++)
+      temp[j] = ActiveParticles[j];
+    
+    for (j=i+1; j < NumberOfActiveParticles; j++)
+      temp[j-1] = ActiveParticles[j];
+    
+    delete ActiveParticles[i];
 
-  for (j=0; j < i; j++)
-    temp[j] = ActiveParticles[j];
+    delete [] ActiveParticles;
+    
+    ActiveParticles = temp;
+  }  else { // Removing the only AP on the list
+    delete ActiveParticles[0];
+    delete [] ActiveParticles;
+    ActiveParticles = NULL;
+  }
 
-  for (j=i+1; j < NumberOfActiveParticles; j++)
-    temp[j-1] = ActiveParticles[j];
-
-  delete ActiveParticles[i];
-
-  delete [] ActiveParticles;
-
-  ActiveParticles = temp;
-  
   return found;
 
 }

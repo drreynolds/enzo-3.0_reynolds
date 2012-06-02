@@ -160,6 +160,7 @@ void ActiveParticleType::operator=(ActiveParticleType *a)
   level = a->level;
   GridID = a->GridID;
   type = a->type;
+  dest_processor = -1;
   return;
 }
 
@@ -187,6 +188,7 @@ active_particle_class *ActiveParticleType::copy(void)
   a->level = level;
   a->GridID = GridID;
   a->type = type;
+  a->dest_processor = -1;
   return a;
 }
 

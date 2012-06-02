@@ -288,8 +288,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 
   for (k = thisGrid->GridStartIndex[2]; k <= thisGrid->GridEndIndex[2]; k++) {
     for (j = thisGrid->GridStartIndex[1]; j <= thisGrid->GridEndIndex[1]; j++) {
-      index = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0], j, k);
-      for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++, index++) {
+      for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++) {
+	index = GRIDINDEX_NOGHOST(i, j, k);
 
 	// If no more room for particles, throw an ENZO_FAIL
 	if (data.NumberOfNewParticles >= data.MaxNumberOfNewParticles)
@@ -664,6 +664,8 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
 	ParticleList[grouplist[i][j]]->DisableParticle(LevelArray);
       }
     }
+    MergedParticles[i]->DisableParticle(LevelArray);
+    MergedParticles[i]->AssignCurrentGrid = NULL;
   }
 
   *nParticles = *ngroups;
@@ -745,7 +747,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	}
 	
 	/* Find the processor which has the maximum value of LevelMax
-	   The repeated code in the serial and parallel implimentations 
+	   and assign the accreting particle to the SavedGrid.  
+	   The repeated code in the serial and parallel implimentations
 	   kind of sucks - should this be different? */
 	
 #ifdef USE_MPI
@@ -850,7 +853,11 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 #endif
     
     AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-    
+    fprintf(stderr,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
+    fprintf(stderr,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
+    fprintf(stderr,"AverageDensity: %"GSYM"\n",AverageDensity);
+
+
     /* Now perform accretion algorithm by modifying the grids locally */
     for (grid = 0; grid < NumberOfGrids; grid++) {
       SinkIsOnThisGrid = false;
