@@ -665,7 +665,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
       }
     }
     MergedParticles[i]->DisableParticle(LevelArray);
-    MergedParticles[i]->AssignCurrentGrid = NULL;
+    MergedParticles[i]->AssignCurrentGrid(NULL);
   }
 
   *nParticles = *ngroups;
@@ -853,9 +853,9 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 #endif
     
     AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-    fprintf(stderr,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
-    fprintf(stderr,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
-    fprintf(stderr,"AverageDensity: %"GSYM"\n",AverageDensity);
+    //fprintf(stderr,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
+    //fprintf(stderr,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
+    //fprintf(stderr,"AverageDensity: %"GSYM"\n",AverageDensity);
 
 
     /* Now perform accretion algorithm by modifying the grids locally */
