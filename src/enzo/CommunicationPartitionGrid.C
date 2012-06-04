@@ -662,8 +662,7 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
 	RootGrid->NextGridNextLevel = ChildGrid;
 	if (ChildGrid->NextGridThisLevel != NULL)
 	  if (ChildGrid->NextGridThisLevel->ParentGrid != ChildGrid->ParentGrid)
-	    ENZO_FAIL("ERROR: Grid hierarchy is inconsistent "+
-		      "after top grid partition");
+	    ENZO_FAIL("ERROR: Grid hierarchy is inconsistent after top grid partition");
 	break;
       } // ENDIF match
 

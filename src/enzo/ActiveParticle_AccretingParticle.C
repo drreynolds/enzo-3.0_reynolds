@@ -909,11 +909,11 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   
   /* Calculate CellWidth on maximum refinement level */
   
-  // this will fail for noncubic boxes or simulations with MinimimRefinementLevelExponent
+  // this will fail for noncubic boxes or simulations with MinimimMassForRefinementLevelExponent
   dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
     (TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
   
-  for (i=0 ; i++ ; i<nParticles){
+  for (i=0 ; i<nParticles; i++){
     pos = AccretingParticleList[i]->ReturnPosition();
     for (Temp = LevelArray[level]; Temp; Temp = Temp->NextGridThisLevel)
       if (Temp->GridData->DepositAccretionZone(level,pos,AccretionRadius*dx) == FAIL) {

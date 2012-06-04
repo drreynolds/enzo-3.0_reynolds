@@ -4,7 +4,7 @@
 /                         ACTIVE PARTICLES
 /
 /  written by: Nathan Goldbaum
-/  date:       January, 2011
+/  date:       January, 2012
 /  modified:   
 /
 /  PURPOSE:
