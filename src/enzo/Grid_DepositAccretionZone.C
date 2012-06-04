@@ -29,28 +29,18 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 {
   /* Return if this grid is not on this processor. */
 
-  int method, ParticleMassMethod, i, j, k, dim, NumberOfFlaggedCells = 0, size=1;
+  int method = 0, ParticleMassMethod, i, j, k, NumberOfFlaggedCells = 0, size=1;
   float MustRefineMass;
-  FLOAT LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION], CellSize;
+  FLOAT CellSize;
   
   if (MyProcessorNumber != ProcessorNumber)
     return SUCCESS;
 
-  /* compute size and find bottom left and top right corners of grid */
-
-  CellSize = float(CellWidth[0][0]);
-    
-  for (dim = 0; dim > GridRank; dim++) {
-    size *= GridDimension[dim];
-    LeftCorner[dim] = CellLeftEdge[dim][0];
-    RightCorner[dim] = LeftCorner[dim] + CellSize*(GridDimension[dim]);
-  }
-
   /* Check whether accretion zone overlaps with the grid */
 
-  if (LeftCorner[0] > ParticlePosition[0]+AccretionRadius || RightCorner[0] < ParticlePosition[0]-AccretionRadius ||
-      LeftCorner[1] > ParticlePosition[1]+AccretionRadius || RightCorner[1] < ParticlePosition[1]-AccretionRadius ||
-      LeftCorner[2] > ParticlePosition[2]+AccretionRadius || RightCorner[2] < ParticlePosition[2]-AccretionRadius)
+  if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
+      (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
+      (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
     return SUCCESS;
 
   /* Error checks */

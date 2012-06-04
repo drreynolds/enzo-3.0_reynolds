@@ -238,6 +238,23 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   AccretingParticleBufferHandler *pbuffer = new AccretingParticleBufferHandler();
   delete pbuffer;
 
+  // Need to turn on particle mass flagging if it isn't already turned on.
+
+  bool TurnOnParticleMassRefinement = true;
+  int method;
+  for (method = 0; method < MAX_FLAGGING_METHODS; method++)
+    if (CellFlaggingMethod[method] == 8 || CellFlaggingMethod[method] == 4) {
+      TurnOnParticleMassRefinement = false;
+      break;
+    }
+	
+  if (TurnOnParticleMassRefinement) {
+    method = 0;
+    while(CellFlaggingMethod[method] != INT_UNDEFINED)
+      method++;
+    CellFlaggingMethod[method] = 4;
+  }
+
   return SUCCESS;
 }
 
@@ -900,10 +917,10 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
 							   int TopGridDims[], int AccretingParticleID)
 {
   /* Generate a list of all sink particles in the simulation box */
-  int i,dim,nParticles;
-  FLOAT *pos = NULL,dx,AccretionRadius;
+  int i, nParticles;
+  FLOAT *pos = NULL, dx=0;
   ActiveParticleType **AccretingParticleList = NULL ;
-  LevelHierarchyEntry *Temp;
+  LevelHierarchyEntry *Temp = NULL;
   
   AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
   
