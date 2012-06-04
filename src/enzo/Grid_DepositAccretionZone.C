@@ -29,18 +29,28 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 {
   /* Return if this grid is not on this processor. */
 
-  int method = 0, ParticleMassMethod, i, j, k, NumberOfFlaggedCells = 0, size=1;
+  int dim, method = 0, ParticleMassMethod, i, j, k, NumberOfFlaggedCells = 0, size=1;
   float MustRefineMass;
-  FLOAT CellSize;
+  FLOAT CellSize, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMESION];
   
   if (MyProcessorNumber != ProcessorNumber)
     return SUCCESS;
 
-  /* Check whether accretion zone overlaps with the grid */
+  /* Check whether accretion zone overlaps with the grid Need to
+     include ghost zones because the ParticleMassFlaggingField covers
+     the ghost zones as well.*/
 
-  if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
-      (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
-      (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
+  CellSize = CellWidth[0][0];
+
+  for (dim = 0; dim > GridRank; dim++) {
+    size *= GridDimension[dim];
+    LeftCorner[dim] = CellLeftEdge[dim][0];
+    RightCorner[dim] = LeftCorner[dim] + CellSize*FLOAT((GridDimension[dim]+1));
+  }
+
+  if ((LeftCorner[0] > ParticlePosition[0]+AccretionRadius) || (RightCorner[0] < ParticlePosition[0]-AccretionRadius) ||
+      (LeftCorner[1] > ParticlePosition[1]+AccretionRadius) || (RightCorner[1] < ParticlePosition[1]-AccretionRadius) ||
+      (LeftCorner[2] > ParticlePosition[2]+AccretionRadius) || (RightCorner[2] < ParticlePosition[2]-AccretionRadius))
     return SUCCESS;
 
   /* Error checks */
@@ -74,7 +84,7 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 	    sqrt( POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 		  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 		  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) ))
-	  FlaggingField[i*GridDimension[2]+j*GridDimension[1]+k] = 1;
+	  FlaggingField[k*GridDimension[2]+j*GridDimension[1]+i] = 1;
 
   /* Set ParticleMassFlaggingField appropriately */
 
