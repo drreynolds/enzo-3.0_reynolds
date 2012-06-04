@@ -288,10 +288,6 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   fprintf(fptr, "NumberOfParticles      = %"PISYM" (do not modify)\n",
 	  MetaData.NumberOfParticles);
 
-  for (int i = 0; i<EnabledActiveParticlesCount; i++){
-    fprintf(fptr, "AppendActiveParticleType = %s\n", EnabledActiveParticles[i]->particle_name.c_str());
-  }
-
   fprintf(fptr, "CourantSafetyNumber    = %"FSYM"\n",
 	  MetaData.CourantSafetyNumber);
   fprintf(fptr, "PPMFlatteningParameter = %"ISYM"\n",
@@ -320,6 +316,13 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
 	  MaximumParticleRefinementLevel);
   fprintf(fptr, "CellFlaggingMethod             = ");
   WriteListOfInts(fptr, MAX_FLAGGING_METHODS, CellFlaggingMethod);
+
+  for (int i = 0; i<EnabledActiveParticlesCount; i++){
+    fprintf(fptr, "AppendActiveParticleType = %s\n", EnabledActiveParticles[i]->particle_name.c_str());
+  }  // This needs to be after CellFlaggingMethod to make sure must
+     // refine active particles are configured correctly on restart.
+     // There's probably a better way to do this.
+
   fprintf(fptr, "FluxCorrection                 = %"ISYM"\n", FluxCorrection);
   fprintf(fptr, "InterpolationMethod            = %"ISYM"\n", InterpolationMethod);
   fprintf(fptr, "ConservativeInterpolation      = %"ISYM"\n", ConservativeInterpolation);

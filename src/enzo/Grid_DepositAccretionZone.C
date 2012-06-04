@@ -31,7 +31,7 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 
   int dim, method = 0, ParticleMassMethod, i, j, k, NumberOfFlaggedCells = 0, size=1;
   float MustRefineMass;
-  FLOAT CellSize, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMESION];
+  FLOAT CellSize, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION];
   
   if (MyProcessorNumber != ProcessorNumber)
     return SUCCESS;
@@ -42,7 +42,7 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 
   CellSize = CellWidth[0][0];
 
-  for (dim = 0; dim > GridRank; dim++) {
+  for (dim = 0; dim < GridRank; dim++) {
     size *= GridDimension[dim];
     LeftCorner[dim] = CellLeftEdge[dim][0];
     RightCorner[dim] = LeftCorner[dim] + CellSize*FLOAT((GridDimension[dim]+1));

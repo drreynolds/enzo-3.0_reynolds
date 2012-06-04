@@ -342,6 +342,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	np->BirthTime = thisGrid->ReturnTime();
 
 	np->level = data.level;
+	np->GridID = data.GridID;
+	np->CurrentGrid = thisGrid;
 	
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
