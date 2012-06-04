@@ -84,7 +84,7 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 	    sqrt( POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 		  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 		  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) ))
-	  FlaggingField[k*GridDimension[2]+j*GridDimension[1]+i] = 1;
+	  FlaggingField[(k*GridDimension[1]+j)*GridDimension[0]+i] = 1;
 
   /* Set ParticleMassFlaggingField appropriately */
 
