@@ -86,12 +86,12 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 	// Need to do this sort of expensive check since a derefined
 	// cell could enclose the accretion zone yet still be centered
 	// outside the accretion radius
-	if (!((CellLeftEdge[0][index] > ParticlePosition[0]+AccretionRadius) || 
-	      (CellLeftEdge[1][index] > ParticlePosition[1]+AccretionRadius) || 
-	      (CellLeftEdge[2][index] > ParticlePosition[2]+AccretionRadius) || 
-	      (CellLeftEdge[0][index]+CellSize < ParticlePosition[0]-AccretionRadius) ||
-	      (CellLeftEdge[1][index]+CellSize < ParticlePosition[1]-AccretionRadius) ||
-	      (CellLeftEdge[2][index]+CellSize < ParticlePosition[2]-AccretionRadius)))
+	if (!((CellLeftEdge[0][i] > ParticlePosition[0]+AccretionRadius) || 
+	      (CellLeftEdge[1][j] > ParticlePosition[1]+AccretionRadius) || 
+	      (CellLeftEdge[2][k] > ParticlePosition[2]+AccretionRadius) || 
+	      (CellLeftEdge[0][i]+CellSize < ParticlePosition[0]-AccretionRadius) ||
+	      (CellLeftEdge[1][j]+CellSize < ParticlePosition[1]-AccretionRadius) ||
+	      (CellLeftEdge[2][k]+CellSize < ParticlePosition[2]-AccretionRadius)))
 	      {
 	    FlaggingField[index] = 1;
 	    NumberOfFlaggedCells++;
