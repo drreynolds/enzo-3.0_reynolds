@@ -30,6 +30,15 @@ int DepositActiveParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
 					   int level, int TopGridDims[] )
 {
 
+  /* Check if there are any grids on this level, and if we're already
+     at the maximum refinement level */
+  
+  if (LevelArray[level] == NULL)
+    return SUCCESS;
+
+  if (level >= MaximumRefinementLevel)
+    return SUCCESS;
+
   int i,ActiveParticleID;
 
   for (i = 0 ; i < EnabledActiveParticlesCount ; i++) {
