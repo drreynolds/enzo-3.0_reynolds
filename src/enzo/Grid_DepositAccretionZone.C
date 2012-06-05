@@ -77,16 +77,26 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 
   /* Loop over all cells and flag the ones that overlap the accretion zone */
 
+  int index;
+
   for (i = 0; i < GridDimension[0]; i++)
     for (j = 0; j < GridDimension[1]; j++)
-      for (k = 0; k < GridDimension[2]; k++)
-	if (AccretionRadius > 
-	    sqrt( POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
-		  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
-		  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) )) {
-	  FlaggingField[(k*GridDimension[1]+j)*GridDimension[0]+i] = 1;
-	  NumberOfFlaggedCells++;
+      for (k = 0; k < GridDimension[2]; k++) {
+	index = (k*GridDimension[1]+j)*GridDimension[0]+i;
+	// Need to do this sort of expensive check since a derefined
+	// cell could enclose the accretion zone yet still be centered
+	// outside the accretion radius
+	if (!((CellLeftEdge[0][index] > ParticlePosition[0]+AccretionRadius) || 
+	      (CellLeftEdge[1][index] > ParticlePosition[1]+AccretionRadius) || 
+	      (CellLeftEdge[2][index] > ParticlePosition[2]+AccretionRadius) || 
+	      (CellLeftEdge[0][index]+CellSize < ParticlePosition[0]-AccretionRadius) ||
+	      (CellLeftEdge[1][index]+CellSize < ParticlePosition[1]-AccretionRadius) ||
+	      (CellLeftEdge[2][index]+CellSize < ParticlePosition[2]-AccretionRadius)))
+	      {
+	    FlaggingField[index] = 1;
+	    NumberOfFlaggedCells++;
 	}
+      }
 
   /* Set ParticleMassFlaggingField appropriately */
 
