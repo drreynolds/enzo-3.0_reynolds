@@ -83,16 +83,15 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 	if (AccretionRadius > 
 	    sqrt( POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 		  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
-		  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) ))
+		  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2) )) {
 	  FlaggingField[(k*GridDimension[1]+j)*GridDimension[0]+i] = 1;
+	  NumberOfFlaggedCells++;
+	}
 
   /* Set ParticleMassFlaggingField appropriately */
 
   for (i = 0; i < size; i++)
-    {
-      ParticleMassFlaggingField[i] += (FlaggingField[i] > 0) ? MustRefineMass : 0;
-      NumberOfFlaggedCells++;
-    }
+    ParticleMassFlaggingField[i] += (FlaggingField[i] > 0) ? MustRefineMass : 0;
 
   delete [] FlaggingField;
   FlaggingField = NULL;
