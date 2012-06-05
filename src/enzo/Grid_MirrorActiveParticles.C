@@ -48,6 +48,8 @@ int grid::MirrorActiveParticles(void)
   n = NumberOfParticles - NumberOfActiveParticles;
   for (i = 0; i < NumberOfActiveParticles; i++) {
     for (dim = 0; dim < MAX_DIMENSION; dim++) {
+      if (this->ActiveParticles[i]->Identifier != ParticleNumber[n]) 
+	ENZO_FAIL("Particle identifiers are inconsistent!");
       this->ActiveParticles[i]->pos[dim] = ParticlePosition[dim][n];
       this->ActiveParticles[i]->vel[dim] = ParticleVelocity[dim][n];
     }

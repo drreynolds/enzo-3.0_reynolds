@@ -58,7 +58,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     return SUCCESS;
 
   /* Get the current particle positions and velocities */
-
+  
   this->MirrorActiveParticles();
 
   /*fprintf(stderr, "G_APH: Currently have %"ISYM"\n",

@@ -118,9 +118,10 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
   for (k = 0; k < GridDimension[2]; k++) {
     for (j = 0; j < GridDimension[1]; j++) {
-      index = (k*GridDimension[1] + j)*GridDimension[0];
       for (i = 0; i < GridDimension[0]; index++, i++) {
-	radius2 = POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
+	index = (k*GridDimension[1] + j)*GridDimension[0] + i;
+	radius2 = 
+	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
@@ -128,8 +129,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	  vgas[0] = BaryonField[Vel1Num][index];
 	  vgas[1] = BaryonField[Vel2Num][index];
 	  vgas[2] = BaryonField[Vel3Num][index];
-	  mcell = BaryonField[DensNum][index]*CellVolume;
 	  rhocell = BaryonField[DensNum][index];
+	  mcell = rhocell*CellVolume;
 	  // These are momentum densities in the frame of the sink.
 	  pcell[0] = rhocell*vgas[0] - vsink[0]*rhocell;
 	  pcell[1] = rhocell*vgas[1] - vsink[1]*rhocell;
@@ -158,7 +159,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	     NDIV^2 subcells and estimate the reduction assuming
 	     ballistic orbits. See the discussion near Eqn 15. */
 	  
-	  /* Need to impliment this */
+	  /* Need to implement this */
 	  
 	  /* Don't worry about conserving angular momentum if we're
 	     accreting no mass from the cell or if we are accreting

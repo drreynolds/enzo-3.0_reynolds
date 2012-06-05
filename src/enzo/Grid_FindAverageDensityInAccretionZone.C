@@ -54,7 +54,7 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
     ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
   }
 
-  /* Compute cell width and find botoom left and top right corners of grid */
+  /* Compute cell width and find bottom left and top right corners of grid */
 
   CellSize = CellWidth[0][0];
 
@@ -68,11 +68,12 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
   else
     KernelRadius = AccretionRadius/2.0;
   
-  for (k = 0; k < GridDimension[0]; k++) {
+  for (k = 0; k < GridDimension[2]; k++) {
     for (j = 0; j < GridDimension[1]; j++) {
-      index = (k*GridDimension[1] + j)*GridDimension[0];
-      for (i = 0; i < GridDimension[2]; index++, i++) {
-	radius2 = POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
+      for (i = 0; i < GridDimension[0]; i++) {
+	index = (k*GridDimension[1] + j)*GridDimension[0] + i;
+	radius2 = 
+	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
