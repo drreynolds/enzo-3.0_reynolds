@@ -59,7 +59,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
   FLOAT CellSize, KernelRadius, radius2;
 
-  int i, j, k, dim, index, size=1;
+  int i, j, k, dim, index;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10.;
 
@@ -93,7 +93,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   CellSize = CellWidth[0][0];
 
   for (dim = 0; dim < GridRank; dim++) {
-    size *= GridDimension[dim];
     CellVolume*=CellWidth[dim][0];
   }
   
@@ -117,8 +116,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   vsink[2] = ThisParticle->ReturnVelocity()[2];
 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
-    for (j = GridStartIndex[1]; j < GridEndIndex[1]; j++) {
-      for (i = GridStartIndex[0]; i < GridEndIndex[0]; i++) {
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
 	index = GRIDINDEX_NOGHOST(i,j,k);
 	radius2 = 
 	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +

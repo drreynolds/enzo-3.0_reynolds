@@ -844,7 +844,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
     GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
-    AccretionRate;
+    AccretionRate = 0;
   int NumberOfCells = 0;
   
   for (i = 0; i < 3; i++) {
