@@ -68,10 +68,10 @@ int grid::FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FL
   else
     KernelRadius = AccretionRadius/2.0;
   
-  for (k = 0; k < GridDimension[2]; k++) {
-    for (j = 0; j < GridDimension[1]; j++) {
-      for (i = 0; i < GridDimension[0]; i++) {
-	index = (k*GridDimension[1] + j)*GridDimension[0] + i;
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
+	index = GRIDINDEX_NOGHOST(i,j,k);
 	radius2 = 
 	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +

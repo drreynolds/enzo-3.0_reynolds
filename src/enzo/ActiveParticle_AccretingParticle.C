@@ -268,10 +268,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
   
 
-  int GridDimension[MAX_DIMENSION] = {thisGrid->GridDimension[0],
-				      thisGrid->GridDimension[1],
-				      thisGrid->GridDimension[2]};
-
   float *tvel;
 
   int i,j,k,index,method,MassRefinementMethod;
@@ -286,6 +282,10 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
   float MassRefinementDensity = 0;
   float DensityThreshold = huge_number;
   float ExtraDensity = 0;
+
+  int GridDimension[3] = {thisGrid->GridDimension[0],
+                          thisGrid->GridDimension[1],
+                          thisGrid->GridDimension[2]};
 
   FLOAT dx = thisGrid->CellWidth[0][0];
   
@@ -394,19 +394,24 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
   float *totalenergy = thisGrid->BaryonField[data.TENum];
   float *gasenergy = thisGrid->BaryonField[data.GENum];
 
+  float *vel,CellTemperature;
+  int n,i,j,k,index,dim;
+
+  // We need this otherwise the GRIDINDEX_NOGHOST macro will break
   int GridDimension[3] = {thisGrid->GridDimension[0],
                           thisGrid->GridDimension[1],
                           thisGrid->GridDimension[2]};
-
-  float *vel,CellTemperature;
-  int n,i,j,k,index,dim;
 
   FLOAT *pos, LeftCorner[MAX_DIMENSION];
 
   FLOAT dx = thisGrid->CellWidth[0][0];
 
-  for (dim = 0; dim < 3; dim++) 
-    LeftCorner[dim] = thisGrid->CellLeftEdge[dim][0];
+  int GridStartIndex[MAX_DIMENSION];
+
+  for (dim = 0; dim < 3; dim++) {
+    LeftCorner[dim] = thisGrid->GetGridLeftEdge(dim);
+    GridStartIndex[dim] = thisGrid->GetGridStartIndex(dim);
+  }
 
   /* Loop over all of the AccretingParticles on this grid and set the bondi-hoyle radius */
 
@@ -415,10 +420,10 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
       static_cast<ActiveParticleType_AccretingParticle*>(thisGrid->ActiveParticles[n]);
     pos = ThisParticle->ReturnPosition();
     vel = ThisParticle->ReturnVelocity(); 
-    i = int((pos[0] - LeftCorner[0])/thisGrid->CellWidth[0][0]);
-    j = int((pos[1] - LeftCorner[1])/thisGrid->CellWidth[0][0]);
-    k = int((pos[2] - LeftCorner[2])/thisGrid->CellWidth[0][0]);
-    index = GRIDINDEX_NOGHOST(i,j,k);
+    i = int((pos[0] - LeftCorner[0])/dx);
+    j = int((pos[1] - LeftCorner[1])/dx);
+    k = int((pos[2] - LeftCorner[2])/dx);
+    index = GRIDINDEX(i,j,k);
     ThisParticle->vInfinity = sqrt(pow((vel[0] - velx[index]),2) +
 				   pow((vel[1] - vely[index]),2) +
 				   pow((vel[2] - velz[index]),2));
@@ -961,14 +966,15 @@ int ActiveParticleType_AccretingParticle::AdjustBondiHoyle(grid* CurrentGrid) {
 
   FLOAT dx = CurrentGrid->GetCellWidth(0);
 
-  int GridStartIndex[3];
   int GridDimension[3];
 
+  int GridStartIndex[3];
+ 
   for (dim = 0; dim < 3; dim++) {
     LeftCorner[dim] = CurrentGrid->GetGridLeftEdge(dim);
     GridStartIndex[dim] = CurrentGrid->GetGridStartIndex(dim);
     GridDimension[dim] = CurrentGrid->GetGridDimension(dim);
-  }
+   }
 
   float *temperature = new float[CurrentGrid->GetGridSize()];
   CurrentGrid->ComputeTemperatureField(temperature);
