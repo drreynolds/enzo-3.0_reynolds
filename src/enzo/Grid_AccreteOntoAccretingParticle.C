@@ -24,6 +24,7 @@
 #include "global_data.h"
 #include "Fluxes.h"
 #include "GridList.h"
+#include "phys_constants.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
 #include "Hierarchy.h"
@@ -67,6 +68,10 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     rhocell, pcell[3], paccrete[3], eaccrete, mnew, rhonew, reff[3], rsqr, 
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew, 
     pnew[3], kenew;
+
+  int isub, jsub, ksub, excluded, NDIV = 8;
+  
+  float xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, rmin, dxmin, ACCRETERADMIN = 2.0, huge = 1.0e30;
 
   for (i = 0; i < 3; i++) {
     vsink[i] = 0;
@@ -150,16 +155,60 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	  // Calculate mass we need to subtract from this cell
 	  Weight = exp(-radius2/(KernelRadius*KernelRadius))/SumOfWeights;
 	  maccreted =  this->dtFixed * (*AccretionRate) * Weight;
-	  if (maccreted > 0.25*mcell) 
-	    maccreted = 0.25*mcell;
+	  if (maccreted > 0.1*mcell) 
+	    maccreted = 0.1*mcell;
 	  
 	  /* The true accretion rate is somewhat less than this due to
 	     angular momentum conservation.  Subdivide the cell into
 	     NDIV^2 subcells and estimate the reduction assuming
 	     ballistic orbits. See the discussion near Eqn 15. */
 	  
-	  /* Need to implement this */
-	  
+	  excluded = 0;
+	  for (ksub = 0; ksub < NDIV-1; ksub++) {
+	    zdist = CellLeftEdge[2][k] + CellWidth[2][k]*(float(ksub)+0.5)/NDIV - ParticlePosition[2];
+	    for (jsub = 0; jsub < NDIV-1; jsub++) {
+	      ydist = CellLeftEdge[1][j] + CellWidth[1][j]*(float(jsub)+0.5)/NDIV - ParticlePosition[1];
+	      for (isub = 0; isub < NDIV-1; isub++) {
+		xdist = CellLeftEdge[0][i] + CellWidth[0][i]*(float(jsub)+0.5)/NDIV - ParticlePosition[1];
+
+		dist = sqrt(xdist*xdist+ydist*ydist+zdist*zdist);
+		if (dist == 0.0)
+		  dist = CellWidth[0][0]/huge;
+
+		// Compute specific angular momentum
+		jsp[0] = ydist*(vgas[2] - vsink[2]) -
+		  zdist*(vgas[1] - vsink[1]);
+		jsp[1] = zdist*(vgas[0] - vsink[0]) - 
+		  xdist*(vgas[2] - vsink[2]);
+		jsp[2] = xdist*(vgas[1] - vsink[1]) -
+		  ydist*(vgas[0] - vsink[0]);
+		
+		jspsqr = jsp[0]*jsp[0]+jsp[1]*jsp[1]+jsp[2]*jsp[2];
+
+		// Compute specific kinetic + gravitational energy
+		esp = (POW((vgas[0] - vsink[0]),2) + 
+		       POW((vgas[1] - vsink[1]),2) +
+		       POW((vgas[2] - vsink[2]),2)) / 2.0 - GravConst * mcell/dist;
+		
+		// Compute distance of closest approach
+		if (esp > 0.0)
+		  rmin = huge*CellWidth[0][0];
+		else
+		  rmin = -GravConst*mcell/(2.0*esp) *
+		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravConst*mcell,2)));
+		
+		dxmin = rmin / CellWidth[0][0];
+		if (dxmin > ACCRETERADMIN)
+		  excluded+=1;
+
+	      } // ksub
+	    } // jsub
+	  } // ksub
+
+	  // Scale down maccrete
+	  maccreted = maccreted/POW(NDIV,3) *
+	    (POW(NDIV,3)-excluded);
+	    
 	  /* Don't worry about conserving angular momentum if we're
 	     accreting no mass from the cell or if we are accreting
 	     all of the mass from it.  Note that paccrete and eaccrete
