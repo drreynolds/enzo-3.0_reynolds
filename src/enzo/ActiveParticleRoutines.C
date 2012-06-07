@@ -228,6 +228,14 @@ void  ActiveParticleType::AdjustVelocity(float VelocityIncrement[])
   return;
 }
 
+void ActiveParticleType::SetVelocity(float NewVelocity[])
+{
+  int i;
+  for (i = 0; i<3; i++)
+    vel[i] = NewVelocity[i];
+  return;
+}
+
 void ActiveParticleType::Merge(ActiveParticleType *a)
 {
   int dim;

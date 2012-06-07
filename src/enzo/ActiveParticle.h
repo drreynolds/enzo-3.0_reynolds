@@ -88,6 +88,7 @@ public:
   void  AddMass(double dM) { Mass += dM; };
   void  AdjustMassByFactor(double factor) { Mass *= factor; };
   void  AdjustVelocity(float VelocityIncrement[]);
+  void  SetVelocity(float NewVelocity[]);
 
   FLOAT *ReturnPosition(void) { return pos; };
   float *ReturnVelocity(void) { return vel; };

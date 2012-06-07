@@ -52,16 +52,39 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
     return SUCCESS;
 
   for (i = 0; i < GridRank; i++)
-    CellVolume+=CellWidth[i][0];
+    CellVolume*=CellWidth[i][0];
 
-  float VelocityAdjustment[3] = {
-    AccretedMomentum[0]/(ThisParticle->Mass*CellVolume),
-    AccretedMomentum[1]/(ThisParticle->Mass*CellVolume),
-    AccretedMomentum[2]/(ThisParticle->Mass*CellVolume)};
+  float OldMass = ThisParticle->Mass*CellVolume;
+  float *OldVel = ThisParticle->vel;
+
+  float NewVelocity[3] = {
+    (OldMass*OldVel[0]+AccretedMomentum[0])/(OldMass+AccretedMass*CellVolume),
+    (OldMass*OldVel[1]+AccretedMomentum[1])/(OldMass+AccretedMass*CellVolume),
+    (OldMass*OldVel[2]+AccretedMomentum[2])/(OldMass+AccretedMass*CellVolume)};
+
+#ifdef DEBUG
+  fprintf(stderr,"AccretedMass = %"GSYM"\n",AccretedMass);
+  fprintf(stderr,"AccretedMomentum[0] = %"GSYM"\n",AccretedMomentum[0]);
+  fprintf(stderr,"AccretedMomentum[1] = %"GSYM"\n",AccretedMomentum[0]);
+  fprintf(stderr,"AccretedMomentum[2] = %"GSYM"\n",AccretedMomentum[0]);
+#endif
 
   // Masses are actually densities
   this->ActiveParticles[iFound]->AddMass(AccretedMass);
-  this->ActiveParticles[iFound]->AdjustVelocity(VelocityAdjustment);
+  this->ActiveParticles[iFound]->SetVelocity(NewVelocity);
+
+#ifdef DEBUG
+  float mnew = this->ActiveParticles[iFound]->ReturnMass();
+  float* vnew = this->ActiveParticles[iFound]->ReturnVelocity();
+  float pnew[3] = {mnew*CellVolume*vnew[0],
+		   mnew*CellVolume*vnew[1],
+		   mnew*CellVolume*vnew[2]};
+
+  fprintf(stderr,"dm = %"GSYM"\n",mnew - OldMass);
+  fprintf(stderr,"dpx = %"GSYM"\n",pnew[0] - OldMass*OldVel[0]);
+  fprintf(stderr,"dpy = %"GSYM"\n",pnew[1] - OldMass*OldVel[1]);
+  fprintf(stderr,"dpz = %"GSYM"\n",pnew[2] - OldMass*OldVel[2]);
+#endif
 
   return SUCCESS;
 }
