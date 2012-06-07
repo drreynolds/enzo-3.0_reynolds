@@ -247,12 +247,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
       } // ENDIF serial
       
     }  /* ENDIF number of active particles > 0 */
-    else { /* GlobalNumberOfActiveParticles = 0 */
-      // need to clean up still
 
-      delete [] nCount;
-      nCount = NULL;
-    }
   } /* ENFOR Active particle types */
 
   return GlobalList;
