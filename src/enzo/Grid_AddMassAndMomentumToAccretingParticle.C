@@ -30,6 +30,8 @@
 #include "Hierarchy.h"
 #include "ActiveParticle.h"
 
+#define NO_DEBUG
+
 int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float AccretedMomentum[], 
 						ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]) {
 
@@ -63,10 +65,10 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
     (OldMass*OldVel[2]+AccretedMomentum[2])/(OldMass+AccretedMass*CellVolume)};
 
 #ifdef DEBUG
-  fprintf(stderr,"AccretedMass = %"GSYM"\n",AccretedMass);
+  fprintf(stderr,"AccretedMass = %"GSYM"\n",AccretedMass*CellVolume);
   fprintf(stderr,"AccretedMomentum[0] = %"GSYM"\n",AccretedMomentum[0]);
-  fprintf(stderr,"AccretedMomentum[1] = %"GSYM"\n",AccretedMomentum[0]);
-  fprintf(stderr,"AccretedMomentum[2] = %"GSYM"\n",AccretedMomentum[0]);
+  fprintf(stderr,"AccretedMomentum[1] = %"GSYM"\n",AccretedMomentum[1]);
+  fprintf(stderr,"AccretedMomentum[2] = %"GSYM"\n",AccretedMomentum[2]);
 #endif
 
   // Masses are actually densities
@@ -80,7 +82,7 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
 		   mnew*CellVolume*vnew[1],
 		   mnew*CellVolume*vnew[2]};
 
-  fprintf(stderr,"dm = %"GSYM"\n",mnew - OldMass);
+  fprintf(stderr,"dm = %"GSYM"\n",mnew*CellVolume - OldMass);
   fprintf(stderr,"dpx = %"GSYM"\n",pnew[0] - OldMass*OldVel[0]);
   fprintf(stderr,"dpy = %"GSYM"\n",pnew[1] - OldMass*OldVel[1]);
   fprintf(stderr,"dpz = %"GSYM"\n",pnew[2] - OldMass*OldVel[2]);

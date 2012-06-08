@@ -31,6 +31,8 @@
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 
+#define NO_DEBUG
+
 float bondi_alpha(float x);
 
 int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
@@ -45,7 +47,15 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
   FLOAT *ParticlePosition = ThisParticle->ReturnPosition();
-  
+
+#ifdef DEBUG
+  fprintf(stderr,
+	  "Left[0] = %"GSYM", Left[1] = %"GSYM", Left[2] = %"GSYM"\n"
+	  "Right[0] = %"GSYM", Right[1] = %"GSYM", Right[2] = %"GSYM"\n",
+	  ParticlePosition[0]-AccretionRadius,ParticlePosition[1]-AccretionRadius,ParticlePosition[2]-AccretionRadius,
+	  ParticlePosition[0]+AccretionRadius,ParticlePosition[1]+AccretionRadius,ParticlePosition[2]+AccretionRadius);
+#endif
+
   if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
       (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
       (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
@@ -122,13 +132,21 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
-      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
-	index = GRIDINDEX_NOGHOST(i,j,k);
+      index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
 	radius2 = 
 	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
+#ifdef DEBUG
+	  fprintf(stderr,
+		  "CellLeftEdge[0][i] = %"GSYM", CellRightEdge[0][i] =%"GSYM"\n"
+		  "CellLeftEdge[1][j] = %"GSYM", CellRightEdge[1][j] =%"GSYM"\n"
+		  "CellLeftEdge[2][k] = %"GSYM", CellRightEdge[2][k] =%"GSYM"\n",
+		  CellLeftEdge[0][i],CellLeftEdge[0][i]+CellWidth[0][i],CellLeftEdge[1][j],CellLeftEdge[1][j]+CellWidth[1][j],
+		  CellLeftEdge[2][k],CellLeftEdge[2][k]+CellWidth[2][k]);
+#endif
 	  // useful shorthand
 	  vgas[0] = BaryonField[Vel1Num][index];
 	  vgas[1] = BaryonField[Vel2Num][index];
@@ -353,6 +371,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 
   return SUCCESS;
 }
+
+#undef DEBUG
 
 /* Routine to return alpha, defined as rho/rho_inf, for a critical
    Bondi accretion solution.  The argument is x = r / rBondiHoyle. 

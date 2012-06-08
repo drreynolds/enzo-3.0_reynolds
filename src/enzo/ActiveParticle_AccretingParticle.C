@@ -313,6 +313,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
 	  return FAIL;
 
 	// Does this cell violate the Jeans condition?
+	DensityThreshold = huge_number;
 	if (JeansRefinement) {
 	  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
 	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature / 
@@ -377,7 +378,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig,
       } // i
     } // j
   } // k
-  
+ 
   return SUCCESS;
 }  
 
@@ -803,7 +804,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       }
 
       delete [] MergedParticles;
-
+      
       /* Regenerate the global active particle list */
       
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
@@ -903,7 +904,9 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     MPI_Allreduce(&SubtractedMomentum, &GlobalSubtractedMomentum, 3, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
 #else
     GlobalSubtractedMass = SubtractedMass;
-    GlobalSubtractedMomentum = SubtractedMomentum;
+    for (int j = 0; j < 3; j++) {
+      GlobalSubtractedMomentum[j] = SubtractedMomentum[j];
+    }
 #endif
     temp->AccretionRate = AccretionRate;
     
@@ -1033,6 +1036,7 @@ void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buff
   pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
   // If any extra fields are added in the future, then they would be
   // transferred to the buffer here.
+#ifdef USE_MPI
   if (pbuffer->NumberOfBuffers > 0) {
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->AccretionRate,
 	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
@@ -1043,6 +1047,7 @@ void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buff
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->BondiHoyleRadius,
 	       pbuffer->NumberOfBuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
   }
+#endif
   /* Convert the particle buffer into active particles */
   
   for (i = 0; i < pbuffer->NumberOfBuffers; i++)
