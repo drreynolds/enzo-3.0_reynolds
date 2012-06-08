@@ -20,7 +20,7 @@ CollapseTestRefineAtStart   = 1         // check refinement before running
 CollapseTestNumberOfSpheres = 1
 CollapseTestUseParticles    = 0
 CollapseTestInitialTemperature = 5e3    // temperature of the background gas
-CollapseTestSpherePosition[0]   = 0.5 0.5 0.5
+CollapseTestSpherePosition[0]   = 0.45 0.45 0.45
 CollapseTestSphereVelocity[0]   = 0.0 0.0 0.0
 CollapseTestSphereRadius[0]     = 0.15
 CollapseTestSphereCoreRadius[0] = 0.05  // only used with sphere type 5
@@ -46,7 +46,7 @@ GravitationalConstant = 1.39698e-3     // 4*pi*G_{cgs}*DensityUnits*TimeUnits^2
 #
 #  set I/O and stop/start parameters
 #
-StopTime          = 12.5
+StopTime          = 6.5
 dtDataDump        = 0.1
 #CycleSkipDataDump = 1
 DataDumpDir       = DD
