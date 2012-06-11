@@ -2423,6 +2423,10 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			     float &metallicity3,
 			     float &coldgas_mass, float AvgVelocity[]);
 
+  /* Sum mass on this grid */
+
+  int SumGasMass(float *mass);
+
   int RemoveParticle(int ID, bool disable=false);
 
   int RemoveActiveParticle(PINT ID);

@@ -499,8 +499,38 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
       /* Include 'star' particle creation and feedback. */
 
+      
+      NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
+      
+      float MassOnThisLevelOnThisProc = 0;
+      float MassOnThisLevel = 0;
+      for (int grid2=0;grid2<NumberOfGrids;grid2++) {
+	if (Grids[grid2]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
+	  ENZO_FAIL("SumGasMass Failed!\n");
+      }
+      
+      MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+      
+      if (level == 4) 
+	fprintf(stderr,"Before Handler MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+
       Grids[grid1]->GridData->ActiveParticleHandler
 	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
+
+      NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
+      
+      MassOnThisLevelOnThisProc = 0;
+      MassOnThisLevel = 0;
+      for (int grid2=0;grid2<NumberOfGrids;grid2++) {
+	if (Grids[grid2]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
+	  ENZO_FAIL("SumGasMass Failed!\n");
+      }
+      
+      MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+      
+      if (level == 4) 
+	fprintf(stderr,"After Handler MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+      
 
       /* Include shock-finding */
 
@@ -537,8 +567,36 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
+
+    NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
+      
+    float MassOnThisLevelOnThisProc = 0;
+    float MassOnThisLevel = 0;
+    for (grid1=0;grid1<NumberOfGrids;grid1++) {
+      if (Grids[grid1]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
+	ENZO_FAIL("SumGasMass Failed!\n");
+    }
+    
+    MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+    
+    if (level == 4) 
+      fprintf(stderr,"Before Finalize MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, TotalActiveParticleCountPrevious);
+
+    MassOnThisLevelOnThisProc = 0;
+    MassOnThisLevel = 0;
+    for (grid1=0;grid1<NumberOfGrids;grid1++) {
+      if (Grids[grid1]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
+	ENZO_FAIL("SumGasMass Failed!\n");
+    }
+    
+    MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+    
+    if (level == 4)
+      fprintf(stderr,"After Finalize MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */

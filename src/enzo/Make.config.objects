@@ -588,7 +588,8 @@ OBJS_CONFIG_LIB = \
 	Grid_StratifiedMediumExplosionInitialize.o \
         Grid_SupernovaRestartInitialize.o \
         Grid_SubtractAccretedMassFromSphere.o \
-        Grid_TestGravityCheckResults.o \
+        Grid_SumGasMass.o \
+	Grid_TestGravityCheckResults.o \
         Grid_TestGravityInitializeGrid.o \
         Grid_TestGravityMotionInitializeGrid.o \
         Grid_TestGravitySphereCheckResults.o \

@@ -811,9 +811,33 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       /* Do accretion */
       
+      NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &LevelGrids);
+      
+      float MassOnThisLevelOnThisProc = 0;
+      float MassOnThisLevel = 0;
+      for (i=0;i<NumberOfGrids;i++) {
+	if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
+	  ENZO_FAIL("SumGasMass Failed!\n");
+      }
+      
+      MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+
+      fprintf(stderr,"Before Accrete MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+
       if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
 	  
+      MassOnThisLevelOnThisProc = 0;
+      MassOnThisLevel = 0;
+      for (i=0;i<NumberOfGrids;i++) {
+	if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
+	  ENZO_FAIL("SumGasMass Failed!\n");
+      }
+
+      MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+
+      fprintf(stderr,"After  Accrete MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+
       delete [] ParticleList;
       
     }
@@ -910,6 +934,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 #endif
     temp->AccretionRate = AccretionRate;
     
+    fprintf(stderr,"GlobalSubtractedMass = %"GSYM"\n",GlobalSubtractedMass*5.96066448e-8);
+
     /* Transfer the mass and momentum to the particle */
     if (SinkIsOnThisProc)
       if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
