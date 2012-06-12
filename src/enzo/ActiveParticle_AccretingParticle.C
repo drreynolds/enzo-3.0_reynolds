@@ -665,6 +665,12 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   /* Construct list of sink particle positions to pass to Foflist */
   FLOAT ParticleCoordinates[3*(*nParticles)];
   
+  for (i=0; i<(*nParticles); i++) {
+    tempPos = ParticleList[i]->ReturnPosition();
+    for (dim=0; dim<3; dim++)
+      ParticleCoordinates[3*i+dim] = tempPos[dim];
+  }
+
   /* Find mergeable groups using an FOF search */
 
   *ngroups = FofList((*nParticles), ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
