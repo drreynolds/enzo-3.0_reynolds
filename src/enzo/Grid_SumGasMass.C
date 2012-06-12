@@ -62,10 +62,9 @@ int grid::SumGasMass(float *mass)
     }
   }
 
-  if (NumberOfActiveParticles > 0)
-    for (i = 0; i < NumberOfActiveParticles; i++)
-      MassOnGrid+=this->ActiveParticles[i]->ReturnMass();
-
+  for (i = 0; i < NumberOfActiveParticles; i++)
+    MassOnGrid+=this->ActiveParticles[i]->ReturnMass();
+  
   *mass += MassOnGrid*CellVolume;
 
   return SUCCESS;

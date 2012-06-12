@@ -54,6 +54,8 @@ const char config_sink_particle_defaults[] =
 
 #endif
 
+#define DEBUG
+
 /* We need to make sure that we can operate on the grid, so this dance is
  * necessary to make sure that grid is 'friend' to this particle type. */
 
@@ -398,7 +400,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
   float *vel,CellTemperature;
   int n,i,j,k,index,dim;
 
-  // We need this otherwise the GRIDINDEX_NOGHOST macro will break
+  // We need this otherwise the GRIDINDEX macro will break
   int GridDimension[3] = {thisGrid->GridDimension[0],
                           thisGrid->GridDimension[1],
                           thisGrid->GridDimension[2]};
@@ -659,19 +661,9 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   int *groupsize = NULL;
   int **grouplist = NULL;
   ActiveParticleType_AccretingParticle **MergedParticles = NULL;
-  bool debug = false;
 
   /* Construct list of sink particle positions to pass to Foflist */
   FLOAT ParticleCoordinates[3*(*nParticles)];
-  
-  for (i=0; i<(*nParticles); i++) {
-    tempPos = ParticleList[i]->ReturnPosition();
-    for (dim=0; dim<3; dim++)
-      ParticleCoordinates[3*i+dim] = tempPos[dim];
-    if (MyProcessorNumber == 0 && debug)
-      fprintf(stderr,"%"ISYM", %"GSYM", %"GSYM", %"GSYM"\n", 
-	      i, tempPos[0], tempPos[1], tempPos[2]);
-  }
   
   /* Find mergeable groups using an FOF search */
 
@@ -701,9 +693,9 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
 int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],int NumberOfGrids);
 
 int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalStarParticleCountPrevious[],
-						      int AccretingParticleID)
+							   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							   int ThisLevel, int TotalStarParticleCountPrevious[],
+							   int AccretingParticleID)
 {
 
   /* Accreting particles live on the maximum refinement level.  If we are on a lower level, this does not concern us */
@@ -712,10 +704,13 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
     {
 
       /* Generate a list of all sink particles in the simulation box */
-      int i,grid,nParticles,NumberOfMergedParticles;
+      int i,level,grid,nParticles,NumberOfLevelGrids,NumberOfMergedParticles;
       HierarchyEntry **LevelGrids = NULL;
       ActiveParticleType** ParticleList = NULL;
-      bool debug = true;
+#ifdef DEBUG
+      float MassOnThisProc;
+      float TotalMass;
+#endif
 
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
@@ -723,6 +718,24 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       if (nParticles == 0)
 	return SUCCESS;
+
+#ifdef DEBUG
+      MassOnThisProc = 0;
+      TotalMass = 0;
+      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
+	NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);
+	for (i=0;i<NumberOfLevelGrids;i++) {
+	  if (LevelGrids[i]->NextGridNextLevel == NULL)
+	    if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
+	      ENZO_FAIL("SumGasMass Failed!\n");
+	}
+	delete [] LevelGrids;
+      }	
+
+      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+
+      fprintf(stdout,"Before AfterEvolveLevel TotalMass = %"FSYM"\n",TotalMass);
+#endif
 
       /* Calculate CellWidth on maximum refinement level */
 
@@ -738,29 +751,31 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       
       MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
 						&NumberOfMergedParticles,LevelArray);
-      if (MyProcessorNumber == 0 && debug)
-	fprintf(stderr,"Number of Accreting Particles After Merging = %"ISYM"\n",NumberOfMergedParticles);
+
+#ifdef DEBUG
+      fprintf(stdout,"Number of Accreting Particles After Merging = %"ISYM"\n",NumberOfMergedParticles);
+#endif
 
       delete [] ParticleList;
    
       /* Assign local particles to grids */
  
-      int level, LevelMax, SavedGrid, NumberOfGrids;
+      int LevelMax, SavedGrid, NumberOfGrids;
       FLOAT* pos = NULL;
       float mass;
 
       for (i = 0; i<NumberOfMergedParticles; i++) {
 	LevelMax = SavedGrid = -1;
-	NumberOfGrids = 0;
-	if (MyProcessorNumber == 0 && debug) {
-	  pos = MergedParticles[i]->ReturnPosition();
-	  mass = MergedParticles[i]->ReturnMass();
-	  fprintf(stderr,"%"ISYM", %"GSYM", %"GSYM", %"GSYM", %"FSYM"\n",
-		  i,pos[0],pos[1],pos[2],mass);
-	}
+	NumberOfLevelGrids = 0;
+#ifdef DEBUG
+	pos = MergedParticles[i]->ReturnPosition();
+	mass = MergedParticles[i]->ReturnMass();
+	fprintf(stderr,"Merged particle: %"ISYM", %"GSYM", %"GSYM", %"GSYM", %"FSYM"\n",
+		i,pos[0],pos[1],pos[2],mass);
+#endif
 	for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
-	  NumberOfGrids = GenerateGridArray(LevelArray, level, &LevelGrids);     
-	  for (grid = 0; grid < NumberOfGrids; grid++) 
+	  NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);     
+	  for (grid = 0; grid < NumberOfLevelGrids; grid++) 
 	    if (LevelGrids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
 	      if (LevelGrids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
 		  LevelGrids[grid]->GridData->isLocal() == true) { 
@@ -810,33 +825,44 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
       /* Do accretion */
-      
-      NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &LevelGrids);
-      
-      float MassOnThisLevelOnThisProc = 0;
-      float MassOnThisLevel = 0;
-      for (i=0;i<NumberOfGrids;i++) {
-	if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
-	  ENZO_FAIL("SumGasMass Failed!\n");
-      }
-      
-      MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+#ifdef DEBUG
+      MassOnThisProc = 0;
+      TotalMass = 0;
+      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
+	NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);
+	for (i=0;i<NumberOfLevelGrids;i++) {
+	  if (LevelGrids[i]->NextGridNextLevel == NULL)
+	    if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
+	      ENZO_FAIL("SumGasMass Failed!\n");
+	}
+	delete [] LevelGrids;
+      }	
 
-      fprintf(stderr,"Before Accrete MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
 
-      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
-	ENZO_FAIL("Accreting Particle accretion failed. \n");
-	  
-      MassOnThisLevelOnThisProc = 0;
-      MassOnThisLevel = 0;
-      for (i=0;i<NumberOfGrids;i++) {
-	if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisLevelOnThisProc) == FAIL)
-	  ENZO_FAIL("SumGasMass Failed!\n");
-      }
+      fprintf(stdout,"Before Accrete TotalMass = %"FSYM"\n",TotalMass);
+#endif      
 
-      MPI_Allreduce(&MassOnThisLevelOnThisProc, &MassOnThisLevel, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+      //      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
+      //ENZO_FAIL("Accreting Particle accretion failed. \n");
+	
+#ifdef DEBUG
+      MassOnThisProc = 0;
+      TotalMass = 0;
+      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
+	NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);
+	for (i=0;i<NumberOfLevelGrids;i++) {
+	if (LevelGrids[i]->NextGridNextLevel == NULL)
+	  if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
+	    ENZO_FAIL("SumGasMass Failed!\n");
+	}
+	delete [] LevelGrids;
+      }	
 
-      fprintf(stderr,"After  Accrete MassOnThisLevel = %"FSYM"\n",MassOnThisLevel);
+      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+
+      fprintf(stdout,"After Accrete TotalMass = %"FSYM"\n",TotalMass);
+#endif      
 
       delete [] ParticleList;
       
@@ -902,10 +928,11 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 #endif
     
     AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-    //fprintf(stderr,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
-    //fprintf(stderr,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
-    //fprintf(stderr,"AverageDensity: %"GSYM"\n",AverageDensity);
-
+#ifdef DEBUG
+    fprintf(stdout,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
+    fprintf(stdout,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
+    fprintf(stdout,"AverageDensity: %"GSYM"\n",AverageDensity);
+#endif
 
     /* Now perform accretion algorithm by modifying the grids locally */
     for (grid = 0; grid < NumberOfGrids; grid++) {
@@ -934,7 +961,9 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 #endif
     temp->AccretionRate = AccretionRate;
     
-    fprintf(stderr,"GlobalSubtractedMass = %"GSYM"\n",GlobalSubtractedMass*5.96066448e-8);
+#ifdef DEBUG
+    fprintf(stdout,"GlobalSubtractedMass = %"GSYM"\n",GlobalSubtractedMass*5.96066448e-8);
+#endif
 
     /* Transfer the mass and momentum to the particle */
     if (SinkIsOnThisProc)
@@ -1087,3 +1116,5 @@ namespace {
     register_ptype <ActiveParticleType_AccretingParticle, AccretingParticleBufferHandler> 
     ("AccretingParticle");
 }
+
+#undef DEBUG

@@ -59,12 +59,15 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
 #ifdef DEBUG
   int dim, inside;
   FLOAT *pos;
+  float TotalMass;
   for (i = 0; i < this->NumberOfActiveParticles; i++) {
     pos = this->ActiveParticles[i]->ReturnPosition();
+    TotalMass += this->ActiveParticles[i]->ReturnMass();
     inside = this->PointInGrid(pos);
     if (inside == FALSE)
       ENZO_FAIL("ActiveParticle outside!\n");
   }
+  fprintf(stdout,"TotalMass = %"FSYM"\n",TotalMass);
 #endif /* DEBUG */  
 
   delete [] OldActiveParticles;
