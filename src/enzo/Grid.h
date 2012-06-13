@@ -2447,7 +2447,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int MoveAllStarsOld(int NumberOfGrids, grid* FromGrid[], int TopGridDimension);
 
   int CommunicationSendStars(grid *ToGrid, int ToProcessor);
-  int CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor);
+  int CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool DeleteParticles = true);
 
   int FindNewStarParticles(int level);
 

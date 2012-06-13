@@ -684,10 +684,12 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     if (groupsize[i] != 1) {
       for (j=1; j<groupsize[i]; j++) {
 	MergedParticles[i]->Merge(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][j]]));
-	ParticleList[grouplist[i][j]]->DisableParticle(LevelArray);
+	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray) == FAIL)
+	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
       }
     }
-    MergedParticles[i]->DisableParticle(LevelArray);
+    if (MergedParticles[i]->DisableParticle(LevelArray) == FAIL)
+      ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
     MergedParticles[i]->AssignCurrentGrid(NULL);
   }
 

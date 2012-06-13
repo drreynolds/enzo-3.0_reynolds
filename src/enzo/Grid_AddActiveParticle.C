@@ -55,7 +55,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   /* We should already have checked if the particle is on this grid so this should
      never happen */
   if (!IsHere) {
-    return SUCCESS;
+    return FAIL;
   }
 
   /* Copy the old and new active particles to a new list 

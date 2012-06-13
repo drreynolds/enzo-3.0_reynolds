@@ -132,7 +132,7 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
 //    if (MyProcessorNumber == NewProc || MyProcessorNumber == OldProc)
     OldGrid->CommunicationSendParticles(NewGrid, NewProc, 0,
 					OldGrid->ReturnNumberOfParticles(), -1);
-    OldGrid->CommunicationSendActiveParticles(NewGrid, NewProc);
+    OldGrid->CommunicationSendActiveParticles(NewGrid, NewProc, false);
 
     /* Next Grid */
  

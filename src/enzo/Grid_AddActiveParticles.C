@@ -64,8 +64,13 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
     pos = this->ActiveParticles[i]->ReturnPosition();
     TotalMass += this->ActiveParticles[i]->ReturnMass();
     inside = this->PointInGrid(pos);
-    if (inside == FALSE)
+    if (inside == FALSE) {
+      fprintf(stdout,"pos[0]: %"PSYM", pos[1]: %"PSYM", pos[2]: %"PSYM"\n",pos[0],pos[1],pos[2]);
+      fprintf(stdout,"mass: %"FSYM"\n");
+      fprintf(stdout,"GridLeftEdge[0]: %"PSYM", GridLeftEdge[1]: %"PSYM", GridLeftEdge[2]: %"PSYM"\n",
+	      GridLeftEdge[0], GridRightEdge[1], GridRightEdge[2]);
       ENZO_FAIL("ActiveParticle outside!\n");
+    }
   }
   fprintf(stdout,"TotalMass = %"FSYM"\n",TotalMass);
 #endif /* DEBUG */  

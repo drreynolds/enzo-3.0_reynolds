@@ -46,7 +46,7 @@ int CommunicationBufferedSend(void *buffer, int size, MPI_Datatype Type,
    Place into ToGrid at particle number ToStart. If ToStart = -1, then
    add to end. */
 
-int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
+int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool DeleteParticles)
 {
 
   if (CommunicationShouldExit(ProcessorNumber, ToProcessor))
@@ -69,7 +69,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
   if (NumberOfProcessors == 1) {
     ToGrid->AddActiveParticles(this->ActiveParticles, 
 			       this->NumberOfActiveParticles);
-    if (ToGrid != this)
+    if (ToGrid != this && DeleteParticles == true)
       this->NumberOfActiveParticles = 0;
     delete[] this->ActiveParticles;
     return SUCCESS;
@@ -114,9 +114,11 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor)
     ap_id = ap_info->GetEnabledParticleID();
     ap_info->allocate_buffer(ActiveParticles, NumberOfActiveParticles,
 			     buffer, TransferSize, buffer_size, position, ap_id, -1);
-    for (i = 0; i < NumberOfActiveParticles; i++)
-      if (ActiveParticles[i]->ReturnType() == type)
-	delete ActiveParticles[i];
+    if (DeleteParticles == true) {
+      for (i = 0; i < NumberOfActiveParticles; i++)
+	if (ActiveParticles[i]->ReturnType() == type)
+	  this->RemoveActiveParticle(ActiveParticles[i]->ReturnID());
+    }
   }
     
   /* Send buffer. */
