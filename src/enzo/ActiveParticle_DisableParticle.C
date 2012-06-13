@@ -37,14 +37,15 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[])
 {
 
-  int i, nPart, NumberOfGrids, changedGrid = INT_UNDEFINED, foundAP = FALSE,
+  int i, ID, nPart, NumberOfGrids, changedGrid = INT_UNDEFINED, foundAP = FALSE,
     foundP = FALSE;
   HierarchyEntry **Grids;
   
   NumberOfGrids = GenerateGridArray(LevelArray, this->level, &Grids);
   for (i = 0; i < NumberOfGrids; i++) {
-    foundAP = Grids[i]->GridData->RemoveActiveParticle(this->ReturnID());
-    foundP = Grids[i]->GridData->RemoveParticle(this->ReturnID());
+    ID = this->ReturnID();
+    foundAP = Grids[i]->GridData->RemoveActiveParticle(ID);
+    foundP = Grids[i]->GridData->RemoveParticle(ID);
     if (foundP && foundAP) {
       changedGrid = i;
       break;
