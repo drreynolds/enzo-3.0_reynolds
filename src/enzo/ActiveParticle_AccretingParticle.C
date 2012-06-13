@@ -163,8 +163,15 @@ public:
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
   int AdjustBondiHoyle(grid* CurrentGrid);
-
-  ENABLED_PARTICLE_ID_ACCESSOR
+  
+  int GetEnabledParticleID(int myid = -1) {				
+    static int ParticleID = -1;						
+    if (myid >= 0) {							
+      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");	
+      ParticleID = myid;						
+    }									
+    return ParticleID;							
+  };
 
   // sink helper routines
 
