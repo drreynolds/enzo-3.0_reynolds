@@ -28,7 +28,10 @@
 #include "GridList.h"
 #include "ExternalBoundary.h"
 #include "Grid.h"
-#include "ActiveParticle.h"
+#include "Hierarchy.h"
+#include "LevelHierarchy.h"
+#include "TopGridData.h"
+#include "CommunicationUtilities.h"
 #include "phys_constants.h"
 #include "FofLib.h"
 
@@ -659,7 +662,8 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
 }
 
 ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::MergeAccretingParticles
-(int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, int *ngroups, LevelHierarchyEntry *LevelArray[])
+(int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
+ int *ngroups, LevelHierarchyEntry *LevelArray[])
 {
   int i,j;
   int dim;
@@ -691,13 +695,10 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     if (groupsize[i] != 1) {
       for (j=1; j<groupsize[i]; j++) {
 	MergedParticles[i]->Merge(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][j]]));
-	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray) == FAIL)
+	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
 	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
       }
     }
-    if (MergedParticles[i]->DisableParticle(LevelArray) == FAIL)
-      ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
-    MergedParticles[i]->AssignCurrentGrid(NULL);
   }
 
   *nParticles = *ngroups;
@@ -719,7 +720,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
     {
 
       /* Generate a list of all sink particles in the simulation box */
-      int i,level,grid,nParticles,NumberOfLevelGrids,NumberOfMergedParticles;
+      int i,level,gridnum,nParticles,NumberOfLevelGrids,NumberOfMergedParticles;
       HierarchyEntry **LevelGrids = NULL;
       ActiveParticleType** ParticleList = NULL;
 #ifdef DEBUG
@@ -790,11 +791,11 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 #endif
 	for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
 	  NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);     
-	  for (grid = 0; grid < NumberOfLevelGrids; grid++) 
-	    if (LevelGrids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
-	      if (LevelGrids[grid]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
-		  LevelGrids[grid]->GridData->isLocal() == true) { 
-		SavedGrid = grid;
+	  for (gridnum = 0; gridnum < NumberOfLevelGrids; gridnum++) 
+	    if (LevelGrids[gridnum]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
+	      if (LevelGrids[gridnum]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
+		  LevelGrids[gridnum]->GridData->isLocal() == true) { 
+		SavedGrid = gridnum;
 		LevelMax = level;
 	      }
 	  delete [] LevelGrids;
@@ -806,6 +807,10 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	   The repeated code in the serial and parallel implimentations
 	   kind of sucks - should this be different? */
 	
+	grid* OldGrid = NULL;
+	OldGrid = MergedParticles[i]->ReturnCurrentGrid();
+	int ID = MergedParticles[i]->ReturnID();
+
 #ifdef USE_MPI
 	struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
 	MPI_Comm_rank(MPI_COMM_WORLD, &sendbuf.rank); 
@@ -814,17 +819,33 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
 	if (LevelMax == recvbuf.value) {
 	  MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	  if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	    ENZO_FAIL("Active particle grid assignment failed"); 
+	  if (OldGrid != LevelGrids[SavedGrid]->GridData)
+	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+	      ENZO_FAIL("Active particle grid assignment failed"); 
 	}
 	LevelMax = recvbuf.value;
 #else // endif parallel
 	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
 	MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	  ENZO_FAIL("Active particle grid assignment failed");
+	if (OldGrid != LevelGrids[SavedGrid]->GridData)
+	  if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+	    ENZO_FAIL("Active particle grid assignment failed");
 #endif //endif serial
 	
+	/* Clean up the active particle list on the old grid */
+
+	int foundP = FALSE, foundAP = FALSE;
+	
+	// This could probably be a member function....
+	if (OldGrid != LevelGrids[SavedGrid]->GridData) {
+	  foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
+	  foundP = OldGrid->RemoveParticle(ID);
+	  if ((foundP != TRUE) || (foundAP != TRUE))
+	    return FAIL;
+	  OldGrid->SetNumberOfActiveParticles(OldGrid->ReturnNumberOfActiveParticles()-1);
+	  OldGrid->CleanUpMovedParticles();
+	}
+
 	/* Sync the updated particle counts accross all proccessors */
 
 	CommunicationSyncNumberOfParticles(LevelGrids, NumberOfGrids);

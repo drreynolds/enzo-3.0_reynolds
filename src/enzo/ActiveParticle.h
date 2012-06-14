@@ -101,7 +101,7 @@ public:
   void  UpdatePositionVelocity(void);
   void  MirrorToParticle(void);
   void  CopyFromParticle(grid *_grid, int _id, int _level);
-  int   DisableParticle(LevelHierarchyEntry *LevelArray[]);
+  int   DisableParticle(LevelHierarchyEntry *LevelArray[], int NewProcessorNumber);
   int   SphereContained(LevelHierarchyEntry *LevelArray[], int level, 
 			float Radius);
   void  PrintInfo(void);

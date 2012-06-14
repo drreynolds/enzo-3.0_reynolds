@@ -34,7 +34,7 @@
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
-int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[])
+int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[], int NewProcessorNumber)
 {
 
   int i, ID, nPart, NumberOfGrids, changedGrid = INT_UNDEFINED, foundAP = FALSE,
@@ -44,7 +44,7 @@ int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[])
   NumberOfGrids = GenerateGridArray(LevelArray, this->level, &Grids);
   for (i = 0; i < NumberOfGrids; i++) {
     ID = this->ReturnID();
-    foundAP = Grids[i]->GridData->RemoveActiveParticle(ID);
+    foundAP = Grids[i]->GridData->RemoveActiveParticle(ID, NewProcessorNumber);
     foundP = Grids[i]->GridData->RemoveParticle(ID);
     if (foundP && foundAP) {
       changedGrid = i;

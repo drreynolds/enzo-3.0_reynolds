@@ -19,6 +19,7 @@
 #include "StarParticleData.h"
 #include "AMRH5writer.h"
 #include "Star.h"
+#include "ActiveParticle.h"
 #include "FOF_allvars.h"
 #include "MemoryPool.h"
 
@@ -2429,7 +2430,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int RemoveParticle(int ID, bool disable=false);
 
-  int RemoveActiveParticle(PINT ID);
+  int RemoveActiveParticle(PINT ID, int NewProcessorNumber);
 
   int AddFeedbackSphere(Star *cstar, int level, float radius, float DensityUnits,
 			float LengthUnits, float VelocityUnits, 

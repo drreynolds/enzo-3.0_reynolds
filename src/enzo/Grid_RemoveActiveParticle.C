@@ -32,7 +32,7 @@
 #include "CosmologyParameters.h"
 #include "ActiveParticle.h"
 
-int grid::RemoveActiveParticle(PINT ID)
+int grid::RemoveActiveParticle(PINT ID, int NewProcessorNumber)
 {
 
   int i,j,found = FALSE;
@@ -61,13 +61,18 @@ int grid::RemoveActiveParticle(PINT ID)
     for (j=i+1; j < NumberOfActiveParticles; j++)
       temp[j-1] = ActiveParticles[j];
     
-    delete ActiveParticles[i];
+    // Only free memory if the particle was communicated to another
+    // processor, otherwise we will create a dangling pointer in the
+    // reference to this active particle in the new grid
+    if (ProcessorNumber != NewProcessorNumber)
+      delete ActiveParticles[i];
 
     delete [] ActiveParticles;
     
     ActiveParticles = temp;
   }  else { // Removing the only AP on the list
-    delete ActiveParticles[0];
+    if (ProcessorNumber != NewProcessorNumber)
+      delete ActiveParticles[0];
     delete [] ActiveParticles;
     ActiveParticles = NULL;
   }
