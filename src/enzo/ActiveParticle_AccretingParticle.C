@@ -888,10 +888,10 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       fprintf(stdout,"Before Accrete TotalMass = %"FSYM"\n",TotalMass);
 #endif      
-      
+     
       if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
-	
+     
 #ifdef DEBUG
       MassOnThisProc = 0;
       TotalMass = 0;

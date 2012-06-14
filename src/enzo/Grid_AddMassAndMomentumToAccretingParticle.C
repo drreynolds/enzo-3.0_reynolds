@@ -40,7 +40,7 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
     return SUCCESS;
 
   int i;
-  int iFound = -1;
+  int iFound = -1, pFound = -1;
   float CellVolume = 1.0;
 
   for (i = 0; i<NumberOfActiveParticles; i++) {
@@ -87,6 +87,23 @@ int grid::AddMassAndMomentumToAccretingParticle(float AccretedMass, float Accret
   fprintf(stderr,"dpy = %"GSYM"\n",pnew[1] - OldMass*OldVel[1]);
   fprintf(stderr,"dpz = %"GSYM"\n",pnew[2] - OldMass*OldVel[2]);
 #endif
+
+  // also need to update the mirrored normal particle
+
+  for (i = 0; i<NumberOfParticles; i++) {
+    if (this->ParticleNumber[i] == ThisParticle->ReturnID()) {
+      pFound = i;
+      break;
+    }
+  }
+
+  // This only happen if the particles aren't mirrored properly
+  if (pFound == -1)
+    return FAIL;
+
+  this->ParticleMass[pFound] = this->ActiveParticles[iFound]->Mass;
+  for (i = 0; i < MAX_DIMENSION; i++)
+    this->ParticleVelocity[i][pFound] = this->ActiveParticles[iFound]->vel[i];
 
   return SUCCESS;
 }
