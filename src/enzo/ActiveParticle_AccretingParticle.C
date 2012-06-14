@@ -802,58 +802,63 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	  LevelGrids = NULL;
 	}
 	
-	/* Find the processor which has the maximum value of LevelMax
-	   and assign the accreting particle to the SavedGrid.  
-	   The repeated code in the serial and parallel implimentations
-	   kind of sucks - should this be different? */
 	
-	grid* OldGrid = NULL;
-	OldGrid = MergedParticles[i]->ReturnCurrentGrid();
-	int ID = MergedParticles[i]->ReturnID();
+	/* Assign the merged particles to grids.  The repeated code in
+	   the serial and parallel implimentations kind of sucks -
+	   should this be different? */
 
-#ifdef USE_MPI
-	struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
-	MPI_Comm_rank(MPI_COMM_WORLD, &sendbuf.rank); 
-	sendbuf.value = LevelMax;
-	MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, MPI_COMM_WORLD);
-	NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
-	if (LevelMax == recvbuf.value) {
+	if (NumberOfProcessors == 1) {
+	
+	  grid* OldGrid = MergedParticles[i]->ReturnCurrentGrid();
+	  int ID = MergedParticles[i]->ReturnID();
+	  NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
 	  MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
 	  if (OldGrid != LevelGrids[SavedGrid]->GridData) {
 	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	      ENZO_FAIL("Active particle grid assignment failed"); 
+	      ENZO_FAIL("Active particle grid assignment failed");
 	  }
 	  // Still need to mirror the AP data to the particle list.
 	  else {
 	    LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
 	  }
-	}
-	LevelMax = recvbuf.value;
-#else // endif parallel
-	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
-	MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	if (OldGrid != LevelGrids[SavedGrid]->GridData) {
-	  if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	    ENZO_FAIL("Active particle grid assignment failed");
-	}
-	// Still need to mirror the AP data to the particle list.
-	else {
-	  LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
-	}
-#endif //endif serial
-	
-	/* Clean up the active particle list on the old grid */
 
-	int foundP = FALSE, foundAP = FALSE;
-	
-	// This could probably be a member function....
-	if (OldGrid != LevelGrids[SavedGrid]->GridData && SavedGrid != -1) {
-	  foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
-	  foundP = OldGrid->RemoveParticle(ID);
-	  if ((foundP != TRUE) || (foundAP != TRUE))
-	    return FAIL;
-	  OldGrid->SetNumberOfActiveParticles(OldGrid->ReturnNumberOfActiveParticles()-1);
-	  OldGrid->CleanUpMovedParticles();
+	  /* Clean up the active particle list on the old grid */
+	  
+	  int foundP = FALSE, foundAP = FALSE;
+	  // This could probably be a member function....
+	  if (SavedGrid != -1) {
+	    if (OldGrid != LevelGrids[SavedGrid]->GridData) {
+	      foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
+	      foundP = OldGrid->RemoveParticle(ID);
+	      if ((foundP != TRUE) || (foundAP != TRUE))
+		return FAIL;
+	      OldGrid->SetNumberOfActiveParticles(OldGrid->ReturnNumberOfActiveParticles()-1);
+	      OldGrid->CleanUpMovedParticles();
+	    }
+	  }
+	}
+	else {
+#ifdef USE_MPI
+	  /* Find the processor which has the maximum value of
+	     LevelMax and assign the accreting particle to the
+	     SavedGrid on that processor.  */
+	  struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
+	  MPI_Comm_rank(MPI_COMM_WORLD, &sendbuf.rank); 
+	  sendbuf.value = LevelMax;
+	  MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, MPI_COMM_WORLD);
+	  NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
+	  if (LevelMax == recvbuf.value) {
+	    MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
+	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL) {
+	      ENZO_FAIL("Active particle grid assignment failed"); 
+	    } 
+	    // Still need to mirror the AP data to the particle list.
+	    else {
+	      LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
+	    }
+	  }
+	  LevelMax = recvbuf.value;
+#endif // endif parallel
 	}
 
 	/* Sync the updated particle counts accross all proccessors */
