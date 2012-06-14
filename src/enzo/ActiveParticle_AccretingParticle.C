@@ -847,7 +847,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	int foundP = FALSE, foundAP = FALSE;
 	
 	// This could probably be a member function....
-	if (OldGrid != LevelGrids[SavedGrid]->GridData) {
+	if (OldGrid != LevelGrids[SavedGrid]->GridData && SavedGrid != -1) {
 	  foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
 	  foundP = OldGrid->RemoveParticle(ID);
 	  if ((foundP != TRUE) || (foundAP != TRUE))
