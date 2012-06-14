@@ -819,17 +819,27 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
 	if (LevelMax == recvbuf.value) {
 	  MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	  if (OldGrid != LevelGrids[SavedGrid]->GridData)
+	  if (OldGrid != LevelGrids[SavedGrid]->GridData) {
 	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	      ENZO_FAIL("Active particle grid assignment failed"); 
+	  }
+	  // Still need to mirror the AP data to the particle list.
+	  else {
+	    LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
+	  }
 	}
 	LevelMax = recvbuf.value;
 #else // endif parallel
 	NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
 	MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	if (OldGrid != LevelGrids[SavedGrid]->GridData)
+	if (OldGrid != LevelGrids[SavedGrid]->GridData) {
 	  if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
 	    ENZO_FAIL("Active particle grid assignment failed");
+	}
+	// Still need to mirror the AP data to the particle list.
+	else {
+	  LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
+	}
 #endif //endif serial
 	
 	/* Clean up the active particle list on the old grid */
@@ -878,9 +888,9 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       fprintf(stdout,"Before Accrete TotalMass = %"FSYM"\n",TotalMass);
 #endif      
-
-      //      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
-      //ENZO_FAIL("Accreting Particle accretion failed. \n");
+      
+      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
+	ENZO_FAIL("Accreting Particle accretion failed. \n");
 	
 #ifdef DEBUG
       MassOnThisProc = 0;

@@ -72,7 +72,7 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
       ENZO_FAIL("ActiveParticle outside!\n");
     }
   }
-  fprintf(stdout,"TotalMass = %"FSYM"\n",TotalMass);
+  fprintf(stdout,"AddActiveParticles: Total Mass added to grid = %"FSYM"\n",TotalMass);
 #endif /* DEBUG */  
 
   delete [] OldActiveParticles;
