@@ -123,7 +123,7 @@ protected:
   grid *CurrentGrid;
   FLOAT	pos[MAX_DIMENSION];
   float vel[MAX_DIMENSION];
-  double Mass;		// Msun
+  double Mass;	      
   float BirthTime;
   float DynamicalTime;      
   float Metallicity;
@@ -262,7 +262,7 @@ ActiveParticleMap &get_active_particle_types();
 void EnableActiveParticleType(char *active_particle_type_name);
 
 ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles, 
-			  int ActiveParticleIDToFind);
+					   int ActiveParticleIDToFind);
 
 class ParticleBufferHandler
 {

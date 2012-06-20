@@ -126,7 +126,7 @@ class AccretingParticleGrid : private grid {
 };
 
 /* Note that we only refer to AccretingParticleGrid here. 
- * Given a grid object, we static case to get this:
+ * Given a grid object, we static cast to get this:
  *
  *    AccretingParticleGrid *thisgrid =
  *      static_cast<AccretingParticleGrid *>(thisgrid_orig); */
@@ -136,7 +136,6 @@ class ActiveParticleType_AccretingParticle : public ActiveParticleType
 public:
   // Constructors
   ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {
-    
     AccretionRate = 0;
     vInfinity = 0;
     cInfinity = 0;
@@ -153,7 +152,6 @@ public:
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
-  static ParticleBufferHandler *AllocateBuffers(int NumberOfParticles);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -1134,7 +1132,7 @@ void AccretingParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int
 }
 
 void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
- ActiveParticleType **np, int &npart)
+						  ActiveParticleType **np, int &npart)
 {
   int i;
   Eint32 position = 0;

@@ -27,8 +27,9 @@ OBJS_CONFIG_LIB = \
 	ActiveParticleFinalize.o \
 	ActiveParticleInitialize.o \
 	ActiveParticleRoutines.o \
-        ActiveParticle_CenOstriker.o \
+	ActiveParticle_CenOstriker.o \
 	ActiveParticle_AccretingParticle.o \
+	ActiveParticle_SampleParticle.o \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
