@@ -268,26 +268,18 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   }
 
   /* Add on the Particle Array Handlers */
+  typedef ActiveParticleType_AccretingParticle ap;
+  AttributeVector &ah = ap::AttributeHandlers;
+  ActiveParticleType::SetupBaseParticleAttributes(ah);
 
-  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
-    Handler<ActiveParticleType_AccretingParticle, float,
-     &ActiveParticleType_AccretingParticle::AccretionRate,
-     AccretingParticleBufferHandler>("AccretionRate"));
+  ah.push_back(Handler<ap, float, &ap::AccretionRate>("AccretionRate"));
+  ah.push_back(Handler<ap, float, &ap::cInfinity>("cInfinity"));
+  ah.push_back(Handler<ap, float, &ap::vInfinity>("vInfinity"));
+  ah.push_back(Handler<ap, FLOAT, &ap::BondiHoyleRadius>("BondiHoyleRadius"));
 
-  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
-    Handler<ActiveParticleType_AccretingParticle, float,
-     &ActiveParticleType_AccretingParticle::cInfinity,
-     AccretingParticleBufferHandler>("cInfinity"));
-
-  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
-    Handler<ActiveParticleType_AccretingParticle, float,
-     &ActiveParticleType_AccretingParticle::vInfinity,
-     AccretingParticleBufferHandler>("vInfinity"));
-
-  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
-    Handler<ActiveParticleType_AccretingParticle, FLOAT,
-     &ActiveParticleType_AccretingParticle::BondiHoyleRadius,
-     AccretingParticleBufferHandler>("BondiHoyleRadius"));
+  for(AttributeVector::iterator it = ah.begin(); it != ah.end(); ++it) {
+      std::cout << "A " << (*it).name << std::endl;
+  }
 
   return SUCCESS;
 }

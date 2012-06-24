@@ -18,23 +18,14 @@
 #define __ACTIVE_PARTICLE_H
 
 #include <typeinfo>
-#include "hdf5.h"
-#include "ErrorExceptions.h"
-#include "macros_and_parameters.h"
-#include "typedefs.h"
-#include "global_data.h"
-#include "Grid.h"
-#include "Hierarchy.h"
-#include "LevelHierarchy.h"
-#include "StarBuffer.h"
 #ifdef FLUX_FIX
 #include "TopGridData.h"
 #endif
+#include "ParticleBufferHandler.h"
+#include "ParticleAttributeHandler.h"
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
-class ParticleBufferHandler;
-class ParticleAttributeHandler;
 
 class ActiveParticleType
 {
@@ -48,6 +39,8 @@ public:
 			  hid_t data_type, void *data);
   int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			 hid_t data_type, void *read_to);
+  void static SetupBaseParticleAttributes(
+    std::vector<ParticleAttributeHandler> &handlers);
 
   /* Several pure virtual functions */
   
@@ -266,42 +259,6 @@ void EnableActiveParticleType(char *active_particle_type_name);
 ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles, 
 					   int ActiveParticleIDToFind);
 
-class ParticleBufferHandler
-{
-public:
-  ParticleBufferHandler(void);
-  ParticleBufferHandler(int NumberOfParticles);
-  ParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
-  ~ParticleBufferHandler();
-  /*virtual void WriteBuffers(hid_t group);*/
-  int _AllocateBuffer(char *buffer, Eint32 total_buffer_size, int &buffer_size, 
-		      Eint32 &position); // helper function for derived classes
-  void CalculateElementSize(void);
-  void AllocateMemory(void);
-  int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
-  int _UnpackBuffer(char *buffer, int buffer_size, Eint32 &position);
-
-  int NumberOfBuffers;
-
-protected:
-  static int HeaderSizeInBytes;
-  static int ElementSizeInBytes;
-  FLOAT	*pos[MAX_DIMENSION];
-  float *vel[MAX_DIMENSION];
-  double *Mass;		// Msun
-  float *BirthTime;
-  float *DynamicalTime;      
-  float *Metallicity;
-  PINT *Identifier;
-  int *level;
-  int *GridID;
-  int *type;
-  int *proc;
-
-  friend class ActiveParticleType;
-
-};
-
 class ActiveParticleType_info
 {
 public:
@@ -422,60 +379,6 @@ ActiveParticleType_info *register_ptype(std::string name)
      pp, bb);
   return pinfo;
 }
-
-/* http://www.gamedev.net/topic/474803-c-template-pointer-to-member/ */
-
-class ParticleAttributeHandler
-{
-
-  public:
-
-    std::string name;
-    MPI_Datatype mpitype;
-    Eint32 hdf5type;
-};
-
-template <class APClass, typename Type, Type APClass::*var, class APBHClass>
-class Handler : public ParticleAttributeHandler
-{
-  public:
-
-    Handler(std::string name) {
-        this->name = name;
-
-        /* Can't use a switch */
-        if (typeid(Type) == typeid(int)) {
-            this->mpitype = IntDataType;
-        } else if (typeid(Type) == typeid(float)) {
-            this->mpitype = FloatDataType;
-        } else if (typeid(Type) == typeid(double)) {
-            this->mpitype = MPI_DOUBLE;
-        } else if (typeid(Type) == typeid(FLOAT)) {
-            this->mpitype = FLOATDataType;
-        } else {
-            ENZO_FAIL("Unrecognized data type");
-        }
-    }
-
-    void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
-                      int NumberOParticles, int *position,
-                      APBHClass *APBHInstance) {
-
-        MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   APBHInstance->*var, APBHInstance->NumberOfBuffers,
-                   mpitype, MPI_COMM_WORLD);
-    }
-
-    void *AllocateArray(int n) {
-        return (void *) new Type[n];
-    }
-
-    void CopyToArray(int pos, void *output_, APClass instance) {
-        Type *output = (Type *) output_;
-        output[pos] = instance->*var[pos];
-    }
-
-};
 
 #define ENABLED_PARTICLE_ID_ACCESSOR					\
   int GetEnabledParticleID(int myid = -1) {				\
