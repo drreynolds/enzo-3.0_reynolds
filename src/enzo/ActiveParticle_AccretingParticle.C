@@ -119,6 +119,7 @@ public:
   float* cInfinity;
   float* vInfinity;
   FLOAT* BondiHoyleRadius;
+  
 };
 
 class AccretingParticleGrid : private grid {
@@ -191,6 +192,7 @@ public:
   float vInfinity;
   float cInfinity;
   FLOAT BondiHoyleRadius;
+  static std::vector<ParticleAttributeHandler> AttributeHandlers;
 };
 
 AccretingParticleBufferHandler::AccretingParticleBufferHandler
@@ -264,6 +266,28 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
       method++;
     CellFlaggingMethod[method] = 4;
   }
+
+  /* Add on the Particle Array Handlers */
+
+  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
+    Handler<ActiveParticleType_AccretingParticle, float,
+     &ActiveParticleType_AccretingParticle::AccretionRate,
+     AccretingParticleBufferHandler>("AccretionRate"));
+
+  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
+    Handler<ActiveParticleType_AccretingParticle, float,
+     &ActiveParticleType_AccretingParticle::cInfinity,
+     AccretingParticleBufferHandler>("cInfinity"));
+
+  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
+    Handler<ActiveParticleType_AccretingParticle, float,
+     &ActiveParticleType_AccretingParticle::vInfinity,
+     AccretingParticleBufferHandler>("vInfinity"));
+
+  ActiveParticleType_AccretingParticle::AttributeHandlers.push_back(
+    Handler<ActiveParticleType_AccretingParticle, FLOAT,
+     &ActiveParticleType_AccretingParticle::BondiHoyleRadius,
+     AccretingParticleBufferHandler>("BondiHoyleRadius"));
 
   return SUCCESS;
 }
@@ -1165,5 +1189,7 @@ namespace {
     register_ptype <ActiveParticleType_AccretingParticle, AccretingParticleBufferHandler> 
     ("AccretingParticle");
 }
+std::vector<ParticleAttributeHandler>
+  ActiveParticleType_AccretingParticle::AttributeHandlers;
 
 #undef DEBUG

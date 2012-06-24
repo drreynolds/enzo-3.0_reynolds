@@ -17,6 +17,7 @@
 #ifndef __ACTIVE_PARTICLE_H
 #define __ACTIVE_PARTICLE_H
 
+#include <typeinfo>
 #include "hdf5.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -33,6 +34,7 @@
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
 class ParticleBufferHandler;
+class ParticleAttributeHandler;
 
 class ActiveParticleType
 {
@@ -132,7 +134,7 @@ protected:
   int GridID;
   int dest_processor;  // used for communication
   int type;
-  
+
 private: /* Cannot be accessed by subclasses! */
   
   friend class grid;
@@ -420,6 +422,60 @@ ActiveParticleType_info *register_ptype(std::string name)
      pp, bb);
   return pinfo;
 }
+
+/* http://www.gamedev.net/topic/474803-c-template-pointer-to-member/ */
+
+class ParticleAttributeHandler
+{
+
+  public:
+
+    std::string name;
+    MPI_Datatype mpitype;
+    Eint32 hdf5type;
+};
+
+template <class APClass, typename Type, Type APClass::*var, class APBHClass>
+class Handler : public ParticleAttributeHandler
+{
+  public:
+
+    Handler(std::string name) {
+        this->name = name;
+
+        /* Can't use a switch */
+        if (typeid(Type) == typeid(int)) {
+            this->mpitype = IntDataType;
+        } else if (typeid(Type) == typeid(float)) {
+            this->mpitype = FloatDataType;
+        } else if (typeid(Type) == typeid(double)) {
+            this->mpitype = MPI_DOUBLE;
+        } else if (typeid(Type) == typeid(FLOAT)) {
+            this->mpitype = FLOATDataType;
+        } else {
+            ENZO_FAIL("Unrecognized data type");
+        }
+    }
+
+    void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
+                      int NumberOParticles, int *position,
+                      APBHClass *APBHInstance) {
+
+        MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
+                   APBHInstance->*var, APBHInstance->NumberOfBuffers,
+                   mpitype, MPI_COMM_WORLD);
+    }
+
+    void *AllocateArray(int n) {
+        return (void *) new Type[n];
+    }
+
+    void CopyToArray(int pos, void *output_, APClass instance) {
+        Type *output = (Type *) output_;
+        output[pos] = instance->*var[pos];
+    }
+
+};
 
 #define ENABLED_PARTICLE_ID_ACCESSOR					\
   int GetEnabledParticleID(int myid = -1) {				\

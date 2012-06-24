@@ -9,6 +9,10 @@
 /
 ************************************************************************/
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif 
+
 #include <map>
 #include <iostream>
 #include <stdexcept>
