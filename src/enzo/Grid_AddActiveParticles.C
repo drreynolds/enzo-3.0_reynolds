@@ -55,7 +55,7 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
     this->ActiveParticles[index]->AssignCurrentGrid(this);
   }
 
-#define DEBUG
+#define NO_DEBUG
 #ifdef DEBUG
   int dim, inside;
   FLOAT *pos;
