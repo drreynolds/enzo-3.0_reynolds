@@ -15,8 +15,6 @@
 #-----------------------------------------------------------------------
 
 # Temporarily removing for testing
-#        ActiveParticle_PopIII.o \
-#        ActiveParticle_SampleParticle.o \
 #        ActiveParticle_SpringelHernquist.o \
 #	ActiveParticle_UnpackBuffer.o \
 
@@ -32,6 +30,7 @@ OBJS_CONFIG_LIB = \
 	ActiveParticle_DisableParticle.o \
         ActiveParticle_Kravtsov.o \
 	ActiveParticle_MirrorToParticle.o \
+        ActiveParticle_PopIII.o \
 	ActiveParticle_SphereContained.o \
 	ActiveParticleFindAll.o \
         AdiabaticExpansionInitialize.o \
