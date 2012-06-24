@@ -21,7 +21,7 @@
 //   fill out the rest of the fluxes structure.
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
 #include <stdio.h>

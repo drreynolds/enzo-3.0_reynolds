@@ -24,7 +24,7 @@
 //   Boundary (Exterior), the TopGridData, and the global_data.
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
 #include <hdf5.h> 

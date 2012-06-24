@@ -1,5 +1,5 @@
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 
 #if defined(SP2) || defined(__APPLE__)

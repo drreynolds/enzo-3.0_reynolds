@@ -29,6 +29,7 @@
 #define FLD_SPLIT_PROBLEM_DEFINED__
 
 #include "preincludes.h"
+#include "communicators.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"

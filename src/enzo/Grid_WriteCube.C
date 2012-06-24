@@ -12,7 +12,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include <mpi.h>
+#include <communicators.h>
 #endif
 #include <hdf5.h>
 #include <string.h>

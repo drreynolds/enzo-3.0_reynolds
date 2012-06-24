@@ -59,7 +59,7 @@
 #include <unistd.h>
 
 #ifdef USE_MPI
-#  include <mpi.h>
+#  include <communicators.h>
 #endif
 
 #include "lcaperf.h"

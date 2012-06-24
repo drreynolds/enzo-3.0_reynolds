@@ -21,7 +21,7 @@ MACH_FILE  = Make.mach.triton-intel
 #-----------------------------------------------------------------------
 
 MACH_CPP       = cpp # C preprocessor command
-LOCAL_MPI_INSTALL = /opt/mpich/intel/mx/
+LOCAL_MPI_INSTALL = /opt/communicators.h/intel/mx/
 LOCAL_PYTHON_INSTALL = /projects/lca-group/local-dev/
 LOCAL_PYTHON_INSTALL = /home/mjturk/yt-x86_64-libenzo-intel/
 LOCAL_COMPILER_DIR = /opt/intel/Compiler/11.1/072/bin/intel64/

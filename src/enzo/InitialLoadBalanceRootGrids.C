@@ -13,7 +13,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 #include <stdio.h>
 #include <math.h>

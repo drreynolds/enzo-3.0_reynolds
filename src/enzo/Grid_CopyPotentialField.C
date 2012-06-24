@@ -21,7 +21,7 @@
 //   See Grid_CheckForOverlappingZones for more details.
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
  
 #include <stdio.h>

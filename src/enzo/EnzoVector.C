@@ -21,7 +21,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include <mpi.h>
+#include <communicators.h>
 #else
 typedef int MPI_Request;
 #endif

@@ -55,7 +55,7 @@
 #include <math.h> 
 #include <map>
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 #include <hdf5.h>
 

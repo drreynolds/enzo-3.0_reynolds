@@ -11,7 +11,7 @@
 ************************************************************************/
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #include <stdlib.h>
 #endif /* USE_MPI */
 
