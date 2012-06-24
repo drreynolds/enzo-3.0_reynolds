@@ -46,9 +46,7 @@ int CommunicationInitialize(Eint32 *argc, char **argv[])
 
   MPI_Init(argc, argv);
 
-  /* Put all tasks in the same, new communicator */
-  MPI_Arg color = 0;
-
+  MPI_Arg error;
   error = MPI_Comm_dup( MPI_COMM_WORLD, &EnzoTopComm);
 
   MPI_Comm_rank(EnzoTopComm, &mpi_rank);
