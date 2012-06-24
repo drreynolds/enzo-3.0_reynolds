@@ -709,7 +709,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
   
 }
 
-int grid::write_dataset(int ndims, hsize_t *dims, char *name, hid_t group,
+int grid::write_dataset(int ndims, hsize_t *dims, const char *name, hid_t group,
                   hid_t data_type, void *data, int active_only,
                   float *temp)
 {

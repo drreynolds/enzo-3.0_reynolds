@@ -660,7 +660,10 @@ int WriteAllData(char *basename, int filenumber,
   HierarchyEntry *TempTopGrid;
   CommunicationCombineGrids(TopGrid, &TempTopGrid, WriteTime, CheckpointDump);
  
+  int level;
+  LevelHierarchyEntry *Temp;
   LevelHierarchyEntry *LevelArray[MAX_DEPTH_OF_HIERARCHY];
+
   if ((HierarchyFileOutputFormat % 2) == 0  || VelAnyl==1 || BAnyl==1) {
     /* Create LevelArray */
     for (int level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++)
@@ -685,9 +688,21 @@ int WriteAllData(char *basename, int filenumber,
 
   if (MyProcessorNumber == ROOT_PROCESSOR) {
 
-    if( HierarchyFileOutputFormat % 2 == 0 )
-      WriteHDF5HierarchyFile(name, TempTopGrid, MetaData, LevelArray);      
-    
+    if (HierarchyFileOutputFormat % 2 == 0) {
+      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++)
+	LevelArray[level] = NULL;
+      AddLevel(LevelArray, TempTopGrid, 0);
+      WriteHDF5HierarchyFile(name, TempTopGrid, MetaData, LevelArray);
+
+      // Delete LevelArray linked list
+      for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++)
+	while (LevelArray[level] != NULL) {
+	  Temp = LevelArray[level]->NextGridThisLevel;
+	  delete LevelArray[level];
+	  LevelArray[level] = Temp;
+	} // ENDWHILE
+    } // ENDIF HierarchyFileOutputFormat
+
     if (HierarchyFileOutputFormat > 0)
       if ((fptr = fopen(hierarchyname, "w")) == NULL) 
 	ENZO_VFAIL("Error opening hierarchy file %s\n", hierarchyname);

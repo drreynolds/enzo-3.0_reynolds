@@ -602,7 +602,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
  
 }
 
-int grid::read_dataset(int ndims, hsize_t *dims, char *name, hid_t group,
+int grid::read_dataset(int ndims, hsize_t *dims, const char *name, hid_t group,
                   hid_t data_type, void *read_to, int copy_back_active,
                   float *copy_to, int *active_dims)
 {
