@@ -533,52 +533,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
       /* Include 'star' particle creation and feedback. */
 
-//#define DEBUG
-#ifdef DEBUG
-      float MassOnThisProc;
-      float TotalMass;
-      int NumberOfLevelGrids,i,level2;
-      HierarchyEntry **LevelGrids = NULL;
-#endif
-
-#ifdef DEBUG
-      MassOnThisProc = 0;
-      TotalMass = 0;
-      for (level2 = 0; level2 < MAX_DEPTH_OF_HIERARCHY; level2++) {
-	NumberOfLevelGrids = GenerateGridArray(LevelArray, level2, &LevelGrids);
-	for (i=0;i<NumberOfLevelGrids;i++) {
-	  if (LevelGrids[i]->NextGridNextLevel == NULL)
-	    if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
-	      ENZO_FAIL("SumGasMass Failed!\n");
-	}
-	delete [] LevelGrids;
-      }	
-
-      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-
-      fprintf(stdout,"Grid Number: %"ISYM", Before Handler TotalMass = %"FSYM"\n",grid1, TotalMass);
-#endif      
-
       Grids[grid1]->GridData->ActiveParticleHandler
 	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
-
-#ifdef DEBUG
-      MassOnThisProc = 0;
-      TotalMass = 0;
-      for (level2 = 0; level2 < MAX_DEPTH_OF_HIERARCHY; level2++) {
-	NumberOfLevelGrids = GenerateGridArray(LevelArray, level2, &LevelGrids);
-	for (i=0;i<NumberOfLevelGrids;i++) {
-	  if (LevelGrids[i]->NextGridNextLevel == NULL)
-	    if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
-	      ENZO_FAIL("SumGasMass Failed!\n");
-	}
-	delete [] LevelGrids;
-      }	
-
-      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-
-      fprintf(stdout,"Grid Number: %"ISYM", After Handler TotalMass = %"FSYM"\n",grid1, TotalMass);
-#endif      
 
       /* Include shock-finding */
 
