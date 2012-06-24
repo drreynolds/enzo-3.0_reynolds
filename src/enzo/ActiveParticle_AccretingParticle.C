@@ -268,7 +268,8 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data)
+int ActiveParticleType_AccretingParticle::EvaluateFormation
+(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   // No need to do the rest if we're not on the maximum refinement level.
   if (data.level != MaximumRefinementLevel)
