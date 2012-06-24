@@ -216,7 +216,7 @@ void RecordTotalStarParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
   MPI_Arg GridCount = NumberOfGrids;
    
   MPI_Allreduce(PartialStarParticleCountPrevious, TotalStarParticleCountPrevious, GridCount,
-		DataTypeInt, MPI_SUM, MPI_COMM_WORLD);
+		DataTypeInt, MPI_SUM, EnzoTopComm);
 #endif
 
   delete [] PartialStarParticleCountPrevious;

@@ -270,7 +270,7 @@ int FSProb::Initialize(HierarchyEntry &TopGrid, TopGridData &MetaData)
   //   for non-periodic domain, unset neighbor info.
 #ifndef MPI_INT
   int MPI_PROC_NULL = -3;
-  int MPI_COMM_WORLD = 0;
+  int EnzoTopComm = 0;
 #endif
   for (dim=0; dim<rank; dim++) {
     if ((OnBdry[dim][0]) && (BdryType[dim][0] != 0))
@@ -362,7 +362,7 @@ int FSProb::Initialize(HierarchyEntry &TopGrid, TopGridData &MetaData)
 
   //    set up the grid
   //       create the grid object
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, rank, &grid);
+  HYPRE_StructGridCreate(EnzoTopComm, rank, &grid);
 
   //       set my grid extents as if we have one part with multiple boxes.
   //       Have each processor describe it's own global extents
@@ -429,11 +429,11 @@ int FSProb::Initialize(HierarchyEntry &TopGrid, TopGridData &MetaData)
   matentries = new Eflt64[stSize*Nx*Ny*Nz];
   rhsentries = new Eflt64[Nx*Ny*Nz];
   HYPREbuff = new Eflt64[Nx];
-  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, grid, stencil, &J);
+  HYPRE_StructMatrixCreate(EnzoTopComm, grid, stencil, &J);
   HYPRE_StructMatrixInitialize(J);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &rhsvec);
+  HYPRE_StructVectorCreate(EnzoTopComm, grid, &rhsvec);
   HYPRE_StructVectorInitialize(rhsvec);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &solvec);
+  HYPRE_StructVectorCreate(EnzoTopComm, grid, &solvec);
   HYPRE_StructVectorInitialize(solvec);
 
 #else  // ifdef USE_HYPRE

@@ -22,7 +22,7 @@
       character*32  fnx
 
 #ifdef USE_MPI
-      call mpi_comm_rank( MPI_COMM_WORLD, id, ierr)
+      call mpi_comm_rank( EnzoTopComm, id, ierr)
 #else
       id = 0
 #endif

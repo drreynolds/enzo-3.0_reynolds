@@ -45,8 +45,23 @@ int CommunicationInitialize(Eint32 *argc, char **argv[])
   MPI_Arg mpi_size;
 
   MPI_Init(argc, argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+  /* Put all tasks in the same, new communicator */
+  MPI_Arg color = 0;
+
+  static bool use_new_comm = true;
+  MPI_Arg error;
+  if (use_new_comm){
+  /* Create an EnzoTopComm */
+    MPI_Comm EnzoTopComm;
+    error = MPI_Comm_split( MPI_COMM_WORLD, color, 0, &EnzoTopComm);
+  } else {
+    MPI_Comm EnzoTopComm;
+    EnzoTopComm = MPI_COMM_WORLD;
+  }
+
+  MPI_Comm_rank(EnzoTopComm, &mpi_rank);
+  MPI_Comm_size(EnzoTopComm, &mpi_size);
 
   MyProcessorNumber = mpi_rank;
   NumberOfProcessors = mpi_size;
@@ -85,7 +100,11 @@ void CommunicationAbort(int status)
 {
 
 #ifdef USE_MPI
-  MPI_Abort(MPI_COMM_WORLD,status);
+  MPI_Arg error;
+  if (true) {
+    error = MPI_Comm_free ( &EnzoTopComm ) ;
+  }
+  MPI_Abort(EnzoTopComm,status);
 #else
   //  my_exit(status);
 #endif

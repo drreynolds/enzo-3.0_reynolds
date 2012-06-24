@@ -116,7 +116,7 @@ int CommunicationShareParticles(int *NumberToMove, particle_data* &SendList,
     ******************************/
     
     stat = MPI_Alltoall(NumberToMove, SendCount, DataTypeInt,
-			RecvListCount, RecvCount, DataTypeInt, MPI_COMM_WORLD);
+			RecvListCount, RecvCount, DataTypeInt, EnzoTopComm);
     if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
     /* Allocate buffers and generated displacement list. */
@@ -138,7 +138,7 @@ int CommunicationShareParticles(int *NumberToMove, particle_data* &SendList,
 			   MPI_ParticleMoveList,
 			 SharedList, MPI_RecvListCount, MPI_RecvListDisplacements,
 			   MPI_ParticleMoveList,
-			 MPI_COMM_WORLD);
+			 EnzoTopComm);
     if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
 #ifdef MPI_INSTRUMENTATION

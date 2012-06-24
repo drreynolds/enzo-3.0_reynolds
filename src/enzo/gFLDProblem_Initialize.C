@@ -94,7 +94,7 @@ int gFLDProblem::Initialize(HierarchyEntry &TopGrid, TopGridData &MetaData)
 #ifndef MPI_INT
   // in case MPI is not included
   int MPI_PROC_NULL = -3;
-  int MPI_COMM_WORLD = 0;
+  int EnzoTopComm = 0;
 #endif
 
   // set rank of self-gravity problem to 3
@@ -676,7 +676,7 @@ int gFLDProblem::Initialize(HierarchyEntry &TopGrid, TopGridData &MetaData)
 
   //    set up the grid
   //       create the grid object
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, rank, &grid);
+  HYPRE_StructGridCreate(EnzoTopComm, rank, &grid);
 
 //   if (debug)  printf("     HYPRE_StructGridSetExtents\n");
 
@@ -754,11 +754,11 @@ int gFLDProblem::Initialize(HierarchyEntry &TopGrid, TopGridData &MetaData)
   int Nz = (SolvIndices[2][1]-SolvIndices[2][0]+1);
   Ptmpvec = new Eflt64[stSize*Nx*Ny*Nz];
   HYPREbuff = new Eflt64[Nx];
-  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, grid, stencil, &P);
+  HYPRE_StructMatrixCreate(EnzoTopComm, grid, stencil, &P);
   HYPRE_StructMatrixInitialize(P);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &rhsvec);
+  HYPRE_StructVectorCreate(EnzoTopComm, grid, &rhsvec);
   HYPRE_StructVectorInitialize(rhsvec);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &solvec);
+  HYPRE_StructVectorCreate(EnzoTopComm, grid, &solvec);
   HYPRE_StructVectorInitialize(solvec);
 
 #else  // ifdef USE_HYPRE

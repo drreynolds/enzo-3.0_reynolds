@@ -773,7 +773,7 @@ void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int Numbe
   // Example below is defined out
 #ifdef EXAMPLE
   MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
-	   &position, MPI_COMM_WORLD);
+	   &position, EnzoTopComm);
 #endif /* EXAMPLE */
   delete pbuffer;
   return;
@@ -791,7 +791,7 @@ void CenOstrikerBufferHandler::UnpackBuffer
   // transferred to the buffer here.
 #ifdef EXAMPLE
   MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->field,
-	     pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+	     pbuffer->NumberOfBuffers, FloatDataType, EnzoTopComm);
 #endif /* EXAMPLE */
   /* Convert the particle buffer into active particles */
   for (i = 0; i < pbuffer->NumberOfBuffers; i++)

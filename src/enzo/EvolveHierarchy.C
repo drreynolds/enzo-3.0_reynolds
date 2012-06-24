@@ -644,9 +644,9 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
   MPI_Arg Count = 1;
   MPI_Arg stat;
 
-  stat = MPI_Comm_size(MPI_COMM_WORLD, &TaskCount);
-  stat = MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
-  stat = MPI_Allgather(&MemInUse, Count, DataTypeInt, TaskMemory, Count, DataTypeInt, MPI_COMM_WORLD);
+  stat = MPI_Comm_size(EnzoTopComm, &TaskCount);
+  stat = MPI_Comm_rank(EnzoTopComm, &ThisTask);
+  stat = MPI_Allgather(&MemInUse, Count, DataTypeInt, TaskMemory, Count, DataTypeInt, EnzoTopComm);
 
   if (ThisTask == 0 ) {
     for ( i = 0; i < TaskCount; i++) {

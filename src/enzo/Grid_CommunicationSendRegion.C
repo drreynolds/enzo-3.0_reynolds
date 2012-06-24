@@ -177,7 +177,7 @@ int grid::CommunicationSendRegion(grid *ToGrid, int ToProcessor,int SendField,
 		TransferSize, MyProcessorNumber, ToProcessor);
 #endif
       CommunicationBufferedSend(buffer, TransferSize, DataType, ToProcessor, 
-				MPI_SENDREGION_TAG, MPI_COMM_WORLD, BUFFER_IN_PLACE);
+				MPI_SENDREGION_TAG, EnzoTopComm, BUFFER_IN_PLACE);
     }
 
     if (MyProcessorNumber == ToProcessor) {
@@ -196,7 +196,7 @@ int grid::CommunicationSendRegion(grid *ToGrid, int ToProcessor,int SendField,
 //	       CommunicationReceiveIndex);
 
 	MPI_Irecv(buffer, TransferSize, DataType, ProcessorNumber, 
-		  MPI_SENDREGION_TAG, MPI_COMM_WORLD, 
+		  MPI_SENDREGION_TAG, EnzoTopComm, 
 		  CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
 	CommunicationReceiveBuffer[CommunicationReceiveIndex] = buffer;
 	CommunicationReceiveDependsOn[CommunicationReceiveIndex] =
@@ -208,7 +208,7 @@ int grid::CommunicationSendRegion(grid *ToGrid, int ToProcessor,int SendField,
 
       if (CommunicationDirection == COMMUNICATION_SEND_RECEIVE)
 	MPI_Recv(buffer, TransferSize, DataType, ProcessorNumber, 
-		 MPI_SENDREGION_TAG, MPI_COMM_WORLD, &Status);
+		 MPI_SENDREGION_TAG, EnzoTopComm, &Status);
 
     } // ENDIF ToProcessor
 

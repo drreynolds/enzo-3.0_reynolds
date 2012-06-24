@@ -44,7 +44,7 @@ int ParticleBufferHandler::_UnpackBuffer(char *buffer, int buffer_size,
   /* Unpack header (number of buffers) */
 
   MPI_Unpack(buffer, buffer_size, &position, &nbuffers, 1, IntDataType, 
-	     MPI_COMM_WORLD);
+	     EnzoTopComm);
   // check if we're receiving the right number of buffers
   assert(nbuffers == this->NumberOfBuffers);
 
@@ -53,26 +53,26 @@ int ParticleBufferHandler::_UnpackBuffer(char *buffer, int buffer_size,
   if (this->NumberOfBuffers > 0) {
     for (i = 0; i < MAX_DIMENSION; i++)
       MPI_Unpack(buffer, buffer_size, &position, this->pos[i], 
-		 nbuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
+		 nbuffers, MY_MPIFLOAT, EnzoTopComm);
     for (i = 0; i < MAX_DIMENSION; i++)
       MPI_Unpack(buffer, buffer_size, &position, this->vel[i], 
-		 nbuffers, FloatDataType, MPI_COMM_WORLD);
+		 nbuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->Mass, 
-	       nbuffers, MPI_DOUBLE, MPI_COMM_WORLD);
+	       nbuffers, MPI_DOUBLE, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->BirthTime, 
-	       nbuffers, FloatDataType, MPI_COMM_WORLD);
+	       nbuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->DynamicalTime, 
-	       nbuffers, FloatDataType, MPI_COMM_WORLD);
+	       nbuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->Metallicity, 
-	       nbuffers, FloatDataType, MPI_COMM_WORLD);
+	       nbuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->Identifier,
-	       nbuffers, PINTDataType, MPI_COMM_WORLD);
+	       nbuffers, PINTDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->level,
-	       nbuffers, IntDataType, MPI_COMM_WORLD);
+	       nbuffers, IntDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->GridID,
-	       nbuffers, IntDataType, MPI_COMM_WORLD);
+	       nbuffers, IntDataType, EnzoTopComm);
     MPI_Unpack(buffer, buffer_size, &position, this->type,
-	       nbuffers, IntDataType, MPI_COMM_WORLD);
+	       nbuffers, IntDataType, EnzoTopComm);
   } // ENDIF NumberOfBuffers > 0
 
 #endif /* USE_MPI */

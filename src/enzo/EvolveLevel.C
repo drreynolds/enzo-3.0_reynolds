@@ -520,7 +520,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 	delete [] LevelGrids;
       }	
 
-      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
 
       fprintf(stdout,"Grid Number: %"ISYM", Before Handler TotalMass = %"FSYM"\n",grid1, TotalMass);
 #endif      
@@ -541,7 +541,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 	delete [] LevelGrids;
       }	
 
-      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
 
       fprintf(stdout,"Grid Number: %"ISYM", After Handler TotalMass = %"FSYM"\n",grid1, TotalMass);
 #endif      
@@ -601,7 +601,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
       delete [] LevelGrids;
     }	
     
-    MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
     
     fprintf(stdout,"Before Finalize TotalMass = %"FSYM"\n", TotalMass);
 #endif      
@@ -622,7 +622,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
       delete [] LevelGrids;
     }	
     
-    MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
     
     fprintf(stdout,"After Finalize TotalMass = %"FSYM"\n", TotalMass);
 #endif      

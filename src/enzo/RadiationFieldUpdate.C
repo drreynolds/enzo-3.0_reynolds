@@ -229,7 +229,7 @@ int RadiationFieldUpdate(LevelHierarchyEntry *LevelArray[], int level,
 
     MPI_Arg Count = size;
  
-    MPI_Allreduce(buffer1, buffer, Count, DataType, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(buffer1, buffer, Count, DataType, MPI_SUM, EnzoTopComm);
  
 #ifdef MPI_INSTRUMENTATION
     double time2 = MPI_Wtime();

@@ -127,7 +127,7 @@ int grid::InterpolateParticlesToGrid(FOFData *D)
 
 	  buffer = new float[size];
 	  Tag = MPI_SENDPARTFIELD_TAG+field;
-	  MPI_Irecv(buffer, Count, DataType, Source, Tag, MPI_COMM_WORLD,
+	  MPI_Irecv(buffer, Count, DataType, Source, Tag, EnzoTopComm,
 		    CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
 
 	  CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
@@ -300,7 +300,7 @@ int grid::InterpolateParticlesToGrid(FOFData *D)
       for (field = 0; field < NumberOfFields; field++) {
 	Tag = MPI_SENDPARTFIELD_TAG + field;
 	CommunicationBufferedSend(InterpolatedField[field], size, DataType,
-				  ProcessorNumber, Tag, MPI_COMM_WORLD,
+				  ProcessorNumber, Tag, EnzoTopComm,
 				  size * sizeof(float));
 	delete [] InterpolatedField[field];
 	InterpolatedField[field] = NULL;

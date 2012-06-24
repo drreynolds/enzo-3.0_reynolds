@@ -42,39 +42,39 @@ int ParticleBufferHandler::_AllocateBuffer(char *buffer, Eint32 total_buffer_siz
   /* Calculate the buffer size */
 
   // Header: Number of particles
-  MPI_Pack_size(1, IntDataType, MPI_COMM_WORLD, &header_size);
+  MPI_Pack_size(1, IntDataType, EnzoTopComm, &header_size);
   buffer_size = header_size + this->NumberOfBuffers * this->ElementSizeInBytes;
 
   /* Allocate buffer and pack the data */
 
   //position = 0;
   MPI_Pack(&this->NumberOfBuffers, 1, IntDataType, buffer, total_buffer_size, 
-	   &position, MPI_COMM_WORLD);
+	   &position, EnzoTopComm);
 
   if (this->NumberOfBuffers > 0) {
 
     for (i = 0; i < MAX_DIMENSION; i++)
       MPI_Pack(this->pos[i], NumberOfBuffers, MY_MPIFLOAT, buffer, total_buffer_size,
-	       &position, MPI_COMM_WORLD);
+	       &position, EnzoTopComm);
     for (i = 0; i < MAX_DIMENSION; i++)
       MPI_Pack(this->vel[i], NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	       &position, MPI_COMM_WORLD);
+	       &position, EnzoTopComm);
     MPI_Pack(this->Mass, NumberOfBuffers, MPI_DOUBLE, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->BirthTime, NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->DynamicalTime, NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->Metallicity, NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->Identifier, NumberOfBuffers, PINTDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->level, NumberOfBuffers, IntDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->GridID, NumberOfBuffers, IntDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(this->type, NumberOfBuffers, IntDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
 
   } // ENDIF NumberOfBuffers > 0
 

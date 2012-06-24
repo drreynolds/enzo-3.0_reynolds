@@ -104,7 +104,7 @@ int RestartPhotons(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
 #ifdef USE_MPI
     int value = PhotonCount;
-    MPI_Allreduce(&value, &PhotonCount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&value, &PhotonCount, 1, MPI_INT, MPI_SUM, EnzoTopComm);
 #endif /* USE_MPI */    
 
     if (LastPhotonCount > 0)

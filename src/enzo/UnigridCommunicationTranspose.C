@@ -261,7 +261,7 @@ int CommunicationTranspose(region *FromRegion, int NumberOfFromRegions,
  
       if (MPI_Sendrecv((void*) SendBuffer, Count, DataType, Dest,
 	       MPI_TRANSPOSE_TAG, (void*) ReceiveBuffer, RecvCount,
-	       DataType, Source, MPI_TRANSPOSE_TAG, MPI_COMM_WORLD,
+	       DataType, Source, MPI_TRANSPOSE_TAG, EnzoTopComm,
 	       &status) != MPI_SUCCESS) {
 	ENZO_VFAIL("Proc %"ISYM" MPI_Sendrecv error %"ISYM"\n", MyProcessorNumber,
 		status.MPI_ERROR)

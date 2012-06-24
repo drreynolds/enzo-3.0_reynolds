@@ -176,7 +176,7 @@ int CreateSUBlingList(TopGridData *MetaData,
     RecvCount = 1;
     MPI_Allgather(&LocalNumberOfSUBlings, SendCount, IntDataType,
 		  SharedListCount, RecvCount, IntDataType,
-		  MPI_COMM_WORLD);
+		  EnzoTopComm);
 
   /* Create a global displacement array and get all SUBling IDs across
      processors.  Remember that we're passing 2 integers (coarse grid ID
@@ -194,7 +194,7 @@ int CreateSUBlingList(TopGridData *MetaData,
 
     MPI_Allgatherv(SUBlingIDs, SendCount, IntDataType,
 		   GlobalSUBlingIDs, MPI_SharedListCount, MPI_SharedListDisplacements,
-		   IntDataType, MPI_COMM_WORLD);
+		   IntDataType, EnzoTopComm);
 
     /* Cleanup */
 

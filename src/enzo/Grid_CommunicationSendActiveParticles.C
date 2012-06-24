@@ -142,14 +142,14 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 #endif
     if (MyProcessorNumber == ProcessorNumber)
       CommunicationBufferedSend(buffer, Count, MPI_PACKED, 
-				Dest, MPI_SENDAP_TAG, MPI_COMM_WORLD, 
+				Dest, MPI_SENDAP_TAG, EnzoTopComm, 
 				BUFFER_IN_PLACE);
 
     if (MyProcessorNumber == ToProcessor) {
 
       if (CommunicationDirection == COMMUNICATION_POST_RECEIVE) {
 	MPI_Irecv(buffer, Count, MPI_PACKED, Source,
-		  MPI_SENDAP_TAG, MPI_COMM_WORLD,
+		  MPI_SENDAP_TAG, EnzoTopComm,
 		  CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
 
 	CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
@@ -164,7 +164,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
       if (CommunicationDirection == COMMUNICATION_SEND_RECEIVE)
 	MPI_Recv(buffer, Count, MPI_PACKED, Source,
-		 MPI_SENDAP_TAG, MPI_COMM_WORLD, &status);
+		 MPI_SENDAP_TAG, EnzoTopComm, &status);
 
     } // ENDIF MyProcessorNumber == ToProcessor
 
@@ -196,7 +196,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 #ifdef USE_MPI
     position = 0;
     MPI_Unpack(buffer, TransferSize, &position, &NumberOfNewParticles,
-	       1, IntDataType, MPI_COMM_WORLD);
+	       1, IntDataType, EnzoTopComm);
 #endif /* USE_MPI */    
     NewParticles = new ActiveParticleType*[NumberOfNewParticles];
     buffer_size = header_size + NumberOfNewParticles*element_size;

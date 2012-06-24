@@ -81,7 +81,7 @@ int gFLDProblem::lsolve(EnzoVector *s, EnzoVector *b,
 
   // in case MPI is not included
 #ifndef MPI_INT
-  int MPI_COMM_WORLD = 0;
+  int EnzoTopComm = 0;
 #endif
   
   // have b communicate neighbor information and enforce BCs
@@ -315,9 +315,9 @@ int gFLDProblem::lsolve(EnzoVector *s, EnzoVector *b,
   HYPRE_StructSolver solver;
   HYPRE_StructSolver preconditioner;
 //   if (debug)  printf("lsolve: calling HYPRE_StructPCGCreate\n");
-  HYPRE_StructPCGCreate(MPI_COMM_WORLD, &solver);
+  HYPRE_StructPCGCreate(EnzoTopComm, &solver);
 //   if (debug)  printf("lsolve: calling HYPRE_StructPFMGCreate\n");
-  HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &preconditioner);
+  HYPRE_StructPFMGCreate(EnzoTopComm, &preconditioner);
 
   //          set preconditioner options
 //   if (debug)  printf("lsolve: calling HYPRE_StructPFMGSet*\n");
