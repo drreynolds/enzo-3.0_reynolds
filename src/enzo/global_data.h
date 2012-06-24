@@ -97,6 +97,8 @@ EXTERN int extract;
 	    60 = TurbulenceSimulation
 	                                                                  */
 EXTERN int CheckpointRestart;
+EXTERN int WriteGhostZones;
+EXTERN int ReadGhostZones;
 EXTERN int ProblemType;
 #ifdef NEW_PROBLEM_TYPES
 EXTERN char *ProblemTypeName;
@@ -343,7 +345,6 @@ EXTERN fpos_t  BaryonFileNamePosition;
 
 EXTERN int MultiSpecies;
 EXTERN int NoMultiSpeciesButColors;
-EXTERN int PrimordialChemistrySolver;
 EXTERN int ThreeBodyRate;
 EXTERN RateDataType RateData;
 EXTERN int H2FormationOnDust;
@@ -465,6 +466,7 @@ EXTERN float IncrementDensityOutput;
 /* Parameter(s) for embedded python execution */
 EXTERN int PythonTopGridSkip;
 EXTERN int PythonSubcycleSkip;
+EXTERN int PythonReloadScript;
 
 /* Parameters to control inline halo finding */
 
@@ -570,6 +572,12 @@ EXTERN int   BigStarFormationDone;
 EXTERN float BigStarSeparation;
 EXTERN double SimpleQ;
 EXTERN float SimpleRampTime;
+
+/* Set this flag to allow star formation only once per root grid time
+   step (at the beginning) and with a SFR proportional to the full
+   root grid time step (as in Kravtsov 2004, for example). Currently
+   only implemented for H2REG_STAR. */
+EXTERN int   StarFormationOncePerRootGridTimeStep;
 
 
 /* Parameters governing certain time or redshift-dependent actions. */
@@ -933,8 +941,11 @@ class ActiveParticleType_info;
 /* For the database */
 EXTERN char *DatabaseLocation;
 
+/* Active particles */
 EXTERN ActiveParticleType_info *EnabledActiveParticles[MAX_ACTIVE_PARTICLE_TYPES];
 EXTERN int EnabledActiveParticlesCount;
 
+/* For EnzoTiming Behavior */
+EXTERN int TimingCycleSkip; // Frequency of timing data dumps.
 
 #endif
