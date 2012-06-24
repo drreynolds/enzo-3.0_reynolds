@@ -33,6 +33,7 @@ OBJS_CONFIG_LIB = \
 	ActiveParticle_DisableParticle.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_SphereContained.o \
+	ActiveParticle_SpringelHernquist.o \
 	ActiveParticleFindAll.o \
         AdiabaticExpansionInitialize.o \
         AdjustRefineRegion.o \
