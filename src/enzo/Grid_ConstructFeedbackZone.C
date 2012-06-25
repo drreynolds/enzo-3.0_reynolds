@@ -72,7 +72,9 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, FLOAT Feedback
 			      FeedbackZoneLeftEdge,FeedbackZoneRightEdge,0);
     
     FeedbackZone->SetProcessorNumber(MyProcessorNumber);
-  
+
+
+    
 
   }    
 
