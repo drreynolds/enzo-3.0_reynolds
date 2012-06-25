@@ -342,33 +342,33 @@ verbose: $(EXE).exe
 #-----------------------------------------------------------------------
 
 .PHONY: autogen
-autogen: auto_show_config.C auto_show_flags.C auto_show_version.C auto_show_compile_options.C
+autogen: io/auto_show_config.C io/auto_show_flags.C io/auto_show_version.C io/auto_show_compile_options.C
 
 # Force update of auto_show_config.C
 
-.PHONY: auto_show_config.C
-auto_show_config.C:
+.PHONY: io/auto_show_config.C
+io/auto_show_config.C:
 	-@$(MAKE) -s show-config  >& temp.show-config
 	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_config(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-config > io/auto_show_config.C
 
 # Force update of auto_show_flags.C
 
-.PHONY: auto_show_flags.C
-auto_show_flags.C:
+.PHONY: io/auto_show_flags.C
+io/auto_show_flags.C:
 	-@$(MAKE) -s show-flags  >& temp.show-flags
 	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_flags(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-flags > io/auto_show_flags.C
 
 # Force update of auto_show_version.C
 
-.PHONY: auto_show_version.C
-auto_show_version.C:
+.PHONY: io/auto_show_version.C
+io/auto_show_version.C:
 	-@$(MAKE) -s show-version  >& temp.show-version
 	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_version(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-version > io/auto_show_version.C
 
 # Force update of auto_show_compile_options.C
 
-.PHONY: auto_show_compile_options.C
-auto_show_compile_options.C:
+.PHONY: io/auto_show_compile_options.C
+io/auto_show_compile_options.C:
 	-@python $(UTILS_DIR)/create_config_info.py
 
 #-----------------------------------------------------------------------
