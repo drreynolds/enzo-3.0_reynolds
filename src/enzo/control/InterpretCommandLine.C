@@ -21,7 +21,10 @@ void my_exit(int status);
 void auto_show_compile_options(void);
 void WriteConfigure(FILE *fp);
 
-Eint32 hide_isdigit(Eint32 c);
+Eint32 hide_isdigit(Eint32 c)
+{
+  return (c >= '0' && c <= '9');
+}
 
 int InterpretCommandLine(int argc, char *argv[], char *myname,
 			 int &restart, int &debug, int &extract,
