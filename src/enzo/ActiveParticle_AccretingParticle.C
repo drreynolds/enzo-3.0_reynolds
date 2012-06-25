@@ -887,16 +887,16 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  grid* FeedbackZone = NULL
+  //grid* FeedbackZone = NULL
 
-  for (i = 0; i < nParticles; i++) {
-    sinkGrid = ParticleList[i]->CurrentGrid;
-    if (sinkGrid == NULL)
-      ENZO_FAIL('sinkGrid is invalid!');
+  //  for (i = 0; i < nParticles; i++) {
+  // sinkGrid = ParticleList[i]->CurrentGrid;
+  // if (sinkGrid == NULL)
+  //   ENZO_FAIL('sinkGrid is invalid!');
     
-    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius) == FAIL);
-	ENZO_FAIL('Accretion zone construction failed!');
-  }
+  //if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius) == FAIL);
+  //ENZO_FAIL('Accretion zone construction failed!');
+  //}
 
   delete [] Grids;
   return SUCCESS;
