@@ -402,6 +402,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ConductionBubbleInitialize.o \
 	Grid_ConductionCloudInitialize.o \
 	Grid_ConductionTestInitialize.o \
+	Grid_ConstructFeedbackZone.o \
 	Grid_constructor.o \
 	Grid_ConvertTotalEnergyToGasEnergy.o \
 	Grid_ConvertToNumpy.o \

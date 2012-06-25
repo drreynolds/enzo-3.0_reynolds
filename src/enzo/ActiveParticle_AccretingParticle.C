@@ -181,8 +181,8 @@ public:
    int *ngroups, LevelHierarchyEntry *LevelArray[]);
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
-		     FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[], 
-		     int ThisLevel);
+		     int AccretionRadius, FLOAT dx, 
+		     LevelHierarchyEntry *LevelArray[], int ThisLevel);
 
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
@@ -843,7 +843,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
       /* Do accretion */
-      if (Accrete(nParticles,ParticleList,AccretionRadius*dx,LevelArray,ThisLevel) == FAIL)
+      if (Accrete(nParticles,ParticleList,AccretionRadius,dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
      
       delete [] ParticleList;
@@ -854,8 +854,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 }
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
-						  FLOAT AccretionRadius, LevelHierarchyEntry *LevelArray[],
-						  int ThisLevel)
+						  int AccretionRadius, FLOAT dx, 
+						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
 {
   
   /* Skip accretion if we're not on the maximum refinement level. 
@@ -869,9 +869,9 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   /* For each particle, loop over all of the grids and do accretion 
      if the grid overlaps with the accretion zone                   */
   
-  int i, grid, NumberOfGrids;
+  int i, NumberOfGrids;
   HierarchyEntry **Grids = NULL;
-  HierarchyEntry *sinkGrid = NULL;
+  grid *sinkGrid = NULL;
   
   bool SinkIsOnThisProc, SinkIsOnThisGrid;
   
@@ -887,16 +887,18 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  //grid* FeedbackZone = NULL
+  grid* FeedbackZone = NULL;
 
-  //  for (i = 0; i < nParticles; i++) {
-  // sinkGrid = ParticleList[i]->CurrentGrid;
-  // if (sinkGrid == NULL)
-  //   ENZO_FAIL('sinkGrid is invalid!');
+  for (i = 0; i < nParticles; i++) {
+    sinkGrid = ParticleList[i]->ReturnCurrentGrid();
+    if (sinkGrid == NULL) {
+      ENZO_FAIL("sinkGrid is invalid!");
+    }
     
-  //if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius) == FAIL);
-  //ENZO_FAIL('Accretion zone construction failed!');
-  //}
+    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx, FeedbackZone) == FAIL) {
+      ENZO_FAIL("Accretion zone construction failed!");
+    }
+  }
 
   delete [] Grids;
   return SUCCESS;
