@@ -97,7 +97,7 @@ include $(CONFIG_DIR)/Make.config.assemble
 
 MACH_SHARED_EXT=so
 
--include $(ENZO_DIR)/$(CONFIG_DIR)/Make.mach.$(CONFIG_MACHINE)
+-include $(ENZO_DIR)/build/machines/Make.mach.$(CONFIG_MACHINE)
 -include $(HOME)/.enzo/Make.mach.$(CONFIG_MACHINE)
 
 #=======================================================================
@@ -423,6 +423,7 @@ help:
 
 clean:
 	-@rm -f *.so *.o uuid/*.o *.mod *.f *.f90 DEPEND.bak *~ $(OUTPUT) *.exe \
+          $(BUILD_DIR)/*.o \
           auto_show*.C hydro_rk/*.o *.oo hydro_rk/*.oo \
           uuid/*.oo DEPEND TAGS \
           libconfig/*.o \
