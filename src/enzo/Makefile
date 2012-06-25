@@ -118,6 +118,7 @@ include utilities/Make.module.objects
 vpath %.o $(BUILD_DIR)/
 
 OBJS_CONFIG_LIB=$(ENZO_OBJS)
+OBJS_LINK=$(addprefix $(BUILD_DIR)/, $(OBJS_LIB))
 
 #-----------------------------------------------------------------------
 # MAKE ENZO BY DEFAULT
@@ -157,9 +158,9 @@ MACHNOTES:
 	@rm -f $@
 	@echo "Linking enzo executable. Type  cat $(OUTPUT)  in case it fails."
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-		$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS) >& $(OUTPUT) ; \
+		$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LINK) $(LIBS) >& $(OUTPUT) ; \
 	else \
-		$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS) >> $(OUTPUT) \
+		$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LINK) $(LIBS) >> $(OUTPUT) \
 		2>&1 ; \
 	fi)  
 	@(if [ -e $@ ] ; then  \
@@ -171,7 +172,7 @@ MACHNOTES:
 		fi; \
                 cp $(EXE).exe $(TOP_DIR)/bin/$(EXE); \
 	else \
-		echo "$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS)" > temp1; \
+		echo "$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LINK) $(LIBS)" > temp1; \
 		cat temp1 $(OUTPUT) > temp2 ;\
 		mv -f temp2 $(OUTPUT); \
 		rm -f temp1 temp2; \
@@ -181,11 +182,11 @@ MACHNOTES:
 lib%.$(MACH_SHARED_EXT): $(MODULES) autogen dep enzo.o $(OBJS_LIB)
 	@rm -f $@
 	@echo "Linking"
-	-@$(LD) $(LDFLAGS) $(SHARED_OPT) -o $@ enzo.o $(OBJS_LIB) $(LIBS) >& $(OUTPUT)
+	-@$(LD) $(LDFLAGS) $(SHARED_OPT) -o $@ enzo.o $(OBJS_LINK) $(LIBS) >& $(OUTPUT)
 	@(if [ -e $@ ]; then \
 	   echo "Success!"; \
 	else \
-	   echo "$(LD) $(LDFLAGS) $(SHARED_OPT) -o $*.so $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS)" >> temp1; \
+	   echo "$(LD) $(LDFLAGS) $(SHARED_OPT) -o $*.so $(BUILD_DIR)/$*.o $(OBJS_LINK) $(LIBS)" >> temp1; \
 	   cat temp1 $(OUTPUT) > temp2; \
 	   rm -f temp1; \
 	   mv -f temp2 $(OUTPUT); \
@@ -226,7 +227,7 @@ verbose: $(EXE).exe
 	@echo "Compiling $<"
 	@rm -f $(BUILD_DIR)/$@
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $< >& $(OUTPUT) ; \
+	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
              echo "$(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $<"; \
@@ -250,7 +251,7 @@ verbose: $(EXE).exe
 	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $< >& $(OUTPUT) ; \
+	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
              echo "$(F90) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(F90FLAGS) $<"; \
@@ -317,7 +318,7 @@ verbose: $(EXE).exe
 	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(CUDACOMPILER) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CUDACOMPFLAGS) \
+	  $(CUDACOMPILER) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(INCLUDES) $(CUDACOMPFLAGS) \
 	    $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo; \
@@ -348,21 +349,21 @@ autogen: auto_show_config.C auto_show_flags.C auto_show_version.C auto_show_comp
 .PHONY: auto_show_config.C
 auto_show_config.C:
 	-@$(MAKE) -s show-config  >& temp.show-config
-	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_config(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-config > auto_show_config.C
+	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_config(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-config > io/auto_show_config.C
 
 # Force update of auto_show_flags.C
 
 .PHONY: auto_show_flags.C
 auto_show_flags.C:
 	-@$(MAKE) -s show-flags  >& temp.show-flags
-	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_flags(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-flags > auto_show_flags.C
+	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_flags(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-flags > io/auto_show_flags.C
 
 # Force update of auto_show_version.C
 
 .PHONY: auto_show_version.C
 auto_show_version.C:
 	-@$(MAKE) -s show-version  >& temp.show-version
-	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_version(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-version > auto_show_version.C
+	-@awk 'BEGIN {print "#include <stdio.h>\nvoid auto_show_version(FILE *fp) {"}; {print "   fprintf (fp,\""$$0"\\n\");"}; END {print "}"}' < temp.show-version > io/auto_show_version.C
 
 # Force update of auto_show_compile_options.C
 

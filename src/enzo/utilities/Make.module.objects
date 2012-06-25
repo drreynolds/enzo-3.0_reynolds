@@ -7,6 +7,7 @@ vpath %.C   utilities/
 vpath %.c   utilities/
 vpath %.F   utilities/
 vpath %.F90 utilities/
+vpath %.c   utilities/uuid/
 
 ENZO_OBJS +=\
 	ComputeTable.o \
@@ -66,4 +67,13 @@ ENZO_OBJS +=\
 	rotate3d.o \
 	utilities.o \
 	uuid.o \
-
+	clear.o \
+	compare.o \
+	copy.o \
+	gen_uuid.o \
+	isnull.o \
+	pack.o \
+	parse.o \
+	unpack.o \
+	unparse.o \
+	uuid_time.o \

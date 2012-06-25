@@ -33,8 +33,6 @@
 #include "Hierarchy.h"
 #include "TopGridData.h"
 
-extern std::map<HierarchyEntry *, int> OriginalGridID;
-extern std::map<HierarchyEntry *, int> OriginalTaskID;
 
 /* function prototypes */
  
@@ -196,11 +194,6 @@ int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int Grid
   }else{
     if (Grid->GridData->ReadGrid(fptr, GridID, file_id, DataFilename, TRUE, FALSE) == FAIL) {
       ENZO_VFAIL("Error in grid->ReadGrid (grid %"ISYM").\n", GridID)
-    }
-    // Store grid and task id for later grid opening
-    if (Grid->GridData->ReturnProcessorNumber() == MyProcessorNumber){
-      OriginalGridID[Grid] = GridID;
-      OriginalTaskID[Grid] = Task;
     }
   }
  

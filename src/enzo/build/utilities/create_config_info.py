@@ -30,7 +30,8 @@ def get_hg_info():
         print "WARNING: could not get version information."
         return ('unknown', 'unknown', None)
 
-def get_options(filename, my_options=None, get_list_order=False):
+def get_options(basename, my_options=None, get_list_order=False):
+    filename = os.path.join("build", "config", basename)
     if my_options is None: my_options = {}
     if get_list_order: option_list = []
     if not os.path.exists(filename): return my_options
@@ -56,7 +57,8 @@ if __name__ == "__main__":
     changeset, branch, diff = get_hg_info()
     output_file = 'Enzo_Build'
     diff_file = '%s_Diff' % output_file
-    output = open('auto_show_compile_options.C', 'w')
+    ofn = os.path.join("io", "auto_show_compile_options.C")
+    output = open(ofn, 'w')
     output.write('#include <stdio.h>\n')
     output.write('void auto_show_compile_options(void) {\n')
     output.write('   FILE *opf;\n')

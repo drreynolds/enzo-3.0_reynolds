@@ -19,8 +19,8 @@
  
 // function prototypes
  
-double arccosh(double x);
-double arcsinh(double x);
+double acosh(double x);
+double asinh(double x);
  
 int CosmologyComputeTimeFromRedshift(FLOAT Redshift, FLOAT *TimeCodeUnits)
 {
@@ -46,7 +46,7 @@ int CosmologyComputeTimeFromRedshift(FLOAT Redshift, FLOAT *TimeCodeUnits)
         Peebles 1993, eq. 13-3, 13-10. */
  
   if (OmegaMatterNow < 1 && OmegaLambdaNow == 0) {
-    eta = arccosh(1 + 2*(1-OmegaMatterNow)/OmegaMatterNow/(1+Redshift));
+    eta = acosh(1 + 2*(1-OmegaMatterNow)/OmegaMatterNow/(1+Redshift));
     TimeHubble0 = OmegaMatterNow/(2*POW(1.0-OmegaMatterNow, 1.5))*
 		  (sinh(eta) - eta);
   }
@@ -63,7 +63,7 @@ int CosmologyComputeTimeFromRedshift(FLOAT Redshift, FLOAT *TimeCodeUnits)
  
   if (fabs(OmegaCurvatureNow) < 1.0e-3 && OmegaLambdaNow != 0)
     TimeHubble0 = 2.0/3.0/sqrt(1-OmegaMatterNow)*
-		    arcsinh(sqrt((1-OmegaMatterNow)/OmegaMatterNow)/
+		    asinh(sqrt((1-OmegaMatterNow)/OmegaMatterNow)/
 		           POW(1+Redshift,FLOAT(1.5))             );
  
 #endif /* INVERSE_HYPERBOLIC_EXISTS */

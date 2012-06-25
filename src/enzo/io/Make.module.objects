@@ -9,6 +9,10 @@ vpath %.F   io/
 vpath %.F90 io/
 
 ENZO_OBJS +=\
+	auto_show_compile_options.o \
+	auto_show_config.o \
+	auto_show_flags.o \
+	auto_show_version.o \
 	AMRH5writer.o \
 	AssignGridToTaskMap.o \
 	CallPython.o \

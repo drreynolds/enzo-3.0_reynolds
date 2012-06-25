@@ -107,11 +107,6 @@ char ConfigureSuffix[] = ".configure";
 char CPUSuffix[]       = ".cpu";
 char BHierarchySuffix[] = ".harrays";
  
-extern char LastFileNameWritten[MAX_LINE_LENGTH];
- 
- 
- 
- 
 int WriteAllData(char *basename, int filenumber,
 		 HierarchyEntry *TopGrid, TopGridData &MetaData,
 		 ExternalBoundary *Exterior, 
@@ -390,8 +385,6 @@ int WriteAllData(char *basename, int filenumber,
     if (filenumber >= 0)
       strcat(name, id);
   }
- 
-  strcpy(LastFileNameWritten, name);
  
   strcpy(groupfilename, name);
   strcat(groupfilename, CPUSuffix);

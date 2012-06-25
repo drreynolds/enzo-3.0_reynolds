@@ -31,8 +31,8 @@
  
 // function prototypes
  
-double arccosh(double x);
-double arcsinh(double x);
+double acosh(double x);
+double asinh(double x);
  
 int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt)
 {
@@ -88,7 +88,7 @@ int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt)
     eta = POW(120*x/(20+eta*eta), FLOAT(1.0/3.0));      // part 2
     for (i = 0; i < 40; i++) {                          // part 3
       eta_old = eta;
-      eta = arcsinh(eta + x);
+      eta = asinh(eta + x);
       if (fabs(eta-eta_old) < ETA_TOLERANCE) break;
     }
     if (i == 40) {
