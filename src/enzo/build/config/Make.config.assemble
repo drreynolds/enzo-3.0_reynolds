@@ -984,7 +984,7 @@
                $(ASSEMBLE_PYTHON_INCLUDES) \
                $(ASSEMBLE_NEW_PROBLEM_TYPES_INCLUDES) \
                $(ASSEMBLE_PAPI_INCLUDES) \
-               $(MAKEFILE_INCLUDES)   -I.
+               $(MAKEFILE_INCLUDES)   -I. -Iheaders/
 
     OBJS_LIB = $(OBJS_CONFIG_LIB) \
     	       $(OBJS_PHOTON_LIB) \

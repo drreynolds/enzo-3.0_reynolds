@@ -3,45 +3,50 @@
 #   communication
 #
 
-ENZO_SRC +=\
-	communication/CommunicationBroadcastValue.C \
-	communication/CommunicationBufferedSend.C \
-	communication/CommunicationCollectParticles.C \
-	communication/CommunicationCombineGrids.C \
-	communication/CommunicationInitialize.C \
-	communication/CommunicationLoadBalanceGrids.C \
-	communication/CommunicationLoadBalancePhotonGrids.C \
-	communication/CommunicationLoadBalanceRootGrids.C \
-	communication/CommunicationMergeStarParticle.C \
-	communication/CommunicationNonblockingRoutines.C \
-	communication/CommunicationParallelFFT.C \
-	communication/CommunicationPartitionGrid.C \
-	communication/CommunicationReceiveFluxes.C \
-	communication/CommunicationReceiveHandler.C \
-	communication/CommunicationReceiverPhotons.C \
-	communication/CommunicationSendFluxes.C \
-	communication/CommunicationShareActiveParticles.C \
-	communication/CommunicationShareGrids.C \
-	communication/CommunicationShareParticles.C \
-	communication/CommunicationShareStars.C \
-	communication/CommunicationSyncNumberOfParticles.C \
-	communication/CommunicationSyncNumberOfPhotons.C \
-	communication/CommunicationTransferActiveParticles.C \
-	communication/CommunicationTransferParticlesOpt.C \
-	communication/CommunicationTransferPhotons.C \
-	communication/CommunicationTransferStarsOpt.C \
-	communication/CommunicationTransferSubgridParticles.C \
-	communication/CommunicationTranspose.C \
-	communication/CommunicationUpdateActiveParticleCount.C \
-	communication/CommunicationUpdateStarParticleCount.C \
-	communication/CommunicationUtilities.C \
-	communication/DetermineNumberOfNodes.C \
-	communication/DetermineParallelism.C \
-	communication/Enzo_Dims_create.C \
-	communication/InitialLoadBalanceRootGrids.C \
-	communication/LoadBalanceHilbertCurve.C \
-	communication/LoadBalanceHilbertCurveRootGrids.C \
-	communication/LoadBalanceSimulatedAnnealing.C \
-	communication/Mpich_V1_Dims_create.c \
-	communication/ProcMap.C \
+vpath %.C   communication/
+vpath %.c   communication/
+vpath %.F   communication/
+vpath %.F90 communication/
+
+ENZO_OBJS +=\
+	CommunicationBroadcastValue.o \
+	CommunicationBufferedSend.o \
+	CommunicationCollectParticles.o \
+	CommunicationCombineGrids.o \
+	CommunicationInitialize.o \
+	CommunicationLoadBalanceGrids.o \
+	CommunicationLoadBalancePhotonGrids.o \
+	CommunicationLoadBalanceRootGrids.o \
+	CommunicationMergeStarParticle.o \
+	CommunicationNonblockingRoutines.o \
+	CommunicationParallelFFT.o \
+	CommunicationPartitionGrid.o \
+	CommunicationReceiveFluxes.o \
+	CommunicationReceiveHandler.o \
+	CommunicationReceiverPhotons.o \
+	CommunicationSendFluxes.o \
+	CommunicationShareActiveParticles.o \
+	CommunicationShareGrids.o \
+	CommunicationShareParticles.o \
+	CommunicationShareStars.o \
+	CommunicationSyncNumberOfParticles.o \
+	CommunicationSyncNumberOfPhotons.o \
+	CommunicationTransferActiveParticles.o \
+	CommunicationTransferParticlesOpt.o \
+	CommunicationTransferPhotons.o \
+	CommunicationTransferStarsOpt.o \
+	CommunicationTransferSubgridParticles.o \
+	CommunicationTranspose.o \
+	CommunicationUpdateActiveParticleCount.o \
+	CommunicationUpdateStarParticleCount.o \
+	CommunicationUtilities.o \
+	DetermineNumberOfNodes.o \
+	DetermineParallelism.o \
+	Enzo_Dims_create.o \
+	InitialLoadBalanceRootGrids.o \
+	LoadBalanceHilbertCurve.o \
+	LoadBalanceHilbertCurveRootGrids.o \
+	LoadBalanceSimulatedAnnealing.o \
+	Mpich_V1_Dims_create.o \
+	ProcMap.o
 

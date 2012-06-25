@@ -44,6 +44,8 @@ OUTPUT   = out.compile
 
 ENZO_DIR = .
 CONFIG_DIR = build/config
+BUILD_DIR = build/objects
+UTILS_DIR = build/utilities
 MODULES  = 
 VERBOSE  = 0
 ETAGS_COMMAND = "0"
@@ -96,33 +98,32 @@ include $(CONFIG_DIR)/Make.config.assemble
 MACH_SHARED_EXT=so
 
 -include $(ENZO_DIR)/$(CONFIG_DIR)/Make.mach.$(CONFIG_MACHINE)
--include $(HOME)/.enzo/$(CONFIG_DIR)/Make.mach.$(CONFIG_MACHINE)
+-include $(HOME)/.enzo/Make.mach.$(CONFIG_MACHINE)
 
 #=======================================================================
 # OBJECT FILES
 #=======================================================================
 
-include utilities/Make.module.objects
-include control/Make.module.objects
-include problem_types/Make.module.objects
-include grid/Make.module.objects
-include hydro_rk/Make.module.objects
-include hierarchy/Make.module.objects
-include particles/Make.module.objects
-include attic/Make.module.objects
 include communication/Make.module.objects
+include control/Make.module.objects
+include grid/Make.module.objects
+include hierarchy/Make.module.objects
+include hydro_rk/Make.module.objects
 include io/Make.module.objects
+include particles/Make.module.objects
+include problem_types/Make.module.objects
 include solvers/Make.module.objects
+include utilities/Make.module.objects
 
-OBJS_CONFIG_LIB=$(addsuffix, $(addprefix, build/objects/, $(notdir $(ENZO_SRC))),.o)
+vpath %.o $(BUILD_DIR)/
+
+OBJS_CONFIG_LIB=$(ENZO_OBJS)
 
 #-----------------------------------------------------------------------
 # MAKE ENZO BY DEFAULT
 #-----------------------------------------------------------------------
 
-#all: MACHNOTES MAKETAGS $(EXE).exe
-all:
-	@echo $(OBJS_CONFIG_LIB)
+all: MKDIR MACHNOTES MAKETAGS $(EXE).exe
 
 # I believe this has to be done here, as it is target-specific.
 lib: CFLAGS   += $(MACH_SHARED_FLAGS) 
@@ -135,6 +136,12 @@ lib: lib$(EXE)_p$(ASSEMBLE_PARTICLE_NUMBER)_b$(ASSEMBLE_PRECISION_NUMBER).$(MACH
 #-----------------------------------------------------------------------
 # MAKE AN EXECUTABLE
 #-----------------------------------------------------------------------
+
+.PHONY: MKDIR
+MKDIR: $(BUILD_DIR)
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 MAKETAGS:
 	@(if [ "$(ETAGS_COMMAND)" != "0" ]; then \
@@ -150,9 +157,9 @@ MACHNOTES:
 	@rm -f $@
 	@echo "Linking enzo executable. Type  cat $(OUTPUT)  in case it fails."
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-		$(LD) $(LDFLAGS) -o $*.exe $*.o $(OBJS_LIB) $(LIBS) >& $(OUTPUT) ; \
+		$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS) >& $(OUTPUT) ; \
 	else \
-		$(LD) $(LDFLAGS) -o $*.exe $*.o $(OBJS_LIB) $(LIBS) >> $(OUTPUT) \
+		$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS) >> $(OUTPUT) \
 		2>&1 ; \
 	fi)  
 	@(if [ -e $@ ] ; then  \
@@ -164,7 +171,7 @@ MACHNOTES:
 		fi; \
                 cp $(EXE).exe $(TOP_DIR)/bin/$(EXE); \
 	else \
-		echo "$(LD) $(LDFLAGS) -o $*.exe $*.o $(OBJS_LIB) $(LIBS)" > temp1; \
+		echo "$(LD) $(LDFLAGS) -o $*.exe $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS)" > temp1; \
 		cat temp1 $(OUTPUT) > temp2 ;\
 		mv -f temp2 $(OUTPUT); \
 		rm -f temp1 temp2; \
@@ -178,7 +185,7 @@ lib%.$(MACH_SHARED_EXT): $(MODULES) autogen dep enzo.o $(OBJS_LIB)
 	@(if [ -e $@ ]; then \
 	   echo "Success!"; \
 	else \
-	   echo "$(LD) $(LDFLAGS) $(SHARED_OPT) -o $*.so $*.o $(OBJS_LIB) $(LIBS)" >> temp1; \
+	   echo "$(LD) $(LDFLAGS) $(SHARED_OPT) -o $*.so $(BUILD_DIR)/$*.o $(OBJS_LIB) $(LIBS)" >> temp1; \
 	   cat temp1 $(OUTPUT) > temp2; \
 	   rm -f temp1; \
 	   mv -f temp2 $(OUTPUT); \
@@ -186,11 +193,11 @@ lib%.$(MACH_SHARED_EXT): $(MODULES) autogen dep enzo.o $(OBJS_LIB)
 	fi)
 
 .pyx.C: 
-	@cython --cplus $*.pyx -o $*.C 
+	@cython --cplus $*.pyx -o $< 
 ProblemType_Python.o: python_bridge/problemtype_handler.o
 InitializePythonInterface.C: $(PYTHON_INTERFACE_TARGETS)
 InitializePythonInterface_finderfunctions.inc: global_data.h
-	@python create_dictionary_mapping.py 
+	@python $(UTILS_DIR)/create_dictionary_mapping.py 
 
 #-----------------------------------------------------------------------
 # WRITE ALL COMPILER OUTPUT TO FILE
@@ -214,23 +221,23 @@ verbose: $(EXE).exe
 .PRECIOUS: %.o %.C
 
 #.src.f:
-#	@$(CPP) $(DEFINES) $(CPPFLAGS) $*.src > $*.f
+#	@$(CPP) $(DEFINES) $(CPPFLAGS) $*.src > $<
 .F.o:
 	@echo "Compiling $<"
-	@rm -f $@
+	@rm -f $(BUILD_DIR)/$@
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(FC) -c -o $@ $(FFLAGS) $(DEFINES) $*.F >& $(OUTPUT) ; \
-	  if [ ! -e $@ ]; then \
+	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $< >& $(OUTPUT) ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(FC) -c -o $@ $(FFLAGS) $(DEFINES) $*.F"; \
+             echo "$(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $<"; \
              echo; \
-             $(FC) -c -o $@ $(FFLAGS) $(DEFINES) $*.F; \
+             $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $<; \
              echo; \
              exit 1; \
           fi ; \
 	else \
-	  $(FC) -c -o $@ $(FFLAGS)  $(DEFINES) $*.f >> $(OUTPUT) 2>&1 ; \
-	  if [ ! -e $@ ]; then \
+	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS)  $(DEFINES) $< >> $(OUTPUT) 2>&1 ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
 	  fi ; \
@@ -238,92 +245,92 @@ verbose: $(EXE).exe
 
 #.src90.f90:
 #	@echo "Compiling $<"
-#	@$(CPP) $(DEFINES) $(CPPFLAGS) $*.src90 > $*.f90
+#	@$(CPP) $(DEFINES) $(CPPFLAGS) $*.src90 > $<
 .F90.o:
-	@rm -f $@
+	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(F90) -c -o $@ $(F90FLAGS) $(DEFINES) $*.F90 >& $(OUTPUT) ; \
-	  if [ ! -e $@ ]; then \
+	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $< >& $(OUTPUT) ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(F90) -c -o $@ $(DEFINES) $(F90FLAGS) $*.F90"; \
+             echo "$(F90) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(F90FLAGS) $<"; \
              echo; \
-             $(F90) -c -o $@ $(F90FLAGS) $*.F90; \
+             $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $<; \
              echo; \
              exit 1; \
 	  fi ; \
 	else \
-	  $(F90) -c -o $@ $(F90FLAGS) $(DEFINES) $*.F90 >> $(OUTPUT) 2>&1 ; \
-	  if [ ! -e $@ ]; then \
+	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $< >> $(OUTPUT) 2>&1 ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
 	  fi ; \
 	fi)
 
 .c.o:
-	@rm -f $@
+	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(CC) -c -o $@ $(DEFINES) $(CFLAGS) $(INCLUDES) $*.c \
+	  $(CC) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CFLAGS) $(INCLUDES) $< \
 	    >& $(OUTPUT) ; \
-	  if [ ! -e $@ ]; then \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(CC) -c -o $@ $(DEFINES) $(CFLAGS) $(INCLUDES) $*.c"; \
+             echo "$(CC) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CFLAGS) $(INCLUDES) $<"; \
              echo; \
-             $(CC) -c -o $@ $(DEFINES) $(CFLAGS) $(INCLUDES) $*.c;\
+             $(CC) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CFLAGS) $(INCLUDES) $<;\
              echo; \
              exit 1; \
           fi ; \
 	else \
-	  $(CC) -c -o $@ $(DEFINES) $(CFLAGS) $(INCLUDES) $*.c \
+	  $(CC) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CFLAGS) $(INCLUDES) $< \
 	    >> $(OUTPUT) 2>&1 ; \
-	  if [ ! -e $@ ]; then \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
 	  fi ; \
 	fi)
 
 .C.o:
-	@rm -f $@
+	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(CXX) -c -o $@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $*.C \
+	  $(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $< \
 	    >& $(OUTPUT) ; \
-	  if [ ! -e $@ ]; then \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(CXX) -c -o $@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $*.C"; \
+             echo "$(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $<"; \
              echo; \
-             $(CXX) -c -o $@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $*.C;\
+             $(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $<;\
              echo; \
              exit 1; \
           fi ; \
 	else \
-	  $(CXX) -c -o $@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $*.C \
+	  $(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $< \
 	    >> $(OUTPUT) 2>&1 ; \
-	  if [ ! -e $@ ]; then \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
 	  fi ; \
 	fi)
 
 .cu.o: 
-	@rm -f $@
+	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(CUDACOMPILER) -c -o $@ $(DEFINES) $(CUDACOMPFLAGS) \
-	    $(INCLUDES) $*.cu >& $(OUTPUT) ; \
-	  if [ ! -e $@ ]; then \
+	  $(CUDACOMPILER) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CUDACOMPFLAGS) \
+	    $(INCLUDES) $< >& $(OUTPUT) ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo; \
-             echo "$(CUDACOMPILER) -c -o $@ $(DEFINES) $(CUDACOMPFLAGS) $(INCLUDES) $*.cu"; \
+             echo "$(CUDACOMPILER) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CUDACOMPFLAGS) $(INCLUDES) $<"; \
              echo; \
-             $(CUDACOMPILER)  -c -o $@ $(DEFINES) $(CUDACOMPFLAGS) $(INCLUDES) $*.cu;\
+             $(CUDACOMPILER)  -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CUDACOMPFLAGS) $(INCLUDES) $<;\
              echo; \
              exit 1; \
           fi ; \
 	else \
-	  $(CUDACOMPILER) -c -o $@ $(DEFINES) $(CUDACOMPFLAGS) \
-	    $(INCLUDES) $*.cu >> $(OUTPUT) 2>&1 ; \
-	  if [ ! -e $@ ]; then \
+	  $(CUDACOMPILER) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CUDACOMPFLAGS) \
+	    $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
 	  fi ; \
@@ -361,7 +368,7 @@ auto_show_version.C:
 
 .PHONY: auto_show_compile_options.C
 auto_show_compile_options.C:
-	-@python create_config_info.py
+	-@python $(UTILS_DIR)/create_config_info.py
 
 #-----------------------------------------------------------------------
 # Generate dependency file
