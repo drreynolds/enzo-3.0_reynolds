@@ -887,75 +887,17 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
+  grid* FeedbackZone = NULL
+
   for (i = 0; i < nParticles; i++) {
-    WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
-      GlobalSubtractedMass = 0, SinkIsOnThisProc = false;
-    ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
-    vInfinity = temp->vInfinity;
-    cInfinity = temp->cInfinity;
-    BondiHoyleRadius = temp->BondiHoyleRadius;
-    for (grid = 0; grid < NumberOfGrids; grid++) {
-      if (Grids[grid]->GridData->
-	  FindAverageDensityInAccretionZone(ParticleList[i],AccretionRadius, &WeightedSum, 
-					    &SumOfWeights, &NumberOfCells, BondiHoyleRadius) == FAIL)
-	return FAIL;
-    }
-    /* sum up rhobar on root and broadcast result to all processors */
-#ifdef USE_MPI
-    MPI_Allreduce(&WeightedSum,  &GlobalWeightedSum,  1, FloatDataType, MPI_SUM, EnzoTopComm);
-    MPI_Allreduce(&SumOfWeights, &GlobalSumOfWeights, 1, FloatDataType, MPI_SUM, EnzoTopComm);
-#else
-    GlobalWeightedSum = WeightedSum;
-    GlobalSumOfWeights = SumOfWeights;
-#endif
+    sinkGrid = ParticleList[i]->CurrentGrid;
+    if (sinkGrid == NULL)
+      ENZO_FAIL('sinkGrid is invalid!');
     
-    AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-#ifdef DEBUG
-    fprintf(stdout,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
-    fprintf(stdout,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
-    fprintf(stdout,"AverageDensity: %"GSYM"\n",AverageDensity);
-#endif
-
-    /* Now perform accretion algorithm by modifying the grids locally */
-    for (grid = 0; grid < NumberOfGrids; grid++) {
-      SinkIsOnThisGrid = false;
-      if (Grids[grid]->GridData->
-	  AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
-				       SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
-				       BondiHoyleRadius, &AccretionRate) == FAIL) {
-	return FAIL;
-      }
-      if (SinkIsOnThisGrid) {
-	sinkGrid = Grids[grid];
-	SinkIsOnThisProc = true;
-	break;
-      }
-    }
-
-#ifdef USE_MPI
-    MPI_Allreduce(&SubtractedMass, &GlobalSubtractedMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
-    MPI_Allreduce(&SubtractedMomentum, &GlobalSubtractedMomentum, 3, FloatDataType, MPI_SUM, EnzoTopComm);
-#else
-    GlobalSubtractedMass = SubtractedMass;
-    for (int j = 0; j < 3; j++) {
-      GlobalSubtractedMomentum[j] = SubtractedMomentum[j];
-    }
-#endif
-    temp->AccretionRate = AccretionRate;
-    
-#ifdef DEBUG
-    fprintf(stdout,"GlobalSubtractedMass = %"GSYM"\n",GlobalSubtractedMass*5.96066448e-8);
-#endif
-
-    /* Transfer the mass and momentum to the particle */
-    if (SinkIsOnThisProc)
-      if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
-								    static_cast<ActiveParticleType*>(temp),
-								    LevelArray) == FAIL)
-	return FAIL;
-    
+    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius) == FAIL);
+	ENZO_FAIL('Accretion zone construction failed!');
   }
-  CommunicationSyncNumberOfParticles(Grids, NumberOfGrids);
+
   delete [] Grids;
   return SUCCESS;
 }
