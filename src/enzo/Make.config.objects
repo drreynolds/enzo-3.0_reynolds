@@ -587,7 +587,6 @@ OBJS_CONFIG_LIB = \
         Grid_SortParticlesByType.o \
         Grid_SphericalInfallGetProfile.o \
         Grid_SphericalInfallInitializeGrid.o \
-        Grid_StarParticleHandler.o \
 	Grid_StratifiedMediumExplosionInitialize.o \
         Grid_SupernovaRestartInitialize.o \
         Grid_SubtractAccretedMassFromSphere.o \
