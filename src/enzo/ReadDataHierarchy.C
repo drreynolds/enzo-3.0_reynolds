@@ -20,10 +20,7 @@
 // This function reads in the data hierarchy (TopGrid)
 
 #include <hdf5.h> 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <map>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

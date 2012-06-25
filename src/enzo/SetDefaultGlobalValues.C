@@ -16,8 +16,7 @@
 // This routine intializes a new simulation based on the parameter file.
 //
  
-#include <string.h>
-#include <stdio.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

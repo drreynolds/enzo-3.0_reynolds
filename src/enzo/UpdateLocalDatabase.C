@@ -14,11 +14,7 @@
 // This routine writes the parameter file in the argument and sets parameters
 //   based on it.
  
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <math.h>
+#include "preincludes.h"
 #ifdef USE_SQLITE
 #include "sqlite3.h"
 #endif

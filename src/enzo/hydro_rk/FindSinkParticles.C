@@ -10,8 +10,7 @@
 /
 ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
+#include "preincludes.h"
 #ifdef USE_MPI
 #include "communicators.h"
 #endif /* USE_MPI */

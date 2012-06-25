@@ -17,9 +17,7 @@
 // Use a lookup table to compute the X-ray emissivity in the requested
 //   band.  Current version assumes complete ionization.
  
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

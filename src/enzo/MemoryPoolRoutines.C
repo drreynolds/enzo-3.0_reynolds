@@ -9,11 +9,7 @@
 /              especially with photon packages.
 /
 ************************************************************************/
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <assert.h>
-#include <string.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

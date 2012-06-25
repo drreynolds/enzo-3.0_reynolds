@@ -9,13 +9,7 @@
 /
 ************************************************************************/
 
-#include <string.h>
-#include <map>
-#include <stdexcept>
-#include <vector>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
+#include "preincludes.h"
 #include "hdf5.h"
 #include "h5utilities.h"
 
@@ -32,7 +26,6 @@
 #include "EventHooks.h"
 #include "ActiveParticle.h"
 
-#include <limits.h>
 #include "phys_constants.h"
 
 /* We need to make sure that we can operate on the grid, so this dance is

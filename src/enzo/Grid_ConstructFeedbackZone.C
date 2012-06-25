@@ -9,14 +9,7 @@
 /  note:       Equation numbers refer to Krumholz McKee & Klein (2004)
 ************************************************************************/
 
-#include <string.h>
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

@@ -16,7 +16,7 @@
 // Solve the hydro equations with the solver, saving the subgrid fluxes
 //
 
-#include <stdio.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "EnzoTiming.h"
 #include "performance.h"

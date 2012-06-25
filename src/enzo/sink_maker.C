@@ -37,8 +37,7 @@
     up,vp,wp - velocities of created particles
     mp       - mass of new particles
 ***********************************************************************/
-#include <stdio.h>
-#include <math.h>
+#include "preincludes.h"
 #include "macros_and_parameters.h"
 
 int sink_maker(int *nx, int *ny, int *nz, int *size, float *d, float *u, 

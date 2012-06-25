@@ -10,11 +10,7 @@
 ************************************************************************/
 
 #define DEBUG
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <math.h>
-#include <string.h>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

@@ -13,13 +13,7 @@
 #include "communicators.h"
 #endif
 
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

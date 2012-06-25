@@ -16,8 +16,7 @@
 //  an already flagged Cell.  It also removes all flagged cells which are
 //  in the boundary.
  
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

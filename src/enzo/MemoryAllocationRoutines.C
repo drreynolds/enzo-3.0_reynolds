@@ -11,8 +11,7 @@
 /
 ************************************************************************/
  
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 #include <new>
 #ifdef USE_JEMALLOC
 #define JEMALLOC_MANGLE

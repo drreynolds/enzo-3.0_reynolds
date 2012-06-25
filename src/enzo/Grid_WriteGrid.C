@@ -20,15 +20,7 @@
 //      where the Old values aren't required)
  
 #include <hdf5.h>
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
-#include <vector>
+#include "preincludes.h"
 #include "h5utilities.h"
  
 #include "ErrorExceptions.h"

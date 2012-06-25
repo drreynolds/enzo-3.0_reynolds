@@ -5,10 +5,7 @@
 #if defined(SP2) || defined(__APPLE__)
 
 // Memory usage from getrusage
-#include <stdio.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
+#include "preincludes.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
@@ -44,10 +41,6 @@ Eint64 mused(void)
 
 // Memory usage from proc tables
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
@@ -80,8 +73,6 @@ Eint64 mused(void)
 
 #else
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"

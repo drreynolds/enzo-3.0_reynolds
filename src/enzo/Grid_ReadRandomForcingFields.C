@@ -17,9 +17,7 @@
 //  Input a grid from file pointer fpt
  
 #include <hdf5.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
  
 
 

@@ -13,10 +13,7 @@
 ************************************************************************/
 
 #include <hdf5.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
+#include "preincludes.h"
 #include "h5utilities.h"
 
 #include "ErrorExceptions.h"

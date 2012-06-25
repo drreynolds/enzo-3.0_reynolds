@@ -12,7 +12,7 @@
  
 // Allocate and clear the particle mass flagging field.
  
-#include <stdio.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

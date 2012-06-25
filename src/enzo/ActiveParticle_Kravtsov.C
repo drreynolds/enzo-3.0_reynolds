@@ -4,13 +4,7 @@
 /
 ************************************************************************/
 
-#include <string.h>
-#include <map>
-#include <stdexcept>
-#include <vector>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
+#include "preincludes.h"
 #include "hdf5.h"
 #include "h5utilities.h"
 

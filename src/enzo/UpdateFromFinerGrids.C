@@ -25,7 +25,7 @@
 #include <communicators.h>
 #endif /* USE_MPI */
  
-#include <stdio.h>
+#include "preincludes.h"
 #include "performance.h"
 #include "ErrorExceptions.h"
 #include "performance.h"

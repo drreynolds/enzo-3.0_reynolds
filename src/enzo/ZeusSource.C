@@ -30,8 +30,7 @@ c     minsupecoef - coefficient for minimum pressure support
 c
 ************************************************************************/
 
-#include <stdio.h>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "fortran.def"

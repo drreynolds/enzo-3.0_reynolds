@@ -23,9 +23,7 @@
  
 // This routine checks for shared surfaces.
  
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

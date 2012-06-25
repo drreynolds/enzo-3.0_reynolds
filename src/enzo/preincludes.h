@@ -25,10 +25,30 @@
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <algorithm>
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <iostream>
+#include <limits.h>
+#include <map>
 #include <math.h>
+#include <stddef.h>
+#include <stdexcept>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdlib.h> 
+#include <string>
+#include <string.h>
+#include <strings.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
+#include <typeinfo>
+#include <unistd.h>
+#include <vector>
 #ifdef USE_HYPRE
 #include "HYPRE_sstruct_ls.h"
 #endif

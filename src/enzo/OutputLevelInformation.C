@@ -12,9 +12,7 @@
 ************************************************************************/
  
 #include "performance.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 
 
 #include "ErrorExceptions.h"
@@ -30,7 +28,6 @@
 #include "TopGridData.h"
  
 #if defined(MALLOC_IRIS4)
-#include <sys/types.h>
 #include <malloc.h>
 #endif /* MALLOC_IRIS4 */
  

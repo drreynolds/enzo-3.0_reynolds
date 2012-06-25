@@ -49,14 +49,8 @@
 #define CHECK_PAPI
 // #define DEBUG
 
-#include <assert.h>
-#include <sys/time.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "preincludes.h"
 
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
 
 #ifdef USE_MPI
 #  include <communicators.h>

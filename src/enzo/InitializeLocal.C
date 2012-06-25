@@ -13,8 +13,7 @@
  
 // This routine intializes the local components of a new simulation 
  
-#include <string.h>
-#include <stdio.h>
+#include "preincludes.h"
  
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

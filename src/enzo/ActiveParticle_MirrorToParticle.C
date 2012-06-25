@@ -7,12 +7,7 @@
 /  modified1:  November, 2011 (JHW) -- porting to active particles
 /
 ************************************************************************/
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <map>
-#include <iostream>
-#include <stdexcept>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

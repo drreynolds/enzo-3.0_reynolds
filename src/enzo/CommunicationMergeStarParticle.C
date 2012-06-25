@@ -19,10 +19,7 @@
 #ifdef USE_MPI
 #include "communicators.h"
 #endif /* USE_MPI */
-#include <stdio.h>
-#include <map>
-#include <string>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

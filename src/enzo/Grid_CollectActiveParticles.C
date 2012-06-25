@@ -11,10 +11,7 @@
 /
 ************************************************************************/
  
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <stdio.h>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

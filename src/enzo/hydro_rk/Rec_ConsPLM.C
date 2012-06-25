@@ -12,10 +12,7 @@
 /
 ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <math.h>
+#include "preincludes.h"
 
 #include "macros_and_parameters.h"
 #include "typedefs.h"

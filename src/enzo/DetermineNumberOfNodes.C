@@ -13,10 +13,7 @@
 #ifdef USE_MPI
 #include "communicators.h"
 #endif
-#include <stdio.h>
-#include <math.h>
-#include <unistd.h>
-#include <string.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

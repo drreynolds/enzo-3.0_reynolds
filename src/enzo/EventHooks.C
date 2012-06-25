@@ -10,12 +10,7 @@
 ************************************************************************/
 
 #ifdef NEW_PROBLEM_TYPES
-#include <string>
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <stdio.h>
-#include <math.h>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

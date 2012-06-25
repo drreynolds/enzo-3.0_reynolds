@@ -28,9 +28,7 @@
 #endif /* USE_MPI */
 
 #include <hdf5.h> 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 #include "h5utilities.h"
 
 #include "ErrorExceptions.h"

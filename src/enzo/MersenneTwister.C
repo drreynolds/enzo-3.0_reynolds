@@ -13,9 +13,7 @@
    an initial seed, and the user must specify a seed for the system random number generator.
 
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include "preincludes.h"
 #include "macros_and_parameters.h"
 
 #define MT_LEN       624

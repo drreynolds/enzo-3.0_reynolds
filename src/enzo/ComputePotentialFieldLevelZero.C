@@ -48,8 +48,7 @@
 #ifdef USE_MPI
 #include <communicators.h>
 #endif /* USE_MPI */
-#include <string.h>
-#include <stdio.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

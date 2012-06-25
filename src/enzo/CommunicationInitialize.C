@@ -12,11 +12,9 @@
  
 #ifdef USE_MPI
 #include "communicators.h"
-#include <stdlib.h>
+#include "preincludes.h"
 #endif /* USE_MPI */
 
-#include <stdio.h>
-#include <string.h>
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

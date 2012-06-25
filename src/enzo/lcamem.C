@@ -10,8 +10,7 @@
  *                                                                           *
  *****************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 #include <new>
 
 #include "lcamem.h"

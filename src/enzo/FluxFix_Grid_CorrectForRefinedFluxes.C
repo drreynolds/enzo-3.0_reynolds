@@ -33,8 +33,7 @@
 //   Also note that subgrids sharing a face with This Grid, but not proper subgrids,
 //   also need to be taken into account.
  
-#include <stdio.h>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

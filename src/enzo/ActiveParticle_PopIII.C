@@ -13,14 +13,7 @@
 #include "communicators.h"
 #endif 
 
-#include <string.h>
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
+#include "preincludes.h"
 #include "hdf5.h"
 #include "h5utilities.h"
 

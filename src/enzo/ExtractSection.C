@@ -15,9 +15,7 @@
 //   and with the specified size.  The solution is taken from grids at that
 //   level where possible and interpolated from above otherwise.
  
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

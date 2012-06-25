@@ -15,15 +15,7 @@
 /
 ************************************************************************/
  
-#include <string.h>
-#include <map>
-#include <iostream>
-#include <stdexcept>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-#include <math.h>
-#include <assert.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "performance.h"
 #include "macros_and_parameters.h"

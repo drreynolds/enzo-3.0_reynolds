@@ -73,10 +73,7 @@
 #include "communicators.h"
 #endif /* USE_MPI */
  
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <math.h>
+#include "preincludes.h"
 
 #include "EnzoTiming.h"
 #include "performance.h"

@@ -20,15 +20,7 @@
 // This routine reads the parameter file in the argument and sets parameters
 //   based on it.
  
-#include <stdio.h>
-#include <string>
-#include <map>
-#include <vector>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
-#include <vector>
+#include "preincludes.h"
 
 #ifdef CONFIG_USE_LIBCONFIG
 #include <libconfig.h++>

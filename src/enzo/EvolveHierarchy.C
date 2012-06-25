@@ -35,7 +35,7 @@
 #include <communicators.h>
 #endif
  
-#include <stdio.h>
+#include "preincludes.h"
 
 #include "EnzoTiming.h" 
 #include "performance.h"

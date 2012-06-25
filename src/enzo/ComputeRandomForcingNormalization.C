@@ -13,9 +13,7 @@
 #include "communicators.h"
 #endif /* USE_MPI */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "performance.h"
 #include "macros_and_parameters.h"

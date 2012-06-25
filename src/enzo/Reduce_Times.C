@@ -2,8 +2,7 @@
 #ifdef USE_MPI
 #include "communicators.h"
 #endif
-#include <stdlib.h>
-#include <stdio.h>
+#include "preincludes.h"
 
 void Reduce_Times(double time, double *time_array){
   int nprocs, my_rank; 

@@ -10,7 +10,7 @@
 /
 ************************************************************************/
  
-#include <stdio.h>
+#include "preincludes.h"
 
 void auto_show_version (FILE *fp);
 void auto_show_config (FILE *fp);

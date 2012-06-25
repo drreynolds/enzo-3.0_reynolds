@@ -3,10 +3,7 @@
 //   leading slash is required!
  
  
-#include <sys/stat.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
+#include "preincludes.h"
  
 #define MAX_TOKEN 512
  

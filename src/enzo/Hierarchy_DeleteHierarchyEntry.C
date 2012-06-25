@@ -13,8 +13,7 @@
 // This function recursively deletes a point in the hierarchy and all
 //   it's children and siblings (but not the grid data itself, so be careful).
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
  
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

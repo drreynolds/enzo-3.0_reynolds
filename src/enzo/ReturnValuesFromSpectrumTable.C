@@ -22,9 +22,7 @@
 
 #ifdef TRANSFER
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

@@ -18,9 +18,7 @@
 #ifdef USE_MPI
 #include "communicators.h"
 #endif
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "preincludes.h"
 #include <hdf5.h>
 #include "ErrorExceptions.h"
 #include "h5utilities.h"

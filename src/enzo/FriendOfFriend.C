@@ -12,7 +12,7 @@
 /
 ************************************************************************/
 
-#include <math.h>
+#include "preincludes.h"
 #include "macros_and_parameters.h"
 
 int fofi(FLOAT *x, FLOAT *y, FLOAT *z, const int &np, const FLOAT &l, const int &ip,

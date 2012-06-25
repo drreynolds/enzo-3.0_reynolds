@@ -15,8 +15,7 @@
 // This function writes out the data hierarchy (TopGrid)
 
 #include <hdf5.h> 
-#include <string.h>
-#include <stdio.h>
+#include "preincludes.h"
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

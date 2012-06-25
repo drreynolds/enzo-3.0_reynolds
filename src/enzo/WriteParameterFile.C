@@ -16,15 +16,7 @@
 // This routine writes the parameter file in the argument and sets parameters
 //   based on it.
  
-#include <map>
-#include <iostream>
-#include <vector>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <math.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"

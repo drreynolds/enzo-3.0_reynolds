@@ -14,9 +14,7 @@
 #include "communicators.h"
 #endif /* USE_MPI */
  
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include "preincludes.h"
 
  
 #include "ErrorExceptions.h"
