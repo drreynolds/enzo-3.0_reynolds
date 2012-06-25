@@ -277,10 +277,6 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   ah.push_back(Handler<ap, float, &ap::vInfinity>("vInfinity"));
   ah.push_back(Handler<ap, FLOAT, &ap::BondiHoyleRadius>("BondiHoyleRadius"));
 
-  for(AttributeVector::iterator it = ah.begin(); it != ah.end(); ++it) {
-      std::cout << "A " << (*it).name << std::endl;
-  }
-
   return SUCCESS;
 }
 
