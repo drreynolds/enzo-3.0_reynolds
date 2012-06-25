@@ -17,22 +17,15 @@
 #ifndef __ACTIVE_PARTICLE_H
 #define __ACTIVE_PARTICLE_H
 
-#include "hdf5.h"
-#include "ErrorExceptions.h"
-#include "macros_and_parameters.h"
-#include "typedefs.h"
-#include "global_data.h"
-#include "Grid.h"
-#include "Hierarchy.h"
-#include "LevelHierarchy.h"
-#include "StarBuffer.h"
+#include <typeinfo>
 #ifdef FLUX_FIX
 #include "TopGridData.h"
 #endif
+#include "ParticleBufferHandler.h"
+#include "ParticleAttributeHandler.h"
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
-class ParticleBufferHandler;
 
 class ActiveParticleType
 {
@@ -46,6 +39,8 @@ public:
 			  hid_t data_type, void *data);
   int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			 hid_t data_type, void *read_to);
+  void static SetupBaseParticleAttributes(
+    std::vector<ParticleAttributeHandler> &handlers);
 
   /* Several pure virtual functions */
   
@@ -132,7 +127,7 @@ protected:
   int GridID;
   int dest_processor;  // used for communication
   int type;
-  
+
 private: /* Cannot be accessed by subclasses! */
   
   friend class grid;
@@ -263,42 +258,6 @@ void EnableActiveParticleType(char *active_particle_type_name);
 
 ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles, 
 					   int ActiveParticleIDToFind);
-
-class ParticleBufferHandler
-{
-public:
-  ParticleBufferHandler(void);
-  ParticleBufferHandler(int NumberOfParticles);
-  ParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
-  ~ParticleBufferHandler();
-  /*virtual void WriteBuffers(hid_t group);*/
-  int _AllocateBuffer(char *buffer, Eint32 total_buffer_size, int &buffer_size, 
-		      Eint32 &position); // helper function for derived classes
-  void CalculateElementSize(void);
-  void AllocateMemory(void);
-  int ReturnNumberOfBuffers(void) { return NumberOfBuffers; };
-  int _UnpackBuffer(char *buffer, int buffer_size, Eint32 &position);
-
-  int NumberOfBuffers;
-
-protected:
-  static int HeaderSizeInBytes;
-  static int ElementSizeInBytes;
-  FLOAT	*pos[MAX_DIMENSION];
-  float *vel[MAX_DIMENSION];
-  double *Mass;		// Msun
-  float *BirthTime;
-  float *DynamicalTime;      
-  float *Metallicity;
-  PINT *Identifier;
-  int *level;
-  int *GridID;
-  int *type;
-  int *proc;
-
-  friend class ActiveParticleType;
-
-};
 
 class ActiveParticleType_info
 {
