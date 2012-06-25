@@ -230,14 +230,14 @@ verbose: $(EXE).exe
 	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $<"; \
+             echo "$(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $<"; \
              echo; \
-             $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $<; \
+             $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $<; \
              echo; \
              exit 1; \
           fi ; \
 	else \
-	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS)  $(DEFINES) $< >> $(OUTPUT) 2>&1 ; \
+	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
@@ -254,14 +254,14 @@ verbose: $(EXE).exe
 	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(F90) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(F90FLAGS) $<"; \
+             echo "$(F90) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(F90FLAGS) $(INCLUDES) $<"; \
              echo; \
-             $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $<; \
+             $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(INCLUDES) $<; \
              echo; \
              exit 1; \
 	  fi ; \
 	else \
-	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $< >> $(OUTPUT) 2>&1 ; \
+	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
