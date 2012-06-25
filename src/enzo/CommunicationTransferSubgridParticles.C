@@ -74,7 +74,7 @@ int CommunicationTransferSubgridParticles(LevelHierarchyEntry *LevelArray[],
   ActiveParticleType **APSendList = NULL;
   ActiveParticleType **APSharedList = NULL;
 
-  int NumberOfReceives, APNumberOfReceives;
+  int NumberOfReceives = 0, APNumberOfReceives = 0;
   int *NumberToMove = new int[NumberOfProcessors];
   int *APNumberToMove = new int[NumberOfProcessors];
 
