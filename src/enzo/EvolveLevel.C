@@ -571,51 +571,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
-#ifdef DEBUG
-    float MassOnThisProc;
-    float TotalMass;
-    int NumberOfLevelGrids,i,level2;
-    HierarchyEntry **LevelGrids = NULL;
-#endif
-
-#ifdef DEBUG
-    MassOnThisProc = 0;
-    TotalMass = 0;
-    for (level2 = 0; level2 < MAX_DEPTH_OF_HIERARCHY; level2++) {
-      NumberOfLevelGrids = GenerateGridArray(LevelArray, level2, &LevelGrids);
-      for (i=0;i<NumberOfLevelGrids;i++) {
-	if (LevelGrids[i]->NextGridNextLevel == NULL)
-	  if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
-	    ENZO_FAIL("SumGasMass Failed!\n");
-      }
-      delete [] LevelGrids;
-    }	
-    
-    MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-    
-    fprintf(stdout,"Before Finalize TotalMass = %"FSYM"\n", TotalMass);
-#endif      
-
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, TotalActiveParticleCountPrevious);
-
-#ifdef DEBUG
-    MassOnThisProc = 0;
-    TotalMass = 0;
-    for (level2 = 0; level2 < MAX_DEPTH_OF_HIERARCHY; level2++) {
-      NumberOfLevelGrids = GenerateGridArray(LevelArray, level2, &LevelGrids);
-      for (i=0;i<NumberOfLevelGrids;i++) {
-	if (LevelGrids[i]->NextGridNextLevel == NULL)
-	  if (LevelGrids[i]->GridData->SumGasMass(&MassOnThisProc) == FAIL)
-	    ENZO_FAIL("SumGasMass Failed!\n");
-      }
-      delete [] LevelGrids;
-    }	
-    
-    MPI_Allreduce(&MassOnThisProc, &TotalMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-    
-    fprintf(stdout,"After Finalize TotalMass = %"FSYM"\n", TotalMass);
-#endif      
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
