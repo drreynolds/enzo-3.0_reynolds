@@ -2,7 +2,7 @@
 #define ERROR_H
 
 #ifdef USE_MPI
-#   include <mpi.h>
+#   include <communicators.h>
 #   include "message.h"
     static char mpi_error_string[MPI_MAX_ERROR_STRING];
     static int mpi_resultlen;

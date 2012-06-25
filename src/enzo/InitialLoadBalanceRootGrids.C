@@ -13,7 +13,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 #include <stdio.h>
 #include <math.h>
@@ -125,7 +125,7 @@ int InitialLoadBalanceRootGrids(FILE *fptr, hid_t Hfile_id, int TopGridRank,
   // If we're doing normal load balancing, synchronize and exit.
   if (LoadBalancing == 1) {
 #ifdef USE_MPI
-    MPI_Bcast(&NumberOfRootGrids, 1, IntDataType, ROOT_PROCESSOR, MPI_COMM_WORLD);
+    MPI_Bcast(&NumberOfRootGrids, 1, IntDataType, ROOT_PROCESSOR, EnzoTopComm);
 #endif /* USE_MPI */
     return SUCCESS;
   } // ENDIF LoadBalancing == 1
@@ -395,12 +395,12 @@ int InitialLoadBalanceRootGrids(FILE *fptr, hid_t Hfile_id, int TopGridRank,
 
   
 #ifdef USE_MPI
-  MPI_Bcast(&NumberOfRootGrids, 1, IntDataType, ROOT_PROCESSOR, MPI_COMM_WORLD);
+  MPI_Bcast(&NumberOfRootGrids, 1, IntDataType, ROOT_PROCESSOR, EnzoTopComm);
   if (NumberOfRootGrids > 1) {
     if (MyProcessorNumber != ROOT_PROCESSOR)
       RootProcessors = new int[NumberOfRootGrids];
     MPI_Bcast(RootProcessors, NumberOfRootGrids, IntDataType, ROOT_PROCESSOR, 
-	      MPI_COMM_WORLD);
+	      EnzoTopComm);
   } else {
     delete [] RootProcessors;
     RootProcessors = NULL;

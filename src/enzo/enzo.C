@@ -17,16 +17,13 @@
 
 #include "preincludes.h"
  
-#ifdef USE_MPI
-#include "mpi.h"
-#endif /* USE_MPI */
- 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
  
 #define DEFINE_STORAGE
+#include "communicators.h"
 #include "EnzoTiming.h"
 #include "ErrorExceptions.h"
 #include "performance.h"

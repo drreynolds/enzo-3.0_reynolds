@@ -2,7 +2,7 @@
 #define COMMUNICATION_UTILITIES_DEFINED__
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 #include "macros_and_parameters.h"
 #include "typedefs.h"

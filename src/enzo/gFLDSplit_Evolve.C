@@ -50,7 +50,7 @@ int gFLDSplit::Evolve(HierarchyEntry *ThisGrid, float deltat)
 #ifdef USE_MPI
   //  check that MyProcessorNumber agrees with MPI process ID
   MPI_Arg MPI_id;
-  MPI_Comm_rank(MPI_COMM_WORLD, &MPI_id);
+  MPI_Comm_rank(EnzoTopComm, &MPI_id);
   if (MyProcessorNumber != MPI_id) {
     fprintf(stderr, "ERROR: Enzo PID %"ISYM" doesn't match MPI ID %"ISYM"\n", 
 	    MyProcessorNumber, int(MPI_id));
@@ -60,7 +60,7 @@ int gFLDSplit::Evolve(HierarchyEntry *ThisGrid, float deltat)
 
   // in case MPI is not included
 #ifndef MPI_INT
-  int MPI_COMM_WORLD = 0;
+  int EnzoTopComm = 0;
 #endif
 
   // start MPI timer
@@ -289,9 +289,9 @@ int gFLDSplit::Evolve(HierarchyEntry *ThisGrid, float deltat)
 #ifdef USE_MPI
   MPI_Datatype DataType = (sizeof(float) == 4) ? MPI_FLOAT : MPI_DOUBLE;
   MPI_Arg one = 1;
-  MPI_Allreduce(&(UMaxVals[1]), &dtmp, one, DataType, MPI_MAX, MPI_COMM_WORLD);
+  MPI_Allreduce(&(UMaxVals[1]), &dtmp, one, DataType, MPI_MAX, EnzoTopComm);
   UMaxVals[1] = dtmp;
-  MPI_Allreduce(&(UTypVals[1]), &dtmp, one, DataType, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&(UTypVals[1]), &dtmp, one, DataType, MPI_SUM, EnzoTopComm);
   UTypVals[1] = dtmp/NumberOfProcessors;  // estimate based on equidistribution
 #endif
   UTypVals[1] /= ecScale;
@@ -395,9 +395,9 @@ int gFLDSplit::Evolve(HierarchyEntry *ThisGrid, float deltat)
 //   UTypVals[1] = sqrt(UTypVals[1]/ArrDims[0]/ArrDims[1]/ArrDims[2]);
 //   UMaxVals[1] = sqrt(UMaxVals[1]);
 // #ifdef USE_MPI
-//   MPI_Allreduce(&(UMaxVals[1]), &dtmp, one, DataType, MPI_MAX, MPI_COMM_WORLD);
+//   MPI_Allreduce(&(UMaxVals[1]), &dtmp, one, DataType, MPI_MAX, EnzoTopComm);
 //   UMaxVals[1] = dtmp;
-//   MPI_Allreduce(&(UTypVals[1]), &dtmp, one, DataType, MPI_SUM, MPI_COMM_WORLD);
+//   MPI_Allreduce(&(UTypVals[1]), &dtmp, one, DataType, MPI_SUM, EnzoTopComm);
 //   UTypVals[1] = dtmp/NumberOfProcessors;  // estimate based on equidistribution
 // #endif
 //   if (debug) 
@@ -466,8 +466,8 @@ int gFLDSplit::Evolve(HierarchyEntry *ThisGrid, float deltat)
   //          create the solver & preconditioner
   HYPRE_StructSolver solver;
   HYPRE_StructSolver preconditioner;
-  HYPRE_StructPCGCreate(MPI_COMM_WORLD, &solver);
-  HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &preconditioner);
+  HYPRE_StructPCGCreate(EnzoTopComm, &solver);
+  HYPRE_StructPFMGCreate(EnzoTopComm, &preconditioner);
     
   //          set preconditioner options
   HYPRE_StructPFMGSetMaxIter(preconditioner, sol_maxit/4);
@@ -680,9 +680,9 @@ int gFLDSplit::Evolve(HierarchyEntry *ThisGrid, float deltat)
 //   UTypVals[1] = sqrt(UTypVals[1]/ArrDims[0]/ArrDims[1]/ArrDims[2]);
 //   UMaxVals[1] = sqrt(UMaxVals[1]);
 // #ifdef USE_MPI
-//   MPI_Allreduce(&(UMaxVals[1]), &dtmp, one, DataType, MPI_MAX, MPI_COMM_WORLD);
+//   MPI_Allreduce(&(UMaxVals[1]), &dtmp, one, DataType, MPI_MAX, EnzoTopComm);
 //   UMaxVals[1] = dtmp;
-//   MPI_Allreduce(&(UTypVals[1]), &dtmp, one, DataType, MPI_SUM, MPI_COMM_WORLD);
+//   MPI_Allreduce(&(UTypVals[1]), &dtmp, one, DataType, MPI_SUM, EnzoTopComm);
 //   UTypVals[1] = dtmp/NumberOfProcessors;  // estimate based on equidistribution
 // #endif
 //   UTypVals[1] /= ecScale;

@@ -13,7 +13,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 #include <stdlib.h>
 #include <stdio.h>
@@ -124,7 +124,7 @@ int StarParticleFindAll(LevelHierarchyEntry *LevelArray[], Star *&AllStars)
     StarBuffer *recvBuffer, *sendBuffer;
 
     MPI_Allgather(&LocalNumberOfStars, 1, MPI_INT, nCount, 1, MPI_INT, 
-		  MPI_COMM_WORLD);
+		  EnzoTopComm);
 
     /* Generate displacement list. */
 
@@ -144,7 +144,7 @@ int StarParticleFindAll(LevelHierarchyEntry *LevelArray[], Star *&AllStars)
 
       MPI_Allgatherv(sendBuffer, LocalNumberOfStars, MPI_STAR,
 		     recvBuffer, nCount, displace, MPI_STAR,
-		     MPI_COMM_WORLD);
+		     EnzoTopComm);
 
       AllStars = StarBufferToList(recvBuffer, TotalNumberOfStars);
 

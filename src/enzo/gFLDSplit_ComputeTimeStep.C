@@ -215,9 +215,9 @@ float gFLDSplit::ComputeTimeStep(EnzoVector *uold, EnzoVector *unew, int flag)
       MPI_Datatype DataType = (sizeof(float) == 4) ? MPI_FLOAT : MPI_DOUBLE;
       MPI_Arg vars = Nvar;
       if (dtnorm > 0.0) 
-	MPI_Allreduce(&loc_est,&glob_est,vars,DataType,MPI_SUM,MPI_COMM_WORLD);
+	MPI_Allreduce(&loc_est,&glob_est,vars,DataType,MPI_SUM,EnzoTopComm);
       else
-	MPI_Allreduce(&loc_est,&glob_est,vars,DataType,MPI_MAX,MPI_COMM_WORLD);
+	MPI_Allreduce(&loc_est,&glob_est,vars,DataType,MPI_MAX,EnzoTopComm);
     }
 #else
     for (l=0; l<Nvar; l++)  glob_est[l] = loc_est[l];

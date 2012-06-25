@@ -20,7 +20,7 @@
 #define ENZO_TIMING__
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
 #include <stdio.h>
@@ -160,8 +160,8 @@ namespace enzo_timing{
     // Sets up nprocs/my_rank properly.
     void set_mpi_environment(void){
 #ifdef USE_MPI
-      MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+      MPI_Comm_size(EnzoTopComm, &nprocs);
+      MPI_Comm_rank(EnzoTopComm, &my_rank);
 #else
       nprocs = 1;
       my_rank = 0;

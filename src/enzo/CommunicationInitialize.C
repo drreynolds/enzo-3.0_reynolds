@@ -11,7 +11,7 @@
 ************************************************************************/
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #include <stdlib.h>
 #endif /* USE_MPI */
 
@@ -45,8 +45,12 @@ int CommunicationInitialize(Eint32 *argc, char **argv[])
   MPI_Arg mpi_size;
 
   MPI_Init(argc, argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+  MPI_Arg error;
+  error = MPI_Comm_dup( MPI_COMM_WORLD, &EnzoTopComm);
+
+  MPI_Comm_rank(EnzoTopComm, &mpi_rank);
+  MPI_Comm_size(EnzoTopComm, &mpi_size);
 
   MyProcessorNumber = mpi_rank;
   NumberOfProcessors = mpi_size;
@@ -85,7 +89,9 @@ void CommunicationAbort(int status)
 {
 
 #ifdef USE_MPI
-  MPI_Abort(MPI_COMM_WORLD,status);
+  MPI_Arg error;
+  error = MPI_Comm_free ( &EnzoTopComm ) ;
+  MPI_Abort(EnzoTopComm,status);
 #else
   //  my_exit(status);
 #endif

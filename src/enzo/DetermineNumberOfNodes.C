@@ -11,7 +11,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 #include <stdio.h>
 #include <math.h>
@@ -48,7 +48,7 @@ int DetermineNumberOfNodes(void)
 #ifdef USE_MPI
   MPI_Gather(hostname, MAX_LINE_LENGTH, MPI_BYTE, 
 	     AllHosts, MAX_LINE_LENGTH, MPI_BYTE,
-	     ROOT_PROCESSOR, MPI_COMM_WORLD);
+	     ROOT_PROCESSOR, EnzoTopComm);
 #endif
 
   if (MyProcessorNumber == ROOT_PROCESSOR) {

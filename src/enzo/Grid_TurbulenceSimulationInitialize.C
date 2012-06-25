@@ -14,7 +14,7 @@
 ************************************************************************/
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #ifdef USE_MPE
 #include "mpe.h"
 #endif /* USE_MPE */

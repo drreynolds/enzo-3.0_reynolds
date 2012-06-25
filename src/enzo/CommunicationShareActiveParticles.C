@@ -13,7 +13,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
 #include <map>
@@ -135,7 +135,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       ******************************************/
     
       stat = MPI_Alltoall(mpi_buffer_size, SendCount, IntDataType,
-			  mpi_recv_buffer_size, RecvCount, IntDataType, MPI_COMM_WORLD);
+			  mpi_recv_buffer_size, RecvCount, IntDataType, EnzoTopComm);
       if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
       /* Allocate buffers and generate displacement list. */
@@ -157,7 +157,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 			   MPI_PACKED,
 			   mpi_recv_buffer, MPI_RecvListCount, MPI_RecvListDisplacements,
 			   MPI_PACKED,
-			   MPI_COMM_WORLD);
+			   EnzoTopComm);
       if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
       /* Unpack the MPI buffers into an array of active particles */

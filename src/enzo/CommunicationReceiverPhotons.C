@@ -11,7 +11,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 #include <stdlib.h>
 #include <stdio.h>
@@ -93,7 +93,7 @@ int CommunicationReceiverPhotons(LevelHierarchyEntry *LevelArray[],
 #endif
 
   NumberOfCompletedRequests = 0;
-  MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+  MPI_Errhandler_set(EnzoTopComm, MPI_ERRORS_RETURN);
 
   /* Wait for >1 receives */
 
@@ -117,7 +117,7 @@ int CommunicationReceiverPhotons(LevelHierarchyEntry *LevelArray[],
   if (NumberOfCompletedRequests > 0)
     CommunicationCheckForErrors(TotalReceives, PH_ListOfStatuses,
 				"CommunicationReceiverPhotons");
-  MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_ARE_FATAL);
+  MPI_Errhandler_set(EnzoTopComm, MPI_ERRORS_ARE_FATAL);
 
   /* Get grid lists */
 

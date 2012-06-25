@@ -62,7 +62,7 @@ cdef extern from "cmath":
 cdef extern from "complex":
     pass
 
-cdef extern from "mpi.h":
+cdef extern from "communicators.h":
     pass
 
 cdef extern from "performance.h":

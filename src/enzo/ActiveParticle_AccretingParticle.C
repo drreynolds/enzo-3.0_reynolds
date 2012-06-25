@@ -5,7 +5,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif 
 
 #include <string.h>
@@ -106,9 +106,9 @@ public:
 #ifdef USE_MPI
       // float: 3 -- AccretionRate, cInfinity, vInfinity
       // FLOAT: 1 -- BondiHoyleRadius
-      MPI_Pack_size(3, FloatDataType, MPI_COMM_WORLD, &size);
+      MPI_Pack_size(3, FloatDataType, EnzoTopComm, &size);
       this->ElementSizeInBytes += size;
-      MPI_Pack_size(1, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
+      MPI_Pack_size(1, MY_MPIFLOAT, EnzoTopComm, &size);
       this->ElementSizeInBytes += size;
 #endif
     } else {
@@ -810,9 +810,9 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	     LevelMax and assign the accreting particle to the
 	     SavedGrid on that processor.  */
 	  struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
-	  MPI_Comm_rank(MPI_COMM_WORLD, &sendbuf.rank); 
+	  MPI_Comm_rank(EnzoTopComm, &sendbuf.rank); 
 	  sendbuf.value = LevelMax;
-	  MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, MPI_COMM_WORLD);
+	  MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, EnzoTopComm);
 	  NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
 	  if (LevelMax == recvbuf.value) {
 	    MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
@@ -887,75 +887,17 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  for (i = 0; i < nParticles; i++) {
-    WeightedSum = SumOfWeights = GlobalWeightedSum = GlobalSumOfWeights = AverageDensity = SubtractedMass = 
-      GlobalSubtractedMass = 0, SinkIsOnThisProc = false;
-    ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
-    vInfinity = temp->vInfinity;
-    cInfinity = temp->cInfinity;
-    BondiHoyleRadius = temp->BondiHoyleRadius;
-    for (grid = 0; grid < NumberOfGrids; grid++) {
-      if (Grids[grid]->GridData->
-	  FindAverageDensityInAccretionZone(ParticleList[i],AccretionRadius, &WeightedSum, 
-					    &SumOfWeights, &NumberOfCells, BondiHoyleRadius) == FAIL)
-	return FAIL;
-    }
-    /* sum up rhobar on root and broadcast result to all processors */
-#ifdef USE_MPI
-    MPI_Allreduce(&WeightedSum,  &GlobalWeightedSum,  1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(&SumOfWeights, &GlobalSumOfWeights, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-#else
-    GlobalWeightedSum = WeightedSum;
-    GlobalSumOfWeights = SumOfWeights;
-#endif
-    
-    AverageDensity = GlobalWeightedSum / GlobalSumOfWeights;
-#ifdef DEBUG
-    fprintf(stdout,"GlobalWeightedSum: %"GSYM"\n",GlobalWeightedSum);
-    fprintf(stdout,"GlobalSumOfWeights: %"GSYM"\n",GlobalSumOfWeights);
-    fprintf(stdout,"AverageDensity: %"GSYM"\n",AverageDensity);
-#endif
+  //grid* FeedbackZone = NULL
 
-    /* Now perform accretion algorithm by modifying the grids locally */
-    for (grid = 0; grid < NumberOfGrids; grid++) {
-      SinkIsOnThisGrid = false;
-      if (Grids[grid]->GridData->
-	  AccreteOntoAccretingParticle(ParticleList[i], AccretionRadius, AverageDensity, GlobalSumOfWeights, &SubtractedMass, 
-				       SubtractedMomentum, &SinkIsOnThisGrid, vInfinity, cInfinity, 
-				       BondiHoyleRadius, &AccretionRate) == FAIL) {
-	return FAIL;
-      }
-      if (SinkIsOnThisGrid) {
-	sinkGrid = Grids[grid];
-	SinkIsOnThisProc = true;
-	break;
-      }
-    }
-
-#ifdef USE_MPI
-    MPI_Allreduce(&SubtractedMass, &GlobalSubtractedMass, 1, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(&SubtractedMomentum, &GlobalSubtractedMomentum, 3, FloatDataType, MPI_SUM, MPI_COMM_WORLD);
-#else
-    GlobalSubtractedMass = SubtractedMass;
-    for (int j = 0; j < 3; j++) {
-      GlobalSubtractedMomentum[j] = SubtractedMomentum[j];
-    }
-#endif
-    temp->AccretionRate = AccretionRate;
+  //  for (i = 0; i < nParticles; i++) {
+  // sinkGrid = ParticleList[i]->CurrentGrid;
+  // if (sinkGrid == NULL)
+  //   ENZO_FAIL('sinkGrid is invalid!');
     
-#ifdef DEBUG
-    fprintf(stdout,"GlobalSubtractedMass = %"GSYM"\n",GlobalSubtractedMass*5.96066448e-8);
-#endif
+  //if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius) == FAIL);
+  //ENZO_FAIL('Accretion zone construction failed!');
+  //}
 
-    /* Transfer the mass and momentum to the particle */
-    if (SinkIsOnThisProc)
-      if (sinkGrid->GridData->AddMassAndMomentumToAccretingParticle(GlobalSubtractedMass, GlobalSubtractedMomentum, 
-								    static_cast<ActiveParticleType*>(temp),
-								    LevelArray) == FAIL)
-	return FAIL;
-    
-  }
-  CommunicationSyncNumberOfParticles(Grids, NumberOfGrids);
   delete [] Grids;
   return SUCCESS;
 }
@@ -1051,13 +993,13 @@ void AccretingParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int
 #ifdef USE_MPI
   if (pbuffer->NumberOfBuffers > 0) {
     MPI_Pack(pbuffer->AccretionRate,pbuffer->NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(pbuffer->cInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(pbuffer->vInfinity,pbuffer->NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
     MPI_Pack(pbuffer->BondiHoyleRadius,pbuffer->NumberOfBuffers, MY_MPIFLOAT, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
   }
 #endif /* USE_MPI */
   delete pbuffer;
@@ -1076,13 +1018,13 @@ void AccretingParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buff
 #ifdef USE_MPI
   if (pbuffer->NumberOfBuffers > 0) {
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->AccretionRate,
-	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+	       pbuffer->NumberOfBuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->cInfinity,
-	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+	       pbuffer->NumberOfBuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->vInfinity,
-	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+	       pbuffer->NumberOfBuffers, FloatDataType, EnzoTopComm);
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->BondiHoyleRadius,
-	       pbuffer->NumberOfBuffers, MY_MPIFLOAT, MPI_COMM_WORLD);
+	       pbuffer->NumberOfBuffers, MY_MPIFLOAT, EnzoTopComm);
   }
 #endif
   /* Convert the particle buffer into active particles */

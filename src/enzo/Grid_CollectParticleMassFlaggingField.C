@@ -17,7 +17,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif 
 #include <stdio.h>
 #include <math.h>
@@ -62,7 +62,7 @@ int grid::CollectParticleMassFlaggingField(void)
     buffer[i] = ParticleMassFlaggingField[i];
 
   MPI_Reduce(buffer, ParticleMassFlaggingField, Count, DataType, MPI_SUM, 
-	     ProcessorNumber, MPI_COMM_WORLD);
+	     ProcessorNumber, EnzoTopComm);
 
   delete [] buffer;
 

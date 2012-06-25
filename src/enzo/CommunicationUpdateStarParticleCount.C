@@ -23,7 +23,7 @@
 ************************************************************************/
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
  
 #include <stdio.h>
@@ -85,9 +85,9 @@ int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
   MPI_Arg GridCount = NumberOfGrids;
    
   MPI_Allreduce(PartialParticleCount, TotalParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, MPI_COMM_WORLD);
+		DataTypeInt, MPI_SUM, EnzoTopComm);
   MPI_Allreduce(PartialStarParticleCount, TotalStarParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, MPI_COMM_WORLD);
+		DataTypeInt, MPI_SUM, EnzoTopComm);
 
 #ifdef UNUSED
   if (MyProcessorNumber == ROOT_PROCESSOR)
@@ -216,9 +216,9 @@ int CommunicationUpdateStarParticleCountOld(HierarchyEntry *Grids[],
   MPI_Arg GridCount = NumberOfGrids;
    
   MPI_Allreduce(PartialParticleCount, TotalParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, MPI_COMM_WORLD);
+		DataTypeInt, MPI_SUM, EnzoTopComm);
   MPI_Allreduce(PartialStarParticleCount, TotalStarParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, MPI_COMM_WORLD);
+		DataTypeInt, MPI_SUM, EnzoTopComm);
 
 #ifdef MPI_INSTRUMENTATION
   endtime = MPI_Wtime();

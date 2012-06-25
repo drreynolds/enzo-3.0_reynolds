@@ -10,7 +10,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif 
 
 #include <string.h>
@@ -101,7 +101,7 @@ public:
     if (mpi_flag == 1) {
 #ifdef USE_MPI
       // float: 1 -- Lifetime
-      MPI_Pack_size(1, FloatDataType, MPI_COMM_WORLD, &size);
+      MPI_Pack_size(1, FloatDataType, EnzoTopComm, &size);
       this->ElementSizeInBytes += size;
 #endif
     }
@@ -406,7 +406,7 @@ void PopIIIParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int Nu
 #ifdef USE_MPI
   if (pbuffer->NumberOfBuffers > 0) {
     MPI_Pack(pbuffer->Lifetime,pbuffer->NumberOfBuffers, FloatDataType, buffer, total_buffer_size,
-	     &position, MPI_COMM_WORLD);
+	     &position, EnzoTopComm);
   }
 #endif /* USE_MPI */
   delete pbuffer;
@@ -425,7 +425,7 @@ void PopIIIParticleBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_
 #ifdef USE_MPI
   if (pbuffer->NumberOfBuffers > 0) {
     MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->Lifetime,
-	       pbuffer->NumberOfBuffers, FloatDataType, MPI_COMM_WORLD);
+	       pbuffer->NumberOfBuffers, FloatDataType, EnzoTopComm);
   }
 #endif
   /* Convert the particle buffer into active particles */

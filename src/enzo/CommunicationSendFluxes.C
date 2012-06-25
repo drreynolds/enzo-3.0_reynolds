@@ -11,7 +11,7 @@
 ************************************************************************/
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
  
 #include <stdio.h>
@@ -84,7 +84,7 @@ int CommunicationSendFluxes(fluxes *Fluxes, int ToProc, int NumberOfFields,
 #endif
  
   CommunicationBufferedSend(buffer, TotalSize, DataType, ToProc, MPI_FLUX_TAG,
-			    MPI_COMM_WORLD, BUFFER_IN_PLACE);
+			    EnzoTopComm, BUFFER_IN_PLACE);
  
 #ifdef MPI_INSTRUMENTATION
   /* Zhiling Lan's instrumented part */

@@ -11,7 +11,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 #include <stdio.h>
 #include <math.h>
@@ -156,11 +156,11 @@ int CommunicationLoadBalanceRootGrids(LevelHierarchyEntry *LevelArray[],
   } // ENDIF ROOT_PROCESSOR
 
 #ifdef USE_MPI
-  MPI_Bcast(&NumberOfRootGrids, 1, IntDataType, ROOT_PROCESSOR, MPI_COMM_WORLD);
+  MPI_Bcast(&NumberOfRootGrids, 1, IntDataType, ROOT_PROCESSOR, EnzoTopComm);
   if (MyProcessorNumber != ROOT_PROCESSOR)
     RootProcessors = new int[NumberOfRootGrids];
   MPI_Bcast(RootProcessors, NumberOfRootGrids, IntDataType, ROOT_PROCESSOR, 
-	    MPI_COMM_WORLD);
+	    EnzoTopComm);
 #endif
 
   /* Move the grids to their new processors */

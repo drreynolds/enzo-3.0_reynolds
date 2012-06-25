@@ -22,7 +22,7 @@
 /
 ************************************************************************/
 #ifdef USE_MPI
-#include <mpi.h>
+#include <communicators.h>
 #endif
 
 #include <stdio.h>
@@ -51,7 +51,7 @@ int EnzoVector::exchange_end()
   int x2len = Nx2 + Ng2l + Ng2r;
 
   // Get MPI processor rank
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  MPI_Comm_rank(EnzoTopComm, &myrank);
 
   // allocate MPI status object
   MPI_Status status;
@@ -222,7 +222,7 @@ int EnzoVector::exchange_end_component(int ivar)
   int x2len = Nx2 + Ng2l + Ng2r;
 
   // Get MPI processor rank
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  MPI_Comm_rank(EnzoTopComm, &myrank);
 
   // allocate MPI status object
   MPI_Status status;

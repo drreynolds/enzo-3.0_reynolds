@@ -14,7 +14,7 @@
 /
 ************************************************************************/
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 #include <stdlib.h>
 #include <stdio.h>
@@ -335,7 +335,7 @@ int CommunicationTransferPhotons(LevelHierarchyEntry *LevelArray[],
 	Size = (i < NumberOfMessages-1) ? PHOTON_BUFFER_SIZE : (nPhoton[proc]-Offset);
 	CommunicationBufferedSend(SendList[proc]+Offset, 
 				  Size, MPI_PhotonList, proc, tag, 
-				  MPI_COMM_WORLD,
+				  EnzoTopComm,
 				  Size*sizeof(GroupPhotonList));
       } // ENDFOR messages
       delete [] SendList[proc];

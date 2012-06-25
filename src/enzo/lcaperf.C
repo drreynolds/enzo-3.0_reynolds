@@ -59,7 +59,7 @@
 #include <unistd.h>
 
 #ifdef USE_MPI
-#  include <mpi.h>
+#  include <communicators.h>
 #endif
 
 #include "lcaperf.h"
@@ -390,8 +390,8 @@ void LcaPerf::begin (const char * suffix)
     // (not in lcaperf() because MPI will not have been initialized yet
 
 #ifdef USE_MPI
-    MPI_Comm_size (MPI_COMM_WORLD, &np_);
-    MPI_Comm_rank (MPI_COMM_WORLD, &ip_);
+    MPI_Comm_size (EnzoTopComm, &np_);
+    MPI_Comm_rank (EnzoTopComm, &ip_);
 #else
     np_ = 1;
     ip_ = 0;
@@ -1822,7 +1822,7 @@ void LcaPerf::create_directories_()
 
 #ifdef USE_MPI
   // Make sure all processors know which directory to use
-  MPI_Bcast (lcaperf_dir_, strlen("LCAPERF.###")+1, MPI_CHAR, 0, MPI_COMM_WORLD);
+  MPI_Bcast (lcaperf_dir_, strlen("LCAPERF.###")+1, MPI_CHAR, 0, EnzoTopComm);
 #endif
   
   // Save path base "/.../LCAPERF"
@@ -1870,7 +1870,7 @@ void LcaPerf::create_directories_()
 
 #ifdef USE_MPI
   if (!lDirCreated_) {
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(EnzoTopComm);
   }
 #endif
 

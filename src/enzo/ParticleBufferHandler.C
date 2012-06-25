@@ -10,7 +10,7 @@
 /
 ************************************************************************/
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 
 #include <map>
@@ -151,20 +151,20 @@ void ParticleBufferHandler::CalculateElementSize(void)
   Eint32 size;
   if (mpi_flag == 1) {
 #ifdef USE_MPI
-    MPI_Pack_size(6, FloatDataType, MPI_COMM_WORLD, &size);
+    MPI_Pack_size(6, FloatDataType, EnzoTopComm, &size);
     this->ElementSizeInBytes += size;
-    MPI_Pack_size(3, MY_MPIFLOAT, MPI_COMM_WORLD, &size);
+    MPI_Pack_size(3, MY_MPIFLOAT, EnzoTopComm, &size);
     this->ElementSizeInBytes += size;
-    MPI_Pack_size(1, MPI_DOUBLE, MPI_COMM_WORLD, &size);
+    MPI_Pack_size(1, MPI_DOUBLE, EnzoTopComm, &size);
     this->ElementSizeInBytes += size;
-    MPI_Pack_size(3, IntDataType, MPI_COMM_WORLD, &size);
+    MPI_Pack_size(3, IntDataType, EnzoTopComm, &size);
     this->ElementSizeInBytes += size;
-    MPI_Pack_size(1, PINTDataType, MPI_COMM_WORLD, &size);
+    MPI_Pack_size(1, PINTDataType, EnzoTopComm, &size);
     this->ElementSizeInBytes += size;
   
     // Header:
     // 1. Number of buffers (int)
-    MPI_Pack_size(1, IntDataType, MPI_COMM_WORLD, &size);
+    MPI_Pack_size(1, IntDataType, EnzoTopComm, &size);
     this->HeaderSizeInBytes += size;
 #endif
   } else {

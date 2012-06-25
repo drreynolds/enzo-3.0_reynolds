@@ -11,10 +11,10 @@
       integer       id, ierr
 
 #ifdef USE_MPI
-      call mpi_comm_rank( MPI_COMM_WORLD, id, ierr )
+      call mpi_comm_rank( EnzoTopComm, id, ierr )
       write(0,'("MPI_Abort called from processor ", i8)') id
       error_code = -(8000000+id)
-      call mpi_abort( MPI_COMM_WORLD, error_code, ierr )
+      call mpi_abort( EnzoTopComm, error_code, ierr )
 #else
       id = 0
       call exit

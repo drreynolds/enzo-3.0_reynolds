@@ -18,7 +18,7 @@
 //
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
 #include <string.h>
@@ -321,10 +321,10 @@ int GalaxySimulationInitialize(FILE *fptr, FILE *Outfptr,
  // BWO: this forces the synchronization of the various point source gravity
  // parameters between processors.  If this is not done, things go to pieces!
 
- MPI_Barrier(MPI_COMM_WORLD);
+ MPI_Barrier(EnzoTopComm);
  MPI_Datatype DataType = (sizeof(float) == 4) ? MPI_FLOAT : MPI_DOUBLE;
- MPI_Bcast(&PointSourceGravityConstant,1,DataType,ROOT_PROCESSOR, MPI_COMM_WORLD);
- MPI_Bcast(&PointSourceGravityCoreRadius,1,DataType,ROOT_PROCESSOR, MPI_COMM_WORLD);
+ MPI_Bcast(&PointSourceGravityConstant,1,DataType,ROOT_PROCESSOR, EnzoTopComm);
+ MPI_Bcast(&PointSourceGravityCoreRadius,1,DataType,ROOT_PROCESSOR, EnzoTopComm);
 
 #endif
 

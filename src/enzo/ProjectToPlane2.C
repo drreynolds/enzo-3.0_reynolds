@@ -16,7 +16,7 @@
 //   along one of the orthogonal directions.
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 #include <string.h>
 #include <stdio.h>

@@ -21,7 +21,7 @@
 ************************************************************************/
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
  
 #include <hdf5.h>
@@ -732,7 +732,7 @@ int grid::NestedCosmologySimulationInitializeGrid(
 	MPI_Arg mpi_size;
  
 #ifdef USE_MPI
-	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+	MPI_Comm_size(EnzoTopComm, &mpi_size);
 #else
 	mpi_size = 1;
 #endif

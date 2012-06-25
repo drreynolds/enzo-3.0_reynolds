@@ -12,7 +12,7 @@
 #define NO_TIMING
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
  
 #include <stdio.h>
@@ -215,7 +215,7 @@ int DepositParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
 #endif
 
     stat = MPI_Alltoall(NumberOfSends, 1, DataTypeInt,
-			RecvListCount, 1, DataTypeInt, MPI_COMM_WORLD);
+			RecvListCount, 1, DataTypeInt, EnzoTopComm);
     if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
     TotalNumberOfRecv = 0;
@@ -253,7 +253,7 @@ int DepositParticleMassFlaggingField(LevelHierarchyEntry* LevelArray[],
     stat = MPI_Alltoallv(SendList, MPI_SendListCount, MPI_SendListDisplacements,
 			   MPI_TwoInt,
 			 SharedList, MPI_RecvListCount, MPI_RecvListDisplacements,
-			   MPI_TwoInt, MPI_COMM_WORLD);
+			   MPI_TwoInt, EnzoTopComm);
     if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
 
 #ifdef TIMING

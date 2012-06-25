@@ -11,7 +11,7 @@
 ************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 
 #include <stdlib.h>
@@ -56,7 +56,7 @@ void RecordTotalActiveParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
    
   MPI_Allreduce(PartialActiveParticleCountPrevious, 
 		TotalActiveParticleCountPrevious, GridCount,
-		DataTypeInt, MPI_SUM, MPI_COMM_WORLD);
+		DataTypeInt, MPI_SUM, EnzoTopComm);
 #endif
 
   delete [] PartialActiveParticleCountPrevious;

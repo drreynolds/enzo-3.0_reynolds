@@ -25,7 +25,7 @@
 #include "preincludes.h"
  
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
  
 #include <hdf5.h>
@@ -420,8 +420,8 @@ int WriteAllData(char *basename, int filenumber,
       MPI_Arg mpi_rank;
 
 #ifdef USE_MPI
-      MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+      MPI_Comm_rank(EnzoTopComm, &mpi_rank);
+      MPI_Comm_size(EnzoTopComm, &mpi_size);
 #else
       mpi_rank = 0;
       mpi_size = 1;

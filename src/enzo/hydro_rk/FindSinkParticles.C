@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -83,7 +83,7 @@ int FindSinkParticles(LevelHierarchyEntry *LevelArray[])
     int *displace = new int[NumberOfProcessors];
     ShineParticle *sendBuffer, *recvBuffer;
 
-    MPI_Allgather(&nShine, 1, MPI_INT, nCount, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&nShine, 1, MPI_INT, nCount, 1, MPI_INT, EnzoTopComm);
 
     /* Generate displacement list. */
 
@@ -105,7 +105,7 @@ int FindSinkParticles(LevelHierarchyEntry *LevelArray[])
 
       MPI_Allgatherv(sendBuffer, nShine, MPI_SHINE,
 		     recvBuffer, nCount, displace, MPI_SHINE,
-		     MPI_COMM_WORLD);
+		     EnzoTopComm);
       
       /* Transfer dynamic array to the static one used elsewhere */
       

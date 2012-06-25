@@ -13,7 +13,7 @@
 /
 ************************************************************************/
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif
 #include <stdlib.h>
 #include <stdio.h>
@@ -238,7 +238,7 @@ int grid::SetSubgridMarkerFromParent(grid *Parent, int level)
 //      printf("P%d: Send %d Subgrid markers from grid %d:%d to %d:%d\n",
 //	     MyProcessorNumber, gzsize, level-1, Parent->ID, level, ID);
       CommunicationBufferedSend(buffer, gzsize, MPI_INT, ProcessorNumber,
-				MPI_SENDMARKER_TAG, MPI_COMM_WORLD,
+				MPI_SENDMARKER_TAG, EnzoTopComm,
 				BUFFER_IN_PLACE);
 
     } // ENDIF Parent processor
@@ -252,7 +252,7 @@ int grid::SetSubgridMarkerFromParent(grid *Parent, int level)
 //	       "grid %d:%d to %d:%d\n",
 //	       MyProcessorNumber, gzsize, level-1, Parent->ID, level, ID);
 	MPI_Irecv(buffer, gzsize, MPI_INT, Parent->ProcessorNumber,
-		  MPI_SENDMARKER_TAG, MPI_COMM_WORLD,
+		  MPI_SENDMARKER_TAG, EnzoTopComm,
 		  CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
 	CommunicationReceiveBuffer[CommunicationReceiveIndex] = (float*) buffer;
 	CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;

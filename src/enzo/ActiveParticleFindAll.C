@@ -15,7 +15,7 @@
 *************************************************************************/
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
 #include <map>
@@ -150,7 +150,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
       MPI_Datatype DataTypeInt = (sizeof(int) == 4) ? MPI_INT : MPI_LONG_LONG_INT;
 
       MPI_Allgather(&LocalNumberOfActiveParticles, 1, DataTypeInt, 
-		    nCount, 1, DataTypeInt, MPI_COMM_WORLD);
+		    nCount, 1, DataTypeInt, EnzoTopComm);
       
       for (i = 0; i < NumberOfProcessors; i++) {
 	*GlobalNumberOfActiveParticles += nCount[i];
@@ -217,7 +217,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	int sendcount = (local_buffer_size == header_size ? 0 : local_buffer_size);
 
 	MPI_Allgatherv(send_buffer, sendcount, MPI_PACKED,
-		       recv_buffer, all_buffer_sizes, displace, MPI_PACKED, MPI_COMM_WORLD);
+		       recv_buffer, all_buffer_sizes, displace, MPI_PACKED, EnzoTopComm);
 
 	/* Unpack MPI buffers, generate global active particles list */
 
