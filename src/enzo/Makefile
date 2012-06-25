@@ -43,6 +43,7 @@ EXE      = enzo
 OUTPUT   = out.compile
 
 ENZO_DIR = .
+CONFIG_DIR = build/config
 MODULES  = 
 VERBOSE  = 0
 ETAGS_COMMAND = "0"
@@ -56,14 +57,14 @@ SVN      = hg
 # configuration settings.
 #-----------------------------------------------------------------------
 
-include $(ENZO_DIR)/Make.config.settings
+include $(ENZO_DIR)/$(CONFIG_DIR)/Make.config.settings
 
 #-----------------------------------------------------------------------
 # Make.config.machine is used for setting which Make.mach.* file to use
 #-----------------------------------------------------------------------
 
-MAKE_CONFIG_MACHINE  = $(ENZO_DIR)/Make.config.machine
-include $(ENZO_DIR)/Make.config.machine
+MAKE_CONFIG_MACHINE  = $(ENZO_DIR)/$(CONFIG_DIR)/Make.config.machine
+include $(ENZO_DIR)/$(CONFIG_DIR)/Make.config.machine
 
 #-----------------------------------------------------------------------
 # Make.config.override is used for overriding the default settings in
@@ -72,13 +73,13 @@ include $(ENZO_DIR)/Make.config.machine
 # like lcatest.
 #-----------------------------------------------------------------------
 
-MAKE_CONFIG_OVERRIDE = $(ENZO_DIR)/Make.config.override
+MAKE_CONFIG_OVERRIDE = $(ENZO_DIR)/$(CONFIG_DIR)/Make.config.override
 
 include $(MAKE_CONFIG_OVERRIDE)
 
 # THIS WAY OF DOING THE ABOVE DOES NOT WORK:
 #
-# include $(ENZO_DIR)/Make.config.override
+# include $(ENZO_DIR)/$(CONFIG_DIR)/Make.config.override
 
 #-----------------------------------------------------------------------
 # Make.config.assemble takes the settings in the Make.config.settings
@@ -94,8 +95,8 @@ include Make.config.assemble
 
 MACH_SHARED_EXT=so
 
--include $(ENZO_DIR)/Make.mach.$(CONFIG_MACHINE)
--include $(HOME)/.enzo/Make.mach.$(CONFIG_MACHINE)
+-include $(ENZO_DIR)/$(CONFIG_DIR)/Make.mach.$(CONFIG_MACHINE)
+-include $(HOME)/.enzo/$(CONFIG_DIR)/Make.mach.$(CONFIG_MACHINE)
 
 #=======================================================================
 # OBJECT FILES
@@ -363,7 +364,7 @@ include DEPEND
 # Radiative transfer module
 #-----------------------------------------------------------------------
 
-#include $(ENZO_DIR)/photons/Make.config.objects
+#include $(ENZO_DIR)/photons/$(CONFIG_DIR)/Make.config.objects
 #
 #.PHONY: photon
 #photon: OBJS_LIB += photons/*.o
@@ -412,5 +413,5 @@ clean:
 # Include configuration targets
 #-----------------------------------------------------------------------
 
-include $(ENZO_DIR)/Make.config.targets
+include $(ENZO_DIR)/$(CONFIG_DIR)/Make.config.targets
 # DO NOT DELETE
