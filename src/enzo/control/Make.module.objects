@@ -3,14 +3,14 @@
 #   control
 #
 
-ENZO_OBJS +=\
-	CheckForResubmit.o \
-	CheckForTimeAction.o \
-	Continue.o \
-	EventHooks.o \
-	EvolveHierarchy.o \
-	EvolveLevel.o \
-	InterpretCommandLine.o \
-	SetDefaultGlobalValues.o \
-	SetLevelTimeStep.o \
+ENZO_SRC +=\
+	control/CheckForResubmit.C \
+	control/CheckForTimeAction.C \
+	control/Continue.C \
+	control/EventHooks.C \
+	control/EvolveHierarchy.C \
+	control/EvolveLevel.C \
+	control/InterpretCommandLine.C \
+	control/SetDefaultGlobalValues.C \
+	control/SetLevelTimeStep.C \
 

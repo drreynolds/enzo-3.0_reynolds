@@ -87,7 +87,7 @@ include $(MAKE_CONFIG_OVERRIDE)
 # required by this makefile.  E.g. $(CXX), $(CXXFLAGS), etc.
 #-----------------------------------------------------------------------
 
-include Make.config.assemble
+include $(CONFIG_DIR)/Make.config.assemble
 
 #-----------------------------------------------------------------------
 # Make.mach.<machine-name> defines all machine-dependent settings.
@@ -102,13 +102,27 @@ MACH_SHARED_EXT=so
 # OBJECT FILES
 #=======================================================================
 
-include Make.config.objects
+include utilities/Make.module.objects
+include control/Make.module.objects
+include problem_types/Make.module.objects
+include grid/Make.module.objects
+include hydro_rk/Make.module.objects
+include hierarchy/Make.module.objects
+include particles/Make.module.objects
+include attic/Make.module.objects
+include communication/Make.module.objects
+include io/Make.module.objects
+include solvers/Make.module.objects
+
+OBJS_CONFIG_LIB=$(addsuffix, $(addprefix, build/objects/, $(notdir $(ENZO_SRC))),.o)
 
 #-----------------------------------------------------------------------
 # MAKE ENZO BY DEFAULT
 #-----------------------------------------------------------------------
 
-all: MACHNOTES MAKETAGS $(EXE).exe
+#all: MACHNOTES MAKETAGS $(EXE).exe
+all:
+	@echo $(OBJS_CONFIG_LIB)
 
 # I believe this has to be done here, as it is target-specific.
 lib: CFLAGS   += $(MACH_SHARED_FLAGS) 
