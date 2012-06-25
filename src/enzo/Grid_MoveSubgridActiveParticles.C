@@ -132,8 +132,8 @@ int grid::MoveSubgridActiveParticles(int NumberOfSubgrids, grid* ToGrids[],
 
   /* Communicate number of send stars to subgrids */
 
-  if (AllLocal == FALSE)
 #ifdef USE_MPI
+  if (AllLocal == FALSE)
     CommunicationAllReduceValues(NumberToMove, NumberOfSubgrids, MPI_MAX);
 #endif
 

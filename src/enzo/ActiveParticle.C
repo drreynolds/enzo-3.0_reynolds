@@ -346,7 +346,8 @@ void ActiveParticleType::DestroyData(grid *_grid,
     if (data.CoolingTime != NULL) delete data.CoolingTime;
     if (data.CoolingRate != NULL) delete data.CoolingRate;
     if (data.Temperature != NULL) delete data.Temperature;
-    if (data.TotalMetals != NULL) delete data.TotalMetals;
+    if (data.TotalMetals != NULL && data.MetalNum != -1 && data.ColourNum != -1) 
+      delete data.TotalMetals;
 
     /* We convert back from Fractions to Values */
     _grid->ConvertColorFieldsFromFractions();
