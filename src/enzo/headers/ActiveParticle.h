@@ -108,7 +108,9 @@ public:
 
   virtual bool IsARadiationSource(FLOAT Time) { return FALSE; };
   virtual bool Mergable(ActiveParticleType *a);
-  virtual int GetEnabledParticleID(int id = -1) = 0;
+  virtual int GetEnabledParticleID(int id = -1) {
+    ENZO_FAIL("Not implemented.");
+  };
 
 #ifdef TRANSFER
   RadiationSourceEntry* RadiationSourceInitialize(void);
