@@ -34,10 +34,6 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
       (GridLeftEdge[2] > ParticlePosition[2]+FeedbackRadius) || (GridRightEdge[2] < ParticlePosition[2]-FeedbackRadius))
     return FAIL;
 
-  FeedbackZone = new grid;
-  
-  FeedbackZone->InheritProperties(this);
-  
   FLOAT LeftCellOffset[3]  = {fmod(ParticlePosition[0],dx),
 			      fmod(ParticlePosition[1],dx),
 			      fmod(ParticlePosition[2],dx)};
@@ -56,20 +52,31 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
   
   int FeedbackZoneRank = FeedbackZone->GetGridRank();
   
-  int FeedbackZoneDimension[3] = {FeedbackRadius*2+1, 
-				  FeedbackRadius*2+1, 
-				  FeedbackRadius*2+1};
+  int FeedbackZoneDimension[3] = {FeedbackRadius*2+7, 
+				  FeedbackRadius*2+7, 
+				  FeedbackRadius*2+7};
+
+  FeedbackZone = new grid;
+  
+  FeedbackZone->InheritProperties(this);
   
   FeedbackZone->PrepareGrid(FeedbackZoneRank, FeedbackZoneDimension, 
 			    FeedbackZoneLeftEdge,FeedbackZoneRightEdge,0);
   
   FeedbackZone->SetProcessorNumber(MyProcessorNumber);
-  
-  // First, copy zones from grid that covers the sink particle
+
+  // First allocate the density field and fill it with zeros
+  int densfield;
+  if ((densfield=FindField(Density, FieldType, NumberOfBaryonFields)) < 0) {
+    ENZO_FAIL("No density field!\n");
+  }
+  // Copy zones from grid that covers the sink particle
 
   // if the grid is filled, return
 
-  // Next, recursively iterate over the siblings of that grid, copying zones from overlapping grids until the grid is filled
+  // Next, recursively iterate over the siblings of that grid, copying
+  // zones from overlapping grids until the grid is filled
 
   return SUCCESS;
+  
 }

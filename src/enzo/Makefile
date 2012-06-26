@@ -227,17 +227,17 @@ verbose: $(EXE).exe
 	@echo "Compiling $<"
 	@rm -f $(BUILD_DIR)/$@
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
+	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) -DFILENAME=$*.F $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $<"; \
+             echo "$(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) -DFILENAME=$*.F $(DEFINES) $(INCLUDES) $<"; \
              echo; \
-             $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $<; \
+             $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) -DFILENAME=$*.F $(DEFINES) $(INCLUDES) $<; \
              echo; \
              exit 1; \
           fi ; \
 	else \
-	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) $(DEFINES) $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
+	  $(FC) -c -o $(BUILD_DIR)/$@ $(FFLAGS) -DFILENAME=$*.F $(DEFINES) $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
@@ -251,17 +251,17 @@ verbose: $(EXE).exe
 	@rm -f $(BUILD_DIR)/$@
 	@echo "Compiling $<"
 	@(if [ $(VERBOSE) -eq 0 ]; then \
-	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
+	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) -DFILENAME=$*.F90 $(DEFINES) $(INCLUDES) $< >& $(OUTPUT) ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
              echo; \
-             echo "$(F90) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(F90FLAGS) $(INCLUDES) $<"; \
+             echo "$(F90) -c -o $(BUILD_DIR)/$@ -DFILENAME=$*.F90 $(DEFINES) $(F90FLAGS) $(INCLUDES) $<"; \
              echo; \
-             $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(INCLUDES) $<; \
+             $(F90) -c -o $(BUILD_DIR)/$@ -DFILENAME=$*.F90 $(DEFINES) $(F90FLAGS) $(INCLUDES) $<; \
              echo; \
              exit 1; \
 	  fi ; \
 	else \
-	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) $(DEFINES) $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
+	  $(F90) -c -o $(BUILD_DIR)/$@ $(F90FLAGS) -DFILENAME=$*.F90 $(DEFINES) $(INCLUDES) $< >> $(OUTPUT) 2>&1 ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
 	     exit 1; \
