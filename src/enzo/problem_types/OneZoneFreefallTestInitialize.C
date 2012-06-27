@@ -138,9 +138,6 @@ int OneZoneFreefallTestInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &Top
  
   } // end input from parameter file
 
-  /* Set constant for analytical free-fall collapse. */
-  TestProblemData.OneZoneFreefallConstant = pow(OneZoneFreefallTestInitialDensity, -0.5);
-
   float DensityUnits=1, LengthUnits=1, TemperatureUnits=1, TimeUnits=1,
     VelocityUnits=1;
 

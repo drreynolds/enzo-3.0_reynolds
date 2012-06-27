@@ -109,8 +109,8 @@ int grid::SolveOneZoneFreefall()
   /* Calculate new density and energy. */
 
   float FreefallTimeConstant = POW(((32 * GravitationalConstant) / (3 * pi)), 0.5);
-  float NewDensity = POW((TestProblemData.OneZoneFreefallConstant - 
-			  (0.5 * FreefallTimeConstant * Time)), -2.);
+  float NewDensity = POW((POW(BaryonField[DensNum][0], -0.5) - 
+  			  (0.5 * FreefallTimeConstant * dtFixed)), -2.);
   float DensityRatio = NewDensity / BaryonField[DensNum][0];
 
   /* Update all cells. */
