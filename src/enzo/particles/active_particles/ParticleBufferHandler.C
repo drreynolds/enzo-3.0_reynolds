@@ -30,6 +30,49 @@
 
 #include "ActiveParticle.h"
 
+template <class APClass> void ParticleBufferHandler::Allocate(
+         ActiveParticleType **LocalParticles, int Count, char **buffer) {
+        
+    /* This routine is called for each particle type. */
+    /* So we need to re-calculate the element and header size for each. */
+
+    int particle_size = 0;
+    int header_size = APClass::ReturnHeaderSize();
+
+    APClass **particles = dynamic_cast<APClass**>(LocalParticles);
+
+    if (Count > 0 ){
+        AttributeVector &handlers = APClass::ParticleAttributeHandlers;
+        for(AttributeVector::iterator it = handlers.begin();
+            it != handlers.end(); ++it) {
+            particle_size += (*it).element_size;
+        }
+
+        buffer = &(new char[particle_size * Count + header_size]);
+
+    }
+}
+
+template <class APClass> void ParticleBufferHandler::Unpack(
+        char *buffer, int buffer_size, int InCount,
+        ActiveParticleType **OutList_, int OutCount) {
+
+    APClass **OutList = dynamic_cast<APClass**>(OutList_);
+    AttributeVector &handlers = APClass::ParticleAttributeHandlers;
+    APClass *ap;
+    int i;
+
+    for (i = 0; i < InCount; i++) {
+        ap = new APClass();
+        for(AttributeVector::iterator it = handlers.begin();
+            it != handlers.end(); ++it) {
+            it->SetAttribute(&buffer, ap);
+        }
+        OutList[OutCount++] = ap;
+    }
+
+}
+
 ParticleBufferHandler::ParticleBufferHandler(void)
 {
   this->NumberOfBuffers = 0;

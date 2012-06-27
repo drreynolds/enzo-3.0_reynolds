@@ -30,7 +30,13 @@ class ParticleAttributeHandler
     std::string name;
     MPI_Datatype mpitype;
     Eint32 hdf5type;
+    int element_size;
     int offset;
+
+    virtual void SetAttribute(char **buffer, ActiveParticleType *pp) {
+        ENZO_FAIL("")
+    }
+
 };
 
 template <class APClass, typename Type, Type APClass::*var>
@@ -54,16 +60,13 @@ class Handler : public ParticleAttributeHandler
         } else {
             ENZO_FAIL("Unrecognized data type");
         }
+        this->element_size = sizeof(Type);
     }
 
-    void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
-                      int NumberOParticles, int *position,
-                      ParticleBufferHandler *PBHInstance) {
-
-        MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   PBHInstance->*var[this->offset],
-                   PBHInstance->NumberOfBuffers,
-                   mpitype, MPI_COMM_WORLD);
+    void SetAttribute(char **buffer, APClass *pp) {
+        Type *pb = (Type *)(*buffer);
+        pp->*var = *(pb++);
+        *buffer = (char *) pb;
     }
 
     void *AllocateArray(int n) {
@@ -98,16 +101,22 @@ class ArrayHandler : public ParticleAttributeHandler
         } else {
             ENZO_FAIL("Unrecognized data type");
         }
+        this->element_size = sizeof(Type);
     }
 
     void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
                       int NumberOParticles, int *position,
-                      ParticleBufferHandler *PBHInstance) {
+                      int n, APClass **pp) {
 
         MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   PBHInstance->*var[this->offset],
-                   PBHInstance->NumberOfBuffers,
+                   pp[n]->*var[this->offset],
                    mpitype, MPI_COMM_WORLD);
+    }
+
+    void SetAttribute(char **buffer, APClass *pp) {
+        Type *pb = (Type *)(*buffer);
+        (pp->*var)[this->offset] = *(pb++);
+        *buffer = (char *) pb;
     }
 
     void *AllocateArray(int n) {

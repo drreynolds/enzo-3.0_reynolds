@@ -36,6 +36,14 @@ public:
 
   int NumberOfBuffers;
 
+  template <class APClass> void Allocate(
+           ActiveParticleType **LocalParticles, int Count, char **buffer);
+
+  template <class APClass> void Unpack(
+          char *buffer, int buffer_size, int InCount,
+          ActiveParticleType **OutList_, int OutCount);
+
+
 protected:
   static int HeaderSizeInBytes;
   static int ElementSizeInBytes;
