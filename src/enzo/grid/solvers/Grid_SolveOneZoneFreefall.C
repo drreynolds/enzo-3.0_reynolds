@@ -171,6 +171,11 @@ int grid::SolveOneZoneFreefall()
 
     BaryonField[DensNum][i] = new_density;
 
+    if (i == 0) {
+      fprintf(stderr, "One-zone collapse: rho[0] = %"ESYM" g/cm^3, f = %"FSYM,
+	      (BaryonField[DensNum][i] * DensityUnits), force_factor[i]);
+    }
+
     /* Update species fields. */
 
     if (MultiSpecies) {
@@ -184,6 +189,11 @@ int grid::SolveOneZoneFreefall()
 	BaryonField[HMNum][i] *= density_ratio;
 	BaryonField[H2INum][i] *= density_ratio;
 	BaryonField[H2IINum][i] *= density_ratio;
+	if (i == 0) {
+	  fprintf(stderr, ", f_H2 = %"ESYM,
+		  (BaryonField[H2INum][i] /
+		   BaryonField[DensNum][i]));
+	}
       }
       if (MultiSpecies > 2) {
 	BaryonField[DINum][i] *= density_ratio;
@@ -198,6 +208,10 @@ int grid::SolveOneZoneFreefall()
 	BaryonField[MetalNum+1][i] *= density_ratio;
 	BaryonField[MetalNum+2][i] *= density_ratio;
       }
+    }
+
+    if (i == 0) {
+      fprintf(stderr, ".\n");
     }
 
   }
