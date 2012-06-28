@@ -16,6 +16,7 @@ ENZO_OBJS +=\
 	EvolveHierarchy.o \
 	EvolveLevel.o \
 	InterpretCommandLine.o \
+	ProcMap.o \
 	SetDefaultGlobalValues.o \
 	SetLevelTimeStep.o \
 

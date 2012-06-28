@@ -48,9 +48,11 @@ ENZO_OBJS +=\
 	Grid_ChangeParticleTypeBeforeSN.o \
 	Grid_CollectActiveParticles.o \
 	Grid_CollectParticles.o \
+	Grid_ConstructFeedbackZone.o \
 	Grid_DebugActiveParticles.o \
 	Grid_DepositMustRefineParticles.o \
 	Grid_DetachActiveParticles.o \
+	Grid_DistributeFeedbackZone.o \
 	Grid_FindAllStarParticles.o \
 	Grid_FindMassiveParticles.o \
 	Grid_FindMinimumParticleMass.o \
@@ -276,7 +278,6 @@ ENZO_OBJS +=\
 	Grid_CollectStars.o \
 	Grid_ComovingExpansionTerms.o \
 	Grid_ComovingGravitySourceTerm.o \
-	Grid_ConstructFeedbackZone.o \
 	Grid_ConvertColorFieldsToFractions.o \
 	Grid_ConvertToCellCenteredRadiation.o \
 	Grid_ConvertToNumpy.o \
@@ -308,7 +309,6 @@ ENZO_OBJS +=\
 	Grid_DepositPositions.o \
 	Grid_DetachForcingFromBaryonFields.o \
 	Grid_DetectIonizationFrontApprox.o \
-	Grid_DistributeFeedbackZone.o \
 	Grid_ElectronFractionEstimate.o \
 	Grid_ExtraFunction.o \
 	Grid_FastSiblingLocatorAddGrid.o \
