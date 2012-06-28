@@ -174,4 +174,9 @@ grid::grid()
 
   MakeStars = 0;
 
+  /* Initialize collapse history. */
+  for (i = 0; i < 2; i++) {
+    CollapseHistory[i] = NULL;
+  }
+
 }

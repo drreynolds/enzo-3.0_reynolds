@@ -101,8 +101,21 @@ float grid::ComputeTimeStep()
 
     /* For one-zone free-fall test, just compute free-fall time. */
     if (ProblemType == 63) {
-      dt = TestProblemData.OneZoneFreefallTimestepFraction * 
-	POW(((3 * pi) / (32 * GravitationalConstant * BaryonField[DensNum][0])), 0.5);
+      float *force_factor = new float[size];
+      if (this->ComputeOneZoneCollapseFactor(force_factor) == FAIL) {
+	ENZO_FAIL("Error in ComputeOneZoneCollapseFactor.\n");
+      }
+
+      dt = huge_number;
+      for (i = 0;i < size;i++) {
+	dt = min(dt, POW(((3 * pi) / 
+			  (32 * GravitationalConstant * 
+			   BaryonField[DensNum][i] *
+			   (1 - force_factor[i]))), 0.5));
+      }
+
+      delete [] force_factor;
+      dt *= TestProblemData.OneZoneFreefallTimestepFraction;
       return dt;
     }
  

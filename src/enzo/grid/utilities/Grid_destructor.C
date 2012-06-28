@@ -107,6 +107,15 @@ grid::~grid()
   delete [] SubgridMarker;
 #endif
 
+  int j;
+  for (i = 0; i < 2; i++) {
+    if (CollapseHistory[i] != NULL) {
+      for (j = 0; j < 2; j++) {
+	delete [] CollapseHistory[i][j];
+      }
+    }
+  }
+
 /* 
   if (debug && GridRank > 0) {
     printf("grid->destructor: deleting grid with dims = ");

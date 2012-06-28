@@ -180,6 +180,9 @@ class grid
   				// resets everytime the grid outputs
 
 
+  // density and pressure history for one-zone collapse
+  // for calculating effective gamma
+  float **CollapseHistory[2];
 //
 // Friends
 //
@@ -477,6 +480,11 @@ public:
        PPMDiffusionParameter  = p2;
        PPMSteepeningParameter = p3;
      }
+
+/* Problem-type-specific: compute approximate ratio of pressure 
+gradient force to gravitational force for one-zone collapse test. */
+
+   int ComputeOneZoneCollapseFactor(float *force_factor);
 
 /* Baryons: compute the pressure at the requested time. */
 
