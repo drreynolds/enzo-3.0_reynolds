@@ -37,6 +37,10 @@ class ParticleAttributeHandler
         ENZO_FAIL("")
     }
 
+    virtual void GetAttribute(char **buffer, ActiveParticleType *pp) {
+        ENZO_FAIL("")
+    }
+
 };
 
 template <class APClass, typename Type, Type APClass::*var>
@@ -69,13 +73,10 @@ class Handler : public ParticleAttributeHandler
         *buffer = (char *) pb;
     }
 
-    void *AllocateArray(int n) {
-        return (void *) new Type[n];
-    }
-
-    void CopyToArray(int pos, void *output_, APClass instance) {
-        Type *output = (Type *) output_;
-        output[pos] = *(&(instance->*var) + this->offset);
+    void GetAttribute(char **buffer, APClass *pp) {
+        Type *pb = (Type *)(*buffer);
+        *(pb++) = pp->*var;
+        *buffer = (char *) pb;
     }
 
 };
@@ -119,13 +120,10 @@ class ArrayHandler : public ParticleAttributeHandler
         *buffer = (char *) pb;
     }
 
-    void *AllocateArray(int n) {
-        return (void *) new Type[n];
-    }
-
-    void CopyToArray(int pos, void *output_, APClass instance) {
-        Type *output = (Type *) output_;
-        output[pos] = *(&(instance->*var) + this->offset);
+    void GetAttribute(char **buffer, APClass *pp) {
+        Type *pb = (Type *)(*buffer);
+        *(pb++) = (pp->*var)[this->offset];
+        *buffer = (char *) pb;
     }
 
 };
