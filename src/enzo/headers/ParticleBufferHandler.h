@@ -36,7 +36,9 @@ public:
 
   int NumberOfBuffers;
 
-  template <class APClass> void Allocate(int Count, char **buffer);
+  template <class APClass> int ElementSize();
+
+  template <class APClass> int Allocate(int Count, char **buffer);
 
   template <class APClass> void Unpack(
           char *buffer, int offset,

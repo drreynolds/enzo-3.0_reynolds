@@ -30,24 +30,27 @@
 
 #include "ActiveParticle.h"
 
+template <class APClass> int ParticleBufferHandler::ElementSize() {
+    static int particle_size = 0;
+    if (particle_size > 0) return particle_size;
+    AttributeVector &handlers = APClass::ParticleAttributeHandlers;
+    for(AttributeVector::iterator it = handlers.begin();
+        it != handlers.end(); ++it) {
+        particle_size += (*it).element_size;
+    }
+    return particle_size;
+}
+
 template <class APClass> void ParticleBufferHandler::Allocate(int Count, char **buffer) {
         
     /* This routine is called for each particle type. */
     /* So we need to re-calculate the element and header size for each. */
 
-    int particle_size = 0;
+    int particle_size = this->ElementSize<APClass>();
     int header_size = APClass::ReturnHeaderSize();
 
-    if (Count > 0 ){
-        AttributeVector &handlers = APClass::ParticleAttributeHandlers;
-        for(AttributeVector::iterator it = handlers.begin();
-            it != handlers.end(); ++it) {
-            particle_size += (*it).element_size;
-        }
+    buffer = &(new char[particle_size * Count + header_size]);
 
-        buffer = &(new char[particle_size * Count + header_size]);
-
-    }
 }
 
 template <class APClass> void ParticleBufferHandler::FillBuffer(
