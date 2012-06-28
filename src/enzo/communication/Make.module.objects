@@ -47,5 +47,5 @@ ENZO_OBJS +=\
 	LoadBalanceHilbertCurve.o \
 	LoadBalanceHilbertCurveRootGrids.o \
 	LoadBalanceSimulatedAnnealing.o \
-	Mpich_V1_Dims_create.o
-
+	Mpich_V1_Dims_create.o \
+	ProcMap.o
