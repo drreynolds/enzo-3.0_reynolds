@@ -46,6 +46,13 @@ int grid::ComputeOneZoneCollapseFactor(float *force_factor)
   int i, t, size = 1;
   for (int dim = 0; dim < GridRank; dim++)
     size *= GridDimension[dim];
+
+  if (!TestProblemData.OneZoneFreefallAdjustCollapse) {
+    for (i = 0; i < size; i++) {
+      force_factor[i] = 0.0;
+    }
+    return SUCCESS;
+  }
  
   /* Check for density and pressure history. */
   for (t = 0; t < 2; t++) {
@@ -77,20 +84,12 @@ int grid::ComputeOneZoneCollapseFactor(float *force_factor)
       force_factor[i] = 0.6 + 2.5 * (gamma_eff - 1) -
 	6.0 * POW((gamma_eff - 1.0), 2.);
     }
-    else {
+    else if (gamma_eff < (4./3.)) {
       force_factor[i] = 1.0 + 0.2 * (gamma_eff - (4./3.)) -
-	2.9 * POW((gamma_eff - (4./3.)), 2.);
+    	2.9 * POW((gamma_eff - (4./3.)), 2.);
     }
     force_factor[i] = max(force_factor[i], 0.0);
     force_factor[i] = min(force_factor[i], 0.95);
-
-    if (i == 0) {
-      fprintf(stderr, "P_i-1: %"ESYM", P_i-2: %"ESYM", rho_i-1: %"ESYM", rho_i-2: %"ESYM", gamma_eff: %"FSYM", f: %"FSYM".\n", 
-	      CollapseHistory[0][1][i], CollapseHistory[1][1][i],
-	      CollapseHistory[0][0][i], CollapseHistory[1][0][i],
-	      gamma_eff, force_factor[i]);
-    }
-
 
   }
  

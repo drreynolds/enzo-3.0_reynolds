@@ -83,6 +83,7 @@ int OneZoneFreefallTestInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &Top
   float OneZoneFreefallTestMinimumMetallicity = 1e-6;
   float OneZoneFreefallTestMaximumMetallicity = 1e-2;
   TestProblemData.OneZoneFreefallTimestepFraction = 1e-3;
+  TestProblemData.OneZoneFreefallAdjustCollapse = 0;
 
 //   /* set no subgrids by default. */
  
@@ -110,6 +111,8 @@ int OneZoneFreefallTestInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &Top
     ret += sscanf(line, "OneZoneFreefallTestMaximumMetallicity = %"FSYM, &OneZoneFreefallTestMaximumMetallicity);
     ret += sscanf(line, "OneZoneFreefallTimestepFraction = %"FSYM, 
 		  &TestProblemData.OneZoneFreefallTimestepFraction);
+    ret += sscanf(line, "OneZoneFreefallAdjustCollapse = %"ISYM,
+		  &TestProblemData.OneZoneFreefallAdjustCollapse);
 
     ret += sscanf(line, "TestProblemHydrogenFractionByMass = %"FSYM, &TestProblemData.HydrogenFractionByMass);
     ret += sscanf(line, "TestProblemDeuteriumToHydrogenRatio = %"FSYM, &TestProblemData.DeuteriumToHydrogenRatio);
@@ -215,12 +218,13 @@ int OneZoneFreefallTestInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &Top
   /* Write parameters to parameter output file */
  
   if (MyProcessorNumber == ROOT_PROCESSOR) {
-    fprintf(Outfptr, "OneZoneFreefallTestInitialDensity = %"FSYM, OneZoneFreefallTestInitialDensity);
-    fprintf(Outfptr, "OneZoneFreefallTestMinimumEnergy = %"FSYM, OneZoneFreefallTestMinimumEnergy);
-    fprintf(Outfptr, "OneZoneFreefallTestMaximumEnergy = %"FSYM, OneZoneFreefallTestMaximumEnergy);
-    fprintf(Outfptr, "OneZoneFreefallTestMinimumMetallicity = %"FSYM, OneZoneFreefallTestMinimumMetallicity);
-    fprintf(Outfptr, "OneZoneFreefallTestMaximumMetallicity = %"FSYM, OneZoneFreefallTestMaximumMetallicity);
-    fprintf(Outfptr, "OneZoneFreefallTimestepFraction = %"FSYM, TestProblemData.OneZoneFreefallTimestepFraction);
+    fprintf(Outfptr, "OneZoneFreefallTestInitialDensity = %"FSYM"\n", OneZoneFreefallTestInitialDensity);
+    fprintf(Outfptr, "OneZoneFreefallTestMinimumEnergy = %"FSYM"\n", OneZoneFreefallTestMinimumEnergy);
+    fprintf(Outfptr, "OneZoneFreefallTestMaximumEnergy = %"FSYM"\n", OneZoneFreefallTestMaximumEnergy);
+    fprintf(Outfptr, "OneZoneFreefallTestMinimumMetallicity = %"FSYM"\n", OneZoneFreefallTestMinimumMetallicity);
+    fprintf(Outfptr, "OneZoneFreefallTestMaximumMetallicity = %"FSYM"\n", OneZoneFreefallTestMaximumMetallicity);
+    fprintf(Outfptr, "OneZoneFreefallTimestepFraction = %"FSYM"\n", TestProblemData.OneZoneFreefallTimestepFraction);
+    fprintf(Outfptr, "OneZoneFreefallAdjustCollapse = %"FSYM"\n", TestProblemData.OneZoneFreefallAdjustCollapse);
 
     fprintf(Outfptr, "TestProblemHydrogenFractionByMass = %"FSYM"\n",   TestProblemData.HydrogenFractionByMass);
     fprintf(Outfptr, "TestProblemDeuteriumToHydrogenRatio = %"FSYM"\n", TestProblemData.DeuteriumToHydrogenRatio);
