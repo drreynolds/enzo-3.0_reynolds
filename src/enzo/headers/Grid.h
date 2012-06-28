@@ -2181,6 +2181,21 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int AppendForcingToBaryonFields();
   int DetachForcingFromBaryonFields();
   int RemoveForcingFromBaryonFields();
+  int AllocateAndZeroBaryonField() {
+    if (MyProcessorNumber != ProcessorNumber)
+      return SUCCESS;
+
+    if (BaryonField != NULL)
+      return FAIL;
+
+    int size = this->GetGridSize();
+
+    for (int field = 0; field < NumberOfBaryonFields; field++) {
+      BaryonField[field] = new float[size]();
+    }
+
+    return SUCCESS;
+  };
   int AddRandomForcing(float * norm, float dtTopGrid);
   int PrepareRandomForcingNormalization(float * GlobVal, int GlobNum);
   int ReadRandomForcingFields(FILE *main_file_pointer, char DataFilename[]);
@@ -2274,6 +2289,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int MirrorActiveParticles(void);
   int DebugActiveParticles(int level);
   int ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx, grid* FeedbackZone);
+  int DistributeFeedbackZone(ActiveParticleType* ThisParticle, FLOAT FeedbackRadius);
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 
@@ -2476,20 +2492,17 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int UpdateStarParticles(int level);
 
+  int UpdateActiveParticle(ActiveParticleType* ThisParticle);
+
   int UpdateParticleWithActiveParticle(PINT ID);
 
   int AddH2Dissociation(Star *AllStars);
 
   int ReturnStarStatistics(int &Number, float &minLife);
 
-  int FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FLOAT AccretionRadius,
-					float *WeightedSum, float *SumOfWeights, int *NumberOfCells,
-					FLOAT BondiHoyleRadius);
-
-  int AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
-				       float AverageDensity, float SumOfWeights, float *AccretedMass, 
-				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
-				   float cInfinity, FLOAT BondiHoyleRadius, float *AccretionRate);
+  int AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius,
+				   float BondiHoyleRadius, float cInfinity, float vInfinity,
+				   float* AccretionRate);
 
   int AddMassAndMomentumToAccretingParticle(float GlobalSubtractedMass, float GlobalSubtractedMomentum[], 
 					    ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]);

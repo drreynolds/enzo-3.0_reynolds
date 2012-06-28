@@ -1,7 +1,7 @@
 /***********************************************************************
 /
-/  GRID CLASS (Calculate the accretion rate and subtract accreted mass 
-/              from the grid.)
+/  (Calculate the accretion rate and subtract accreted mass from the 
+/   grid.)
 /
 /  written by: Nathan Goldbaum
 /  date:       April 2012
@@ -28,10 +28,9 @@
 
 float bondi_alpha(float x);
 
-int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
-				       float AverageDensity, float SumOfWeights, float *AccretedMass, 
-				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
-				       float cInfinity, FLOAT BondiHoyleRadius, float *AccretionRate) {
+int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT AccretionRadius,
+				       float BondiHoyleRadius, float cInfinity, float vInfinity,
+				       float* AccretionRate){
 
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
@@ -54,29 +53,22 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
       (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
     return SUCCESS;
 
-  /* Check whether the sink lives on this grid */
-  if ((GridLeftEdge[0] < ParticlePosition[0]) && (GridRightEdge[0] > ParticlePosition[0]) &&
-      (GridLeftEdge[1] < ParticlePosition[1]) && (GridRightEdge[1] > ParticlePosition[1]) &&
-      (GridLeftEdge[2] < ParticlePosition[2]) && (GridRightEdge[2] > ParticlePosition[2])) {
-    *SinkIsOnThisGrid = true;
-  }
-
   FLOAT CellSize, KernelRadius, radius2;
 
   int i, j, k, dim, index;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
-    SmallEFac = 10.;
-
-  float RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, Weight, maccreted, 
+    SmallEFac = 10., AccretedMass = 0, AccretedMomentum[3], 
+    RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, Weight, maccreted, 
     rhocell, pcell[3], paccrete[3], eaccrete, mnew, rhonew, reff[3], rsqr, 
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew, 
-    pnew[3], kenew;
+    pnew[3], kenew, xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, rmin, 
+    dxmin, ACCRETERADMIN = 2.0, huge = 1.0e30, WeightedSum = 0, 
+    SumOfWeights = 0, AverageDensity = 0;
 
-  int isub, jsub, ksub, excluded, NDIV = 8;
-  
-  float xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, rmin, dxmin, ACCRETERADMIN = 2.0, huge = 1.0e30;
+  int isub, jsub, ksub, excluded, NDIV = 8, NumberOfCells=0;
 
   for (i = 0; i < 3; i++) {
+    AccretedMomentum[i] = 0;
     vsink[i] = 0;
     vgas[i] = 0;
     pcell[i] = 0;
@@ -87,6 +79,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     pradnew[i] = 0;
     ptransnew[i] = 0;
     pnew[i] = 0;
+    jsp[i] = 0;
   }
 
   /* Get indices in BaryonField for density, internal energy, thermal energy, velocity */
@@ -111,13 +104,32 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
     KernelRadius = BondiHoyleRadius;
   else
     KernelRadius = AccretionRadius/2.0;
+
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
+	index = GRIDINDEX_NOGHOST(i,j,k);
+	radius2 = 
+	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
+	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
+	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
+	if ((AccretionRadius*AccretionRadius) > radius2) {
+	  WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius)); 
+	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
+	  NumberOfCells++;
+	}
+      }
+    }
+  }
+
+  AverageDensity = WeightedSum/SumOfWeights;
   
   // Eqn 12
-  RhoInfinity = AverageDensity/bondi_alpha(1.2*CellSize/BondiHoyleRadius);  
+  RhoInfinity = AverageDensity/bondi_alpha(1.2*CellSize / BondiHoyleRadius);  
 
   // Eqn 11
   *AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
-		   sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
+		    sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
 
   vsink[0] = ThisParticle->ReturnVelocity()[0];
   vsink[1] = ThisParticle->ReturnVelocity()[1];
@@ -320,7 +332,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
 	    
 	    // This is actually a density since particle masses are stored
 	    // in density units.
-	    *AccretedMass += maccreted/CellVolume;
+	    AccretedMass += maccreted/CellVolume;
 	    AccretedMomentum[0] += paccrete[0];
 	    AccretedMomentum[1] += paccrete[1];
 	    AccretedMomentum[2] += paccrete[2];
@@ -369,6 +381,17 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT A
       }
     }
   }
+
+  float OldMass = ThisParticle->Mass*CellVolume;
+  float *OldVel = ThisParticle->vel;
+  
+  float NewVelocity[3] = {
+    (OldMass*OldVel[0]+AccretedMomentum[0])/(OldMass+AccretedMass*CellVolume),
+    (OldMass*OldVel[1]+AccretedMomentum[1])/(OldMass+AccretedMass*CellVolume),
+    (OldMass*OldVel[2]+AccretedMomentum[2])/(OldMass+AccretedMass*CellVolume)};
+
+  ThisParticle->AddMass(AccretedMass);
+  ThisParticle->SetVelocity(NewVelocity);
 
   return SUCCESS;
 }

@@ -77,6 +77,7 @@ ENZO_OBJS +=\
 	Grid_TracerParticleCreateParticles.o \
 	Grid_TracerParticleOutputData.o \
 	Grid_TracerParticleSetVelocity.o \
+	Grid_UpdateActiveParticle.o \
 	Grid_UpdateParticlePosition.o \
 	Grid_UpdateParticleVelocity.o \
 	Grid_UpdateParticleWithActiveParticle.o \
@@ -307,12 +308,12 @@ ENZO_OBJS +=\
 	Grid_DepositPositions.o \
 	Grid_DetachForcingFromBaryonFields.o \
 	Grid_DetectIonizationFrontApprox.o \
+	Grid_DistributeFeedbackZone.o \
 	Grid_ElectronFractionEstimate.o \
 	Grid_ExtraFunction.o \
 	Grid_FastSiblingLocatorAddGrid.o \
 	Grid_FastSiblingLocatorFindSiblings.o \
 	Grid_FinalizeRadiationFields.o \
-	Grid_FindAverageDensityInAccretionZone.o \
 	Grid_FindShocks.o \
 	Grid_FinishFFT.o \
 	Grid_FlagBufferZones.o \

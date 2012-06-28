@@ -178,6 +178,10 @@ public:
 		     int AccretionRadius, FLOAT dx, 
 		     LevelHierarchyEntry *LevelArray[], int ThisLevel);
 
+  static int AccreteOntoAccretingParticle(grid* AccretionZone, 
+					  ActiveParticleType_AccretingParticle* ThisParticle,
+					  FLOAT AccretionRadius);
+
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
@@ -880,15 +884,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   bool SinkIsOnThisProc, SinkIsOnThisGrid;
   
-  float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
-    GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
-    AccretionRate = 0;
-  int NumberOfCells = 0;
-  
-  for (i = 0; i < 3; i++) {
-    SubtractedMomentum[i] = 0;
-    GlobalSubtractedMomentum[i] = 0;
-  }
+  float SubtractedMass, SubtractedMomentum[3] = {};
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
@@ -897,12 +893,29 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   for (i = 0; i < nParticles; i++) {
     sinkGrid = ParticleList[i]->ReturnCurrentGrid();
     if (sinkGrid == NULL) {
-      ENZO_FAIL("sinkGrid is invalid!");
+      return FAIL;
     }
     
-    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx, FeedbackZone) == FAIL) {
-      ENZO_FAIL("Accretion zone construction failed!");
-    }
+    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx, FeedbackZone) == FAIL) 
+      return FAIL;
+    
+    float AccretionRate = 0;
+    ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
+
+    if (FeedbackZone->AccreteOntoAccretingParticle(ParticleList[i],AccretionRadius*dx,temp->BondiHoyleRadius, 
+						   temp->cInfinity,temp->vInfinity, &AccretionRate) == FAIL)
+      return FAIL;
+    
+    static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
+
+    if (FeedbackZone->DistributeFeedbackZone(ParticleList[i],AccretionRadius*dx) == FAIL)
+      return FAIL;
+  
+    delete [] FeedbackZone;
+  
+    if (sinkGrid->UpdateActiveParticle(static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL)
+      return FAIL;
+    
   }
 
   delete [] Grids;

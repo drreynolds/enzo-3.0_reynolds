@@ -1,12 +1,10 @@
 /***********************************************************************
 /
-/  GRID CLASS (Calculate the accretion rate and subtract accreted mass 
-/              from the grid.)
+/  GRID CLASS (Construct a fake grid for feedback algorithms)
 /
 /  written by: Nathan Goldbaum
-/  date:       April 2012
+/  date:       June 2012
 /
-/  note:       Equation numbers refer to Krumholz McKee & Klein (2004)
 ************************************************************************/
 
 #include "preincludes.h"
@@ -34,28 +32,33 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
       (GridLeftEdge[2] > ParticlePosition[2]+FeedbackRadius) || (GridRightEdge[2] < ParticlePosition[2]-FeedbackRadius))
     return FAIL;
 
-  FLOAT LeftCellOffset[3]  = {fmod(ParticlePosition[0],dx),
-			      fmod(ParticlePosition[1],dx),
-			      fmod(ParticlePosition[2],dx)};
-  
-  FLOAT RightCellOffset[3] = {dx-LeftCellOffset[0],     
-			      dx-LeftCellOffset[1],    
-			      dx-LeftCellOffset[2]};
-  
-  FLOAT FeedbackZoneLeftEdge[3]  = {ParticlePosition[0]-FeedbackRadius*dx-LeftCellOffset[0], 
-				    ParticlePosition[1]-FeedbackRadius*dx-LeftCellOffset[1], 
-				    ParticlePosition[2]-FeedbackRadius*dx-LeftCellOffset[2]};
-  
-  FLOAT FeedbackZoneRightEdge[3] = {ParticlePosition[0]+FeedbackRadius*dx+RightCellOffset[0], 
-				    ParticlePosition[1]+FeedbackRadius*dx+RightCellOffset[1], 
-				    ParticlePosition[2]+FeedbackRadius*dx+RightCellOffset[2]};
-  
-  int FeedbackZoneRank = FeedbackZone->GetGridRank();
-  
-  int FeedbackZoneDimension[3] = {FeedbackRadius*2+7, 
-				  FeedbackRadius*2+7, 
-				  FeedbackRadius*2+7};
+  /* Setup grid properties */
 
+  int FeedbackZoneRank = FeedbackZone->GetGridRank();
+
+  // Since the grid creation machinery assume we want ghost zones, we need to
+  // trick it into giving us a fake grid without ghost zones.  We therefore ask
+  // for a cubic grid of dimension (2*(FeedbackRadius-3)+1)^3
+  
+  int FeedbackZoneDimension[FeedbackZoneRank], size;
+  FLOAT LeftCellOffset[FeedbackZoneRank],RightCellOffset[FeedbackZoneRank],
+    FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
+
+  for (int i = 0; i < FeedbackZoneRank; i++) {
+    if (FeedbackRadius > DEFAULT_GHOST_ZONES)
+      FeedbackZoneDimension[i] = 2*FeedbackRadius+1;
+    else
+      FeedbackZoneDimension[i] = 2*DEFAULT_GHOST_ZONES+1;
+    size *= FeedbackZoneDimension[i];
+
+    LeftCellOffset[i]        = fmod(ParticlePosition[i],dx);
+    RightCellOffset[i]       = dx-LeftCellOffset[i];
+    
+    FeedbackZoneLeftEdge[i]  = ParticlePosition[i]-FeedbackRadius*dx-LeftCellOffset[i];
+    FeedbackZoneRightEdge[i] = ParticlePosition[i]+FeedbackRadius*dx+RightCellOffset[i];
+  }
+
+  /* Intialize the fake grid */
   FeedbackZone = new grid;
   
   FeedbackZone->InheritProperties(this);
@@ -65,17 +68,28 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
   
   FeedbackZone->SetProcessorNumber(MyProcessorNumber);
 
-  // First allocate the density field and fill it with zeros
-  int densfield;
-  if ((densfield=FindField(Density, FieldType, NumberOfBaryonFields)) < 0) {
-    ENZO_FAIL("No density field!\n");
-  }
-  // Copy zones from grid that covers the sink particle
+  FeedbackZone->AllocateAndZeroBaryonField();
+    
+  // Allocate flagging field of the same size as BaryonField. If FlaggingField =
+  // 0, the corresponding zone in the BaryonField has not been copied yet.
+    
+  int* FlaggingField = new int[size];
+  for (int i = 0; i<size; i++)
+    FlaggingField[i] = 0;
+
+  // Copy zones from this grid (which must overlap the position of the AP).
+  // Note, using ZeroVector here will break if a FeedbackZone overlaps with a
+  // domain boundary
+  float ZeroVector[] = {0,0,0};
+  FeedbackZone->CopyZonesFromGrid(this,ZeroVector);
 
   // if the grid is filled, return
+  
 
   // Next, recursively iterate over the siblings of that grid, copying
   // zones from overlapping grids until the grid is filled
+
+  delete [] FlaggingField;
 
   return SUCCESS;
   
