@@ -146,6 +146,16 @@ int grid::SolveOneZoneFreefall()
     CollapseHistory[0][1][i] = pressure[i];
   }
 
+  int max_rho_index = 0;
+  fprintf(stderr, "%"ISYM"\n");
+  float max_rho = BaryonField[DensNum][0];
+  for (i = 0; i < size; i++) {
+    if (BaryonField[DensNum][i] > max_rho) {
+      max_rho = BaryonField[DensNum][i];
+      max_rho_index = i;
+    }
+  }
+
   /* Update all cells. */
 
   for (i = 0;i < size;i++) {
@@ -171,9 +181,10 @@ int grid::SolveOneZoneFreefall()
 
     BaryonField[DensNum][i] = new_density;
 
-    if (i == 0) {
-      fprintf(stderr, "One-zone collapse: rho[0] = %"ESYM" g/cm^3, f = %"FSYM,
-	      (BaryonField[DensNum][i] * DensityUnits), force_factor[i]);
+    if (i == max_rho_index) {
+      fprintf(stderr, "One-zone collapse: rho[%"ISYM"] = %"ESYM" g/cm^3, f = %"FSYM,
+	      max_rho_index, (BaryonField[DensNum][i] * DensityUnits), 
+	      force_factor[i]);
     }
 
     /* Update species fields. */
@@ -189,7 +200,7 @@ int grid::SolveOneZoneFreefall()
 	BaryonField[HMNum][i] *= density_ratio;
 	BaryonField[H2INum][i] *= density_ratio;
 	BaryonField[H2IINum][i] *= density_ratio;
-	if (i == 0) {
+	if (i == max_rho_index) {
 	  fprintf(stderr, ", f_H2 = %"ESYM,
 		  (BaryonField[H2INum][i] /
 		   BaryonField[DensNum][i]));
@@ -210,7 +221,7 @@ int grid::SolveOneZoneFreefall()
       }
     }
 
-    if (i == 0) {
+    if (i == max_rho_index) {
       fprintf(stderr, ".\n");
     }
 
