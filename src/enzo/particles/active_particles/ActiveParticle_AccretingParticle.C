@@ -157,7 +157,7 @@ public:
 			      int AccretingParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
-  int AdjustBondiHoyle(grid* CurrentGrid);
+  int AdjustBondiHoyle();
   
   int GetEnabledParticleID(int myid = -1) {				
     static int ParticleID = -1;						
@@ -657,9 +657,6 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
   return SUCCESS;
 }
 
-int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
-		      HierarchyEntry **Grids[]);
-
 int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 						       int ThisLevel, int TotalStarParticleCountPrevious[],
@@ -668,6 +665,11 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
 
   return SUCCESS;
 }
+
+int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
+		      HierarchyEntry **Grids[]);
+int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticles, 
+				 LevelHierarchyEntry *LevelArray[]);
 
 ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::MergeAccretingParticles
 (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
@@ -696,6 +698,8 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   
   MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups]();
 
+  printf("Number of particles after merging: %"ISYM"\n",*ngroups);
+
   /* Merge the mergeable groups */
 
   for (i=0; i<*ngroups; i++) {
@@ -714,8 +718,6 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   return MergedParticles;
 }
 
-int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],int NumberOfGrids);
-
 int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 							   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 							   int ThisLevel, int TotalStarParticleCountPrevious[],
@@ -728,8 +730,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
     {
 
       /* Generate a list of all sink particles in the simulation box */
-      int i,level,gridnum,nParticles,NumberOfLevelGrids,NumberOfMergedParticles;
-      HierarchyEntry **LevelGrids = NULL;
+      int i,nParticles,NumberOfMergedParticles;
       ActiveParticleType** ParticleList = NULL;
 
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
@@ -758,92 +759,20 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
    
       /* Assign local particles to grids */
  
-      int LevelMax, SavedGrid, NumberOfGrids;
-      FLOAT* pos = NULL;
-      float mass;
+      ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
 
-      for (i = 0; i<NumberOfMergedParticles; i++) {
-	LevelMax = SavedGrid = -1;
-	NumberOfLevelGrids = 0;
-	for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
-	  NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);     
-	  for (gridnum = 0; gridnum < NumberOfLevelGrids; gridnum++) 
-	    if (LevelGrids[gridnum]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
-	      if (LevelGrids[gridnum]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
-		  LevelGrids[gridnum]->GridData->isLocal() == true) { 
-		SavedGrid = gridnum;
-		LevelMax = level;
-	      }
-	  delete [] LevelGrids;
-	  LevelGrids = NULL;
-	}
-	
-	
-	/* Assign the merged particles to grids.  The repeated code in
-	   the serial and parallel implimentations kind of sucks -
-	   should this be different? */
+      // need to use a bit of redirection because C++ pointer arrays have
+      // trouble with polymorphism
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	ParticleList[i] = static_cast<ActiveParticleType*>(MergedParticles[i]);
 
-	if (NumberOfProcessors == 1) {
-	
-	  grid* OldGrid = MergedParticles[i]->ReturnCurrentGrid();
-	  int ID = MergedParticles[i]->ReturnID();
-	  NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
-	  MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	  if (OldGrid != LevelGrids[SavedGrid]->GridData) {
-	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	      ENZO_FAIL("Active particle grid assignment failed");
-	  }
-	  // Still need to mirror the AP data to the particle list.
-	  else {
-	    LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
-	  }
+      if (AssignActiveParticlesToGrids(ParticleList,NumberOfMergedParticles, LevelArray) == FAIL)
+	return FAIL;
 
-	  /* Clean up the active particle list on the old grid */
-	  
-	  int foundP = FALSE, foundAP = FALSE;
-	  // This could probably be a member function....
-	  if (SavedGrid != -1) {
-	    if (OldGrid != LevelGrids[SavedGrid]->GridData) {
-	      foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
-	      foundP = OldGrid->RemoveParticle(ID);
-	      if ((foundP != TRUE) || (foundAP != TRUE))
-		return FAIL;
-	      OldGrid->SetNumberOfActiveParticles(OldGrid->ReturnNumberOfActiveParticles()-1);
-	      OldGrid->CleanUpMovedParticles();
-	    }
-	  }
-	}
-	else {
-#ifdef USE_MPI
-	  /* Find the processor which has the maximum value of
-	     LevelMax and assign the accreting particle to the
-	     SavedGrid on that processor.  */
-	  struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
-	  MPI_Comm_rank(EnzoTopComm, &sendbuf.rank); 
-	  sendbuf.value = LevelMax;
-	  MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, EnzoTopComm);
-	  NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
-	  if (LevelMax == recvbuf.value) {
-	    MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL) {
-	      ENZO_FAIL("Active particle grid assignment failed"); 
-	    } 
-	    // Still need to mirror the AP data to the particle list.
-	    else {
-	      LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
-	    }
-	  }
-	  LevelMax = recvbuf.value;
-#endif // endif parallel
-	}
+      delete [] ParticleList;
 
-	/* Sync the updated particle counts accross all proccessors */
-
-	CommunicationSyncNumberOfParticles(LevelGrids, NumberOfGrids);
-
-	delete [] LevelGrids;
-
-      }
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	MergedParticles[i]->AdjustBondiHoyle();
 
       delete [] MergedParticles;
       
@@ -896,7 +825,9 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       return FAIL;
     }
     
-    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx, FeedbackZone) == FAIL) 
+    FeedbackZone = sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx);
+      
+    if (FeedbackZone == NULL)
       return FAIL;
     
     float AccretionRate = 0;
@@ -911,12 +842,12 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     if (FeedbackZone->DistributeFeedbackZone(ParticleList[i],AccretionRadius*dx) == FAIL)
       return FAIL;
   
-    delete [] FeedbackZone;
+    delete FeedbackZone;
   
-    if (sinkGrid->UpdateActiveParticle(static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL)
-      return FAIL;
-    
   }
+
+  if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
+    return FAIL;
 
   delete [] Grids;
   return SUCCESS;
@@ -950,7 +881,8 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::AdjustBondiHoyle(grid* CurrentGrid) {
+int ActiveParticleType_AccretingParticle::AdjustBondiHoyle() {
+  grid* CurrentGrid = this->CurrentGrid;
   float *density = CurrentGrid->AccessDensity();
   float *velx = CurrentGrid->AccessVelocity1();
   float *vely = CurrentGrid->AccessVelocity2();

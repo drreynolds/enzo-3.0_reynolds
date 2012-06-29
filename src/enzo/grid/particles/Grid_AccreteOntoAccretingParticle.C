@@ -135,28 +135,17 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
   vsink[1] = ThisParticle->ReturnVelocity()[1];
   vsink[2] = ThisParticle->ReturnVelocity()[2];
 
-  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
-    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
-      index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
-      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
+  // need to iterate over the whole grid since I don't want to communicate the
+  // ghost zones
+  for (k = 0; k <= GridDimension[2]; k++) {
+    for (j = 0; j <= GridDimension[1]; j++) {
+      index = 0;
+      for (i = 0; i <= GridDimension[0]; i++, index++) {
 	radius2 = 
 	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
-#ifdef DEBUG
-	  fprintf(stderr,
-		  "CellLeftEdge[0][i] = %"GSYM", CellRightEdge[0][i] =%"GSYM"\n"
-		  "CellLeftEdge[1][j] = %"GSYM", CellRightEdge[1][j] =%"GSYM"\n"
-		  "CellLeftEdge[2][k] = %"GSYM", CellRightEdge[2][k] =%"GSYM"\n",
-		  CellLeftEdge[0][i],CellLeftEdge[0][i]+CellWidth[0][i],CellLeftEdge[1][j],CellLeftEdge[1][j]+CellWidth[1][j],
-		  CellLeftEdge[2][k],CellLeftEdge[2][k]+CellWidth[2][k]);
-#endif
-	  if ((CellLeftEdge[0][i] < ParticlePosition[0]) && (CellLeftEdge[0][i]+CellWidth[0][i] > ParticlePosition[0]) &&
-	      (CellLeftEdge[1][j] < ParticlePosition[1]) && (CellLeftEdge[1][j]+CellWidth[1][j] > ParticlePosition[1]) &&
-	      (CellLeftEdge[2][k] < ParticlePosition[2]) && (CellLeftEdge[2][k]+CellWidth[2][k] > ParticlePosition[2]))
-	    fprintf(stderr,"Particle in this cell!\n");
-
 
 	  // useful shorthand
 	  vgas[0] = BaryonField[Vel1Num][index];
