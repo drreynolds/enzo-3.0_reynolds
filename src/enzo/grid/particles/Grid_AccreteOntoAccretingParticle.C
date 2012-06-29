@@ -28,7 +28,7 @@
 
 float bondi_alpha(float x);
 
-int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT AccretionRadius,
+int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT AccretionRadius,
 				       float BondiHoyleRadius, float cInfinity, float vInfinity,
 				       float* AccretionRate){
 
@@ -38,7 +38,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
-  FLOAT *ParticlePosition = ThisParticle->ReturnPosition();
+  FLOAT *ParticlePosition = (*ThisParticle)->ReturnPosition();
 
 #ifdef DEBUG
   fprintf(stderr,
@@ -131,9 +131,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
   *AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
 		    sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
 
-  vsink[0] = ThisParticle->ReturnVelocity()[0];
-  vsink[1] = ThisParticle->ReturnVelocity()[1];
-  vsink[2] = ThisParticle->ReturnVelocity()[2];
+  vsink[0] = (*ThisParticle)->ReturnVelocity()[0];
+  vsink[1] = (*ThisParticle)->ReturnVelocity()[1];
+  vsink[2] = (*ThisParticle)->ReturnVelocity()[2];
   
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
@@ -368,16 +368,16 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
     }
   }
 
-  float OldMass = ThisParticle->Mass*CellVolume;
-  float *OldVel = ThisParticle->vel;
+  float OldMass = (*ThisParticle)->Mass*CellVolume;
+  float *OldVel = (*ThisParticle)->vel;
   
   float NewVelocity[3] = {
     (OldMass*OldVel[0]+AccretedMomentum[0])/(OldMass+AccretedMass*CellVolume),
     (OldMass*OldVel[1]+AccretedMomentum[1])/(OldMass+AccretedMass*CellVolume),
     (OldMass*OldVel[2]+AccretedMomentum[2])/(OldMass+AccretedMass*CellVolume)};
 
-  ThisParticle->AddMass(AccretedMass);
-  ThisParticle->SetVelocity(NewVelocity);
+  (*ThisParticle)->AddMass(AccretedMass);
+  (*ThisParticle)->SetVelocity(NewVelocity);
 
   return SUCCESS;
 }
