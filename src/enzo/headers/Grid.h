@@ -2492,8 +2492,6 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int UpdateStarParticles(int level);
 
-  int UpdateActiveParticle(ActiveParticleType* ThisParticle);
-
   int UpdateParticleWithActiveParticle(PINT ID);
 
   int AddH2Dissociation(Star *AllStars);

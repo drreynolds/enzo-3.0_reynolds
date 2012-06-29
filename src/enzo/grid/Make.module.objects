@@ -79,7 +79,6 @@ ENZO_OBJS +=\
 	Grid_TracerParticleCreateParticles.o \
 	Grid_TracerParticleOutputData.o \
 	Grid_TracerParticleSetVelocity.o \
-	Grid_UpdateActiveParticle.o \
 	Grid_UpdateParticlePosition.o \
 	Grid_UpdateParticleVelocity.o \
 	Grid_UpdateParticleWithActiveParticle.o \

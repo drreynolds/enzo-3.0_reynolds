@@ -23,7 +23,11 @@ ENZO_OBJS +=\
 	ActiveParticle_SampleParticle.o \
 	ActiveParticle_SphereContained.o \
 	ActiveParticle_SpringelHernquist.o \
+	AssignActiveParticlesToGrids.o \
 	DetachActiveParticles.o \
+	ParticleBufferHandler.o \
+	ParticleBufferHandler_AllocateBuffer.o \
+	ParticleBufferHandler_UnpackBuffer.o \
 	RecordTotalActiveParticleCount.o \
 
 # ENZO BUILD SYSTEM DIRECTORY MODULE
@@ -73,9 +77,6 @@ vpath %.F90 particles/star_objects/
 ENZO_OBJS +=\
 	CalculatePopIIILifetime.o \
 	CalculateSubtractionParameters.o \
-	ParticleBufferHandler.o \
-	ParticleBufferHandler_AllocateBuffer.o \
-	ParticleBufferHandler_UnpackBuffer.o \
 	ParticleMergeRoutines.o \
 	ParticleSplitter.o \
 	RecalibrateAccretingMass.o \
