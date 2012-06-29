@@ -43,23 +43,23 @@ int grid::ComputeOneZoneCollapseFactor(float *force_factor)
 
   /* Compute the size of the fields. */
  
-  int i, t, size = 1;
+  int i, j, k, t, index, size = 1;
   for (int dim = 0; dim < GridRank; dim++)
     size *= GridDimension[dim];
 
+
+  /* Initialize values. */
+  for (i = 0; i < size; i++) {
+    force_factor[i] = 0.0;
+  }
+
   if (!TestProblemData.OneZoneFreefallAdjustCollapse) {
-    for (i = 0; i < size; i++) {
-      force_factor[i] = 0.0;
-    }
     return SUCCESS;
   }
  
   /* Check for density and pressure history. */
   for (t = 0; t < 2; t++) {
     if (CollapseHistory[t] == NULL) {
-      for (i = 0; i < size; i++) {
-	force_factor[i] = 0.0;
-      }
       return SUCCESS;
     }
   }
@@ -71,26 +71,34 @@ int grid::ComputeOneZoneCollapseFactor(float *force_factor)
     ENZO_FAIL("Cannot find density.");
 
   float gamma_eff;
-  for (i = 0; i < size; i++) {
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) { // nothing
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) { // metallicity
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) { // energy
 
-    /* Calculate the effective adiabatic index, dlog(p)/dlog(rho). */
-    gamma_eff = log10(CollapseHistory[0][1][i] / CollapseHistory[1][1][i]) /
-      log10(CollapseHistory[0][0][i] / CollapseHistory[1][0][i]);
+	index = i + j*GridDimension[0] + k*GridDimension[0]*GridDimension[1];
 
-    if (gamma_eff < 0.83) {
-      force_factor[i] = 0.0;
-    }
-    else if (gamma_eff < 1.0) {
-      force_factor[i] = 0.6 + 2.5 * (gamma_eff - 1) -
-	6.0 * POW((gamma_eff - 1.0), 2.);
-    }
-    else if (gamma_eff < (4./3.)) {
-      force_factor[i] = 1.0 + 0.2 * (gamma_eff - (4./3.)) -
-    	2.9 * POW((gamma_eff - (4./3.)), 2.);
-    }
-    force_factor[i] = max(force_factor[i], 0.0);
-    force_factor[i] = min(force_factor[i], 0.95);
+	/* Calculate the effective adiabatic index, dlog(p)/dlog(rho). */
+	gamma_eff = log10(CollapseHistory[0][1][index] /
+			  CollapseHistory[1][1][index]) /
+	  log10(CollapseHistory[0][0][index] /
+		CollapseHistory[1][0][index]);
 
+	if (gamma_eff < 0.83) {
+	  force_factor[index] = 0.0;
+	}
+	else if (gamma_eff < 1.0) {
+	  force_factor[index] = 0.6 + 2.5 * (gamma_eff - 1) -
+	    6.0 * POW((gamma_eff - 1.0), 2.);
+	}
+	else {
+	  force_factor[index] = 1.0 + 0.2 * (gamma_eff - (4./3.)) -
+	    2.9 * POW((gamma_eff - (4./3.)), 2.);
+	}
+	force_factor[index] = max(force_factor[index], 0.0);
+	force_factor[index] = min(force_factor[index], 0.95);
+
+      }
+    }
   }
  
   return SUCCESS;

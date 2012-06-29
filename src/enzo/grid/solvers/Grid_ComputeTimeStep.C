@@ -70,7 +70,7 @@ float grid::ComputeTimeStep()
   float dtMHD          = huge_number;
   float dtConduction   = huge_number;
   float dtGasDrag      = huge_number;
-  int dim, i, result;
+  int dim, i, j, k, index, result;
  
   /* Compute the field size. */
  
@@ -107,11 +107,18 @@ float grid::ComputeTimeStep()
       }
 
       dt = huge_number;
-      for (i = 0;i < size;i++) {
-	dt = min(dt, POW(((3 * pi) / 
-			  (32 * GravitationalConstant * 
-			   BaryonField[DensNum][i] *
-			   (1 - force_factor[i]))), 0.5));
+      for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) { // nothing
+	for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) { // metallicity
+	  for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) { // energy
+
+	    index = i + j*GridDimension[0] + k*GridDimension[0]*GridDimension[1];
+
+	    dt = min(dt, POW(((3 * pi) / 
+			      (32 * GravitationalConstant * 
+			       BaryonField[DensNum][index] *
+			       (1 - force_factor[index]))), 0.5));
+	  }
+	}
       }
 
       delete [] force_factor;
