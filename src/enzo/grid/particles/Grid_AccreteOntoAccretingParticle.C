@@ -107,8 +107,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
-      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
-	index = GRIDINDEX_NOGHOST(i,j,k);
+      index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
 	radius2 = 
 	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
@@ -134,7 +134,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
   vsink[0] = ThisParticle->ReturnVelocity()[0];
   vsink[1] = ThisParticle->ReturnVelocity()[1];
   vsink[2] = ThisParticle->ReturnVelocity()[2];
-
+  
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
       index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
@@ -144,20 +144,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle,FLOAT Ac
 	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
 	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
 	if ((AccretionRadius*AccretionRadius) > radius2) {
-#ifdef DEBUG
-	  fprintf(stderr,
-		  "CellLeftEdge[0][i] = %"GSYM", CellRightEdge[0][i] =%"GSYM"\n"
-		  "CellLeftEdge[1][j] = %"GSYM", CellRightEdge[1][j] =%"GSYM"\n"
-		  "CellLeftEdge[2][k] = %"GSYM", CellRightEdge[2][k] =%"GSYM"\n",
-		  CellLeftEdge[0][i],CellLeftEdge[0][i]+CellWidth[0][i],CellLeftEdge[1][j],CellLeftEdge[1][j]+CellWidth[1][j],
-		  CellLeftEdge[2][k],CellLeftEdge[2][k]+CellWidth[2][k]);
-#endif
-	  if ((CellLeftEdge[0][i] < ParticlePosition[0]) && (CellLeftEdge[0][i]+CellWidth[0][i] > ParticlePosition[0]) &&
-	      (CellLeftEdge[1][j] < ParticlePosition[1]) && (CellLeftEdge[1][j]+CellWidth[1][j] > ParticlePosition[1]) &&
-	      (CellLeftEdge[2][k] < ParticlePosition[2]) && (CellLeftEdge[2][k]+CellWidth[2][k] > ParticlePosition[2]))
-	    fprintf(stderr,"Particle in this cell!\n");
-
-
 	  // useful shorthand
 	  vgas[0] = BaryonField[Vel1Num][index];
 	  vgas[1] = BaryonField[Vel2Num][index];

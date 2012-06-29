@@ -22,7 +22,7 @@
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 
-int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx, grid* FeedbackZone)
+grid* grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx)
 {
   FLOAT* ParticlePosition = ThisParticle->ReturnPosition();
 
@@ -30,36 +30,27 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
   if ((GridLeftEdge[0] > ParticlePosition[0]+FeedbackRadius) || (GridRightEdge[0] < ParticlePosition[0]-FeedbackRadius) ||
       (GridLeftEdge[1] > ParticlePosition[1]+FeedbackRadius) || (GridRightEdge[1] < ParticlePosition[1]-FeedbackRadius) ||
       (GridLeftEdge[2] > ParticlePosition[2]+FeedbackRadius) || (GridRightEdge[2] < ParticlePosition[2]-FeedbackRadius))
-    return FAIL;
+    ENZO_FAIL("Particle outside own grid!");
 
   /* Setup grid properties */
 
-  int FeedbackZoneRank = FeedbackZone->GetGridRank();
+  int FeedbackZoneRank = this->GetGridRank();
 
-  // Since the grid creation machinery assume we want ghost zones, we need to
-  // trick it into giving us a fake grid without ghost zones.  We therefore ask
-  // for a cubic grid of dimension (2*(FeedbackRadius-3)+1)^3
-  
-  int FeedbackZoneDimension[FeedbackZoneRank], size;
-  FLOAT LeftCellOffset[FeedbackZoneRank],RightCellOffset[FeedbackZoneRank],
-    FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
+  int FeedbackZoneDimension[FeedbackZoneRank], size=1;
+  FLOAT LeftCellOffset[FeedbackZoneRank], FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
+  FLOAT CellSize = CellWidth[0][0], ncells[FeedbackZoneRank];
 
   for (int i = 0; i < FeedbackZoneRank; i++) {
-    if (FeedbackRadius > DEFAULT_GHOST_ZONES)
-      FeedbackZoneDimension[i] = 2*FeedbackRadius+1;
-    else
-      FeedbackZoneDimension[i] = 2*DEFAULT_GHOST_ZONES+1;
+    FeedbackZoneDimension[i] = (2*(FeedbackRadius+DEFAULT_GHOST_ZONES)+1);
     size *= FeedbackZoneDimension[i];
 
-    LeftCellOffset[i]        = fmod(ParticlePosition[i],dx);
-    RightCellOffset[i]       = dx-LeftCellOffset[i];
-    
-    FeedbackZoneLeftEdge[i]  = ParticlePosition[i]-FeedbackRadius*dx-LeftCellOffset[i];
-    FeedbackZoneRightEdge[i] = ParticlePosition[i]+FeedbackRadius*dx+RightCellOffset[i];
+    LeftCellOffset[i]        = modf((ParticlePosition[i]-CellLeftEdge[i][0])/CellSize,&ncells[i]);
+        
+    FeedbackZoneLeftEdge[i]  = CellLeftEdge[0][0]+CellSize*(ncells[i]-FeedbackRadius);
+    FeedbackZoneRightEdge[i] = CellLeftEdge[0][0]+CellSize*(ncells[i]+FeedbackRadius+1);
   }
 
-  /* Intialize the fake grid */
-  FeedbackZone = new grid;
+  grid *FeedbackZone = new grid;
   
   FeedbackZone->InheritProperties(this);
   
@@ -68,8 +59,11 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
   
   FeedbackZone->SetProcessorNumber(MyProcessorNumber);
 
-  FeedbackZone->AllocateAndZeroBaryonField();
-    
+  FeedbackZone->SetTimeStep(this->ReturnTimeStep());
+
+  if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
+    ENZO_FAIL("FeedbackZone BaryonField allocation failed");
+
   // Allocate flagging field of the same size as BaryonField. If FlaggingField =
   // 0, the corresponding zone in the BaryonField has not been copied yet.
     
@@ -81,7 +75,8 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
   // Note, using ZeroVector here will break if a FeedbackZone overlaps with a
   // domain boundary
   float ZeroVector[] = {0,0,0};
-  FeedbackZone->CopyZonesFromGrid(this,ZeroVector);
+  if (FeedbackZone->CopyZonesFromGrid(this,ZeroVector) == FAIL)
+    ENZO_FAIL("FeedbackZone copy failed!");
 
   // if the grid is filled, return
   
@@ -91,6 +86,6 @@ int grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRa
 
   delete [] FlaggingField;
 
-  return SUCCESS;
+  return FeedbackZone;
   
 }

@@ -896,9 +896,8 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       return FAIL;
     }
     
-    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx, FeedbackZone) == FAIL) 
-      return FAIL;
-    
+    FeedbackZone = sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx);
+						       
     float AccretionRate = 0;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
 

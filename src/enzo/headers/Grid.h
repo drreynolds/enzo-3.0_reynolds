@@ -2185,13 +2185,13 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
     if (MyProcessorNumber != ProcessorNumber)
       return SUCCESS;
 
-    if (BaryonField != NULL)
+    if (BaryonField[0] != NULL)
       return FAIL;
 
     int size = this->GetGridSize();
 
     for (int field = 0; field < NumberOfBaryonFields; field++) {
-      BaryonField[field] = new float[size]();
+      BaryonField[field] = new float[size];
     }
 
     return SUCCESS;
@@ -2288,7 +2288,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int DetachActiveParticles(void);
   int MirrorActiveParticles(void);
   int DebugActiveParticles(int level);
-  int ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx, grid* FeedbackZone);
+  grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx);
   int DistributeFeedbackZone(ActiveParticleType* ThisParticle, FLOAT FeedbackRadius);
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
