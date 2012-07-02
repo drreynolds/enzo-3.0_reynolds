@@ -178,7 +178,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	     NDIV^2 subcells and estimate the reduction assuming
 	     ballistic orbits. See the discussion near Eqn 15. */
 	  
-	  /*	  excluded = 0;
+	  excluded = 0;
 	  for (ksub = 0; ksub < NDIV-1; ksub++) {
 	    zdist = CellLeftEdge[2][k] + CellWidth[2][k]*(float(ksub)+0.5)/NDIV - ParticlePosition[2];
 	    for (jsub = 0; jsub < NDIV-1; jsub++) {
@@ -223,8 +223,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  // Scale down maccrete
 	  maccreted = maccreted/POW(NDIV,3) *
 	    (POW(NDIV,3)-excluded);
-	    
-	  */  // Commenting this block out for debugging purposes.
 
 	  /* Don't worry about conserving angular momentum if we're
 	     accreting no mass from the cell or if we are accreting
