@@ -105,7 +105,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   else
     KernelRadius = AccretionRadius/2.0;
 
-  int size = this->GetGridSize(), maxexcluded;
+  int size = this->GetGridSize(), maxexcluded=0;
   int *nexcluded = new int[size]();
   int cindex = (GridEndIndex[0] - GridStartIndex[0])/2 + GridStartIndex[0];
   int cgindex = GRIDINDEX_NOGHOST(cindex,cindex,cindex);
