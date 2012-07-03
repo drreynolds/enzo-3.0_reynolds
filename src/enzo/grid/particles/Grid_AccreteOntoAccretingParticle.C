@@ -59,7 +59,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10., AccretedMass = 0, AccretedMomentum[3], 
     RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, Weight, maccreted, 
-    rhocell, pcell[3], paccrete[3], eaccrete, mnew, rhonew, reff[3], rsqr, 
+    rhocell, pcell[3], paccrete[3], etotnew, mnew, rhonew, reff[3], rsqr, 
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew, 
     pnew[3], kenew, xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, rmin, 
     dxmin, ACCRETERADMIN = 2.0, huge = 1.0e30, WeightedSum = 0, 
@@ -157,14 +157,14 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  	  
 	  // TE and GE are stored per unit mass
 	  if (HydroMethod == 0) { // PPM
-	    etot = rhocell*BaryonField[TENum][index];
+	    etot = mcell*BaryonField[TENum][index];
 	    if (DualEnergyFormalism)
-	      eint = rhocell*BaryonField[GENum][index];
+	      eint = mcell*BaryonField[GENum][index];
 	    else
-	      eint = etot - 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+	      eint = etot - 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
 	  } else {  // Zeus hydro (total energy is really internal energy)
-	    eint = rhocell*BaryonField[TENum][index];
-	    etot = eint + 0.5*rhocell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+	    eint = mcell*BaryonField[TENum][index];
+	    etot = eint + 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
 	  }
 	  
 	  // Calculate mass we need to subtract from this cell
@@ -235,7 +235,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    paccrete[1] = pcell[1]*CellVolume*(maccreted/mcell);
 	    paccrete[2] = pcell[2]*CellVolume*(maccreted/mcell);
 	    
-	    eaccrete = etot*CellVolume*(maccreted/mcell);
+	    etotnew = etot*(maccreted/mcell);
 	  } 
 	  
 	  /* Find the components of the momentum vector transverse and
@@ -296,13 +296,14 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    paccrete[1] = CellVolume*(pcell[1] - pradnew[1] - ptransnew[1]);
 	    paccrete[2] = CellVolume*(pcell[2] - pradnew[2] - ptransnew[2]);
 	    
-	    // Compute new total internal energy (total, not density, not specific)
-	    eintnew = eint * rhonew/rhocell * CellVolume;
+	    // Compute new total internal energy (total, not density, not
+	    // specific). By construction, this keeps the specific internal
+	    // energy constant after accretion
+	    eintnew = eint * (1.0 - maccreted/mcell);
 	    
 	    /* Compute the new momentum densities.  Note that we do
 	       not use pcell here because we need to do this
 	       calculation in the grid frame, not the sink frame. */
-
 	    pnew[0] = rhocell*vgas[0] - paccrete[0]/CellVolume;
 	    pnew[1] = rhocell*vgas[1] - paccrete[1]/CellVolume;
 	    pnew[2] = rhocell*vgas[2] - paccrete[2]/CellVolume;
@@ -311,8 +312,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    kenew = (pnew[0]*pnew[0] + pnew[1]*pnew[1] + pnew[2]*pnew[2]) / 
 	      (2.0 * rhonew) * CellVolume;
 	  
-	    // Compute the amount of energy (not energy density) to be accreted
-	    eaccrete = etot*CellVolume - (eintnew + kenew);
+	    // Compute the new total energy
+	    etotnew = eintnew+kenew;
 	    
 	    // This is actually a density since particle masses are stored
 	    // in density units.
@@ -325,7 +326,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    BaryonField[DensNum][index] -= maccreted/CellVolume;
 	    
 	    if (HydroMethod == 0) { // PPM
-	      BaryonField[TENum][index] -= eaccrete/mnew;
+	      BaryonField[TENum][index] = etotnew/mnew;
 	      if (DualEnergyFormalism)
 		BaryonField[GENum][index] = eintnew/mnew;
 	    } else // Zeus
@@ -381,56 +382,3 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 }
 
 #undef DEBUG
-
-/* Routine to return alpha, defined as rho/rho_inf, for a critical
-   Bondi accretion solution.  The argument is x = r / rBondiHoyle. 
-   Adapted from Orion, courtesy of Mark Krumholz */
-
-float bondi_alpha(float x) {
-
-#define XMIN 0.01
-#define XMAX 2.0
-#define NTABLE 51
-
-  float lambda_c, xtable, xtablep1, alpha_exp;
-  int idx;
-
-  /* This is a precomputed table of alpha values.  These correspond to x values
-     that run from 0.01 to 2.0 with uniform logarithmic spacing.  The reason for
-     this choice of range is that the asymptotic expressions are accurate to
-     better than 2% outside this range */
-
-  float alphatable[NTABLE] = {820.254, 701.882, 600.752, 514.341, 440.497, 377.381, 323.427,
-			      277.295, 237.845, 204.1, 175.23, 150.524, 129.377, 111.27, 95.7613,
-			      82.4745, 71.0869, 61.3237, 52.9498, 45.7644, 39.5963, 34.2989,
-			      29.7471, 25.8338, 22.4676, 19.5705, 17.0755, 14.9254, 13.0714,
-			      11.4717, 10.0903, 8.89675, 7.86467, 6.97159, 6.19825, 5.52812,
-			      4.94699, 4.44279, 4.00497, 3.6246, 3.29395, 3.00637, 2.75612,
-			      2.53827, 2.34854, 2.18322, 2.03912, 1.91344, 1.80378, 1.70804,
-			      1.62439};
-
-  // A constant that appears in the following formulae.  This hardcoded value is
-  // valid for an isothermal gas.
-  lambda_c = 0.25*exp(1.5);
-
-  // deal with the off-the-table cases
-  if (x < XMIN) 
-    return lambda_c / sqrt(2.*x*x);
-  else if (x >= XMAX)
-    return exp(1./x);
-  else {
-    // we are on the table
-    
-    idx = floor((NTABLE-1)*log(x/XMIN)/log(XMAX/XMIN));
-    xtable = exp(log(XMIN) + idx*log(XMAX/XMIN)/(NTABLE-1));
-    xtablep1 = exp(log(XMIN) + (idx+1)*log(XMAX/XMIN)/(NTABLE-1));
-    alpha_exp = log(x/xtable) / log(xtablep1/xtable);
-
-    return alphatable[idx] * POW(alphatable[idx+1]/alphatable[idx],alpha_exp);
-  }
-
-#undef NTABLE
-#undef XMIN
-#undef XMAX
-
-}

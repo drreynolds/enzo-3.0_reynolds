@@ -38,6 +38,8 @@ float gasdev();
 double BE(double r);
 double q(double r);
 double Ang(double a1, double a2, double R, double r);
+// Density profile for Bondi flow
+float bondi_alpha(float x);
 
 // Returns random velocity from Maxwellian distribution
 double Maxwellian(double c_tilda, double vel_unit, double mu, double gamma);
@@ -274,7 +276,7 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
     float density, dens1, old_density, Velocity[MAX_DIMENSION], 
       DiskVelocity[MAX_DIMENSION], temperature, temp1, sigma, sigma1, 
       colour, weight, a, DMVelocity[MAX_DIMENSION], metallicity;
-    FLOAT r, rcyl, x, y = 0, z = 0;
+    FLOAT r, rcyl, x_B, x, y = 0, z = 0;
     int n = 0, ibin;
 
     double SphereRotationalPeriod[MAX_SPHERES];
@@ -732,6 +734,12 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 
 	      } // end: disk
 	    
+	      if (SphereType[sphere] == 11) {
+		// x_B = r/r_bondi
+		x_B = r/(GravConst*SphereMass*mh/(kboltz*SphereTemperature[sphere]));
+		dens1 = SphereDensity[sphere]*bondi_alpha(x);
+	      }
+
 	      /* If the density is larger than the background (or the previous
 		 sphere), then set the velocity. */
 
