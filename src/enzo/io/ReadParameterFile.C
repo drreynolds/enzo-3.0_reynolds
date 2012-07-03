@@ -1636,9 +1636,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
      off ParticleTypeInFile because particles are grouped by active
      particle type.  Types are no longer used. */
 
-  if (EnabledActiveParticlesCount > 0 && ParticleTypeInFile == TRUE) {
+  if (ParticleTypeInFile == TRUE) {
     if (debug) 
-      fprintf(stderr, "Particle types are not used with active particles.\n"
+      fprintf(stderr, "Particle types are deprecated.\n"
 	      "Turning OFF ParticleTypeInFile.\n");
     ParticleTypeInFile = FALSE;
   }
