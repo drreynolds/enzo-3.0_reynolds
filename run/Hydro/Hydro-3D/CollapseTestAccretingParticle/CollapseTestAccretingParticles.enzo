@@ -64,6 +64,8 @@ FluxCorrection              = 1
 ConservativeInterpolation   = 1
 RiemannSolver = 4
 HydroMethod                 = 0        // PPM
+SmallRho                    = 1e-8
+SmallE			    = 1e-8
 #
 #  chemistry/cooling
 #

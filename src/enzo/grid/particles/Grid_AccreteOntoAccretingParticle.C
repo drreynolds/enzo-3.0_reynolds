@@ -160,7 +160,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravConst*mcell,2)));
 
 		dxmin = rmin / CellWidth[0][0];
-		if (dxmin > 0.25)
+		if (dxmin >= 0.25)
 		  nexcluded[index]+=1;
 
 	      } // ksub
@@ -177,7 +177,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
   // Correct the central cell
   if (nexcluded[cgindex] > 0)
-    if (KernelRadius / CellWidth[0][0] > 0.25)
+    if (KernelRadius / CellWidth[0][0] >= 0.25)
       nexcluded[cgindex] = maxexcluded;
     else
       nexcluded[cgindex] = 0;
@@ -390,6 +390,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
   (*ThisParticle)->AddMass(AccretedMass);
   (*ThisParticle)->SetVelocity(NewVelocity);
+
+  delete [] nexcluded;
 
   return SUCCESS;
 }
