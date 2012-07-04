@@ -45,6 +45,10 @@ int grid::OneZoneFreefallTestInitializeGrid(float InitialDensity,
 
   int ExtraField[2];
 
+  for (i = 0; i < 2;i++) {
+    CollapseHistory[i] = NULL;
+  }
+
   /* create fields */
  
   NumberOfBaryonFields = 0;
