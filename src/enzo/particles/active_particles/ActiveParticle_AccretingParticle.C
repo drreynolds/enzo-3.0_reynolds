@@ -336,7 +336,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	DensityThreshold = huge_number;
 	if (JeansRefinement) {
 	  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
-	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature / 
+	  JeansDensity = JeansDensityUnitConversion * CellTemperature / 
 	    POW(data.LengthUnits*dx*RefineByJeansLengthSafetyFactor,2) / data.DensityUnits;
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
 	}

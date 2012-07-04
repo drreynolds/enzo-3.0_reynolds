@@ -55,7 +55,7 @@ OutputTemperature = 1                  // Output temperature field.
 #
 #  set hydro parameters
 #
-Gamma                       = 1.00001
+Gamma                       = 1.0000001
 PPMDiffusionParameter       = 0        // diffusion off
 DualEnergyFormalism         = 1        // use total & internal energy
 InterpolationMethod         = 1        // SecondOrderA

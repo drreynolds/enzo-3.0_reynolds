@@ -58,7 +58,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   int i, j, k, dim, index;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10., AccretedMass = 0, AccretedMomentum[3], 
-    RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, Weight, maccreted, 
+    RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, ke, Weight, maccreted, 
     rhocell, pcell[3], paccrete[3], etotnew, mnew, rhonew, reff[3], rsqr, 
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew, 
     pnew[3], kenew, xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, rmin, 
@@ -214,7 +214,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  pcell[0] = rhocell*vgas[0] - vsink[0]*rhocell;
 	  pcell[1] = rhocell*vgas[1] - vsink[1]*rhocell;
 	  pcell[2] = rhocell*vgas[2] - vsink[2]*rhocell;
-	  	  
+	  
 	  // TE and GE are stored per unit mass
 	  if (HydroMethod == 0) { // PPM
 	    etot = mcell*BaryonField[TENum][index];
@@ -227,6 +227,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    etot = eint + 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
 	  }
 	  
+	  ke = 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+
 	  // Calculate mass we need to subtract from this cell
 	  Weight = exp(-radius2/(KernelRadius*KernelRadius))/SumOfWeights;
 	  maccreted =  this->dtFixed * (*AccretionRate) * Weight;
@@ -313,21 +315,21 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    // specific). By construction, this keeps the specific internal
 	    // energy constant after accretion
 	    eintnew = eint * (1.0 - maccreted/mcell);
-	    
-	    /* Compute the new momentum densities.  Note that we do
+  
+	    /* Compute the new momentum of the cell.  Note that we do
 	       not use pcell here because we need to do this
 	       calculation in the grid frame, not the sink frame. */
-	    pnew[0] = rhocell*vgas[0] - paccrete[0]/CellVolume;
-	    pnew[1] = rhocell*vgas[1] - paccrete[1]/CellVolume;
-	    pnew[2] = rhocell*vgas[2] - paccrete[2]/CellVolume;
+	    pnew[0] = mcell*vgas[0] - paccrete[0];
+	    pnew[1] = mcell*vgas[1] - paccrete[1];
+	    pnew[2] = mcell*vgas[2] - paccrete[2];
  
 	    // Compute new total kinetic energy (not density)
 	    kenew = (pnew[0]*pnew[0] + pnew[1]*pnew[1] + pnew[2]*pnew[2]) / 
-	      (2.0 * rhonew) * CellVolume;
+	      (2.0 * mnew);
 	  
 	    // Compute the new total energy
-	    etotnew = eintnew+kenew;
-	    
+	    etotnew = eintnew + kenew;
+	    	    
 	    // This is actually a density since particle masses are stored
 	    // in density units.
 	    AccretedMass += maccreted/CellVolume;
@@ -345,9 +347,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    } else // Zeus
 	      BaryonField[TENum][index] = eintnew/mnew;
 
-	    BaryonField[Vel1Num][index] = BaryonField[Vel1Num][index]*mcell/mnew - paccrete[0]/mnew;
-	    BaryonField[Vel2Num][index] = BaryonField[Vel2Num][index]*mcell/mnew - paccrete[1]/mnew;
-	    BaryonField[Vel3Num][index] = BaryonField[Vel3Num][index]*mcell/mnew - paccrete[2]/mnew;
+	    BaryonField[Vel1Num][index] = pnew[0]/mcell;
+	    BaryonField[Vel2Num][index] = pnew[1]/mcell;
+	    BaryonField[Vel3Num][index] = pnew[2]/mcell;
 
 	    // Check if mass or energy is too small, correct if necessary
 	    if (BaryonField[DensNum][index] < SmallRhoFac*SmallRho) {
