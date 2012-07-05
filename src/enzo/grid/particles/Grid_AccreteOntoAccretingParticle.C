@@ -210,11 +210,11 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  vgas[2] = BaryonField[Vel3Num][index];
 	  rhocell = BaryonField[DensNum][index];
 	  mcell = rhocell*CellVolume;
-	  // These are momentum densities in the frame of the sink.
-	  pcell[0] = rhocell*vgas[0] - vsink[0]*rhocell;
-	  pcell[1] = rhocell*vgas[1] - vsink[1]*rhocell;
-	  pcell[2] = rhocell*vgas[2] - vsink[2]*rhocell;
-	  
+	  // These are momenta in the frame of the sink.
+	  pcell[0] = mcell*vgas[0] - mcell*vsink[0];
+	  pcell[1] = mcell*vgas[1] - mcell*vsink[1];
+	  pcell[2] = mcell*vgas[2] - mcell*vsink[2];
+	  	  
 	  // TE and GE are stored per unit mass
 	  if (HydroMethod == 0) { // PPM
 	    etot = mcell*BaryonField[TENum][index];
@@ -241,16 +241,15 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
 	  /* Don't worry about conserving angular momentum if we're
 	     accreting no mass from the cell or if we are accreting
-	     all of the mass from it.  Note that paccrete and eaccrete
-	     are total energy and momentum, not energy and momentum
-	     densities or specific energy and momentum */
+	     all of the mass from it.  */
 	  
 	  if ((maccreted == 0) || (mcell-maccreted < 2.0*SmallRhoFac*SmallRho*CellVolume)) {
 	    paccrete[0] = pcell[0]*CellVolume*(maccreted/mcell);
 	    paccrete[1] = pcell[1]*CellVolume*(maccreted/mcell);
 	    paccrete[2] = pcell[2]*CellVolume*(maccreted/mcell);
 	    
-	    etotnew = etot*(maccreted/mcell);
+	    etotnew = etot * (1.0 - maccreted/mcell);
+	    eintnew = eint * (1.0 - maccreted/mcell);
 	  } 
 	  
 	  /* Find the components of the momentum vector transverse and
@@ -285,18 +284,18 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	      rsqr = 1.0;
 	    }
 	    
-	    // Compute the parallel component of the momentum density
+	    // Compute the parallel component of the momentum 
 	    rdotp = reff[0]*pcell[0]+reff[1]*pcell[1]+reff[2]*pcell[2];
 	    prad[0] = reff[0]*rdotp/rsqr;
 	    prad[1] = reff[1]*rdotp/rsqr;
 	    prad[2] = reff[2]*rdotp/rsqr;
 	    
-	    // Compute the transverse component of the momentum density
+	    // Compute the transverse component of the momentum 
 	    ptrans[0] = pcell[0] - prad[0];
 	    ptrans[1] = pcell[1] - prad[1];
 	    ptrans[2] = pcell[2] - prad[2];
 	    
-	    // Compute the new radial component of the momentum density
+	    // Compute the new radial component of the momentum 
 	    pradnew[0] = prad[0]*mnew/mcell;
 	    pradnew[1] = prad[1]*mnew/mcell;
 	    pradnew[2] = prad[2]*mnew/mcell;
@@ -306,14 +305,14 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    ptransnew[1] = ptrans[1];
 	    ptransnew[2] = ptrans[2];
 	    
-	    // Compute the amount of momentum (not momentum density) accreted
-	    paccrete[0] = CellVolume*(pcell[0] - pradnew[0] - ptransnew[0]);
-	    paccrete[1] = CellVolume*(pcell[1] - pradnew[1] - ptransnew[1]);
-	    paccrete[2] = CellVolume*(pcell[2] - pradnew[2] - ptransnew[2]);
+	    // Compute the amount of momentum accreted
+	    paccrete[0] = pcell[0] - pradnew[0] - ptransnew[0];
+	    paccrete[1] = pcell[1] - pradnew[1] - ptransnew[1];
+	    paccrete[2] = pcell[2] - pradnew[2] - ptransnew[2];
 	    
-	    // Compute new total internal energy (total, not density, not
-	    // specific). By construction, this keeps the specific internal
-	    // energy constant after accretion
+	    // Compute new total internal energy. By construction,
+	    // this keeps the specific internal energy constant after
+	    // accretion
 	    eintnew = eint * (1.0 - maccreted/mcell);
   
 	    /* Compute the new momentum of the cell.  Note that we do
