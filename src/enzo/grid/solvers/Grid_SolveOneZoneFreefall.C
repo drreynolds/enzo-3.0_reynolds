@@ -26,7 +26,6 @@
 #include "CosmologyParameters.h"
 #include "phys_constants.h"
 
-int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);
 int GetUnits(float *DensityUnits, float *LengthUnits,
 	     float *TemperatureUnits, float *TimeUnits,
 	     float *VelocityUnits, FLOAT Time);
@@ -50,7 +49,6 @@ int grid::SolveOneZoneFreefall()
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num, B1Num, B2Num, B3Num;
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
       DINum, DIINum, HDINum;
-  FLOAT a = 1.0, dadt;
     
   /* Find fields: density, total energy, velocity1-3. */
 
@@ -69,30 +67,40 @@ int grid::SolveOneZoneFreefall()
 
   /* Compute size of the current grid. */
 
-  int i, dim, size = 1;
+  int i, j, k, index, dim, size = 1;
   for (dim = 0; dim < GridRank; dim++) {
     size *= GridDimension[dim];
   }
 
-  /* If using cosmology, compute the expansion factor and get units. */
+  /* Calculate units. */
 
   float TemperatureUnits = 1, DensityUnits = 1, LengthUnits = 1, 
-    VelocityUnits = 1, TimeUnits = 1, aUnits = 1;
-
-  if (ComovingCoordinates) {
-
-    if (CosmologyComputeExpansionFactor(Time+0.5*dtFixed, &a, &dadt) 
-	== FAIL) {
-            ENZO_FAIL("Error in CosmologyComputeExpansionFactors.");
-    }
-
-    aUnits = 1.0/(1.0 + InitialRedshift);
-
-  }
+    VelocityUnits = 1, TimeUnits = 1;
 
   if (GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
 	       &TimeUnits, &VelocityUnits, Time) == FAIL) {
-        ENZO_FAIL("Error in GetUnits.");
+    ENZO_FAIL("Error in GetUnits.");
+  }
+
+  /* Get gamma field for updating densities and energies. */
+
+  float *gamma_field = new float[size];
+  if (this->ComputeGammaField(gamma_field) == FAIL) {
+    ENZO_FAIL("Error in grid->ComputeGammaField.\n");
+  }
+
+  /* Compute pressure field. */
+  float *pressure = new float[size];
+  if (this->ComputePressure(Time, pressure) == FAIL) {
+    ENZO_FAIL("Error in grid->ComputePressure.\n");
+  }
+
+  /* Compute ratio of pressure gradient force to graviational force.
+     Equation 9 of Omukai et al (2005). */
+
+  float *force_factor = new float[size];
+  if (this->ComputeOneZoneCollapseFactor(force_factor) == FAIL) {
+    ENZO_FAIL("Error in ComputeOneZoneCollapseFactor.\n");
   }
 
   /* Metal cooling codes. */
@@ -108,56 +116,131 @@ int grid::SolveOneZoneFreefall()
 
   /* Calculate new density and energy. */
 
-  float FreefallTimeConstant = POW(((32 * GravitationalConstant) / (3 * pi)), 0.5);
-  float NewDensity = POW((TestProblemData.OneZoneFreefallConstant - 
-			  (0.5 * FreefallTimeConstant * Time)), -2.);
-  float DensityRatio = NewDensity / BaryonField[DensNum][0];
+  float new_density, density_ratio;
+  float FreefallTimeConstant = POW(((32 * GravitationalConstant) / 
+				    (3 * pi)), 0.5);
 
-  /* Update all cells. */
+  /* Update density and pressure history. */
 
-  for (i = 0;i < size;i++) {
-
-    /* Update enegy. */
-
-    BaryonField[TENum][i] += (Gamma - 1) * BaryonField[TENum][i] * 
-      FreefallTimeConstant * POW(BaryonField[DensNum][i], 0.5) * dtFixed;
-    if (DualEnergyFormalism) {
-      BaryonField[GENum][i] = BaryonField[TENum][i];
+  if (CollapseHistory[0] == NULL) {
+    CollapseHistory[0] = new float*[2];
+    CollapseHistory[0][0] = new float[size]; // density
+    CollapseHistory[0][1] = new float[size]; // pressure
+  }
+  else {
+    if (CollapseHistory[1] == NULL) {
+      CollapseHistory[1] = new float*[2];
+      CollapseHistory[1][0] = new float[size]; // density
+      CollapseHistory[1][1] = new float[size]; // pressure
     }
-
-    /* Update density. */
-
-    BaryonField[DensNum][i] = NewDensity;
-
-    /* Update species fields. */
-
-    if (MultiSpecies) {
-      BaryonField[DeNum][i] *= DensityRatio;
-      BaryonField[HINum][i] *= DensityRatio;
-      BaryonField[HIINum][i] *= DensityRatio;
-      BaryonField[HeINum][i] *= DensityRatio;
-      BaryonField[HeIINum][i] *= DensityRatio;
-      BaryonField[HeIIINum][i] *= DensityRatio;
-      if (MultiSpecies > 1) {
-	BaryonField[HMNum][i] *= DensityRatio;
-	BaryonField[H2INum][i] *= DensityRatio;
-	BaryonField[H2IINum][i] *= DensityRatio;
-      }
-      if (MultiSpecies > 2) {
-	BaryonField[DINum][i] *= DensityRatio;
-	BaryonField[DIINum][i] *= DensityRatio;
-	BaryonField[HDINum][i] *= DensityRatio;
-      }
+    // move t-1 values into t-2
+    for (i = 0; i < size; i++) {
+      CollapseHistory[1][0][i] = CollapseHistory[0][0][i];
+      CollapseHistory[1][1][i] = CollapseHistory[0][1][i];
     }
+  }
 
-    if (MetalFieldPresent) {
-      BaryonField[MetalNum][i] *= DensityRatio;
-      if (MultiMetals) {
-	BaryonField[MetalNum+1][i] *= DensityRatio;
-	BaryonField[MetalNum+2][i] *= DensityRatio;
+  // move current values into t-1
+  for (i = 0; i < size; i++) {
+    CollapseHistory[0][0][i] = BaryonField[DensNum][i];
+    CollapseHistory[0][1][i] = pressure[i];
+  }
+
+  int max_rho_index;
+  float max_rho = -1.0;
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) { // nothing
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) { // metallicity
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) { // energy
+	index = i + j*GridDimension[0] + k*GridDimension[0]*GridDimension[1];
+	if (BaryonField[DensNum][index] > max_rho) {
+	  max_rho = BaryonField[DensNum][index];
+	  max_rho_index = index;
+	}
       }
     }
   }
+
+  /* Update all cells. */
+
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) { // nothing
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) { // metallicity
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) { // energy
+
+	index = i + j*GridDimension[0] + k*GridDimension[0]*GridDimension[1];
+
+	/* Modify the equation for free-fall collapse with a factor 
+	   taking into account the ratio of pressure gradient force 
+	   to gravity following Equation 9 from Omukai et al. (2005). */
+
+	new_density = POW((POW(BaryonField[DensNum][index], -0.5) - 
+			   (0.5 * FreefallTimeConstant * dtFixed *
+			    POW((1 - force_factor[index]), 0.5))), -2.);
+	density_ratio = new_density / BaryonField[DensNum][index];
+
+	/* Update enegy. */
+
+	BaryonField[TENum][index] += (gamma_field[index] - 1) * 
+	  BaryonField[TENum][index] * FreefallTimeConstant * 
+	  POW(BaryonField[DensNum][index], 0.5) * dtFixed;
+	if (DualEnergyFormalism) {
+	  BaryonField[GENum][index] = BaryonField[TENum][index];
+	}
+
+	/* Update density. */
+
+	BaryonField[DensNum][index] = new_density;
+
+	if (index == max_rho_index) {
+	  fprintf(stderr, "One-zone collapse: rho[%"ISYM", %"ISYM", %"ISYM"] = %"ESYM" g/cm^3, f = %"FSYM,
+		  i, j, k, (BaryonField[DensNum][index] * DensityUnits), 
+		  force_factor[index]);
+	}
+
+	/* Update species fields. */
+
+	if (MultiSpecies) {
+	  BaryonField[DeNum][index] *= density_ratio;
+	  BaryonField[HINum][index] *= density_ratio;
+	  BaryonField[HIINum][index] *= density_ratio;
+	  BaryonField[HeINum][index] *= density_ratio;
+	  BaryonField[HeIINum][index] *= density_ratio;
+	  BaryonField[HeIIINum][index] *= density_ratio;
+	  if (MultiSpecies > 1) {
+	    BaryonField[HMNum][index] *= density_ratio;
+	    BaryonField[H2INum][index] *= density_ratio;
+	    BaryonField[H2IINum][index] *= density_ratio;
+	    if (index == max_rho_index) {
+	      fprintf(stderr, ", f_H2 = %"ESYM,
+		      (BaryonField[H2INum][index] /
+		       BaryonField[DensNum][index]));
+	    }
+	  }
+	  if (MultiSpecies > 2) {
+	    BaryonField[DINum][index] *= density_ratio;
+	    BaryonField[DIINum][index] *= density_ratio;
+	    BaryonField[HDINum][index] *= density_ratio;
+	  }
+	}
+
+	if (MetalFieldPresent) {
+	  BaryonField[MetalNum][index] *= density_ratio;
+	  if (MultiMetals) {
+	    BaryonField[MetalNum+1][index] *= density_ratio;
+	    BaryonField[MetalNum+2][index] *= density_ratio;
+	  }
+	}
+
+	if (index == max_rho_index) {
+	  fprintf(stderr, ".\n");
+	}
+
+      }
+    }
+  }
+
+  delete [] gamma_field;
+  delete [] pressure;
+  delete [] force_factor;
 
   return SUCCESS;
 
