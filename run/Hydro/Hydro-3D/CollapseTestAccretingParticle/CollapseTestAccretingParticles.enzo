@@ -46,7 +46,7 @@ GravitationalConstant = 1.39698e-3     // 4*pi*G_{cgs}*DensityUnits*TimeUnits^2
 #
 #  set I/O and stop/start parameters
 #
-StopTime          = 6.5
+StopTime          = 8.0
 dtDataDump        = 0.1
 #CycleSkipDataDump = 1
 DataDumpDir       = DD

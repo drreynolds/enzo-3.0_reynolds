@@ -24,7 +24,7 @@
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 
-#define NO_DEBUG
+#define DEBUG
 
 float bondi_alpha(float x);
 
@@ -39,14 +39,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
   FLOAT *ParticlePosition = (*ThisParticle)->ReturnPosition();
-
-#ifdef DEBUG
-  fprintf(stderr,
-	  "Left[0] = %"GSYM", Left[1] = %"GSYM", Left[2] = %"GSYM"\n"
-	  "Right[0] = %"GSYM", Right[1] = %"GSYM", Right[2] = %"GSYM"\n",
-	  ParticlePosition[0]-AccretionRadius,ParticlePosition[1]-AccretionRadius,ParticlePosition[2]-AccretionRadius,
-	  ParticlePosition[0]+AccretionRadius,ParticlePosition[1]+AccretionRadius,ParticlePosition[2]+AccretionRadius);
-#endif
 
   if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
       (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
@@ -232,8 +224,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  // Calculate mass we need to subtract from this cell
 	  Weight = exp(-radius2/(KernelRadius*KernelRadius))/SumOfWeights;
 	  maccreted =  this->dtFixed * (*AccretionRate) * Weight;
-	  if (maccreted > 0.1*mcell) 
-	    maccreted = 0.1*mcell;
+	  if (maccreted > 0.25*mcell) 
+	    maccreted = 0.25*mcell;
 	  
 	  // Scale down maccrete
 	  maccreted = maccreted/POW(NDIV,3) *
@@ -335,6 +327,14 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    AccretedMomentum[0] += paccrete[0];
 	    AccretedMomentum[1] += paccrete[1];
 	    AccretedMomentum[2] += paccrete[2];
+
+#ifdef DEBUG
+	    if (index == cgindex)
+	      printf("Sink Density: %"FSYM", Cell Density: %"FSYM", New Density: %"FSYM"\n",
+		     maccreted/CellVolume,
+		     BaryonField[DensNum][index],
+		     BaryonField[DensNum][index]-maccreted/CellVolume);
+#endif 
 
 	    // Update the state variables
 	    BaryonField[DensNum][index] -= maccreted/CellVolume;
