@@ -231,6 +231,17 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	send_buffer = NULL;
 	recv_buffer = NULL;
 
+	/* Set grid pointers */
+	for (i = 0; i < *GlobalNumberOfActiveParticles; i++) {
+	  NumberOfGrids = GenerateGridArray(LevelArray, GlobalList[i]->ReturnLevel(), &Grids);
+	  for (GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
+	    if (Grids[GridNum]->GridData->GetGridID() == GlobalList[i]->ReturnGridID())
+	      GlobalList[i]->AssignCurrentGrid(Grids[GridNum]->GridData);
+	  }
+	}
+
+	delete [] Grids;
+
 #endif /* USE_MPI */
        
       } /* ENDIF multi-processor */
