@@ -123,6 +123,7 @@ ActiveParticleType::ActiveParticleType(ParticleBufferHandler *buffer, int index)
   level = buffer->level[index];
   GridID = buffer->GridID[index];
   type = buffer->type[index];
+  CurrentGrid = NULL;
 }
 
 /* No need to delete the accretion arrays because the pointers are

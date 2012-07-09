@@ -2507,7 +2507,6 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int ReturnStarStatistics(int &Number, float &minLife);
 
   int AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle, FLOAT AccretionRadius,
-				   float BondiHoyleRadius, float cInfinity, float vInfinity,
 				   float* AccretionRate);
 
   int AddMassAndMomentumToAccretingParticle(float GlobalSubtractedMass, float GlobalSubtractedMomentum[], 

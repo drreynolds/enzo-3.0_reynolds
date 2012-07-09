@@ -86,7 +86,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	    }
 
 	  LocalActiveParticlesOnThisLevel = new ActiveParticleType*[LocalNumberOfActiveParticlesOnThisLevel]();
-
+	  
 	  /* In a second pass, fill up the active particle list for this level*/
 	  for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
 	    Grids[GridNum]->GridData->
@@ -124,10 +124,8 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 
       } /* ENDFOR level */
       
-    } /* ENDIF id == id to search for
+    } /* ENDIF id == id to search for */
 
-  } /* ENDFOR active particle type */
-  
     /**************************************************/
     /*                                                */
     /* Share active particle counts on all processors */

@@ -15,6 +15,7 @@
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
+#include "units.h"
 #include "Fluxes.h"
 #include "GridList.h"
 #include "phys_constants.h"
@@ -24,12 +25,12 @@
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 
+
 #define DEBUG
 
 float bondi_alpha(float x);
 
 int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT AccretionRadius,
-				       float BondiHoyleRadius, float cInfinity, float vInfinity,
 				       float* AccretionRate){
 
   /* Return if this doesn't involve us */
@@ -39,7 +40,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
   FLOAT *ParticlePosition = (*ThisParticle)->ReturnPosition();
-
+  
   if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
       (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
       (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
@@ -88,7 +89,32 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   for (dim = 0; dim < GridRank; dim++) {
     CellVolume*=CellWidth[dim][0];
   }
-  
+
+  /* Get grid info and calculate index of the sink host cell */
+  int size = this->GetGridSize(), maxexcluded=0;
+  int *nexcluded = new int[size]();
+  int cindex = (GridEndIndex[0] - GridStartIndex[0])/2 + GridStartIndex[0];
+  int cgindex = GRIDINDEX_NOGHOST(cindex,cindex,cindex);
+
+  /* Find the Bondi-Hoyle radius */
+  float vInfinity, cInfinity, CellTemperature;
+  float velx = BaryonField[Vel1Num][cgindex];
+  float vely = BaryonField[Vel2Num][cgindex];
+  float velz = BaryonField[Vel2Num][cgindex];
+  FLOAT BondiHoyleRadius;
+  float *Temperature = new float[size]();
+  this->ComputeTemperatureField(Temperature);
+
+  *vsink = *(*ThisParticle)->ReturnVelocity();
+  vInfinity = sqrt(pow(vsink[0] - velx,2) + 
+		   pow(vsink[1] - vely,2) + 
+		   pow(vsink[2] - velz,2));
+
+  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : Temperature[cgindex];
+  cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;
+  BondiHoyleRadius = GravitationalConstant*((*ThisParticle)->ReturnMass()*POW(CellSize,3))/
+    (pow(vInfinity,2) + pow(cInfinity,2));
+
   // Eqn 13
   if (BondiHoyleRadius < CellSize/4.0)
     KernelRadius = CellSize/4.0;
@@ -96,11 +122,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
     KernelRadius = BondiHoyleRadius;
   else
     KernelRadius = AccretionRadius/2.0;
-
-  int size = this->GetGridSize(), maxexcluded=0;
-  int *nexcluded = new int[size]();
-  int cindex = (GridEndIndex[0] - GridStartIndex[0])/2 + GridStartIndex[0];
-  int cgindex = GRIDINDEX_NOGHOST(cindex,cindex,cindex);
 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
@@ -183,10 +204,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   *AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
 		    sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
 
-  vsink[0] = (*ThisParticle)->ReturnVelocity()[0];
-  vsink[1] = (*ThisParticle)->ReturnVelocity()[1];
-  vsink[2] = (*ThisParticle)->ReturnVelocity()[2];
-  
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
       index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
