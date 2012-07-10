@@ -1,5 +1,3 @@
-
-
 /***********************************************************************
 /
 /  GRID CLASS (COPY OVERLAPPING ZONES FROM GRID IN ARGUMENT TO THIS GRID)
@@ -51,14 +49,10 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
 {
  
   /* Return if this doesn't involve us. */
- 
-
- 
   if (ProcessorNumber != MyProcessorNumber &&
       OtherGrid->ProcessorNumber != MyProcessorNumber)
     return SUCCESS;
  
-
   if (NumberOfBaryonFields == 0)
     return SUCCESS;
 
@@ -73,13 +67,10 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
   if (ShearingBoundaryDirection!=-1){
     L=(DomainRightEdge[ShearingBoundaryDirection]-DomainLeftEdge[ShearingBoundaryDirection]);
 
-   
     bool noMove=false;
 
     delta=L*AngularVelocity*VelocityGradient;
   
-    //printf("L: %"GSYM" Delta: %"GSYM" %"GSYM" (%"GSYM" %"GSYM")\n", L, delta, delta, AngularVelocity, VelocityGradient);
-
     if (fabs(EdgeOffset[ShearingBoundaryDirection]-FLOAT(1.0)*L)<=
 	CellWidth[ShearingBoundaryDirection][0]*0.1) 
       shiftPos=true;
@@ -109,18 +100,15 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
     if (GridLeft[dim]  >= OtherGrid->GridRightEdge[dim] ||
         GridRight[dim] <= OtherGrid->GridLeftEdge[dim]   )   
       return SUCCESS;
- 
 
   /* There is some overlap, so copy overlapping region */
  
-  //FLOAT Left, Right;
   FLOAT Left[MAX_DIMENSION];
   FLOAT Right[MAX_DIMENSION];
   int Start[MAX_DIMENSION], End[MAX_DIMENSION];
   int StartOther[MAX_DIMENSION], Dim[MAX_DIMENSION];
   int OtherDim[MAX_DIMENSION];
   
- 
   /* compute start and stop indicies of overlapping region for both this
      grid and the Other grid. */
  
@@ -131,15 +119,10 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
     OtherDim[dim]   = 1;
     Dim[dim]        = 1;
   }
-
-
  
-  //bool isShearing=false;
-
   for (dim = 0; dim < GridRank; dim++){
     if (GridDimension[dim] > 1) {
  
-      //printf("Dim %d", dim);
       /* Compute left and right positions in problem space.
 	 note: include buffer zones of this grid but not the other grid. */
  
@@ -151,20 +134,16 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
       Start[dim] = nint((Left[dim]  - GridLeft[dim]) / CellWidth[dim][0]);
       End[dim]   = nint((Right[dim] - GridLeft[dim]) / CellWidth[dim][0]) - 1;
 
-      if (ShearingVelocityDirection==dim && isShearing){
-
-       
-	Start[dim]=(int) ceil ((Left[dim]  - GridLeft[dim]) / CellWidth[dim][0]);	
+      if ((ShearingVelocityDirection == dim) && isShearing) {
+       	Start[dim]=(int) ceil ((Left[dim]  - GridLeft[dim]) / CellWidth[dim][0]);	
 	End[dim] = (int) ceil ((Right[dim] - GridLeft[dim]) / CellWidth[dim][0]) - 1;
 
 	if (Start[dim] >= GridDimension[dim] || End[dim] >= GridDimension [dim] ) return SUCCESS;
-
       }
       
       if (End[dim] - Start[dim] < 0)
 	return SUCCESS;
     
-
       Dim[dim] = End[dim] - Start[dim] + 1;  
 
       /* Compute index positions in the other grid */
@@ -176,8 +155,6 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
 	StartOther[dim] = (int) floor((Left[dim] - OtherGrid->CellLeftEdge[dim][0]) / 
 				      CellWidth[dim][0]);
       }
-
-   
 
       /* Copy dimensions into temporary space */
  
@@ -200,15 +177,8 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
   }
   
   
-  /* Calculate dimensions */
-  
-  // for (dim = 0; dim < MAX_DIMENSION; dim++)
-
- 
-  
   //need extra cell if you want to do shearing boundaries 
   //and that needs to be communicated from other grids possibly
-
   int ShearingCommunicationDims[MAX_DIMENSION];  
   
   for (dim = 0; dim <  MAX_DIMENSION; dim++){
@@ -216,6 +186,8 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
     if (isShearing && dim==ShearingVelocityDirection)
       ShearingCommunicationDims[dim] = Dim[dim] + 1;
   }
+
+  /* Calculate dimensions */
   
   /* If posting a receive, then record details of call. */
 
@@ -232,13 +204,12 @@ int grid::CopyZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
 #endif /* USE_MPI */
 
   /* Copy data from other processor if needed (modify OtherDim and
-     StartOther to reflect the fact that we are only coping part of
+     StartOther to reflect the fact that we are only copying part of
      the grid. */
  
   if (traceMPI) 
     fprintf(tracePtr, "CopyZones SendRegion from %"ISYM" to %"ISYM"\n", 
 	    ProcessorNumber, OtherGrid->ProcessorNumber);
- 
   
   if (ProcessorNumber != OtherGrid->ProcessorNumber) {
     OtherGrid->CommunicationSendRegion(OtherGrid, ProcessorNumber,

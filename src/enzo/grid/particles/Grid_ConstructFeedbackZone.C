@@ -1,6 +1,7 @@
 /***********************************************************************
 /
-/  GRID CLASS (Construct a fake grid for feedback algorithms)
+/  Construct a fake grid for feedback algorithms based on a 
+/  list of active particles
 /
 /  written by: Nathan Goldbaum
 /  date:       June 2012
@@ -22,14 +23,26 @@
 #include "ActiveParticle.h"
 #include "phys_constants.h"
 
-grid* grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx)
+grid** ConstructFeedbackZone(ActiveParticleType** ParticleList, int FeedbackRadius, FLOAT dx,
+			     HierarchyEntry** Grids)
 {
+
+  for (i = 0; i < nParticles; i++) {
+    sinkGrid = ParticleList[i]->ReturnCurrentGrid();
+    if (sinkGrid == NULL) {
+      return FAIL;
+    }
+  }
+
   FLOAT* ParticlePosition = ThisParticle->ReturnPosition();
 
   // This should only happen if the grid pointer is invalid
-  if ((GridLeftEdge[0] > ParticlePosition[0]+FeedbackRadius) || (GridRightEdge[0] < ParticlePosition[0]-FeedbackRadius) ||
-      (GridLeftEdge[1] > ParticlePosition[1]+FeedbackRadius) || (GridRightEdge[1] < ParticlePosition[1]-FeedbackRadius) ||
-      (GridLeftEdge[2] > ParticlePosition[2]+FeedbackRadius) || (GridRightEdge[2] < ParticlePosition[2]-FeedbackRadius))
+  if ((GridLeftEdge[0] > ParticlePosition[0]+FeedbackRadius) || 
+      (GridLeftEdge[1] > ParticlePosition[1]+FeedbackRadius) || 
+      (GridLeftEdge[2] > ParticlePosition[2]+FeedbackRadius) || 
+      (GridRightEdge[0] < ParticlePosition[0]-FeedbackRadius) ||
+      (GridRightEdge[1] < ParticlePosition[1]-FeedbackRadius) ||
+      (GridRightEdge[2] < ParticlePosition[2]-FeedbackRadius))
     ENZO_FAIL("Particle outside own grid!");
 
   /* Setup grid properties */
@@ -37,7 +50,8 @@ grid* grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int Feedback
   int FeedbackZoneRank = this->GetGridRank();
 
   int FeedbackZoneDimension[FeedbackZoneRank], size=1;
-  FLOAT LeftCellOffset[FeedbackZoneRank], FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
+  FLOAT LeftCellOffset[FeedbackZoneRank], FeedbackZoneLeftEdge[FeedbackZoneRank], 
+    FeedbackZoneRightEdge[FeedbackZoneRank];
   FLOAT CellSize = CellWidth[0][0], ncells[FeedbackZoneRank];
 
   for (int i = 0; i < FeedbackZoneRank; i++) {
@@ -61,15 +75,10 @@ grid* grid::ConstructFeedbackZone(ActiveParticleType* ThisParticle, int Feedback
 
   FeedbackZone->SetTimeStep(this->ReturnTimeStep());
 
+  
+
   if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
     ENZO_FAIL("FeedbackZone BaryonField allocation failed");
-
-  // Allocate flagging field of the same size as BaryonField. If FlaggingField =
-  // 0, the corresponding zone in the BaryonField has not been copied yet.
-    
-  int* FlaggingField = new int[size];
-  for (int i = 0; i<size; i++)
-    FlaggingField[i] = 0;
 
   // Copy zones from this grid (which must overlap the position of the AP).
   // Note, using ZeroVector here will break if a FeedbackZone overlaps with a

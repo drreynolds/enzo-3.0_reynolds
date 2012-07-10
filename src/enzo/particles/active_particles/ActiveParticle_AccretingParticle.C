@@ -25,6 +25,7 @@
 #include "LevelHierarchy.h"
 #include "TopGridData.h"
 #include "CommunicationUtilities.h"
+#include "communication.h"
 #include "phys_constants.h"
 #include "FofLib.h"
 
@@ -685,6 +686,12 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
   return SUCCESS;
 }
 
+int CommunicationBufferPurge(void);
+int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
+				int NumberOfSubgrids[] = NULL,
+				int FluxFlag = FALSE,
+				TopGridData* MetaData = NULL);
+
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
 						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
@@ -711,16 +718,11 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  grid* FeedbackZone = NULL;
+  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, AccretionRadius, dx, Grids)
 
   for (i = 0; i < nParticles; i++) {
-    sinkGrid = ParticleList[i]->ReturnCurrentGrid();
-    if (sinkGrid == NULL) {
-      return FAIL;
-    }
-    
-    FeedbackZone = sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx);
-						       
+    FeedbackZone = FeedbackZones[i];
+
     float AccretionRate = 0;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
 
@@ -733,8 +735,10 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       return FAIL;
   
     delete FeedbackZone;
-  
+    
   }
+  
+  delete [] FeedbackZones;
 
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
