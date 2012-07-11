@@ -45,6 +45,7 @@ grid** ConstructFeedbackZone(ActiveParticleType** ParticleList, int nParticles, 
   FLOAT FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
   FLOAT CellSize = CellWidth[0][0], ncells[FeedbackZoneRank];
 
+  /* Build array of sink grids and check for errors */
   grid** sinkGrids = new grid*[nParticles]();
 
   for (i = 0; i < nParticles; i++) {
@@ -64,7 +65,7 @@ grid** ConstructFeedbackZone(ActiveParticleType** ParticleList, int nParticles, 
       ENZO_FAIL("Particle outside own grid!");
   }
 
-  /* Setup grid properties */
+  /* Setup Feedback Zones before copying data */
 
   grid** FeedbackZones = new grid*[nParticles];
   
