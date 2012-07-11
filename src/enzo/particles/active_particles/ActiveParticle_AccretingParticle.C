@@ -686,12 +686,6 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
   return SUCCESS;
 }
 
-int CommunicationBufferPurge(void);
-int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
-				int NumberOfSubgrids[] = NULL,
-				int FluxFlag = FALSE,
-				TopGridData* MetaData = NULL);
-
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
 						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
