@@ -37,32 +37,33 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 
 
 
-grid** ConstructFeedbackZone(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
+grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
 			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids)
 {
   int i,j,dim,size;
   int FeedbackZoneRank, FeedbackZoneDimension[FeedbackZoneRank];
-  FLOAT FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
-  FLOAT CellSize = CellWidth[0][0], ncells[FeedbackZoneRank];
+  FLOAT LeftCellOffset[FeedbackZoneRank], *ParticlePosition=NULL,
+    FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
+  FLOAT CellSize, GridGZLeftEdge, ncells[FeedbackZoneRank];
 
   /* Build array of sink grids and check for errors */
   grid** sinkGrids = new grid*[nParticles]();
 
   for (i = 0; i < nParticles; i++) {
-    sinkGrid[i] = ParticleList[i]->ReturnCurrentGrid();
-    if (sinkGrid == NULL)
-      ENZO_FAIL("Particle CurrentGrid is invalid!");
+    sinkGrids[i] = ParticleList[i]->ReturnCurrentGrid();
+    if (sinkGrids[i] == NULL)
+      ENZO_FAIL("Particle CurrentGrid is invalid!\n");
 
-    FLOAT* ParticlePosition = ThisParticle->ReturnPosition();
+    ParticlePosition = ParticleList[i]->ReturnPosition();
     
     // This should only happen if the grid pointer is invalid
-    if ((GridLeftEdge[0] > ParticlePosition[0]+FeedbackRadius) || 
-	(GridLeftEdge[1] > ParticlePosition[1]+FeedbackRadius) || 
-	(GridLeftEdge[2] > ParticlePosition[2]+FeedbackRadius) || 
-	(GridRightEdge[0] < ParticlePosition[0]-FeedbackRadius) ||
-	(GridRightEdge[1] < ParticlePosition[1]-FeedbackRadius) ||
-	(GridRightEdge[2] < ParticlePosition[2]-FeedbackRadius) ||)
-      ENZO_FAIL("Particle outside own grid!");
+    if ((sinkGrids[i]->GetGridLeftEdge(0) > ParticlePosition[0]+FeedbackRadius) || 
+	(sinkGrids[i]->GetGridLeftEdge(1) > ParticlePosition[1]+FeedbackRadius) || 
+	(sinkGrids[i]->GetGridLeftEdge(2) > ParticlePosition[2]+FeedbackRadius) || 
+	(sinkGrids[i]->GetGridRightEdge(0) < ParticlePosition[0]-FeedbackRadius) ||
+	(sinkGrids[i]->GetGridRightEdge(1) < ParticlePosition[1]-FeedbackRadius) ||
+	(sinkGrids[i]->GetGridRightEdge(2) < ParticlePosition[2]-FeedbackRadius))
+      ENZO_FAIL("Particle outside own grid!\n");
   }
 
   /* Setup Feedback Zones before copying data */
@@ -70,31 +71,41 @@ grid** ConstructFeedbackZone(ActiveParticleType** ParticleList, int nParticles, 
   grid** FeedbackZones = new grid*[nParticles];
   
   for (i = 0; i < nParticles; i++) {
-    FeedbackZoneRank = this->GetGridRank();
+    FeedbackZoneRank = sinkGrids[i]->GetGridRank();
     size = 1;
 
     for (int dim = 0; dim < FeedbackZoneRank; dim++) {
       FeedbackZoneDimension[dim] = (2*(FeedbackRadius+DEFAULT_GHOST_ZONES)+1);
       size *= FeedbackZoneDimension[dim];
+      CellSize = sinkGrids[i]->GetCellWidth(dim,0);
+      GridGZLeftEdge = sinkGrids[i]->GetCellLeftEdge(dim,0);
       
-      FeedbackZoneLeftEdge[dim]  = sinkGrid+CellSize*(ncells[dim]-FeedbackRadius);
-      FeedbackZoneRightEdge[dim] = +CellSize*(ncells[dim]+FeedbackRadius+1);
+      LeftCellOffset[i] = modf((ParticlePosition[i]-GridGZLeftEdge)/CellSize,&ncells[i]);
+
+      FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius);
+      FeedbackZoneRightEdge[dim] = GridGZLeftEdge + CellSize*(ncells[dim]+FeedbackRadius+1);
     }
     
     grid *FeedbackZone = new grid;
     
-    FeedbackZone->InheritProperties(this);
+    FeedbackZone->InheritProperties(sinkGrids[i]);
     
     FeedbackZone->PrepareGrid(FeedbackZoneRank, FeedbackZoneDimension, 
 			      FeedbackZoneLeftEdge,FeedbackZoneRightEdge,0);
     
     FeedbackZone->SetProcessorNumber(MyProcessorNumber);
     
-    FeedbackZone->SetTimeStep(this->ReturnTimeStep());
+    FeedbackZone->SetTimeStep(sinkGrids[i]->ReturnTimeStep());
         
+    // This will only allocate the BaryonField on the host processor
     if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
-      ENZO_FAIL("FeedbackZone BaryonField allocation failed");
+      ENZO_FAIL("FeedbackZone BaryonField allocation failed\n");
   }
+
+  // Copy zones from this grid (which must overlap the position of the AP).
+  // Note, using ZeroVector here will break if a FeedbackZone overlaps with a
+  // domain boundary
+  float ZeroVector[] = {0,0,0};
 
   /* Post receives */
 
@@ -103,27 +114,31 @@ grid** ConstructFeedbackZone(ActiveParticleType** ParticleList, int nParticles, 
   CommunicationDirection = COMMUNICATION_POST_RECEIVE;
 
   for (i = 0; i < nParticles; i++) {
-    for (j = 
-
+    for (j = 0; j < NumberOfGrids; j++) {
+      if (FeedbackZones[i]->CopyZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+	ENZO_FAIL("FeedbackZone copy failed!\n");
+    }
   }
 
-  // Copy zones from this grid (which must overlap the position of the AP).
-  // Note, using ZeroVector here will break if a FeedbackZone overlaps with a
-  // domain boundary
-  float ZeroVector[] = {0,0,0};
-  if (FeedbackZone->CopyZonesFromGrid(this,ZeroVector) == FAIL)
-    ENZO_FAIL("FeedbackZone copy failed!");
-  
-  // if the grid is filled, return
-  
-  
-    // Next, recursively iterate over the siblings of that grid, copying
-    // zones from overlapping grids until the grid is filled
-  }
+  /* Send data */
+
+  CommunicationDirection = COMMUNICATION_SEND;
 
   for (i = 0; i < nParticles; i++) {
-    FeedbackZones[i] = FeedbackZone;
+    for (j = 0; j < NumberOfGrids; j++) {
+      if (FeedbackZones[i]->CopyZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+	ENZO_FAIL("FeedbackZone copy failed!\n");
+    }
   }
+
+  /* Receive data */
+
+  if (CommunicationReceiveHandler() == FAIL)
+    ENZO_FAIL("CommunicationReceiveHandler() failed!\n");
+
+#ifdef USE_MPI
+  CommunicationBufferPurge();
+#endif
 
   return FeedbackZones;
   

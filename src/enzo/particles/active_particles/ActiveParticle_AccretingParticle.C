@@ -686,6 +686,11 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
   return SUCCESS;
 }
 
+grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
+			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+
+int DistributeFeedbackZones(grid** FeedbackZones, HierarchyEntry** LevelGrids);
+
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
 						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
@@ -712,26 +717,23 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, AccretionRadius, dx, Grids)
+  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles, AccretionRadius, dx, Grids, NumberOfGrids);
 
   for (i = 0; i < nParticles; i++) {
-    FeedbackZone = FeedbackZones[i];
+    grid* FeedbackZone = FeedbackZones[i];
 
     float AccretionRate = 0;
     ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
-
+    
     if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],AccretionRadius*dx,&AccretionRate) == FAIL)
       return FAIL;
     
     static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
 
-    if (FeedbackZone->DistributeFeedbackZone(ParticleList[i],AccretionRadius*dx) == FAIL)
-      return FAIL;
-  
-    delete FeedbackZone;
-    
   }
   
+  DistributeFeedbackZones(FeedbackZones, Grids);
+
   delete [] FeedbackZones;
 
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)

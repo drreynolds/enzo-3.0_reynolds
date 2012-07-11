@@ -1171,7 +1171,8 @@ gradient force to gravitational force for one-zone collapse test. */
    }
    FLOAT GetGridLeftEdge(int Dimension) {return GridLeftEdge[Dimension];}
    FLOAT GetGridRightEdge(int Dimension) {return GridRightEdge[Dimension];}
-   FLOAT GetCellWidth(int Dimension) {return CellWidth[Dimension][0];}
+   FLOAT GetCellWidth(int Dimension, int index) {return CellWidth[Dimension][index];}
+   FLOAT GetCellLeftEdge(int Dimension, int index) {return CellWidth[Dimension][index];}
 
 #ifdef TRANSFER
 // -------------------------------------------------------------------------
