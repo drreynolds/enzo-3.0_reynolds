@@ -1,12 +1,16 @@
 /***********************************************************************
 /
-/  GRID CLASS (Copy data from a 'fake' feedback zone grid back to 
-/              the real grids)
+/  Copy data from a 'fake' feedback zone grid back to 
+/  the real grids
 /
 /  written by: Nathan Goldbaum
 /  date:       June 2012
 /
 ************************************************************************/
+
+#ifdef USE_MPI
+#include "communicators.h"
+#endif
 
 #include "preincludes.h"
 
@@ -22,9 +26,49 @@
 #include "Hierarchy.h"
 #include "ActiveParticle.h"
 #include "phys_constants.h"
+#include "CommunicationUtilities.h"
+#include "communication.h"
 
-int DistributeFeedbackZones(grid** FeedbackZones, HierarchyEntry** LevelGrids)
+int CommunicationBufferPurge(void);
+int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
+				int NumberOfSubgrids[] = NULL,
+				int FluxFlag = FALSE,
+				TopGridData* MetaData = NULL);
+
+int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
+			    HierarchyEntry** Grids, int NumberOfGrids)
 {
+  int i,j;
+
+  float ZeroVector[] = {0, 0, 0};
+
+  /* Post receives */
+  CommunicationReceiveIndex = 0;
+  CommunicationReceiveCurrentDependsOn = COMMUNICATION_NO_DEPENDENCE;
+  CommunicationDirection = COMMUNICATION_POST_RECEIVE;
+
+  for (i = 0; i < NumberOfGrids; i++) 
+    for (j = 0; j < NumberOfFeedbackZones; j++) 
+      if (Grids[i]->GridData->CopyZonesFromGrid(FeedbackZones[j],ZeroVector) == FAIL)
+	ENZO_FAIL("FeedbackZone copy failed!\n");
+    
+  /* Send data */
+    
+  CommunicationDirection = COMMUNICATION_SEND;
+
+  for (i = 0; i < NumberOfGrids; i++) 
+    for (j = 0; j < NumberOfFeedbackZones; j++) 
+      if (Grids[i]->GridData->CopyZonesFromGrid(FeedbackZones[j],ZeroVector) == FAIL)
+	ENZO_FAIL("FeedbackZone copy failed!\n");
+
+  /* Receive data */
+  
+  if (CommunicationReceiveHandler() == FAIL)
+    ENZO_FAIL("CommunicationReceiveHandler() failed!\n");
+
+#ifdef USE_MPI
+  CommunicationBufferPurge();
+#endif
 
   return SUCCESS;
 }

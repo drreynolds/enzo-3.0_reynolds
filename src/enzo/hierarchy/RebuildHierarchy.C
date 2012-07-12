@@ -1,5 +1,5 @@
 /***********************************************************************
-5B/
+/
 /  REBUILD HIERARCHY FUNCTION
 /
 /  written by: Greg Bryan

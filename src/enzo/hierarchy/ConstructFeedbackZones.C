@@ -41,28 +41,26 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids)
 {
   int i,j,dim,size;
-  int FeedbackZoneRank, FeedbackZoneDimension[FeedbackZoneRank];
-  FLOAT LeftCellOffset[FeedbackZoneRank], *ParticlePosition=NULL,
-    FeedbackZoneLeftEdge[FeedbackZoneRank], FeedbackZoneRightEdge[FeedbackZoneRank];
-  FLOAT CellSize, GridGZLeftEdge, ncells[FeedbackZoneRank];
+  int FeedbackZoneRank; 
+  FLOAT** ParticlePosition = new FLOAT*[nParticles]();
 
-  /* Build array of sink grids and check for errors */
-  grid** sinkGrids = new grid*[nParticles]();
+  /* Build array of AP grids and check for errors */
+  grid** APGrids = new grid*[nParticles];
 
   for (i = 0; i < nParticles; i++) {
-    sinkGrids[i] = ParticleList[i]->ReturnCurrentGrid();
-    if (sinkGrids[i] == NULL)
+    APGrids[i] = ParticleList[i]->ReturnCurrentGrid();
+    if (APGrids[i] == NULL)
       ENZO_FAIL("Particle CurrentGrid is invalid!\n");
 
-    ParticlePosition = ParticleList[i]->ReturnPosition();
+    ParticlePosition[i] = ParticleList[i]->ReturnPosition();
     
     // This should only happen if the grid pointer is invalid
-    if ((sinkGrids[i]->GetGridLeftEdge(0) > ParticlePosition[0]+FeedbackRadius) || 
-	(sinkGrids[i]->GetGridLeftEdge(1) > ParticlePosition[1]+FeedbackRadius) || 
-	(sinkGrids[i]->GetGridLeftEdge(2) > ParticlePosition[2]+FeedbackRadius) || 
-	(sinkGrids[i]->GetGridRightEdge(0) < ParticlePosition[0]-FeedbackRadius) ||
-	(sinkGrids[i]->GetGridRightEdge(1) < ParticlePosition[1]-FeedbackRadius) ||
-	(sinkGrids[i]->GetGridRightEdge(2) < ParticlePosition[2]-FeedbackRadius))
+    if ((APGrids[i]->GetGridLeftEdge(0) > ParticlePosition[i][0]+FeedbackRadius) || 
+	(APGrids[i]->GetGridLeftEdge(1) > ParticlePosition[i][1]+FeedbackRadius) || 
+	(APGrids[i]->GetGridLeftEdge(2) > ParticlePosition[i][2]+FeedbackRadius) || 
+	(APGrids[i]->GetGridRightEdge(0) < ParticlePosition[i][0]-FeedbackRadius) ||
+	(APGrids[i]->GetGridRightEdge(1) < ParticlePosition[i][1]-FeedbackRadius) ||
+	(APGrids[i]->GetGridRightEdge(2) < ParticlePosition[i][2]-FeedbackRadius))
       ENZO_FAIL("Particle outside own grid!\n");
   }
 
@@ -71,16 +69,22 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
   grid** FeedbackZones = new grid*[nParticles];
   
   for (i = 0; i < nParticles; i++) {
-    FeedbackZoneRank = sinkGrids[i]->GetGridRank();
+    FeedbackZoneRank = APGrids[i]->GetGridRank();
+
+    int FeedbackZoneDimension[FeedbackZoneRank];
+    FLOAT LeftCellOffset[FeedbackZoneRank],FeedbackZoneLeftEdge[FeedbackZoneRank], 
+      FeedbackZoneRightEdge[FeedbackZoneRank];
+    FLOAT CellSize, GridGZLeftEdge, ncells[FeedbackZoneRank];
+
     size = 1;
 
     for (int dim = 0; dim < FeedbackZoneRank; dim++) {
       FeedbackZoneDimension[dim] = (2*(FeedbackRadius+DEFAULT_GHOST_ZONES)+1);
       size *= FeedbackZoneDimension[dim];
-      CellSize = sinkGrids[i]->GetCellWidth(dim,0);
-      GridGZLeftEdge = sinkGrids[i]->GetCellLeftEdge(dim,0);
+      CellSize = APGrids[i]->GetCellWidth(dim,0);
+      GridGZLeftEdge = APGrids[i]->GetCellLeftEdge(dim,0);
       
-      LeftCellOffset[i] = modf((ParticlePosition[i]-GridGZLeftEdge)/CellSize,&ncells[i]);
+      LeftCellOffset[dim] = modf((ParticlePosition[i][dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
 
       FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius);
       FeedbackZoneRightEdge[dim] = GridGZLeftEdge + CellSize*(ncells[dim]+FeedbackRadius+1);
@@ -88,18 +92,20 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
     
     grid *FeedbackZone = new grid;
     
-    FeedbackZone->InheritProperties(sinkGrids[i]);
+    FeedbackZone->InheritProperties(APGrids[i]);
     
     FeedbackZone->PrepareGrid(FeedbackZoneRank, FeedbackZoneDimension, 
 			      FeedbackZoneLeftEdge,FeedbackZoneRightEdge,0);
     
-    FeedbackZone->SetProcessorNumber(MyProcessorNumber);
+    FeedbackZone->SetProcessorNumber(APGrids[i]->ReturnProcessorNumber());
     
-    FeedbackZone->SetTimeStep(sinkGrids[i]->ReturnTimeStep());
+    FeedbackZone->SetTimeStep(APGrids[i]->ReturnTimeStep());
         
     // This will only allocate the BaryonField on the host processor
     if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
       ENZO_FAIL("FeedbackZone BaryonField allocation failed\n");
+
+    FeedbackZones[i] = FeedbackZone;
   }
 
   // Copy zones from this grid (which must overlap the position of the AP).
@@ -113,13 +119,11 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
   CommunicationReceiveCurrentDependsOn = COMMUNICATION_NO_DEPENDENCE;
   CommunicationDirection = COMMUNICATION_POST_RECEIVE;
 
-  for (i = 0; i < nParticles; i++) {
-    for (j = 0; j < NumberOfGrids; j++) {
+  for (i = 0; i < nParticles; i++) 
+    for (j = 0; j < NumberOfGrids; j++) 
       if (FeedbackZones[i]->CopyZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
-    }
-  }
-
+    
   /* Send data */
 
   CommunicationDirection = COMMUNICATION_SEND;

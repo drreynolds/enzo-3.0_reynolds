@@ -721,10 +721,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
        finer levels.  This must be done after RebuildHierarchy because
        their masses must be deposited into the MassFlaggingField. */
 
-    if (dtThisLevelSoFar[level] < dtLevelAbove) {
+    if (dtThisLevelSoFar[level] < dtLevelAbove)
       RebuildHierarchy(MetaData, LevelArray, level);
-      DetachActiveParticles(LevelArray, level);
-    }
 
     /* Count up number of grids on this level. */
 
@@ -743,8 +741,10 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Rebuild the Grids on the next level down.
        Don't bother on the last cycle, as we'll rebuild this grid soon. */
  
-    if (dtThisLevelSoFar[level] < dtLevelAbove)
+    if (dtThisLevelSoFar[level] < dtLevelAbove) {
       RebuildHierarchy(MetaData, LevelArray, level);
+      DetachActiveParticles(LevelArray, level);
+    }
 
     cycle++;
     LevelCycleCount[level]++;

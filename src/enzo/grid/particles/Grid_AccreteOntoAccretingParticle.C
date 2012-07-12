@@ -100,19 +100,24 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   float vInfinity, cInfinity, CellTemperature;
   float velx = BaryonField[Vel1Num][cgindex];
   float vely = BaryonField[Vel2Num][cgindex];
-  float velz = BaryonField[Vel2Num][cgindex];
+  float velz = BaryonField[Vel3Num][cgindex];
   FLOAT BondiHoyleRadius;
   float *Temperature = new float[size]();
+  float msink = (*ThisParticle)->ReturnMass()*POW(CellSize,3);
+
   this->ComputeTemperatureField(Temperature);
 
-  *vsink = *(*ThisParticle)->ReturnVelocity();
+  vsink[0] = (*ThisParticle)->ReturnVelocity()[0];
+  vsink[1] = (*ThisParticle)->ReturnVelocity()[1];
+  vsink[2] = (*ThisParticle)->ReturnVelocity()[2];
+
   vInfinity = sqrt(pow(vsink[0] - velx,2) + 
 		   pow(vsink[1] - vely,2) + 
 		   pow(vsink[2] - velz,2));
 
   CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : Temperature[cgindex];
   cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;
-  BondiHoyleRadius = GravitationalConstant*((*ThisParticle)->ReturnMass()*POW(CellSize,3))/
+  BondiHoyleRadius = GravitationalConstant*msink/
     (pow(vInfinity,2) + pow(cInfinity,2));
 
   // Eqn 13
@@ -135,6 +140,10 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius)); 
 	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
 	  NumberOfCells++;
+	  vgas[0] = BaryonField[Vel1Num][index];
+	  vgas[1] = BaryonField[Vel2Num][index];
+	  vgas[2] = BaryonField[Vel3Num][index];
+	  
 	  /* The true accretion rate is somewhat less than this due to
 	     angular momentum conservation.  Subdivide the cell into
 	     NDIV^2 subcells and estimate the reduction assuming
@@ -163,14 +172,14 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 		// Compute specific kinetic + gravitational energy
 		esp = (POW((vgas[0] - vsink[0]),2) + 
 		       POW((vgas[1] - vsink[1]),2) +
-		       POW((vgas[2] - vsink[2]),2)) / 2.0 - GravConst * mcell/dist;
+		       POW((vgas[2] - vsink[2]),2)) / 2.0 - GravitationalConstant * msink/dist;
 		
 		// Compute distance of closest approach
 		if (esp > 0.0)
 		  rmin = huge*CellWidth[0][0];
 		else
-		  rmin = -GravConst*mcell/(2.0*esp) *
-		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravConst*mcell,2)));
+		  rmin = -GravConst*msink/(2.0*esp) *
+		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2)));
 
 		dxmin = rmin / CellWidth[0][0];
 		if (dxmin >= 0.25)

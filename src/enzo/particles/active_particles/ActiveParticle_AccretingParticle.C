@@ -152,7 +152,7 @@ public:
 
   static ActiveParticleType_AccretingParticle**  MergeAccretingParticles
   (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
-   int *ngroups, LevelHierarchyEntry *LevelArray[]);
+   int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel);
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
 		     int AccretionRadius, FLOAT dx, 
@@ -559,17 +559,19 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
 int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						       int ThisLevel, int TotalStarParticleCountPrevious[],
-						       int AccretingParticleID)
+							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							    int ThisLevel, int TotalStarParticleCountPrevious[],
+							    int AccretingParticleID)
 {
 
   return SUCCESS;
 }
 
+int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],int NumberOfGrids);
+
 ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::MergeAccretingParticles
 (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
- int *ngroups, LevelHierarchyEntry *LevelArray[])
+ int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel)
 {
   int i,j;
   int dim;
@@ -603,11 +605,18 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     if (groupsize[i] != 1) {
       for (j=1; j<groupsize[i]; j++) {
 	MergedParticles[i]->Merge(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][j]]));
-	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
+	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->
+							   ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
 	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
       }
     }
   }
+
+  HierarchyEntry** LevelGrids = NULL;
+
+  int NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &LevelGrids);
+
+  CommunicationSyncNumberOfParticles(LevelGrids, NumberOfGrids);
 
   *nParticles = *ngroups;
 
@@ -652,7 +661,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       /* Generate new merged list of sink particles */
       
       MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
-						&NumberOfMergedParticles,LevelArray);
+						&NumberOfMergedParticles,LevelArray,ThisLevel);
 
       delete [] ParticleList;
    
@@ -689,7 +698,8 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
 			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
 
-int DistributeFeedbackZones(grid** FeedbackZones, HierarchyEntry** LevelGrids);
+int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
+			    HierarchyEntry** Grids, int NumberOfGrids);
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
@@ -721,18 +731,24 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 
   for (i = 0; i < nParticles; i++) {
     grid* FeedbackZone = FeedbackZones[i];
-
-    float AccretionRate = 0;
-    ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
+    if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
     
-    if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],AccretionRadius*dx,&AccretionRate) == FAIL)
-      return FAIL;
-    
-    static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
-
+      float AccretionRate = 0;
+      ActiveParticleType_AccretingParticle* temp = static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i]);
+      
+      if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],AccretionRadius*dx,&AccretionRate) == FAIL)
+	return FAIL;
+  
+      // No need to communicate the accretion rate to the other CPUs since this particle is already local.
+      static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
+    }
   }
   
-  DistributeFeedbackZones(FeedbackZones, Grids);
+  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
+
+  for (i = 0; i < nParticles; i++) {
+    delete FeedbackZones[i];    
+  }
 
   delete [] FeedbackZones;
 
