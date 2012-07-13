@@ -238,9 +238,8 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	    if (Grids[GridNum]->GridData->GetGridID() == GlobalList[i]->ReturnGridID())
 	      GlobalList[i]->AssignCurrentGrid(Grids[GridNum]->GridData);
 	  }
+	  delete [] Grids;
 	}
-
-	delete [] Grids;
 
 #endif /* USE_MPI */
        

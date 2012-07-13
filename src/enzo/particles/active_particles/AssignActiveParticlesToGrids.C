@@ -78,7 +78,7 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
       // it from the old grid.
       if (OldGrid != LevelGrids[SavedGrid]->GridData) {
 	if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL)
-	  ENZO_FAIL("Active particle grid assignment failed");
+	  ENZO_FAIL("Active particle grid assignment failed!\n");
 	if (SavedGrid != -1) {
 	  foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
 	  foundP = OldGrid->RemoveParticle(ID);

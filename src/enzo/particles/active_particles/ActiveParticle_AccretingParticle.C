@@ -567,8 +567,6 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
   return SUCCESS;
 }
 
-int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],int NumberOfGrids);
-
 ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::MergeAccretingParticles
 (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
  int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel)
@@ -612,11 +610,41 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     }
   }
 
+  delete [] groupsize;
+  groupsize = NULL;
+  for (i=0; i<*ngroups; i++)
+    delete [] grouplist[i];
+  delete [] grouplist;
+  grouplist = NULL;
+
   HierarchyEntry** LevelGrids = NULL;
 
   int NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &LevelGrids);
 
-  CommunicationSyncNumberOfParticles(LevelGrids, NumberOfGrids);
+  /* Loop over the grids and check if any of the merged particles have
+     moved If so, disable the particle on the current grid and assign
+     it to the new grid*/
+
+  int NewGrid = -1;
+
+  for (i = 0; i < *ngroups; i++) {
+    if (MergedParticles[i]->ReturnCurrentGrid()->PointInGrid(MergedParticles[i]->ReturnPosition()) == false) {
+      // Find the grid to transfer to 
+      for (j = 0; j < NumberOfGrids; j++) {
+	if (LevelGrids[j]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition())) {
+	  NewGrid = j;
+	  break;
+	}
+      }
+      if (NewGrid == -1)
+	ENZO_FAIL("Cannot assign particle to grid after merging!\n");
+      MergedParticles[i]->DisableParticle(LevelArray,LevelGrids[NewGrid]->GridData->ReturnProcessorNumber()); 
+      //if (LevelGrids[j]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+      //	ENZO_FAIL("Active particle grid assignment failed!\n");
+      MergedParticles[i]->AssignCurrentGrid(LevelGrids[NewGrid]->GridData);
+    }
+  }
+
 
   *nParticles = *ngroups;
 
