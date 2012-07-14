@@ -598,9 +598,6 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   
   MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups]();
   
-  if (MyProcessorNumber == 1)
-    printf("Number of particles after merging: %"ISYM"\n",*ngroups);
-
   /* Merge the mergeable groups */
 
   for (i=0; i<*ngroups; i++) {
@@ -709,6 +706,9 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 						&NumberOfMergedParticles,LevelArray,ThisLevel);
 
       delete [] ParticleList;
+
+      if (debug && MyProcessorNumber == 1)
+	printf("Number of particles after merging: %"ISYM"\n",NumberOfMergedParticles);
 
       /* Assign local particles to grids */
  
