@@ -178,7 +178,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 		if (esp > 0.0)
 		  rmin = huge*CellWidth[0][0];
 		else
-		  rmin = -GravConst*msink/(2.0*esp) *
+		  rmin = -GravitationalConstant*msink/(2.0*esp) *
 		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2)));
 
 		dxmin = rmin / CellWidth[0][0];

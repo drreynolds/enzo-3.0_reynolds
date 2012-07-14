@@ -568,32 +568,9 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
-    float TotalMass1 = 0;
-      
-    for (int grid2 = 0; grid2 < NumberOfGrids; grid2++)
-      Grids[grid2]->GridData->SumGasMass(&TotalMass1);
-
-    float GlobalTotalMass1 = 0;
-
-    MPI_Allreduce(&TotalMass1, &GlobalTotalMass1, 1, FloatDataType, MPI_SUM, EnzoTopComm);
-
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, TotalActiveParticleCountPrevious);
 
-    float TotalMass2 = 0;
-      
-    for (int grid2 = 0; grid2 < NumberOfGrids; grid2++)
-      Grids[grid2]->GridData->SumGasMass(&TotalMass2);
-    
-    float GlobalTotalMass2 = 0;
-
-    MPI_Allreduce(&TotalMass2, &GlobalTotalMass2, 1, FloatDataType, MPI_SUM, EnzoTopComm);
-
-    if (abs(GlobalTotalMass2 - GlobalTotalMass1)/GlobalTotalMass1 >= 1e-12)
-      printf("GlobalTotalMass1: %20.13"FSYM" " 
-	     "GlobalTotalMass2: %20.13"FSYM" " 
-	     "after finalize \n",TotalMass1, TotalMass2);
-    
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
  
