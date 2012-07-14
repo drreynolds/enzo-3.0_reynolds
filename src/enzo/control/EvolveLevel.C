@@ -530,23 +530,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
       /* Include 'star' particle creation and feedback. */
 
-      float TotalMass1 = 0;
-      
-      for (int grid2 = 0; grid2 < NumberOfGrids; grid2++)
-	Grids[grid2]->GridData->SumGasMass(&TotalMass1);
-
       Grids[grid1]->GridData->ActiveParticleHandler
 	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
-
-      float TotalMass2 = 0;
-      
-      for (int grid2 = 0; grid2 < NumberOfGrids; grid2++)
-	Grids[grid2]->GridData->SumGasMass(&TotalMass2);
-
-      if (abs(TotalMass2 - TotalMass1)/TotalMass1 >= 1e-12)
-	printf("TotalMass1: %20.13"FSYM" " 
-	       "TotalMass2: %20.13"FSYM" " 
-	       "on grid %"ISYM"\n",TotalMass1, TotalMass2, grid1);
 
       /* Include shock-finding */
 

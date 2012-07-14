@@ -210,7 +210,7 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   // Leaving these defaults hardcoded for testing. NJG
 
   OverflowFactor = 1.01;
-  LinkingLength = 5;
+  LinkingLength = 4;
   AccretionRadius = 4;
 
 #endif
@@ -594,21 +594,12 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
 
   /* Find mergeable groups using an FOF search */
 
-  float mass = 0;
-
-  for (i = 0; i < *nParticles; i++)
-    mass += ParticleList[i]->ReturnMass();
-
-  printf("Mass before merging: %20.13"FSYM"\n",mass);
-
   *ngroups = FofList((*nParticles), ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
   
   MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups]();
-
-  printf("Number of particles after merging: %"ISYM"\n",*ngroups);
-
-  if (*ngroups > 1)
-    printf("I am a debug statement!\n");
+  
+  if (MyProcessorNumber == 1)
+    printf("Number of particles after merging: %"ISYM"\n",*ngroups);
 
   /* Merge the mergeable groups */
 
@@ -655,13 +646,6 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     }
   }
 
-  mass = 0;
-
-  for (i = 0; i < *ngroups; i++)
-    mass += MergedParticles[i]->ReturnMass();
-
-  printf("Mass after merging: %20.13"FSYM"\n",mass);
-
   delete [] LevelGrids;
 
   *nParticles = *ngroups;
@@ -694,21 +678,6 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       if (nParticles == 0)
 	return SUCCESS;
 
-      /*
-      float TotalMass = 0;
-
-      for (i = 0; i < NumberOfGrids; i++)
-	Grids[i]->GridData->SumGasMass(&TotalMass);
-
-      printf("%"ISYM" TotalMass: %20.13"FSYM"\n",MyProcessorNumber,TotalMass);
-
-      float GlobalTotalMass = 0;
-
-      MPI_Allreduce(&TotalMass, &GlobalTotalMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
-
-      printf("TotalMass: %20.13"FSYM"\n",GlobalTotalMass);
-      */
-
       /* Calculate CellWidth on maximum refinement level */
 
       // This assumes a cubic box and may not work for simulations with MinimumMassForRefinementLevelExponent
@@ -726,6 +695,21 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       delete [] ParticleList;
    
+      // Do merging twice to catch pathological cases where merging
+      // leaves multiple sinks inside the same accretion zone.
+
+      ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
+
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	ParticleList[i] = static_cast<ActiveParticleType*>(MergedParticles[i]);
+
+      delete [] MergedParticles;
+
+      MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
+						&NumberOfMergedParticles,LevelArray,ThisLevel);
+
+      delete [] ParticleList;
+
       /* Assign local particles to grids */
  
       ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
@@ -749,21 +733,6 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       if (Accrete(nParticles,ParticleList,AccretionRadius,dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
      
-      /*
-      TotalMass = 0;
-
-      for (i = 0; i < NumberOfGrids; i++)
-	Grids[i]->GridData->SumGasMass(&TotalMass);
-      
-      printf("%"ISYM" TotalMass: %20.13"FSYM"\n",MyProcessorNumber,TotalMass);
-
-      GlobalTotalMass = 0;
-
-      MPI_Allreduce(&TotalMass, &GlobalTotalMass, 1, FloatDataType, MPI_SUM, EnzoTopComm);
-
-      printf("TotalMass: %20.13"FSYM"\n",GlobalTotalMass);
-      */
-
       delete [] ParticleList;
 
     }
