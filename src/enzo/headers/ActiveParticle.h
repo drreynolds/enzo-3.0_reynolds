@@ -46,9 +46,6 @@ public:
   
   /* This should return the number of new star particles created, and should
    * create them. */
-//  ActiveParticleType(){};
-//  ~ActiveParticleType(){};
-//  ActiveParticleType(ActiveParticleType*& part){};
 
   ActiveParticleType(void);
   ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
