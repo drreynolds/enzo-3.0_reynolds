@@ -59,7 +59,7 @@ void EnableActiveParticleType(char *active_particle_type_name) {
     }
     
     // retrieves active particle specific parameters
-    my_type->initialize();
+    my_type->InitializeParticleType();
 
     EnabledActiveParticles[EnabledActiveParticlesCount++] = my_type;
     int this_id = my_type->Enable();
@@ -379,7 +379,5 @@ void ActiveParticleType::SetupBaseParticleAttributes(
 }
 
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
-int ParticleBufferHandler::ElementSizeInBytes;
-int ParticleBufferHandler::HeaderSizeInBytes;
 
 

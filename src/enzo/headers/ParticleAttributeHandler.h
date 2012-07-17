@@ -22,6 +22,8 @@
 
 #include "communicators.h"
 
+class ActiveParticleType;
+
 class ParticleAttributeHandler
 {
 
@@ -67,13 +69,15 @@ class Handler : public ParticleAttributeHandler
         this->element_size = sizeof(Type);
     }
 
-    void SetAttribute(char **buffer, APClass *pp) {
+    void SetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
         Type *pb = (Type *)(*buffer);
         pp->*var = *(pb++);
         *buffer = (char *) pb;
     }
 
-    void GetAttribute(char **buffer, APClass *pp) {
+    void GetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
         Type *pb = (Type *)(*buffer);
         *(pb++) = pp->*var;
         *buffer = (char *) pb;
@@ -114,13 +118,15 @@ class ArrayHandler : public ParticleAttributeHandler
                    mpitype, MPI_COMM_WORLD);
     }
 
-    void SetAttribute(char **buffer, APClass *pp) {
+    void SetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
         Type *pb = (Type *)(*buffer);
         (pp->*var)[this->offset] = *(pb++);
         *buffer = (char *) pb;
     }
 
-    void GetAttribute(char **buffer, APClass *pp) {
+    void GetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
         Type *pb = (Type *)(*buffer);
         *(pb++) = (pp->*var)[this->offset];
         *buffer = (char *) pb;

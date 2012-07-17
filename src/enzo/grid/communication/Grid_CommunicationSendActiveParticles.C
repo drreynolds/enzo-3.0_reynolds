@@ -84,8 +84,6 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
       // determine the number of active particles with this type on
       // the other processor.
 
-      header_size = ap_info->return_header_size();
-      element_size = ap_info->return_element_size();
       if (MyProcessorNumber == ProcessorNumber) {
 	size = 0;
 	for (i = 0; i < NumberOfActiveParticles; i++)
@@ -93,7 +91,6 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
       } else {
 	size = NumberOfActiveParticles;
       }
-      TransferSize = header_size + size*element_size;
 
 #ifdef USE_MPI
       if (CommunicationDirection == COMMUNICATION_RECEIVE)
@@ -107,8 +104,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   if (MyProcessorNumber == ProcessorNumber) {
     position = 0;
     ap_id = ap_info->GetEnabledParticleID();
-    ap_info->allocate_buffer(ActiveParticles, NumberOfActiveParticles,
-			     buffer, TransferSize, buffer_size, position, ap_id, -1);
+    ap_info->FillBuffer(ActiveParticles, NumberOfActiveParticles, &buffer);
     if (DeleteParticles == true) {
       for (i = 0; i < NumberOfActiveParticles; i++)
 	if (ActiveParticles[i]->ReturnType() == type)
@@ -196,7 +192,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     NewParticles = new ActiveParticleType*[NumberOfNewParticles];
     buffer_size = header_size + NumberOfNewParticles*element_size;
     npart = 0;
-    ap_info->unpack_buffer(buffer, buffer_size, NumberOfNewParticles,
+    ap_info->UnpackBuffer(buffer, NumberOfNewParticles,
 			   NewParticles, npart);
 
     for (i = 0; i < NumberOfNewParticles; i++)

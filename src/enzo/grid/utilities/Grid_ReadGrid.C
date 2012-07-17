@@ -527,7 +527,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
 	/* Read the active particles from disk */
 
-	ActiveParticleTypeToEvaluate->read_function(ActiveParticlesOfThisTypeOnDisk,
+	ActiveParticleTypeToEvaluate->ReadFromOutput(ActiveParticlesOfThisTypeOnDisk,
 						    NumberOfActiveParticlesOfThisType,
 						    GridRank,
 						    ActiveParticleGroupID);

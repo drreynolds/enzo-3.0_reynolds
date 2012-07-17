@@ -71,7 +71,7 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
     
 
     ActiveParticleTypeToEvaluate->
-      after_evolvelevel_function(Grids,MetaData,NumberOfGrids,LevelArray, 
+      AfterEvolveLevel(Grids,MetaData,NumberOfGrids,LevelArray, 
 				 level,TotalActiveParticleCountPrevious,
 				 ActiveParticleID);
 

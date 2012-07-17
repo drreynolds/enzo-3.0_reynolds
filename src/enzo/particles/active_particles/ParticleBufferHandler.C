@@ -30,68 +30,6 @@
 
 #include "ActiveParticle.h"
 
-template <class APClass> int ParticleBufferHandler::ElementSize() {
-    static int particle_size = 0;
-    if (particle_size > 0) return particle_size;
-    AttributeVector &handlers = APClass::ParticleAttributeHandlers;
-    for(AttributeVector::iterator it = handlers.begin();
-        it != handlers.end(); ++it) {
-        particle_size += (*it).element_size;
-    }
-    return particle_size;
-}
-
-template <class APClass> void ParticleBufferHandler::Allocate(int Count, char **buffer) {
-        
-    /* This routine is called for each particle type. */
-    /* So we need to re-calculate the element and header size for each. */
-
-    int particle_size = this->ElementSize<APClass>();
-    int header_size = APClass::ReturnHeaderSize();
-
-    buffer = &(new char[particle_size * Count + header_size]);
-
-}
-
-template <class APClass> void ParticleBufferHandler::FillBuffer(
-        ActiveParticleType **InList_, int InCount, char *buffer) {
-
-    int i;
-
-    if (buffer == NULL) {
-        this->Allocate<APClass>(InCount, &buffer);
-    }
-
-    AttributeVector &handlers = APClass::ParticleAttributeHandlers;
-    APClass **InList = dynamic_cast<APClass**>(InList_);
-
-    for (i = 0; i < InCount; i++) {
-        for(AttributeVector::iterator it = handlers.begin();
-            it != handlers.end(); ++it) {
-            it->GetAttribute(&buffer, InList[i]);
-        }
-    }
-}
-
-template <class APClass> void ParticleBufferHandler::Unpack(
-        char *buffer, int offset,
-        ActiveParticleType **OutList_, int OutCount) {
-
-    APClass **OutList = dynamic_cast<APClass**>(OutList_);
-    AttributeVector &handlers = APClass::ParticleAttributeHandlers;
-    APClass *ap;
-    int i;
-
-    for (i = 0; i < OutCount; i++) {
-        ap = new APClass();
-        OutList[i + offset] = ap;
-        for(AttributeVector::iterator it = handlers.begin();
-            it != handlers.end(); ++it) {
-            it->SetAttribute(&buffer, ap);
-        }
-    }
-
-}
 
 ParticleBufferHandler::ParticleBufferHandler(void)
 {
@@ -188,15 +126,9 @@ void ParticleBufferHandler::AllocateMemory(void)
   return;
 }
 
-void ParticleBufferHandler::CalculateElementSize(void)
+static int ParticleBufferHandler::ReturnHeadersize(void)
 {
-  // Define the element size in bytes (excluding the processor number)
-  // float: 6 -- vel[3], BirthTime, DynamicalTime, Metallicity
-  // FLOAT: 3 -- pos[3]
-  // double: 1 -- Mass
-  // int: 3 -- level, GridID, type
-  // PINT: 1 -- Identifier
-
+  return sizeof(int);
   Eint32 mpi_flag = 0;
   this->ElementSizeInBytes = 0;
   this->HeaderSizeInBytes = 0;
@@ -208,25 +140,12 @@ void ParticleBufferHandler::CalculateElementSize(void)
   Eint32 size;
   if (mpi_flag == 1) {
 #ifdef USE_MPI
-    MPI_Pack_size(6, FloatDataType, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(3, MY_MPIFLOAT, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(1, MPI_DOUBLE, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(3, IntDataType, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(1, PINTDataType, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-  
     // Header:
     // 1. Number of buffers (int)
     MPI_Pack_size(1, IntDataType, EnzoTopComm, &size);
     this->HeaderSizeInBytes += size;
 #endif
   } else {
-    this->ElementSizeInBytes = 6*sizeof(float) + 3*sizeof(FLOAT) + 1*sizeof(double) +
-      3*sizeof(int) + 1*sizeof(PINT);
     this->HeaderSizeInBytes = 1*sizeof(int);
   }
   return;

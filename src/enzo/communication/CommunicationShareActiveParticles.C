@@ -78,8 +78,8 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       mpi_recv_buffer_size = new int[NumberOfProcessors];
 
       // First determine the buffer size, then we can fill it.
-      header_size = ap_info->return_header_size();
-      element_size = ap_info->return_element_size();
+      header_size = sizeof(int);
+      element_size = ap_info->ReturnElementSize();
       size = 0;
       for (i = 0; i < TotalNumberToMove; i++)
 	if (SendList[i]->ReturnType() == type) size++;
@@ -88,10 +88,9 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       // Pack the buffer, ordered by destination processor
       position = 0;
-      for (proc = 0; proc < NumberOfProcessors; proc++)
-	ap_info->allocate_buffer(SendList, size, mpi_buffer, 
-				 total_buffer_size, mpi_buffer_size[proc], 
-				 position, ap_id, proc);
+      for (proc = 0; proc < NumberOfProcessors; proc++) {
+	    ap_info->FillBuffer(SendList, size, &mpi_buffer);
+      }
 
       /* Get counts from each processor to allocate buffers. */
 
@@ -166,10 +165,9 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       for (proc = 0; proc < NumberOfProcessors; proc++) {
 	NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc] - header_size) / element_size;
 	if (NumberOfNewParticlesThisProcessor > 0)
-	  ap_info->unpack_buffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
-				 MPI_RecvListCount[proc],
-				 NumberOfNewParticlesThisProcessor,
-				 SharedList, count);
+	  ap_info->UnpackBuffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
+                 count, SharedList, MPI_RecvListCount[proc]);
+      count += MPI_RecvListCount[proc];
       }
 
       NumberOfReceives = NumberOfNewParticles;
