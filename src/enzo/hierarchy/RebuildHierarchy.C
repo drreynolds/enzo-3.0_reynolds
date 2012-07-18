@@ -13,7 +13,7 @@
 /  PURPOSE:
 /
 ************************************************************************/
-#define DEBUG_AP
+#define NO_DEBUG_AP
 
 #ifdef USE_MPI
 #include "communicators.h"

@@ -308,11 +308,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	    POW(data.LengthUnits*dx*RefineByJeansLengthSafetyFactor,2) / data.DensityUnits;
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
 	}
-	if (MassRefinement) {
-	  MassRefinementDensity = MinimumMassForRefinement[MassRefinementMethod]*
-	    pow(RefineBy, data.level*MinimumMassForRefinementLevelExponent[MassRefinementMethod])/POW(dx,3);
-	  DensityThreshold = min(DensityThreshold,MassRefinementDensity);
-	}
 	if (DensityThreshold == huge_number)
 	  ENZO_FAIL("Error in Accreting Particles: Must refine by jeans length or overdensity!");
 	

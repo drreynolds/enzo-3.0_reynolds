@@ -151,9 +151,5 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   this->DeleteParticles();
   this->SetParticlePointers(Mass, Number, pos, vel);
 
-  if (NumberOfActiveParticles != NumberOfParticles)
-    ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
-	       NumberOfActiveParticles, NumberOfParticles);
-
   return SUCCESS;
 }
