@@ -1639,7 +1639,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   if (ParticleTypeInFile == TRUE) {
     if (debug) 
       fprintf(stderr, "Particle types are deprecated.\n"
-	      "Turning OFF ParticleTypeInFile.\n");
+  "Turning OFF ParticleTypeInFile.\n");
     ParticleTypeInFile = FALSE;
   }
 
