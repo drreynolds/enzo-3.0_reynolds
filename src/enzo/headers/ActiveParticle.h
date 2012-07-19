@@ -50,7 +50,7 @@ public:
   ActiveParticleType(void);
   ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
   ActiveParticleType(grid *_grid, int _id, int _level);
-  ActiveParticleType(ActiveParticleType*& part);
+  ActiveParticleType(ActiveParticleType* part);
   ActiveParticleType(ParticleBufferHandler *buffer, int index);
   ~ActiveParticleType(void);
 

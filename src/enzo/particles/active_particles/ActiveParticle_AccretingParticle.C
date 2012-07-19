@@ -123,6 +123,10 @@ public:
     ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {
     AccretionRate = buffer->AccretionRate[index];
   };
+  ActiveParticleType_AccretingParticle(ActiveParticleType_AccretingParticle* part) :
+    ActiveParticleType(static_cast<ActiveParticleType*>(part)) {
+    AccretionRate = part->AccretionRate;
+  };
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
@@ -636,9 +640,15 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
       }
       if (NewGrid == -1)
 	ENZO_FAIL("Cannot assign particle to grid after merging!\n");
-      MergedParticles[i]->DisableParticle(LevelArray,LevelGrids[NewGrid]->GridData->ReturnProcessorNumber()); 
+      int OldProc = LevelGrids[NewGrid]->GridData->ReturnProcessorNumber();
+      ActiveParticleType_AccretingParticle *SavedParticle = NULL;
+      if (MyProcessorNumber == OldProc)
+	SavedParticle = new ActiveParticleType_AccretingParticle(MergedParticles[i]);
+      MergedParticles[i]->DisableParticle(LevelArray,OldProc); 
       if (LevelGrids[j]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
       	ENZO_FAIL("Active particle grid assignment failed!\n");
+      if (MyProcessorNumber == OldProc)
+	MergedParticles[i] = SavedParticle;
       MergedParticles[i]->AssignCurrentGrid(LevelGrids[NewGrid]->GridData);
     }
   }
