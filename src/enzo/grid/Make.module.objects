@@ -74,6 +74,9 @@ ENZO_OBJS +=\
 	Grid_ReturnStarStatistics.o \
 	Grid_SetNewParticleIndex.o \
 	Grid_SetParticleMassFlaggingField.o \
+	Grid_SortActiveParticlesByNumber.o \
+	Grid_SortParticlesByNumber.o \
+	Grid_SortParticlesByType.o \
 	Grid_TracerParticleCreateParticles.o \
 	Grid_TracerParticleOutputData.o \
 	Grid_TracerParticleSetVelocity.o \
@@ -384,8 +387,6 @@ ENZO_OBJS +=\
 	Grid_SetSubgridMarkerFromParent.o \
 	Grid_SetSubgridMarkerFromSibling.o \
 	Grid_SetSubgridMarkerFromSubgrid.o \
-	Grid_SortParticlesByNumber.o \
-	Grid_SortParticlesByType.o \
 	Grid_SubgridMarkerPostParallel.o \
 	Grid_SubtractAccretedMassFromSphere.o \
 	Grid_SumGasMass.o \

@@ -809,7 +809,8 @@ int grid::WriteCube(char *base_name, int grid_id, int TGdims[])
       // Sort particles according to their identifier
  
       this->SortParticlesByNumber();
- 
+      this->SortActiveParticlesByNumber();
+
       // Particle positions are not converted to 32 bit first.
       // (128 bit numbers are not supported by HDF so convert to 64)
  

@@ -159,6 +159,13 @@ struct cmp_ap_type {
 };
 
 
+struct cmp_ap_number {
+  bool operator()(ActiveParticleType* const& a, ActiveParticleType* const& b) const {
+    if (a->ReturnID() < b->ReturnID()) return true;
+    else return false;
+  }
+};
+
 struct ActiveParticleFormationData {
   int NumberOfNewParticles;
   int MaxNumberOfNewParticles;

@@ -305,7 +305,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	if (JeansRefinement) {
 	  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
 	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature / 
-	    POW(data.LengthUnits*dx*RefineByJeansLengthSafetyFactor,2) / data.DensityUnits;
+	    POW(data.LengthUnits*dx*4.0,2);
+	  JeansDensity /= data.DensityUnits;
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
 	}
 	if (DensityThreshold == huge_number)
@@ -702,7 +703,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       delete [] ParticleList;
 
-      if (debug && MyProcessorNumber == 1)
+      if (debug)
 	printf("Number of particles after merging: %"ISYM"\n",NumberOfMergedParticles);
 
       /* Assign local particles to grids */

@@ -1491,16 +1491,17 @@ gradient force to gravitational force for one-zone collapse test. */
 
 /* Particles: sort particle data in ascending order by number (id) or type. */
 
-void SortParticlesByNumber();
-void SortParticlesByType();
+  void SortParticlesByNumber();
+  void SortActiveParticlesByNumber();
+  void SortParticlesByType();
 
-int CreateParticleTypeGrouping(hid_t ptype_dset,
-                               hid_t ptype_dspace,
-                               hid_t parent_group,
-                               hid_t file_id);
-
- int ChangeParticleTypeBeforeSN(int _type, int level, 
-				int *ParticleBufferSize=NULL);
+  int CreateParticleTypeGrouping(hid_t ptype_dset,
+				 hid_t ptype_dspace,
+				 hid_t parent_group,
+				 hid_t file_id);
+  
+  int ChangeParticleTypeBeforeSN(int _type, int level, 
+				 int *ParticleBufferSize=NULL);
 
 // -------------------------------------------------------------------------
 // Communication functions
