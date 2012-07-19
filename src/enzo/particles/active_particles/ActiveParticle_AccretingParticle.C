@@ -604,6 +604,10 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
 	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->
 							   ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
 	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
+	if (ParticleList[grouplist[i][j]]->ReturnCurrentGrid()->ReturnProcessorNumber() != MyProcessorNumber) {
+	  delete ParticleList[grouplist[i][j]];
+	  ParticleList[grouplist[i][j]] = NULL;
+	}
       }
     }
   }
@@ -719,6 +723,13 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 	return FAIL;
 
       delete [] ParticleList;
+
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	if (MergedParticles[i]->ReturnCurrentGrid()->ReturnProcessorNumber() != MyProcessorNumber) {
+	  delete MergedParticles[i];
+	  MergedParticles[i] = NULL;
+	}
+
       delete [] MergedParticles;
       
       /* Regenerate the global active particle list */
