@@ -640,15 +640,13 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
       }
       if (NewGrid == -1)
 	ENZO_FAIL("Cannot assign particle to grid after merging!\n");
-      int OldProc = LevelGrids[NewGrid]->GridData->ReturnProcessorNumber();
-      ActiveParticleType_AccretingParticle *SavedParticle = NULL;
-      if (MyProcessorNumber == OldProc)
-	SavedParticle = new ActiveParticleType_AccretingParticle(MergedParticles[i]);
-      MergedParticles[i]->DisableParticle(LevelArray,OldProc); 
-      if (LevelGrids[j]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
+      int OldProc = MergedParticles[i]->CurrentGrid->ReturnProcessorNumber();
+      ActiveParticleType_AccretingParticle *temp = new ActiveParticleType_AccretingParticle(MergedParticles[i]);
+      MergedParticles[i]->DisableParticle(LevelArray,LevelGrids[NewGrid]->GridData->ReturnProcessorNumber()); 
+      if (LevelGrids[NewGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(temp)) == FAIL)
       	ENZO_FAIL("Active particle grid assignment failed!\n");
       if (MyProcessorNumber == OldProc)
-	MergedParticles[i] = SavedParticle;
+	MergedParticles[i] = temp;
       MergedParticles[i]->AssignCurrentGrid(LevelGrids[NewGrid]->GridData);
     }
   }
