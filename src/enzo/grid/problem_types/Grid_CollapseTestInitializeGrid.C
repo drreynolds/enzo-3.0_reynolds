@@ -554,7 +554,7 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 
 	      if (SphereType[sphere] == 11) {
 		float Omega = 2*pi/SphereRotationPeriod[sphere];
-		SphereVelocity[sphere][0] = Omega*ypos;
+		SphereVelocity[sphere][0] = -Omega*ypos;
 		SphereVelocity[sphere][1] = Omega*xpos;
 		SphereVelocity[sphere][2] = 0;
 	      }
