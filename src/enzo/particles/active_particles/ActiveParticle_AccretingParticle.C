@@ -468,6 +468,7 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   delete[] DynamicalTime;
   delete[] Metallicity;
   delete[] AccretionRate;
+  delete[] ID;
   H5Gclose(AccretingParticleGroupID);
 
   return SUCCESS;
@@ -608,7 +609,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
 	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->
 							   ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
 	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
-	if (ParticleList[grouplist[i][j]]->ReturnCurrentGrid()->ReturnProcessorNumber() != MyProcessorNumber) {
+	if (NumberOfProcessors > 1) {
 	  delete ParticleList[grouplist[i][j]];
 	  ParticleList[grouplist[i][j]] = NULL;
 	}
@@ -645,8 +646,12 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
       MergedParticles[i]->DisableParticle(LevelArray,LevelGrids[NewGrid]->GridData->ReturnProcessorNumber()); 
       if (LevelGrids[NewGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(temp)) == FAIL)
       	ENZO_FAIL("Active particle grid assignment failed!\n");
-      if (MyProcessorNumber == OldProc)
+      if (MyProcessorNumber == OldProc) {
+	delete MergedParticles[i];
 	MergedParticles[i] = temp;
+      }
+      else if (MyProcessorNumber != temp->CurrentGrid->ReturnProcessorNumber())
+	delete temp;
       MergedParticles[i]->AssignCurrentGrid(LevelGrids[NewGrid]->GridData);
     }
   }
@@ -748,6 +753,14 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       if (Accrete(nParticles,ParticleList,AccretionRadius,dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
      
+      for (i = 0; i < nParticles; i++)
+	if (ParticleList[i]->ReturnCurrentGrid()->ReturnProcessorNumber() != MyProcessorNumber) {
+	  delete ParticleList[i];
+	  ParticleList[i] = NULL;
+	}
+
+      // Accrete takes care of its own memory management - no need to free ParticleList.
+
       delete [] ParticleList;
 
     }
@@ -842,6 +855,12 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
 	ENZO_FAIL("Error in grid->DepositAccretionZone.\n")
 	  }
   }
+
+  if (NumberOfProcessors > 1)
+    for (i = 0; i < nParticles; i++)
+      delete AccretingParticleList[i];
+
+  delete AccretingParticleList;
 
   return SUCCESS;
 }

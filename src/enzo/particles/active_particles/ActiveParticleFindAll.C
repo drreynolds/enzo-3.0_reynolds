@@ -226,6 +226,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	delete [] displace;
 	delete [] send_buffer;
 	delete [] recv_buffer;
+	delete [] all_buffer_sizes;
 	nCount = NULL;
 	displace = NULL;
 	send_buffer = NULL;
@@ -248,7 +249,11 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	GlobalList = LocalActiveParticlesOfThisType;
       } // ENDIF serial
       
+      delete [] LocalActiveParticlesOfThisType;
+
     }  /* ENDIF number of active particles > 0 */
+    else 
+      delete [] nCount;
 
   } /* ENFOR Active particle types */
 

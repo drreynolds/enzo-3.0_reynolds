@@ -72,8 +72,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   char line[MAX_LINE_LENGTH];
   int i, dim, ret, int_dummy;
   float TempFloat;
-  char *dummy = new char[MAX_LINE_LENGTH];
-  dummy[0] = 0;
   int comment_count = 0;
  
   /* read until out of lines */
@@ -81,6 +79,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   rewind(fptr);
   while ((fgets(line, MAX_LINE_LENGTH, fptr) != NULL) 
       && (comment_count < 2)) {
+
+    char *dummy = new char[MAX_LINE_LENGTH];
+    dummy[0] = 0;
 
     ret = 0;
  
@@ -1083,7 +1084,8 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     if (ret == 0 && strstr(line, "=") != NULL && line[0] != '#')
       if (MyProcessorNumber == ROOT_PROCESSOR)
 	fprintf(stderr, "warning: the following parameter line was not interpreted:\n%s", line);
- 
+
+    delete [] dummy;
   }
 
   // HierarchyFile IO sanity check
@@ -1100,7 +1102,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
   /* clean up */
  
-  delete [] dummy;
   rewind(fptr);
 
   /* Now we know which hydro solver we're using, we can assign the
@@ -1601,6 +1602,8 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     if (MyProcessorNumber == ROOT_PROCESSOR)
       fprintf(stderr,"Global Dir set to %s\n", cwd_buffer);
   }
+
+  delete [] cwd_buffer;
 
   /* Generate unique identifier if one wasn't found. */
   if(MetaData.SimulationUUID == NULL){

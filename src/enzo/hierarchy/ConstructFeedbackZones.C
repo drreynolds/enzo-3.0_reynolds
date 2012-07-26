@@ -108,6 +108,9 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
     FeedbackZones[i] = FeedbackZone;
   }
 
+  delete [] APGrids;
+  delete [] ParticlePosition; 
+
   // Copy zones from this grid (which must overlap the position of the AP).
   // Note, using ZeroVector here will break if a FeedbackZone overlaps with a
   // domain boundary

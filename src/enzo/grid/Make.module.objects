@@ -58,6 +58,7 @@ ENZO_OBJS +=\
 	Grid_InterpolateParticlePositions.o \
 	Grid_MirrorActiveParticles.o \
 	Grid_MirrorStarParticles.o \
+	Grid_MoveAllParticles.o \
 	Grid_MoveAllStars.o \
 	Grid_MoveParticlesFOF.o \
 	Grid_MoveSubgridActiveParticles.o \
@@ -361,7 +362,6 @@ ENZO_OBJS +=\
 	Grid_InterpolateRadiationFromParent.o \
 	Grid_InterpolateStarParticlesToGrid.o \
 	Grid_MagneticFieldResetter.o \
-	Grid_MoveAllParticles.o \
 	Grid_OutputAsParticleData.o \
 	Grid_PrepareBoundaryFluxes.o \
 	Grid_PrepareFFT.o \

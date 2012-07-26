@@ -120,6 +120,8 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   BondiHoyleRadius = GravitationalConstant*msink/
     (pow(vInfinity,2) + pow(cInfinity,2));
 
+  delete [] Temperature;
+
   // Eqn 13
   if (BondiHoyleRadius < CellSize/4.0)
     KernelRadius = CellSize/4.0;
