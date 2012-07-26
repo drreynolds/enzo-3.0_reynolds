@@ -69,12 +69,14 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   }
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
-  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1]();
+  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1];
   
   j = 0;
   if (NumberOfActiveParticles > 0) {
     for (i = 0; i <= NumberOfActiveParticles; i++) {
       if (i == iskip) {
+	delete OldActiveParticles[i];
+	OldActiveParticles[i] = NULL;
 	continue;
       } else {
 	ActiveParticles[j] = OldActiveParticles[i];    
@@ -82,8 +84,10 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
       }
     }
   } 
-  else if (iskip != -1)
+  else if (iskip != -1) {
     delete OldActiveParticles[0];
+    OldActiveParticles[0] = NULL;
+  }
 
   ThisParticle->SetGridID(ID);
   ThisParticle->AssignCurrentGrid(this);

@@ -648,7 +648,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
       	ENZO_FAIL("Active particle grid assignment failed!\n");
       if (MyProcessorNumber == OldProc) {
 	delete MergedParticles[i];
-	MergedParticles[i] = temp;
+	MergedParticles[i] = new ActiveParticleType_AccretingParticle(temp);
       }
       else if (MyProcessorNumber != temp->CurrentGrid->ReturnProcessorNumber())
 	delete temp;
