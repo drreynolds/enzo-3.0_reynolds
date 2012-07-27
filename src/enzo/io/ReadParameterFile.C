@@ -1603,8 +1603,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       fprintf(stderr,"Global Dir set to %s\n", cwd_buffer);
   }
 
-  delete [] cwd_buffer;
-
   /* Generate unique identifier if one wasn't found. */
   if(MetaData.SimulationUUID == NULL){
     MetaData.SimulationUUID = new char[MAX_LINE_LENGTH];
@@ -1647,7 +1645,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   }
 
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
-
 
   CheckShearingBoundaryConsistency(MetaData);
   return SUCCESS;
