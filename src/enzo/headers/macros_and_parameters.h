@@ -378,6 +378,7 @@ typedef int            HDF5_hid_t;
 
 /* Definitions for grid::CommunicationSend/ReceiveRegion and 
    grid::DepositPositions */
+#define MAX_EXTRA_OUTPUTS                10 
 
 #define INTERPOLATED_FIELDS              -8
 #define PARTICLE_MASS_FLAGGING_FIELD     -7
