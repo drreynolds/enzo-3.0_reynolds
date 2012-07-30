@@ -242,6 +242,8 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	  delete [] Grids;
 	}
 
+	delete [] LocalActiveParticlesOfThisType;
+
 #endif /* USE_MPI */
        
       } /* ENDIF multi-processor */
@@ -249,8 +251,6 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	GlobalList = LocalActiveParticlesOfThisType;
       } // ENDIF serial
       
-      delete [] LocalActiveParticlesOfThisType;
-
     }  /* ENDIF number of active particles > 0 */
     else 
       delete [] nCount;
