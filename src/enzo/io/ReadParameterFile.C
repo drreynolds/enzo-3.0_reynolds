@@ -72,8 +72,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   char line[MAX_LINE_LENGTH];
   int i, dim, ret, int_dummy;
   float TempFloat;
-  char *dummy = new char[MAX_LINE_LENGTH];
-  dummy[0] = 0;
   int comment_count = 0;
  
   /* read until out of lines */
@@ -81,6 +79,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   rewind(fptr);
   while ((fgets(line, MAX_LINE_LENGTH, fptr) != NULL) 
       && (comment_count < 2)) {
+
+    char *dummy = new char[MAX_LINE_LENGTH];
+    dummy[0] = 0;
 
     ret = 0;
  
@@ -1083,7 +1084,8 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     if (ret == 0 && strstr(line, "=") != NULL && line[0] != '#')
       if (MyProcessorNumber == ROOT_PROCESSOR)
 	fprintf(stderr, "warning: the following parameter line was not interpreted:\n%s", line);
- 
+
+    delete [] dummy;
   }
 
   // HierarchyFile IO sanity check
@@ -1100,7 +1102,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
   /* clean up */
  
-  delete [] dummy;
   rewind(fptr);
 
   /* Now we know which hydro solver we're using, we can assign the
@@ -1636,15 +1637,14 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
      off ParticleTypeInFile because particles are grouped by active
      particle type.  Types are no longer used. */
 
-  if (EnabledActiveParticlesCount > 0 && ParticleTypeInFile == TRUE) {
+  if (ParticleTypeInFile == TRUE) {
     if (debug) 
-      fprintf(stderr, "Particle types are not used with active particles.\n"
-	      "Turning OFF ParticleTypeInFile.\n");
+      fprintf(stderr, "Particle types are deprecated.\n"
+  "Turning OFF ParticleTypeInFile.\n");
     ParticleTypeInFile = FALSE;
   }
 
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
-
 
   CheckShearingBoundaryConsistency(MetaData);
   return SUCCESS;

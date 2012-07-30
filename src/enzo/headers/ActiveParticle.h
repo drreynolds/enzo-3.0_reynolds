@@ -45,14 +45,11 @@ public:
   
   /* This should return the number of new star particles created, and should
    * create them. */
-//  ActiveParticleType(){};
-//  ~ActiveParticleType(){};
-//  ActiveParticleType(ActiveParticleType*& part){};
 
   ActiveParticleType(void);
   ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
   ActiveParticleType(grid *_grid, int _id, int _level);
-  ActiveParticleType(ActiveParticleType*& part);
+  ActiveParticleType(ActiveParticleType* part);
   ~ActiveParticleType(void);
 
   void operator=(ActiveParticleType *a);
@@ -158,6 +155,13 @@ struct cmp_ap_type {
   }
 };
 
+
+struct cmp_ap_number {
+  bool operator()(ActiveParticleType* const& a, ActiveParticleType* const& b) const {
+    if (a->ReturnID() < b->ReturnID()) return true;
+    else return false;
+  }
+};
 
 struct ActiveParticleFormationData {
   int NumberOfNewParticles;

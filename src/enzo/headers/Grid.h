@@ -180,6 +180,9 @@ class grid
   				// resets everytime the grid outputs
 
 
+  // density and pressure history for one-zone collapse
+  // for calculating effective gamma
+  float **CollapseHistory[2];
 //
 // Friends
 //
@@ -477,6 +480,11 @@ public:
        PPMDiffusionParameter  = p2;
        PPMSteepeningParameter = p3;
      }
+
+/* Problem-type-specific: compute approximate ratio of pressure 
+gradient force to gravitational force for one-zone collapse test. */
+
+   int ComputeOneZoneCollapseFactor(float *force_factor);
 
 /* Baryons: compute the pressure at the requested time. */
 
@@ -1163,7 +1171,8 @@ public:
    }
    FLOAT GetGridLeftEdge(int Dimension) {return GridLeftEdge[Dimension];}
    FLOAT GetGridRightEdge(int Dimension) {return GridRightEdge[Dimension];}
-   FLOAT GetCellWidth(int Dimension) {return CellWidth[Dimension][0];}
+   FLOAT GetCellWidth(int Dimension, int index) {return CellWidth[Dimension][index];}
+   FLOAT GetCellLeftEdge(int Dimension, int index) {return CellLeftEdge[Dimension][index];}
 
 #ifdef TRANSFER
 // -------------------------------------------------------------------------
@@ -1482,16 +1491,17 @@ public:
 
 /* Particles: sort particle data in ascending order by number (id) or type. */
 
-void SortParticlesByNumber();
-void SortParticlesByType();
+  void SortParticlesByNumber();
+  void SortActiveParticlesByNumber();
+  void SortParticlesByType();
 
-int CreateParticleTypeGrouping(hid_t ptype_dset,
-                               hid_t ptype_dspace,
-                               hid_t parent_group,
-                               hid_t file_id);
-
- int ChangeParticleTypeBeforeSN(int _type, int level, 
-				int *ParticleBufferSize=NULL);
+  int CreateParticleTypeGrouping(hid_t ptype_dset,
+				 hid_t ptype_dspace,
+				 hid_t parent_group,
+				 hid_t file_id);
+  
+  int ChangeParticleTypeBeforeSN(int _type, int level, 
+				 int *ParticleBufferSize=NULL);
 
 // -------------------------------------------------------------------------
 // Communication functions
@@ -1934,6 +1944,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			     float SphereCutOff[MAX_SPHERES],
 			     float SphereAng1[MAX_SPHERES],
 			     float SphereAng2[MAX_SPHERES],
+			     float SphereRotationPeriod[MAX_SPHERES], 
 			     int   SphereNumShells[MAX_SPHERES],
 			     int   SphereType[MAX_SPHERES],
 			     int   SphereUseParticles,
@@ -2181,6 +2192,21 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int AppendForcingToBaryonFields();
   int DetachForcingFromBaryonFields();
   int RemoveForcingFromBaryonFields();
+  int AllocateAndZeroBaryonField() {
+    if (MyProcessorNumber != ProcessorNumber)
+      return SUCCESS;
+
+    if (BaryonField[0] != NULL)
+      return FAIL;
+
+    int size = this->GetGridSize();
+
+    for (int field = 0; field < NumberOfBaryonFields; field++) {
+      BaryonField[field] = new float[size]();
+    }
+
+    return SUCCESS;
+  };
   int AddRandomForcing(float * norm, float dtTopGrid);
   int PrepareRandomForcingNormalization(float * GlobVal, int GlobNum);
   int ReadRandomForcingFields(FILE *main_file_pointer, char DataFilename[]);
@@ -2273,8 +2299,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int DetachActiveParticles(void);
   int MirrorActiveParticles(void);
   int DebugActiveParticles(int level);
-  int ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, FLOAT dx, grid* FeedbackZone);
-
+  
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 
   float* AveragedVelocityAtCell(int index, int DensNum, int Vel1Num);
@@ -2482,14 +2507,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int ReturnStarStatistics(int &Number, float &minLife);
 
-  int FindAverageDensityInAccretionZone(ActiveParticleType* ThisParticle, FLOAT AccretionRadius,
-					float *WeightedSum, float *SumOfWeights, int *NumberOfCells,
-					FLOAT BondiHoyleRadius);
-
-  int AccreteOntoAccretingParticle(ActiveParticleType* ThisParticle, FLOAT AccretionRadius, 
-				       float AverageDensity, float SumOfWeights, float *AccretedMass, 
-				       float AccretedMomentum[], bool *SinkIsOnThisGrid, float vInfinity, 
-				   float cInfinity, FLOAT BondiHoyleRadius, float *AccretionRate);
+  int AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle, FLOAT AccretionRadius,
+				   float* AccretionRate);
 
   int AddMassAndMomentumToAccretingParticle(float GlobalSubtractedMass, float GlobalSubtractedMomentum[], 
 					    ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]);

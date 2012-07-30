@@ -45,6 +45,7 @@ ENZO_OBJS +=\
 	SortCompareFunctions.o \
 	SysMkdir.o \
 	TransposeRegionOverlap.o \
+	bondi_alpha.o \
 	c_message.o \
 	execinfo_local.o \
 	f_message.o \

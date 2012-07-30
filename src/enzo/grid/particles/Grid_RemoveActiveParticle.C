@@ -56,15 +56,19 @@ int grid::RemoveActiveParticle(PINT ID, int NewProcessorNumber)
     // Only free memory if the particle was communicated to another
     // processor, otherwise we will create a dangling pointer in the
     // reference to this active particle in the new grid
-    if (ProcessorNumber != NewProcessorNumber)
+    if (ProcessorNumber != NewProcessorNumber) {
       delete ActiveParticles[i];
+      ActiveParticles[i] = NULL;
+    }
 
     delete [] ActiveParticles;
     
     ActiveParticles = temp;
   }  else { // Removing the only AP on the list
-    if (ProcessorNumber != NewProcessorNumber)
+    if (ProcessorNumber != NewProcessorNumber) {
       delete ActiveParticles[0];
+      ActiveParticles[0] = NULL;
+    }
     delete [] ActiveParticles;
     ActiveParticles = NULL;
   }

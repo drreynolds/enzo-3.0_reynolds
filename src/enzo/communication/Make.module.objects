@@ -49,4 +49,3 @@ ENZO_OBJS +=\
 	LoadBalanceSimulatedAnnealing.o \
 	Mpich_V1_Dims_create.o \
 	ProcMap.o
-

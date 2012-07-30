@@ -59,10 +59,10 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
      particle in the grid list needs to be updated */
 
   int iskip = -1;
-
   for (i = 0; i < NumberOfActiveParticles; i++) 
-    if (ThisParticle->ReturnID() == ActiveParticles[i]->ReturnID())
+    if (ThisParticle->ReturnID() == ActiveParticles[i]->ReturnID()) {
 	iskip = i;   
+    }
 
   if (iskip != -1) {
     NumberOfActiveParticles--;
@@ -70,23 +70,31 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
   ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1];
-
+  
   j = 0;
-  for (i = 0; i < NumberOfActiveParticles; i++) {
-    if (i != iskip)
-      j++;
-    else
-      continue;
-    ActiveParticles[j] = OldActiveParticles[i];
+  if (NumberOfActiveParticles > 0) {
+    for (i = 0; i <= NumberOfActiveParticles; i++) {
+      if (i == iskip) {
+	delete OldActiveParticles[i];
+	OldActiveParticles[i] = NULL;
+	continue;
+      } else {
+	ActiveParticles[j] = OldActiveParticles[i];    
+	j++;
+      }
+    }
+  } 
+  else if (iskip != -1) {
+    delete OldActiveParticles[0];
+    OldActiveParticles[0] = NULL;
   }
-
-  delete [] OldActiveParticles;
 
   ThisParticle->SetGridID(ID);
   ThisParticle->AssignCurrentGrid(this);
-  NumberOfActiveParticles++;
-  ActiveParticles[NumberOfActiveParticles-1] = ThisParticle;
+  ActiveParticles[NumberOfActiveParticles++] = ThisParticle;
 
+  delete [] OldActiveParticles;
+  
   /* Update arrays for the non-active particles*/
 
   /* If the particle is already on the list then overwrite it. */
@@ -96,11 +104,12 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
       SavedIndex = i;
     }
 
+  int OldNumberOfParticles = NumberOfParticles;
+
   if (SavedIndex != -1)
     NumberOfParticles--;
   
-  int OldNumberOfParticles = NumberOfParticles;
-  NumberOfParticles += 1;
+    NumberOfParticles += 1;
 
   /* Create new particle arrays */
 
@@ -121,35 +130,32 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   j = 0;
   for (i = 0; i < OldNumberOfParticles; i++) {
-    if (i != SavedIndex)
-      j++;
-    else
+    if (i == SavedIndex)
       continue;
-    for (dim = 0; dim < MAX_DIMENSION; dim++) {
-      pos[dim][j] = ParticlePosition[dim][i];
-      vel[dim][j] = ParticleVelocity[dim][i];
-    }
+    else {
+      for (dim = 0; dim < MAX_DIMENSION; dim++) {
+	pos[dim][j] = ParticlePosition[dim][i];
+	vel[dim][j] = ParticleVelocity[dim][i];
+      }
     Mass[j] = ParticleMass[i];
     Number[j] = ParticleNumber[i];
+    j++;
+    }
   }
 
   /* Copy new active particle data */
 
   for (dim = 0; dim < MAX_DIMENSION; dim++) {
-    pos[dim][OldNumberOfParticles] = ThisParticle->pos[dim];
-    vel[dim][OldNumberOfParticles] = ThisParticle->vel[dim];
+    pos[dim][NumberOfParticles-1] = ThisParticle->pos[dim];
+    vel[dim][NumberOfParticles-1] = ThisParticle->vel[dim];
   }
-  Mass[OldNumberOfParticles] = ThisParticle->Mass;
-  Number[OldNumberOfParticles] = ThisParticle->Identifier;
+  Mass[NumberOfParticles-1] = ThisParticle->Mass;
+  Number[NumberOfParticles-1] = ThisParticle->Identifier;
 
   /* Delete old particle arrays and copy new ones */
 
   this->DeleteParticles();
   this->SetParticlePointers(Mass, Number, pos, vel);
-
-  if (NumberOfActiveParticles != NumberOfParticles)
-    ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
-	       NumberOfActiveParticles, NumberOfParticles);
 
   return SUCCESS;
 }

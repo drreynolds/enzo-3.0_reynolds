@@ -25,20 +25,23 @@
 
 int grid::UpdateParticleWithActiveParticle(PINT ID)
 {
-  int i,n,dim;
+  int i,n,nFound,dim;
 
-  this->SortParticlesByNumber();
-
-  n = NumberOfParticles - NumberOfActiveParticles;
+  nFound = -1;
   for (i = 0; i < NumberOfActiveParticles; i++) {
-    if (this->ActiveParticles[i]->Identifier != ParticleNumber[n])
-      ENZO_FAIL("Particle identifiers are inconsistent!");
-    ParticleMass[n] = this->ActiveParticles[i]->Mass;
-    for (dim = 0; dim < MAX_DIMENSION; dim++) {
-      ParticlePosition[dim][n] = this->ActiveParticles[i]->pos[dim];
-      ParticleVelocity[dim][n] = this->ActiveParticles[i]->vel[dim];
+    for (n = 0; n < NumberOfParticles; n++) {
+      if (this->ActiveParticles[i]->Identifier == ParticleNumber[n]) {
+	nFound = n;
+	break;
+      }
     }
-    n++;
+    if (nFound == -1)
+      ENZO_FAIL("Cannot find active particle in particle list");
+    ParticleMass[nFound] = this->ActiveParticles[i]->Mass;
+    for (dim = 0; dim < MAX_DIMENSION; dim++) {
+      ParticlePosition[dim][nFound] = this->ActiveParticles[i]->pos[dim];
+      ParticleVelocity[dim][nFound] = this->ActiveParticles[i]->vel[dim];
+    }
   }
 
   return SUCCESS;

@@ -107,10 +107,13 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     ap_info->FillBuffer(ActiveParticles, NumberOfActiveParticles, &buffer);
     if (DeleteParticles == true) {
       for (i = 0; i < NumberOfActiveParticles; i++)
-	if (ActiveParticles[i]->ReturnType() == type)
+	if (ActiveParticles[i]->ReturnType() == type) {
 	  // Since we're packing a buffer there is no need to keep the
 	  // particle data if the transfer is local
-	  this->RemoveActiveParticle(ActiveParticles[i]->ReturnID(),-1);
+	  this->RemoveActiveParticle(ActiveParticles[i]->ReturnID(),ToProcessor);
+	  i--;
+	  NumberOfActiveParticles -= 1;
+	}
     }
   }
     

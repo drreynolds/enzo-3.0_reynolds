@@ -189,7 +189,9 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
     }
  
     if (fscanf(fptr, "NumberOfActiveParticles = %"ISYM"\n", &NumberOfActiveParticles) != 1) {
-      ENZO_FAIL("error reading NumberOfActiveParticles.");
+      //ENZO_FAIL("error reading NumberOfActiveParticles.");
+      // Ugly hack to support restart files from before active particle support
+      NumberOfActiveParticles = 0;
     }
     
     if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0)) {

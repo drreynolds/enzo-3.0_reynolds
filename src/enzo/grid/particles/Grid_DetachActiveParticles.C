@@ -41,6 +41,7 @@ int grid::DetachActiveParticles(void)
      of the arrays. */
 
   this->SortParticlesByNumber();
+  this->SortActiveParticlesByNumber();
 
   int NewNumberOfParticles = NumberOfParticles - NumberOfActiveParticles;
 

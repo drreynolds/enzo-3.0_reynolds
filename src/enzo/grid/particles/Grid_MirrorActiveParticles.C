@@ -32,6 +32,7 @@ int grid::MirrorActiveParticles(void)
   LCAPERF_START("grid_MirrorActiveParticles");
 
   this->SortParticlesByNumber();
+  this->SortActiveParticlesByNumber();
 
   // Normal -> active particles (position, velocity only!)  Should be
   // used before ActiveParticleHandler to get the correct position and

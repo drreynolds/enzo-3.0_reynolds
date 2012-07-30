@@ -190,6 +190,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       delete [] mpi_buffer_size;
       delete [] mpi_recv_buffer_size;
+      delete [] mpi_recv_buffer;
       delete [] mpi_buffer;
 
     } // ENDFOR types

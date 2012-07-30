@@ -51,18 +51,22 @@ ActiveParticleType::ActiveParticleType(void)
   Identifier = INT_UNDEFINED;
 }
 
-ActiveParticleType::ActiveParticleType(ActiveParticleType*& part)
+ActiveParticleType::ActiveParticleType(ActiveParticleType* part)
 {
   int dim;
-  CurrentGrid = NULL;
-  for (dim = 0; dim < MAX_DIMENSION; dim++)
-    pos[dim] = vel[dim] = 0.0;
-  Mass = BirthTime = DynamicalTime = 0.0;
-  level = GridID = type = 0;
-
-  /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
-     in ActiveParticleFinalize.*/
-  Identifier = INT_UNDEFINED;
+  for (dim = 0; dim < MAX_DIMENSION; dim++) {
+    pos[dim] = part->pos[dim];
+    vel[dim] = part->vel[dim];
+  }
+  Mass = part->Mass;
+  BirthTime = part->BirthTime;
+  DynamicalTime = part->DynamicalTime;
+  Metallicity = part->Metallicity;
+  Identifier = part->Identifier;
+  level = part->level;
+  GridID = part->GridID;
+  type = part->type;
+  CurrentGrid = part->CurrentGrid;
 }
 
 ActiveParticleType::ActiveParticleType(grid *_grid, ActiveParticleFormationData &data)

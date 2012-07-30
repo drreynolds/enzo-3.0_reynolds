@@ -58,6 +58,7 @@ ENZO_OBJS +=\
 	Grid_InterpolateParticlePositions.o \
 	Grid_MirrorActiveParticles.o \
 	Grid_MirrorStarParticles.o \
+	Grid_MoveAllParticles.o \
 	Grid_MoveAllStars.o \
 	Grid_MoveParticlesFOF.o \
 	Grid_MoveSubgridActiveParticles.o \
@@ -74,6 +75,9 @@ ENZO_OBJS +=\
 	Grid_ReturnStarStatistics.o \
 	Grid_SetNewParticleIndex.o \
 	Grid_SetParticleMassFlaggingField.o \
+	Grid_SortActiveParticlesByNumber.o \
+	Grid_SortParticlesByNumber.o \
+	Grid_SortParticlesByType.o \
 	Grid_TracerParticleCreateParticles.o \
 	Grid_TracerParticleOutputData.o \
 	Grid_TracerParticleSetVelocity.o \
@@ -184,6 +188,7 @@ ENZO_OBJS +=\
 	Grid_ComputeHeat.o \
 	Grid_ComputeLuminosity.o \
 	Grid_ComputeMetalLineLuminosity.o \
+	Grid_ComputeOneZoneCollapseFactor.o \
 	Grid_ComputePhotonTimestep.o \
 	Grid_ComputePhotonTimestepHII.o \
 	Grid_ComputePhotonTimestepTau.o \
@@ -275,7 +280,6 @@ ENZO_OBJS +=\
 	Grid_CollectStars.o \
 	Grid_ComovingExpansionTerms.o \
 	Grid_ComovingGravitySourceTerm.o \
-	Grid_ConstructFeedbackZone.o \
 	Grid_ConvertColorFieldsToFractions.o \
 	Grid_ConvertToCellCenteredRadiation.o \
 	Grid_ConvertToNumpy.o \
@@ -312,7 +316,6 @@ ENZO_OBJS +=\
 	Grid_FastSiblingLocatorAddGrid.o \
 	Grid_FastSiblingLocatorFindSiblings.o \
 	Grid_FinalizeRadiationFields.o \
-	Grid_FindAverageDensityInAccretionZone.o \
 	Grid_FindShocks.o \
 	Grid_FinishFFT.o \
 	Grid_FlagBufferZones.o \
@@ -359,7 +362,6 @@ ENZO_OBJS +=\
 	Grid_InterpolateRadiationFromParent.o \
 	Grid_InterpolateStarParticlesToGrid.o \
 	Grid_MagneticFieldResetter.o \
-	Grid_MoveAllParticles.o \
 	Grid_OutputAsParticleData.o \
 	Grid_PrepareBoundaryFluxes.o \
 	Grid_PrepareFFT.o \
@@ -385,8 +387,6 @@ ENZO_OBJS +=\
 	Grid_SetSubgridMarkerFromParent.o \
 	Grid_SetSubgridMarkerFromSibling.o \
 	Grid_SetSubgridMarkerFromSubgrid.o \
-	Grid_SortParticlesByNumber.o \
-	Grid_SortParticlesByType.o \
 	Grid_SubgridMarkerPostParallel.o \
 	Grid_SubtractAccretedMassFromSphere.o \
 	Grid_SumGasMass.o \

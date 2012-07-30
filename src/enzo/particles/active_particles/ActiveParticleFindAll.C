@@ -86,7 +86,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	    }
 
 	  LocalActiveParticlesOnThisLevel = new ActiveParticleType*[LocalNumberOfActiveParticlesOnThisLevel]();
-
+	  
 	  /* In a second pass, fill up the active particle list for this level*/
 	  for(GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
 	    Grids[GridNum]->GridData->
@@ -124,10 +124,8 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 
       } /* ENDFOR level */
       
-    } /* ENDIF id == id to search for
+    } /* ENDIF id == id to search for */
 
-  } /* ENDFOR active particle type */
-  
     /**************************************************/
     /*                                                */
     /* Share active particle counts on all processors */
@@ -229,10 +227,21 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	delete [] displace;
 	delete [] send_buffer;
 	delete [] recv_buffer;
+	delete [] all_buffer_sizes;
 	nCount = NULL;
 	displace = NULL;
 	send_buffer = NULL;
 	recv_buffer = NULL;
+
+	/* Set grid pointers */
+	for (i = 0; i < *GlobalNumberOfActiveParticles; i++) {
+	  NumberOfGrids = GenerateGridArray(LevelArray, GlobalList[i]->ReturnLevel(), &Grids);
+	  for (GridNum = 0; GridNum < NumberOfGrids; GridNum++) {
+	    if (Grids[GridNum]->GridData->GetGridID() == GlobalList[i]->ReturnGridID())
+	      GlobalList[i]->AssignCurrentGrid(Grids[GridNum]->GridData);
+	  }
+	  delete [] Grids;
+	}
 
 #endif /* USE_MPI */
        
@@ -241,7 +250,11 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	GlobalList = LocalActiveParticlesOfThisType;
       } // ENDIF serial
       
+      delete [] LocalActiveParticlesOfThisType;
+
     }  /* ENDIF number of active particles > 0 */
+    else 
+      delete [] nCount;
 
   } /* ENFOR Active particle types */
 

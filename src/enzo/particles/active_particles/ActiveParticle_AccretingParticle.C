@@ -25,6 +25,7 @@
 #include "LevelHierarchy.h"
 #include "TopGridData.h"
 #include "CommunicationUtilities.h"
+#include "communication.h"
 #include "phys_constants.h"
 #include "FofLib.h"
 
@@ -73,11 +74,12 @@ public:
   // Constructors
   ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {
     AccretionRate = 0;
-    vInfinity = 0;
-    cInfinity = 0;
-    BondiHoyleRadius = 0;
   };
   
+  ActiveParticleType_AccretingParticle(ActiveParticleType_AccretingParticle* part) :
+    ActiveParticleType(static_cast<ActiveParticleType*>(part)) {
+    AccretionRate = part->AccretionRate;
+  };
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
@@ -93,7 +95,6 @@ public:
 			      int AccretingParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
-  int AdjustBondiHoyle(grid* CurrentGrid);
   
   int GetEnabledParticleID(int myid = -1) {				
     static int ParticleID = -1;						
@@ -108,19 +109,20 @@ public:
 
   static ActiveParticleType_AccretingParticle**  MergeAccretingParticles
   (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
-   int *ngroups, LevelHierarchyEntry *LevelArray[]);
+   int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel);
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
 		     int AccretionRadius, FLOAT dx, 
 		     LevelHierarchyEntry *LevelArray[], int ThisLevel);
 
+  static int AccreteOntoAccretingParticle(grid* AccretionZone, 
+					  ActiveParticleType_AccretingParticle* ThisParticle,
+					  FLOAT AccretionRadius);
+
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
   float AccretionRate;
-  float vInfinity;
-  float cInfinity;
-  FLOAT BondiHoyleRadius;
   static std::vector<ParticleAttributeHandler> AttributeHandlers;
 };
 
@@ -175,9 +177,6 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   ActiveParticleType::SetupBaseParticleAttributes(ah);
 
   ah.push_back(Handler<ap, float, &ap::AccretionRate>("AccretionRate"));
-  ah.push_back(Handler<ap, float, &ap::cInfinity>("cInfinity"));
-  ah.push_back(Handler<ap, float, &ap::vInfinity>("vInfinity"));
-  ah.push_back(Handler<ap, FLOAT, &ap::BondiHoyleRadius>("BondiHoyleRadius"));
 
   return SUCCESS;
 }
@@ -242,13 +241,9 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	if (JeansRefinement) {
 	  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
 	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature / 
-	    POW(data.LengthUnits*dx*RefineByJeansLengthSafetyFactor,2) / data.DensityUnits;
+	    POW(data.LengthUnits*dx*4.0,2);
+	  JeansDensity /= data.DensityUnits;
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
-	}
-	if (MassRefinement) {
-	  MassRefinementDensity = MinimumMassForRefinement[MassRefinementMethod]*
-	    pow(RefineBy, data.level*MinimumMassForRefinementLevelExponent[MassRefinementMethod])/POW(dx,3);
-	  DensityThreshold = min(DensityThreshold,MassRefinementDensity);
 	}
 	if (DensityThreshold == huge_number)
 	  ENZO_FAIL("Error in Accreting Particles: Must refine by jeans length or overdensity!");
@@ -286,11 +281,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	else
 	  np->Metallicity = 0.0;
 
-	np->vInfinity = 0.0;  // Since np->vel = tvel
-	np->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/data.LengthUnits*data.TimeUnits;
-	// Particle "Mass" is actually a density
-	np->BondiHoyleRadius = GravitationalConstant*(np->ReturnMass()*POW(dx,3))/
-	  (pow(np->vInfinity,2) + pow(np->cInfinity,2));
 	np->AccretionRate = 0.0;
 	
 	// Remove mass from grid
@@ -311,53 +301,13 @@ int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, 
 {
   AccretingParticleGrid *thisGrid =
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
-
+  
   int npart = thisGrid->NumberOfActiveParticles;
-  float *density = thisGrid->BaryonField[data.DensNum];
-  float *velx = thisGrid->BaryonField[data.Vel1Num];
-  float *vely = thisGrid->BaryonField[data.Vel2Num];
-  float *velz = thisGrid->BaryonField[data.Vel3Num];
-  float *totalenergy = thisGrid->BaryonField[data.TENum];
-  float *gasenergy = thisGrid->BaryonField[data.GENum];
 
-  float *vel,CellTemperature;
-  int n,i,j,k,index,dim;
-
-  // We need this otherwise the GRIDINDEX macro will break
-  int GridDimension[3] = {thisGrid->GridDimension[0],
-                          thisGrid->GridDimension[1],
-                          thisGrid->GridDimension[2]};
-
-  FLOAT *pos, LeftCorner[MAX_DIMENSION];
-
-  FLOAT dx = thisGrid->CellWidth[0][0];
-
-  int GridStartIndex[MAX_DIMENSION];
-
-  for (dim = 0; dim < 3; dim++) {
-    LeftCorner[dim] = thisGrid->GetGridLeftEdge(dim);
-    GridStartIndex[dim] = thisGrid->GetGridStartIndex(dim);
-  }
-
-  /* Loop over all of the AccretingParticles on this grid and set the bondi-hoyle radius */
-
-  for (n = 0; n < npart; n++) {
+  for (int n = 0; n < npart; n++) {
     ActiveParticleType_AccretingParticle *ThisParticle = 
       static_cast<ActiveParticleType_AccretingParticle*>(thisGrid->ActiveParticles[n]);
-    pos = ThisParticle->ReturnPosition();
-    vel = ThisParticle->ReturnVelocity(); 
-    i = int((pos[0] - LeftCorner[0])/dx);
-    j = int((pos[1] - LeftCorner[1])/dx);
-    k = int((pos[2] - LeftCorner[2])/dx);
-    index = GRIDINDEX(i,j,k);
-    ThisParticle->vInfinity = sqrt(pow((vel[0] - velx[index]),2) +
-				   pow((vel[1] - vely[index]),2) +
-				   pow((vel[2] - velz[index]),2));
-    CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
-    ThisParticle->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/data.LengthUnits*data.TimeUnits;
-    // Convert sound speed to enzo internal units.
-    ThisParticle->BondiHoyleRadius = GravitationalConstant*(ThisParticle->ReturnMass()*POW(dx,3))/
-      (pow(ThisParticle->vInfinity,2) + pow(ThisParticle->cInfinity,2));
+  
     ThisParticle->level = data.level;
   }
 
@@ -395,9 +345,6 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   float *DynamicalTime = new float[n];
   float *Metallicity = new float[n];
   float *AccretionRate = new float[n];
-  float *vInfinity = new float[n];
-  float *cInfinity = new float[n];
-  FLOAT *BondiHoyleRadius = new FLOAT[n];
   PINT *ID = new PINT[n];
 
   int i,dim;
@@ -423,9 +370,6 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
     Metallicity[i] = ParticleToWrite->Metallicity;
     ID[i] = ParticleToWrite->Identifier;
     AccretionRate[i] = ParticleToWrite->AccretionRate;
-    vInfinity[i] = ParticleToWrite->vInfinity;
-    cInfinity[i] = ParticleToWrite->cInfinity;
-    BondiHoyleRadius[i] = ParticleToWrite->BondiHoyleRadius;
   }
 
   for (dim = 0; dim < GridRank; dim++) {
@@ -444,10 +388,6 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   WriteDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
   WriteDataset(1,&TempInt,"identifier",AccretingParticleGroupID,HDF5_PINT,(VOIDP) ID);
   WriteDataset(1,&TempInt,"accretion_rate",AccretingParticleGroupID,HDF5_REAL,(VOIDP) AccretionRate);
-  WriteDataset(1,&TempInt,"c_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) cInfinity);
-  WriteDataset(1,&TempInt,"v_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) vInfinity);
-  WriteDataset(1,&TempInt,"bondi_hoyle_radius",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BondiHoyleRadius);
- 
 
   /* Clean up */
 
@@ -460,9 +400,7 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   delete[] DynamicalTime;
   delete[] Metallicity;
   delete[] AccretionRate;
-  delete[] cInfinity;
-  delete[] vInfinity;
-  delete[] BondiHoyleRadius;
+  delete[] ID;
   H5Gclose(AccretingParticleGroupID);
 
   return SUCCESS;
@@ -492,9 +430,6 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
   float *DynamicalTime = new float[n];
   float *Metallicity = new float[n];
   float *AccretionRate = new float[n];
-  float *vInfinity = new float[n];
-  float *cInfinity = new float[n];
-  FLOAT *BondiHoyleRadius = new FLOAT[n];
   PINT  *ID = new PINT[n];
 
   for (dim = 0; dim < GridRank; dim++) {
@@ -519,9 +454,6 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
   ReadDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
   ReadDataset(1,&TempInt,"identifier",AccretingParticleGroupID,HDF5_PINT,(VOIDP) ID);
   ReadDataset(1,&TempInt,"accretion_rate",AccretingParticleGroupID,HDF5_REAL,(VOIDP) AccretionRate);
-  ReadDataset(1,&TempInt,"c_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) cInfinity);
-  ReadDataset(1,&TempInt,"v_infinity",AccretingParticleGroupID,HDF5_REAL,(VOIDP) vInfinity);
-  ReadDataset(1,&TempInt,"bondi_hoyle_radius",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BondiHoyleRadius);
 
 
   for (i = 0; i < n; i++) {
@@ -537,9 +469,6 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
       np->vel[dim] = Velocity[dim][i];
     }
     np->AccretionRate = AccretionRate[i];
-    np->cInfinity = cInfinity[i];
-    np->vInfinity = vInfinity[i];
-    np->BondiHoyleRadius = BondiHoyleRadius[i];
     particles_to_read[i] = static_cast<ActiveParticleType*>(np);
   }
 
@@ -549,9 +478,6 @@ int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&p
   delete[] Metallicity;
   delete[] ID;
   delete[] AccretionRate;
-  delete[] cInfinity;
-  delete[] vInfinity;
-  delete[] BondiHoyleRadius;
 
   for (dim = 0; dim < GridRank; dim++) {
     delete[] Position[dim];
@@ -566,9 +492,9 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
 int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						       int ThisLevel, int TotalStarParticleCountPrevious[],
-						       int AccretingParticleID)
+							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							    int ThisLevel, int TotalStarParticleCountPrevious[],
+							    int AccretingParticleID)
 {
 
   return SUCCESS;
@@ -576,7 +502,7 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grid
 
 ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::MergeAccretingParticles
 (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
- int *ngroups, LevelHierarchyEntry *LevelArray[])
+ int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel)
 {
   int i,j;
   int dim;
@@ -585,6 +511,10 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   int *groupsize = NULL;
   int **grouplist = NULL;
   ActiveParticleType_AccretingParticle **MergedParticles = NULL;
+
+  HierarchyEntry** LevelGrids = NULL;
+
+  int NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &LevelGrids);
 
   /* Construct list of sink particle positions to pass to Foflist */
   FLOAT ParticleCoordinates[3*(*nParticles)];
@@ -600,7 +530,7 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
   *ngroups = FofList((*nParticles), ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
   
   MergedParticles = new ActiveParticleType_AccretingParticle*[*ngroups]();
-
+  
   /* Merge the mergeable groups */
 
   for (i=0; i<*ngroups; i++) {
@@ -608,18 +538,65 @@ ActiveParticleType_AccretingParticle** ActiveParticleType_AccretingParticle::Mer
     if (groupsize[i] != 1) {
       for (j=1; j<groupsize[i]; j++) {
 	MergedParticles[i]->Merge(static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[grouplist[i][j]]));
-	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
+	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->
+							   ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
 	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
+	if (NumberOfProcessors > 1) {
+	  delete ParticleList[grouplist[i][j]];
+	  ParticleList[grouplist[i][j]] = NULL;
+	}
       }
     }
   }
+
+  delete [] groupsize;
+  groupsize = NULL;
+  for (i=0; i<*ngroups; i++)
+    delete [] grouplist[i];
+  delete [] grouplist;
+  grouplist = NULL;
+
+  /* Loop over the grids and check if any of the merged particles have
+     moved. If so, disable the particle on the current grid and assign
+     it to the new grid*/
+
+  int NewGrid = -1;
+
+  for (i = 0; i < *ngroups; i++) {
+    if (MergedParticles[i]->ReturnCurrentGrid()->PointInGrid(MergedParticles[i]->ReturnPosition()) == false) {
+      // Find the grid to transfer to 
+      for (j = 0; j < NumberOfGrids; j++) {
+	if (LevelGrids[j]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition())) {
+	  NewGrid = j;
+	  break;
+	}
+      }
+      if (NewGrid == -1)
+	ENZO_FAIL("Cannot assign particle to grid after merging!\n");
+      int OldProc = MergedParticles[i]->CurrentGrid->ReturnProcessorNumber();
+      ActiveParticleType_AccretingParticle *temp = new ActiveParticleType_AccretingParticle(MergedParticles[i]);
+      MergedParticles[i]->DisableParticle(LevelArray,LevelGrids[NewGrid]->GridData->ReturnProcessorNumber()); 
+      if (LevelGrids[NewGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(temp)) == FAIL)
+      	ENZO_FAIL("Active particle grid assignment failed!\n");
+      if (MyProcessorNumber == OldProc) {
+	delete MergedParticles[i];
+	MergedParticles[i] = new ActiveParticleType_AccretingParticle(temp);
+      }
+      else if (MyProcessorNumber != temp->CurrentGrid->ReturnProcessorNumber())
+	delete temp;
+      MergedParticles[i]->AssignCurrentGrid(LevelGrids[NewGrid]->GridData);
+    }
+  }
+
+  delete [] LevelGrids;
 
   *nParticles = *ngroups;
 
   return MergedParticles;
 }
 
-int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],int NumberOfGrids);
+int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticles, 
+				 LevelHierarchyEntry *LevelArray[]); 
 
 int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 							   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -633,8 +610,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
     {
 
       /* Generate a list of all sink particles in the simulation box */
-      int i,level,gridnum,nParticles,NumberOfLevelGrids,NumberOfMergedParticles;
-      HierarchyEntry **LevelGrids = NULL;
+      int i,nParticles,NumberOfMergedParticles;
       ActiveParticleType** ParticleList = NULL;
 
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
@@ -657,98 +633,47 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       /* Generate new merged list of sink particles */
       
       MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
-						&NumberOfMergedParticles,LevelArray);
+						&NumberOfMergedParticles,LevelArray,ThisLevel);
 
       delete [] ParticleList;
    
+      // Do merging twice to catch pathological cases where merging
+      // leaves multiple sinks inside the same accretion zone.
+
+      ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
+
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	ParticleList[i] = static_cast<ActiveParticleType*>(MergedParticles[i]);
+
+      delete [] MergedParticles;
+
+      MergedParticles = MergeAccretingParticles(&nParticles, ParticleList, LinkingLength*dx,
+						&NumberOfMergedParticles,LevelArray,ThisLevel);
+
+      delete [] ParticleList;
+
+      if (debug)
+	printf("Number of particles after merging: %"ISYM"\n",NumberOfMergedParticles);
+
       /* Assign local particles to grids */
  
-      int LevelMax, SavedGrid, NumberOfGrids;
-      FLOAT* pos = NULL;
-      float mass;
+      ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
 
-      for (i = 0; i<NumberOfMergedParticles; i++) {
-	LevelMax = SavedGrid = -1;
-	NumberOfLevelGrids = 0;
-	for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
-	  NumberOfLevelGrids = GenerateGridArray(LevelArray, level, &LevelGrids);     
-	  for (gridnum = 0; gridnum < NumberOfLevelGrids; gridnum++) 
-	    if (LevelGrids[gridnum]->GridData->ReturnProcessorNumber() == MyProcessorNumber)
-	      if (LevelGrids[gridnum]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition()) == true &&
-		  LevelGrids[gridnum]->GridData->isLocal() == true) { 
-		SavedGrid = gridnum;
-		LevelMax = level;
-	      }
-	  delete [] LevelGrids;
-	  LevelGrids = NULL;
+      // need to use a bit of redirection because C++ pointer arrays have
+      // trouble with polymorphism
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	ParticleList[i] = static_cast<ActiveParticleType*>(MergedParticles[i]);
+
+      if (AssignActiveParticlesToGrids(ParticleList,NumberOfMergedParticles, LevelArray) == FAIL)
+	return FAIL;
+
+      delete [] ParticleList;
+
+      for (i = 0; i<NumberOfMergedParticles; i++)
+	if (MergedParticles[i]->ReturnCurrentGrid()->ReturnProcessorNumber() != MyProcessorNumber) {
+	  delete MergedParticles[i];
+	  MergedParticles[i] = NULL;
 	}
-	
-	
-	/* Assign the merged particles to grids.  The repeated code in
-	   the serial and parallel implimentations kind of sucks -
-	   should this be different? */
-
-	if (NumberOfProcessors == 1) {
-	
-	  grid* OldGrid = MergedParticles[i]->ReturnCurrentGrid();
-	  int ID = MergedParticles[i]->ReturnID();
-	  NumberOfGrids = GenerateGridArray(LevelArray, LevelMax, &LevelGrids); 
-	  MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	  if (OldGrid != LevelGrids[SavedGrid]->GridData) {
-	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL)
-	      ENZO_FAIL("Active particle grid assignment failed");
-	  }
-	  // Still need to mirror the AP data to the particle list.
-	  else {
-	    LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
-	  }
-
-	  /* Clean up the active particle list on the old grid */
-	  
-	  int foundP = FALSE, foundAP = FALSE;
-	  // This could probably be a member function....
-	  if (SavedGrid != -1) {
-	    if (OldGrid != LevelGrids[SavedGrid]->GridData) {
-	      foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
-	      foundP = OldGrid->RemoveParticle(ID);
-	      if ((foundP != TRUE) || (foundAP != TRUE))
-		return FAIL;
-	      OldGrid->SetNumberOfActiveParticles(OldGrid->ReturnNumberOfActiveParticles()-1);
-	      OldGrid->CleanUpMovedParticles();
-	    }
-	  }
-	}
-	else {
-#ifdef USE_MPI
-	  /* Find the processor which has the maximum value of
-	     LevelMax and assign the accreting particle to the
-	     SavedGrid on that processor.  */
-	  struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
-	  MPI_Comm_rank(EnzoTopComm, &sendbuf.rank); 
-	  sendbuf.value = LevelMax;
-	  MPI_Allreduce(&sendbuf, &recvbuf, 1, MPI_2INT, MPI_MAXLOC, EnzoTopComm);
-	  NumberOfGrids = GenerateGridArray(LevelArray, recvbuf.value, &LevelGrids); 
-	  if (LevelMax == recvbuf.value) {
-	    MergedParticles[i]->AdjustBondiHoyle(LevelGrids[SavedGrid]->GridData);
-	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(MergedParticles[i])) == FAIL) {
-	      ENZO_FAIL("Active particle grid assignment failed"); 
-	    } 
-	    // Still need to mirror the AP data to the particle list.
-	    else {
-	      LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(MergedParticles[i]->ReturnID());
-	    }
-	  }
-	  LevelMax = recvbuf.value;
-#endif // endif parallel
-	}
-
-	/* Sync the updated particle counts accross all proccessors */
-
-	CommunicationSyncNumberOfParticles(LevelGrids, NumberOfGrids);
-
-	delete [] LevelGrids;
-
-      }
 
       delete [] MergedParticles;
       
@@ -760,12 +685,26 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       if (Accrete(nParticles,ParticleList,AccretionRadius,dx,LevelArray,ThisLevel) == FAIL)
 	ENZO_FAIL("Accreting Particle accretion failed. \n");
      
+      for (i = 0; i < nParticles; i++)
+	if (ParticleList[i]->ReturnCurrentGrid()->ReturnProcessorNumber() != MyProcessorNumber) {
+	  delete ParticleList[i];
+	  ParticleList[i] = NULL;
+	}
+
+      // Accrete takes care of its own memory management - no need to free ParticleList.
+
       delete [] ParticleList;
-      
+
     }
 
   return SUCCESS;
 }
+
+grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
+			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+
+int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
+			    HierarchyEntry** Grids, int NumberOfGrids);
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
@@ -789,30 +728,36 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   bool SinkIsOnThisProc, SinkIsOnThisGrid;
   
-  float WeightedSum, SumOfWeights, GlobalWeightedSum, GlobalSumOfWeights, AverageDensity, SubtractedMass, 
-    GlobalSubtractedMass, SubtractedMomentum[3], GlobalSubtractedMomentum[3], vInfinity, cInfinity, BondiHoyleRadius, 
-    AccretionRate = 0;
-  int NumberOfCells = 0;
-  
-  for (i = 0; i < 3; i++) {
-    SubtractedMomentum[i] = 0;
-    GlobalSubtractedMomentum[i] = 0;
-  }
+  float SubtractedMass, SubtractedMomentum[3] = {};
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  grid* FeedbackZone = NULL;
+  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles, AccretionRadius, dx, Grids, NumberOfGrids);
 
   for (i = 0; i < nParticles; i++) {
-    sinkGrid = ParticleList[i]->ReturnCurrentGrid();
-    if (sinkGrid == NULL) {
-      ENZO_FAIL("sinkGrid is invalid!");
-    }
+    grid* FeedbackZone = FeedbackZones[i];
+    if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
     
-    if (sinkGrid->ConstructFeedbackZone(ParticleList[i],AccretionRadius, dx, FeedbackZone) == FAIL) {
-      ENZO_FAIL("Accretion zone construction failed!");
+      float AccretionRate = 0;
+        
+      if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],AccretionRadius*dx,&AccretionRate) == FAIL)
+	return FAIL;
+  
+      // No need to communicate the accretion rate to the other CPUs since this particle is already local.
+      static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }
   }
+  
+  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
+
+  for (i = 0; i < nParticles; i++) {
+    delete FeedbackZones[i];    
+  }
+
+  delete [] FeedbackZones;
+
+  if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
+    return FAIL;
 
   delete [] Grids;
   return SUCCESS;
@@ -843,64 +788,19 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
 	  }
   }
 
-  return SUCCESS;
-}
+  if (NumberOfProcessors > 1)
+    for (i = 0; i < nParticles; i++)
+      delete AccretingParticleList[i];
 
-int ActiveParticleType_AccretingParticle::AdjustBondiHoyle(grid* CurrentGrid) {
-  float *density = CurrentGrid->AccessDensity();
-  float *velx = CurrentGrid->AccessVelocity1();
-  float *vely = CurrentGrid->AccessVelocity2();
-  float *velz = CurrentGrid->AccessVelocity3();
-  float *totalenergy = CurrentGrid->AccessTotalEnergy();
-  float *gasenergy = CurrentGrid->AccessGasEnergy();
-
-  float *vel = this->ReturnVelocity();
-  FLOAT *pos = this->ReturnPosition();
-  float CellTemperature;
-
-  int n,i,j,k,index,dim;
-
-  FLOAT LeftCorner[MAX_DIMENSION];
-
-  FLOAT dx = CurrentGrid->GetCellWidth(0);
-
-  int GridDimension[3];
-
-  int GridStartIndex[3];
- 
-  for (dim = 0; dim < 3; dim++) {
-    LeftCorner[dim] = CurrentGrid->GetGridLeftEdge(dim);
-    GridStartIndex[dim] = CurrentGrid->GetGridStartIndex(dim);
-    GridDimension[dim] = CurrentGrid->GetGridDimension(dim);
-   }
-
-  float *temperature = new float[CurrentGrid->GetGridSize()];
-  CurrentGrid->ComputeTemperatureField(temperature);
-
-  i = int((pos[0] - LeftCorner[0])/dx);
-  j = int((pos[1] - LeftCorner[1])/dx);
-  k = int((pos[2] - LeftCorner[2])/dx);
-
-  index = GRIDINDEX(i,j,k);
-  
-  this->vInfinity = sqrt(pow((vel[0] - velx[index]),2) +
-			 pow((vel[1] - vely[index]),2) +
-			 pow((vel[2] - velz[index]),2));
-  
-  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : temperature[index];
-  this->cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;
-  
-  this->BondiHoyleRadius = GravitationalConstant*(this->ReturnMass()*POW(dx,3))/
-    (pow(this->vInfinity,2) + pow(this->cInfinity,2));
-  
-  delete[] temperature;
+  delete AccretingParticleList;
 
   return SUCCESS;
 }
 
 namespace {
   ActiveParticleType_info *AccretingParticleInfo = 
-    register_ptype <ActiveParticleType_AccretingParticle>("AccretingParticle");
+    register_ptype <ActiveParticleType_AccretingParticle> 
+    ("AccretingParticle");
 }
 std::vector<ParticleAttributeHandler>
   ActiveParticleType_AccretingParticle::AttributeHandlers;

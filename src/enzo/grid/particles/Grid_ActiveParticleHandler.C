@@ -108,7 +108,8 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 				   NumberOfNewParticles);
     this->AddActiveParticles(supplemental_data.NewParticles,
 			     NumberOfNewParticles);
-    printf("Creating %d new active particles\n", NumberOfNewParticles);
+    if (debug2)
+      printf("Creating %d new active particles\n", NumberOfNewParticles);
   }
 
   /******************** FEEDBACK ********************/

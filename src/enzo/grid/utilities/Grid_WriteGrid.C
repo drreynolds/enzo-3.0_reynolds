@@ -558,6 +558,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     /* Sort particles according to their identifier. */
 
     this->SortParticlesByNumber();
+    this->SortActiveParticlesByNumber();
 
     /* Create a temporary buffer (64 bit). */
 
