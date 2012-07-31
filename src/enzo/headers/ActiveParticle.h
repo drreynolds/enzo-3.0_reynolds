@@ -372,6 +372,7 @@ public:
     this->UnpackBuffer = unpack_buffer;
     this->ReturnElementSize = element_size;
     this->particle_instance = particle;
+    this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
   }
 
