@@ -273,10 +273,11 @@ template <class APClass> void Allocate(int Count, char **buffer) {
 
 }
 
-template <class APClass> void FillBuffer(
+template <class APClass> int FillBuffer(
         ActiveParticleType **InList_, int InCount, char **buffer) {
 
     int i;
+    int size = 0;
 
     if (*buffer == NULL) {
         Allocate<APClass>(InCount, buffer);
@@ -286,12 +287,13 @@ template <class APClass> void FillBuffer(
     APClass *In;
 
     for (i = 0; i < InCount; i++) {
+        In = dynamic_cast<APClass*>(InList_[i]);
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
-            In = dynamic_cast<APClass*>(InList_[i]);
-            it->GetAttribute(buffer, In);
+            size += it->GetAttribute(buffer, In);
         }
     }
+    return size;
 }
 
 template <class APClass> void Unpack(
@@ -349,7 +351,7 @@ public:
 		  int ActiveParticleID),
    int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    void (*allocate_buffer)(int Count, char **buffer),
-   void (*fill_buffer)(ActiveParticleType **InList_, int InCount, char **buffer),
+   int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char **buffer),
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
                        int OutCount),
    int (*element_size)(void),
@@ -401,7 +403,7 @@ public:
   void (*AllocateBuffer)(int Count, char **buffer);
   void (*UnpackBuffer)(char *buffer, int offset, ActiveParticleType **Outlist,
                        int OutCount);
-  void (*FillBuffer)(ActiveParticleType **InList, int InCount, char **buffer);
+  int (*FillBuffer)(ActiveParticleType **InList, int InCount, char **buffer);
   int (*ReturnElementSize)(void);
   ActiveParticleType* particle_instance;
   std::string particle_name;

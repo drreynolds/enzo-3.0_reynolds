@@ -89,7 +89,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       // Pack the buffer, ordered by destination processor
       position = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
-	    ap_info->FillBuffer(SendList, size, &mpi_buffer);
+	    mpi_buffer_size[proc] = ap_info->FillBuffer(SendList, size, &mpi_buffer);
       }
 
       /* Get counts from each processor to allocate buffers. */

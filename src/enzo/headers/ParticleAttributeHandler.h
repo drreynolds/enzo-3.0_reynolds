@@ -39,7 +39,7 @@ class ParticleAttributeHandler
         ENZO_FAIL("")
     }
 
-    virtual void GetAttribute(char **buffer, ActiveParticleType *pp) {
+    virtual int GetAttribute(char **buffer, ActiveParticleType *pp) {
         ENZO_FAIL("")
     }
 
@@ -76,11 +76,12 @@ class Handler : public ParticleAttributeHandler
         *buffer = (char *) pb;
     }
 
-    void GetAttribute(char **buffer, ActiveParticleType *pp_) {
+    int GetAttribute(char **buffer, ActiveParticleType *pp_) {
         APClass *pp = static_cast<APClass*>(pp_);
         Type *pb = (Type *)(*buffer);
         *(pb++) = pp->*var;
         *buffer = (char *) pb;
+        return this->element_size;
     }
 
 };
@@ -125,11 +126,12 @@ class ArrayHandler : public ParticleAttributeHandler
         *buffer = (char *) pb;
     }
 
-    void GetAttribute(char **buffer, ActiveParticleType *pp_) {
+    int GetAttribute(char **buffer, ActiveParticleType *pp_) {
         APClass *pp = static_cast<APClass*>(pp_);
         Type *pb = (Type *)(*buffer);
         *(pb++) = (pp->*var)[this->offset];
         *buffer = (char *) pb;
+        return this->element_size;
     }
 
 };
