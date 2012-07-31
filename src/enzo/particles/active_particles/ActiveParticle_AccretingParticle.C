@@ -123,7 +123,7 @@ public:
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
   float AccretionRate;
-  static std::vector<ParticleAttributeHandler> AttributeHandlers;
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 };
 
 
@@ -176,7 +176,7 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   AttributeVector &ah = ap::AttributeHandlers;
   ActiveParticleType::SetupBaseParticleAttributes(ah);
 
-  ah.push_back(Handler<ap, float, &ap::AccretionRate>("AccretionRate"));
+  ah.push_back(new Handler<ap, float, &ap::AccretionRate>("AccretionRate"));
 
   return SUCCESS;
 }
@@ -252,7 +252,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	  continue;
 
 	// Passed creation tests, create sink particle
-
 
 	ActiveParticleType_AccretingParticle *np = new ActiveParticleType_AccretingParticle();
 	data.NewParticles[data.NumberOfNewParticles++] = np;
@@ -802,7 +801,7 @@ namespace {
     register_ptype <ActiveParticleType_AccretingParticle> 
     ("AccretingParticle");
 }
-std::vector<ParticleAttributeHandler>
+std::vector<ParticleAttributeHandler*>
   ActiveParticleType_AccretingParticle::AttributeHandlers;
 
 #undef DEBUG

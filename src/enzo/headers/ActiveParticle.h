@@ -39,7 +39,7 @@ public:
   int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			 hid_t data_type, void *read_to);
   void static SetupBaseParticleAttributes(
-    std::vector<ParticleAttributeHandler> &handlers);
+    std::vector<ParticleAttributeHandler*> &handlers);
 
   /* Several pure virtual functions */
   
@@ -256,7 +256,7 @@ template <class APClass> int CalculateElementSize() {
     AttributeVector &handlers = APClass::AttributeHandlers;
     for(AttributeVector::iterator it = handlers.begin();
         it != handlers.end(); ++it) {
-        particle_size += (*it).element_size;
+        particle_size += (**it).element_size;
     }
     return particle_size;
 }
@@ -290,7 +290,7 @@ template <class APClass> int FillBuffer(
         In = dynamic_cast<APClass*>(InList_[i]);
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
-            size += it->GetAttribute(buffer, In);
+            size += (*it)->GetAttribute(buffer, In);
         }
     }
     return size;
@@ -310,7 +310,7 @@ template <class APClass> void Unpack(
         OutList[i + offset] = ap;
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
-            it->SetAttribute(&buffer, ap);
+            (*it)->SetAttribute(&buffer, ap);
         }
     }
 
