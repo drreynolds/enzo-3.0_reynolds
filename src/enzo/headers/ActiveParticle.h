@@ -274,14 +274,16 @@ template <class APClass> void Allocate(int Count, char **buffer) {
 }
 
 template <class APClass> int FillBuffer(
-        ActiveParticleType **InList_, int InCount, char **buffer) {
+        ActiveParticleType **InList_, int InCount, char *buffer_) {
 
     int i;
     int size = 0;
 
-    if (*buffer == NULL) {
-        Allocate<APClass>(InCount, buffer);
+    if (buffer_ == NULL) {
+        ENZO_FAIL("Buffer not allocated!");
     }
+    /* We increment the pointer as we fill */
+    char **buffer = &buffer_;
 
     AttributeVector &handlers = APClass::AttributeHandlers;
     APClass *In;
@@ -297,13 +299,14 @@ template <class APClass> int FillBuffer(
 }
 
 template <class APClass> void Unpack(
-        char *buffer, int offset,
+        char *buffer_, int offset,
         ActiveParticleType** OutList_, int OutCount) {
 
     APClass **OutList = reinterpret_cast<APClass**>(OutList_);
     AttributeVector &handlers = APClass::AttributeHandlers;
     APClass *ap;
     int i;
+    char *buffer = buffer_;
 
     for (i = 0; i < OutCount; i++) {
         ap = new APClass();
@@ -351,7 +354,7 @@ public:
 		  int ActiveParticleID),
    int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    void (*allocate_buffer)(int Count, char **buffer),
-   int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char **buffer),
+   int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
                        int OutCount),
    int (*element_size)(void),
@@ -404,7 +407,7 @@ public:
   void (*AllocateBuffer)(int Count, char **buffer);
   void (*UnpackBuffer)(char *buffer, int offset, ActiveParticleType **Outlist,
                        int OutCount);
-  int (*FillBuffer)(ActiveParticleType **InList, int InCount, char **buffer);
+  int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
   ActiveParticleType* particle_instance;
   std::string particle_name;

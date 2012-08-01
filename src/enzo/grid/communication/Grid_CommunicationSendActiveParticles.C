@@ -104,7 +104,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   if (MyProcessorNumber == ProcessorNumber) {
     position = 0;
     ap_id = ap_info->GetEnabledParticleID();
-    ap_info->FillBuffer(ActiveParticles, NumberOfActiveParticles, &buffer);
+    ap_info->FillBuffer(ActiveParticles, NumberOfActiveParticles, buffer);
     if (DeleteParticles == true) {
       for (i = 0; i < NumberOfActiveParticles; i++)
 	if (ActiveParticles[i]->ReturnType() == type) {
