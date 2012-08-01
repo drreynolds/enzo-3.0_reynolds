@@ -4,30 +4,6 @@
 /
 ************************************************************************/
 
-#ifdef USE_MPI
-#include "communicators.h"
-#endif 
-
-#include "preincludes.h"
-#include "hdf5.h"
-#include "h5utilities.h"
-
-#include "ErrorExceptions.h"
-#include "macros_and_parameters.h"
-#include "typedefs.h"
-#include "global_data.h"
-#include "units.h"
-#include "Fluxes.h"
-#include "GridList.h"
-#include "ExternalBoundary.h"
-#include "Grid.h"
-#include "Hierarchy.h"
-#include "LevelHierarchy.h"
-#include "TopGridData.h"
-#include "CommunicationUtilities.h"
-#include "communication.h"
-#include "phys_constants.h"
-#include "FofLib.h"
 #include "ActiveParticle_AccretingParticle.h"
 
 #ifdef NEW_CONFIG
