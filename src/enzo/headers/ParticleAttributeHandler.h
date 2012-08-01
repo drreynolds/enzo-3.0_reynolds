@@ -39,6 +39,8 @@ class ParticleAttributeHandler
 
     virtual int GetAttribute(char **buffer, ActiveParticleType *pp)  = 0;
 
+    virtual void PrintAttribute(ActiveParticleType *pp)  = 0;
+
 };
 
 template <class APClass, typename Type, Type APClass::*var>
@@ -78,6 +80,11 @@ class Handler : public ParticleAttributeHandler
         *(pb++) = pp->*var;
         *buffer = (char *) pb;
         return this->element_size;
+    }
+
+    void PrintAttribute(ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        std::cout << this->name << ": " << pp->*var;
     }
 
 };
@@ -128,6 +135,11 @@ class ArrayHandler : public ParticleAttributeHandler
         *(pb++) = (pp->*var)[this->offset];
         *buffer = (char *) pb;
         return this->element_size;
+    }
+
+    void PrintAttribute(ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        std::cout << this->name << ": " << (pp->*var)[this->offset];
     }
 
 };

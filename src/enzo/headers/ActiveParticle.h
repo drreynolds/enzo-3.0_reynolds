@@ -273,6 +273,20 @@ template <class APClass> void Allocate(int Count, char **buffer) {
 
 }
 
+template <class APClass> void PrintActiveParticle(APClass *ap,
+    const std::string prefix = "") {
+
+    AttributeVector &handlers = APClass::AttributeHandlers;
+    for(AttributeVector::iterator it = handlers.begin();
+      it != handlers.end(); ++it) {
+        (*it)->PrintAttribute(ap);
+        std::cout << " ";
+    }
+
+    std::cout << std::endl;
+
+}
+
 template <class APClass> int FillBuffer(
         ActiveParticleType **InList_, int InCount, char *buffer_) {
 
@@ -286,14 +300,20 @@ template <class APClass> int FillBuffer(
     char **buffer = &buffer_;
 
     AttributeVector &handlers = APClass::AttributeHandlers;
+
     APClass *In;
 
     for (i = 0; i < InCount; i++) {
         In = dynamic_cast<APClass*>(InList_[i]);
+        /* We'll put debugging output here */
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
             size += (*it)->GetAttribute(buffer, In);
         }
+        /*
+        std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
+        PrintActiveParticle<APClass>(In);
+        */
     }
     return size;
 }
@@ -304,17 +324,21 @@ template <class APClass> void Unpack(
 
     APClass **OutList = reinterpret_cast<APClass**>(OutList_);
     AttributeVector &handlers = APClass::AttributeHandlers;
-    APClass *ap;
+    APClass *Out;
     int i;
     char *buffer = buffer_;
 
     for (i = 0; i < OutCount; i++) {
-        ap = new APClass();
-        OutList[i + offset] = ap;
+        Out = new APClass();
+        OutList[i + offset] = Out;
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
-            (*it)->SetAttribute(&buffer, ap);
+            (*it)->SetAttribute(&buffer, Out);
         }
+        /*
+        std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
+        PrintActiveParticle<APClass>(Out);
+        */
     }
 
 }
