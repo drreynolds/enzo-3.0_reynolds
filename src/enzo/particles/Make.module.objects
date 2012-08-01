@@ -17,6 +17,7 @@ ENZO_OBJS +=\
 	ActiveParticle_AccretingParticle.o \
 	ActiveParticle_CenOstriker.o \
 	ActiveParticle_DisableParticle.o \
+	ActiveParticle_GMCParticle.o \
 	ActiveParticle_Kravtsov.o \
 	ActiveParticle_MirrorToParticle.o \
 	ActiveParticle_PopIII.o \

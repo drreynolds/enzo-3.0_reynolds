@@ -958,6 +958,9 @@ gradient force to gravitational force for one-zone collapse test. */
    int CopyZonesFromGrid(grid *GridOnSameLevel, 
 			 FLOAT EdgeOffset[MAX_DIMENSION]);
 
+   int CopyActiveZonesFromGrid(grid *GridOnSameLevel, 
+			      FLOAT EdgeOffset[MAX_DIMENSION]);
+
 /* gravity: copy coincident potential field zones from grid in the argument
             (gg #7).  Return SUCCESS or FAIL. */
 
@@ -2470,6 +2473,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   /* Sum mass on this grid */
 
   int SumGasMass(float *mass);
+
+  float SumGasMassGZ();
 
   int RemoveParticle(int ID, bool disable=false);
 

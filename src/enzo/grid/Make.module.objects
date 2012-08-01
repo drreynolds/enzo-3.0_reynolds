@@ -284,6 +284,7 @@ ENZO_OBJS +=\
 	Grid_ConvertToCellCenteredRadiation.o \
 	Grid_ConvertToNumpy.o \
 	Grid_ConvertTotalEnergyToGasEnergy.o \
+	Grid_CopyActiveZonesFromGrid.o \
 	Grid_CopyBaryonFieldToOldBaryonField.o \
 	Grid_CopyOverlappingMassField.o \
 	Grid_CopyParentToGravitatingFieldBoundary.o \
@@ -390,6 +391,7 @@ ENZO_OBJS +=\
 	Grid_SubgridMarkerPostParallel.o \
 	Grid_SubtractAccretedMassFromSphere.o \
 	Grid_SumGasMass.o \
+	Grid_SumGasMassGZ.o \
 	Grid_WriteCube.o \
 	Grid_WriteCubeInterpolate.o \
 	Grid_WriteGrid.o \

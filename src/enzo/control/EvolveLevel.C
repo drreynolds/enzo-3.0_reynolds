@@ -365,8 +365,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   /* Loop over grid timesteps until the elapsed time equals the timestep
      from the level above (or loop once for the top level). */
  
-  EXTRA_OUTPUT_MACRO(1)
-
   while ((CheckpointRestart == TRUE)
         || (dtThisLevelSoFar[level] < dtLevelAbove)) {
     if(CheckpointRestart == FALSE) {
@@ -417,7 +415,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
 	                     level, TotalActiveParticleCountPrevious);
     
-
 #ifdef TRANSFER
     /* Initialize the radiative transfer */
 
@@ -580,16 +577,12 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
-    EXTRA_OUTPUT_MACRO(2)
-
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, TotalActiveParticleCountPrevious);
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
  
-    EXTRA_OUTPUT_MACRO(3)
-
 #ifdef FAST_SIB
     SetBoundaryConditions(Grids, NumberOfGrids, SiblingList,
 			  level, MetaData, Exterior, LevelArray[level]);
@@ -681,9 +674,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 #endif /* FAST_SIB */
 #endif /* FLUX_FIX */
     
-    EXTRA_OUTPUT_MACRO(4)
-
-
 #ifdef FLUX_FIX
     UpdateFromFinerGrids(level, Grids, NumberOfGrids, NumberOfSubgrids,
 			     SubgridFluxesEstimate,SUBlingList,MetaData);
@@ -696,7 +686,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     DeleteSUBlingList( NumberOfGrids, SUBlingList );
 #endif
 
-    EXTRA_OUTPUT_MACRO(5)
   /* ------------------------------------------------------- */
   /* Add the saved fluxes (in the last subsubgrid entry) to the exterior
      fluxes for this subgrid .
@@ -771,7 +760,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
   } // end of loop over subcycles
  
-  EXTRA_OUTPUT_MACRO(6)
   if (debug)
     fprintf(stdout, "EvolveLevel[%"ISYM"]: NumberOfSubCycles = %"ISYM" (%"ISYM" total)\n", level,
            cycle, LevelCycleCount[level]);

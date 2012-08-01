@@ -274,6 +274,9 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 	  break;
 #endif
 
+	case 21:
+	  errcode = grid_one->CopyActiveZonesFromGrid(grid_two, EdgeOffset);
+
 	case 20:
 	  errcode = grid_one->CommunicationSendActiveParticles
 	    (grid_two, MyProcessorNumber);
