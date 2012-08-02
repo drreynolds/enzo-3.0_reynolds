@@ -9,6 +9,7 @@
 
 #define NUMZETA 62
 #define NUMTAU  1402
+#define P_TO_CGS 1.381e-16  /* This is k_b*K*cm^-3 in dyn cm^-2 */
 
 class GMCParticleBufferHandler : public AccretingParticleBufferHandler {};  
 
@@ -17,12 +18,18 @@ public:
   // constructors
   ActiveParticleType_GMCParticle(void);
 
-  // member functions
+  // static member functions
   static int InitializeParticleType();
+  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
+  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
+
+  // instance member functions
+  int CalculateDerivedParameters();
+  int UpdateDerivedParameters();
 
   // See Goldbaum et al. 2011 Table 1
   static const float krho    = 1.0;
-  static const float etab    = 0.5;
+  static const float etaB    = 0.5;
   static const float cs      = 0.19;
   static const float etaV    = 1.2;
   static const float phiIn   = 1.0;
@@ -31,9 +38,9 @@ public:
   static const float HIIEff  = 2.0;
   static const float etaIn   = 3.0;
   static const float phicorr = 0.75; // See Goldbaum et al. 2011 section 3
-  static const float Pamb    = 3e4;
+  static const float Pamb    = 3e4 * P_TO_CGS;
 
-  // Scaling factors to enzo units.
+  // Scaling factors to physical units.
   float M0, R0, sigma0;
 
   // State data (in gmcevol units)
@@ -44,7 +51,7 @@ public:
     Ecl_noacc, Eacc;
 
   /* Derived parameters */
-  float aI, a, aprime, Mach0, avir0, etaG, etaP, etaE, etaA, t0, f, xi, chi, gamma;
+  float aI, a, aprime, Mach0, avir0, etaG, etaP, etaE, etaA, etaI, t0, f, xi, chi, gamma;
 
   int nHIIreg, dtauOk, HIIregEsc, dissoc, dtauFloor;
 };

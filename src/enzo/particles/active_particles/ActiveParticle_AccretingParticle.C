@@ -344,7 +344,8 @@ int ActiveParticleType_AccretingParticle::WriteToOutput(ActiveParticleType **the
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id)
+int ActiveParticleType_AccretingParticle::ReadFromOutput(ActiveParticleType **&particles_to_read, 
+							 int &n, int GridRank, hid_t group_id)
 {
 
   int i,dim;
