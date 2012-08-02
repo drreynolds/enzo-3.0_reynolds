@@ -45,6 +45,7 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActivePar
   sigmadot_noacc = Rddot_noacc = Rdot_noacc = Ecl = Ecl_noacc =
     R_noacc = M_noacc = sigma_noacc = Eacc = sigmaISM = 0.0;
   MdotAcc = 0.0;
+  dtauOk = HIIregEsc = dissoc = dtauFloor = 0;
 }
 
 int ActiveParticleType_GMCParticle::InitializeParticleType()
