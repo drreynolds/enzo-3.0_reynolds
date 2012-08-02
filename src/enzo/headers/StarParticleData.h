@@ -128,6 +128,9 @@ SPEXTERN float  H2StarMakerH2DissociationFlux_MW;
 SPEXTERN float  H2StarMakerH2FloorInColdGas;
 SPEXTERN float  H2StarMakerColdGasTemperature;
 
+SPEXTERN int    GMCParticleRNGSeed;
+SPEXTERN int    GMCParticleRNGCalls;
+
 SPEXTERN float minStarLifetime;
 SPEXTERN FLOAT LastSupernovaTime;
 SPEXTERN float *IMFData;
