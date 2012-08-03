@@ -94,8 +94,10 @@
 #endif
 #ifdef NEW_PROBLEM_TYPES
 #include "EventHooks.h"
+#include "EventDataContainers.h"
 #else
-void RunEventHooks(char *, HierarchyEntry *Grid[], TopGridData &MetaData) {}
+void RunEventHooks(char *, HierarchyEntry *Grid[], TopGridData &MetaData,
+                    NULL) {}
 #endif
  
 /* function prototypes */
@@ -257,6 +259,14 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 {
   /* Declarations */
 
+#ifdef NEW_PROBLEM_TYPES
+  EvolveLevelEventDataContainer *LocalData = new EvolveLevelEventDataContainer;
+  EventDataContainer *LocalDataP = static_cast<EventDataContainer*>(LocalData);
+#else
+  void *LocalDataP = NULL;
+  void *Localata = NULL;
+#endif
+
   int dbx = 0;
 
   FLOAT When, GridTime;
@@ -283,7 +293,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   int *NumberOfSubgrids = new int[NumberOfGrids];
   fluxes ***SubgridFluxesEstimate = new fluxes **[NumberOfGrids];
   int *TotalActiveParticleCountPrevious = new int[NumberOfGrids];
-  RunEventHooks("EvolveLevelTop", Grids, *MetaData);
+  RunEventHooks("EvolveLevelTop", Grids, *MetaData, LocalDataP);
 
 #ifdef FLUX_FIX
   /* Create a SUBling list of the subgrids */

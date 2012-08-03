@@ -23,6 +23,7 @@
 #include "TopGridData.h"
 #include "ProblemType.h"
 #include "EventHooks.h"
+#include "EventDataContainers.h"
 
 class ProblemType_RotatingCylinder;
 
@@ -32,7 +33,8 @@ class RotatingCylinderGrid : private grid {
 
 int FindField(int field, int farray[], int numfields);
 
-void JustPrintSomething(HierarchyEntry *Grids[], TopGridData &MetaData)
+void JustPrintSomething(HierarchyEntry *Grids[], TopGridData &MetaData,
+                        EventDataContainer *data)
 {
     std::cout << "I am being called!" << std::endl;
 }
