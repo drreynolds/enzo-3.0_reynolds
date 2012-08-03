@@ -70,6 +70,13 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   
   float theta, zeta, f, xi, aprime, chi, gamma;
 
+  accTable.zetaLook = new float[NUMZETA];
+  accTable.fLook = new float[NUMZETA];
+  accTable.xiLook = new float[NUMZETA];
+  accTable.aprimeLook = new float[NUMZETA];
+  accTable.chiLook = new float[NUMZETA];
+  accTable.gammaLook = new float[NUMZETA];
+
   while (!feof(fpAccTable)){
     fscanf(fpAccTable,"%lf, %lf, %lf, %lf, %lf, %lf",&zeta,&f,&xi,&aprime,&chi,&gamma);
     accTable.zetaLook[i]=zeta;
@@ -91,6 +98,10 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
       ENZO_FAIL("Error opening RadSolTable.in\n");
 
   double tau, xShell, xShellPrime;
+
+  radSolTable.tauLook = new float[NUMTAU];
+  radSolTable.xShellLook = new float[NUMTAU];
+  radSolTable.xPrimeShellLook = new float[NUMTAU];
 
   fpRadSolTable = fopen("/Users/goldbaum/Documents/RadSolTable","r");
   while (!feof(fpRadSolTable)){

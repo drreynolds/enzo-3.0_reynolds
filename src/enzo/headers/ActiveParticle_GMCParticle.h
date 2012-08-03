@@ -58,6 +58,7 @@ public:
 
 class HIIregion {
 public:
+
   /* Constants determined at HII region creation and stored in                                                                      
      dimensional numbers */
   float mcl, nh22, s49, t0, tms, rms, rdotms, Tcoms, pms, Lv, L39, tch, rch;
@@ -69,20 +70,20 @@ public:
 };
 
 struct accTableStor {
-  float zetaLook[NUMZETA];
-  float fLook[NUMZETA];
-  float xiLook[NUMZETA];
-  float aprimeLook[NUMZETA];
-  float chiLook[NUMZETA];
-  float gammaLook[NUMZETA];
+  float* zetaLook;
+  float* fLook;
+  float* xiLook;
+  float* aprimeLook;
+  float* chiLook;
+  float* gammaLook;
 };
 
 accTableStor accTable;
 
 struct radSolTableStor {
-  float tauLook[NUMTAU];
-  float xShellLook[NUMTAU];
-  float xPrimeShellLook[NUMTAU];
+  float* tauLook;
+  float* xShellLook;
+  float* xPrimeShellLook;
 };
 
 radSolTableStor radSolTable;
