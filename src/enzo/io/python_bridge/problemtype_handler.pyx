@@ -14,8 +14,6 @@ cimport libc.stdlib
 
 from enzo_includes cimport *
 
-include "enzo_field_types.pxi"
-
 cdef extern from "LevelHierarchy.h":
     pass
 
