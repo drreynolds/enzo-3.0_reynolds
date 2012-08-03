@@ -12,6 +12,7 @@
 #ifdef NEW_PROBLEM_TYPES
 #ifdef USE_PYTHON
 
+#include "preincludes.h"
 #include <Python.h>
 #include "numpy/arrayobject.h"
 #include "ProblemType_Python.h"
@@ -61,12 +62,6 @@ void ProblemType_Python::GetGridInformation(
         GridRightEdge[i] = grid->GridRightEdge[i];
     }
     return;
-}
-
-int ProblemType_Python::InitializeSimulation(
-    HierarchyEntry &TopGrid, TopGridData &MetaData)
-{
-    return SUCCESS;
 }
 
 // All methods must go above this method

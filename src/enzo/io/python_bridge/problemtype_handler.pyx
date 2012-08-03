@@ -38,6 +38,9 @@ ctypedef int Eint32
 ctypedef long_int Eint64
 ctypedef long_int PINT
 
+cdef extern from "preincludes.h":
+    pass
+
 cdef extern from "math.h":
     pass
 

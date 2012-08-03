@@ -435,7 +435,7 @@
         ASSEMBLE_NEW_PROBLEM_TYPES_INCLUDES = $(MACH_INCLUDES_NEW_PROBLEM_TYPES)
         ASSEMBLE_NEW_PROBLEM_TYPES_LIBS     = $(MACH_LIBS_NEW_PROBLEM_TYPES)
         ifeq ($(CONFIG_PYTHON),yes)
-            OBJS_PYTHON += python_bridge/problemtype_handler.o
+            include io/python_bridge/Make.module.objects
             OBJS_PYTHON += ProblemType_Python.o
         endif
     endif

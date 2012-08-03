@@ -194,10 +194,10 @@ lib%.$(MACH_SHARED_EXT): $(MODULES) autogen dep enzo.o $(OBJS_LIB)
 	fi)
 
 .pyx.C: 
-	@cython --cplus $*.pyx -o $< 
-ProblemType_Python.o: python_bridge/problemtype_handler.o
-InitializePythonInterface.C: $(PYTHON_INTERFACE_TARGETS)
-InitializePythonInterface_finderfunctions.inc: global_data.h
+	@cython --cplus $*.pyx -o $@
+
+io/InitializePythonInterface.C: io/InitializePythonInterface_finderfunctions.inc
+io/InitializePythonInterface_finderfunctions.inc: headers/global_data.h
 	@python $(UTILS_DIR)/create_dictionary_mapping.py 
 
 #-----------------------------------------------------------------------

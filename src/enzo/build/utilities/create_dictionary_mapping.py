@@ -1,4 +1,4 @@
-import sys, glob
+import sys, glob, os
 
 # Enzo's configuration simply does not scale.  There's no schema, there's no
 # correlation between writing and reading, and there's no mechanism for
@@ -20,6 +20,11 @@ def sanitize_parameter_name(vn):
     return vn.replace(";","").replace(",","")
 
 def parse_file(fn):
+    if not os.path.exists(fn):
+        fn = os.path.join("headers", fn)
+    if not os.path.exists(fn):
+        print "SKIPPING", fn
+        return
     all_vars = []
     for line in open(fn):
         line = line[:line.rfind("//")]
@@ -80,7 +85,7 @@ def finder_function(vname, vtype):
 
 if __name__ == "__main__":
     results = parse_file("global_data.h")
-    output = open("InitializePythonInterface_finderfunctions.inc", "w")
+    output = open("io/InitializePythonInterface_finderfunctions.inc", "w")
     for vn, vt in results:
         a = finder_function(vn, vt)
         output.write(a)
