@@ -34,6 +34,7 @@ int CommunicationBroadcastValue(int *Value, int BroadcastProcessor);
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActiveParticleType_AccretingParticle() {
   R = M = sigma = 1.0;
+  R0 = M0 = sigma0 = 1.0;
   Mdot = MdotAcc = sigmadot = Rdot = Rddot = Mddot = sigmadotAcc = 0.0;
   tau = 0.0;
   Massoc = Mstar = 0.0;
@@ -150,6 +151,7 @@ int ActiveParticleType_GMCParticle :: CalculateDerivedParameters() {
   f      = 1.0;
   etaI   = 10/(aI*avir0);
   xi     = 1.11483349347388;
+  MdotAcc = 0.0;
 
   return SUCCESS;
 }
