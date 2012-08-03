@@ -20,4 +20,3 @@ public:
     static float norm;
     static int StaticLevelZero;
 };
-

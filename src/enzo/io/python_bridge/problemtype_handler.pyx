@@ -14,9 +14,6 @@ cimport libc.stdlib
 
 from enzo_includes cimport *
 
-include "enzo_magic_numbers.pxi"
-#include "top_grid_data.pyx"
-include "enzo_top_grid_data.pxi"
 include "enzo_field_types.pxi"
 
 cdef extern from "LevelHierarchy.h":
