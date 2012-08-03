@@ -39,7 +39,7 @@ public:
   int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			 hid_t data_type, void *read_to);
   void static SetupBaseParticleAttributes(
-    std::vector<ParticleAttributeHandler> &handlers);
+    std::vector<ParticleAttributeHandler*> &handlers);
 
   /* Several pure virtual functions */
   
@@ -256,7 +256,7 @@ template <class APClass> int CalculateElementSize() {
     AttributeVector &handlers = APClass::AttributeHandlers;
     for(AttributeVector::iterator it = handlers.begin();
         it != handlers.end(); ++it) {
-        particle_size += (*it).element_size;
+        particle_size += (**it).element_size;
     }
     return particle_size;
 }
@@ -273,45 +273,72 @@ template <class APClass> void Allocate(int Count, char **buffer) {
 
 }
 
+template <class APClass> void PrintActiveParticle(APClass *ap,
+    const std::string prefix = "") {
+
+    AttributeVector &handlers = APClass::AttributeHandlers;
+    for(AttributeVector::iterator it = handlers.begin();
+      it != handlers.end(); ++it) {
+        (*it)->PrintAttribute(ap);
+        std::cout << " ";
+    }
+
+    std::cout << std::endl;
+
+}
+
 template <class APClass> int FillBuffer(
-        ActiveParticleType **InList_, int InCount, char **buffer) {
+        ActiveParticleType **InList_, int InCount, char *buffer_) {
 
     int i;
     int size = 0;
 
-    if (*buffer == NULL) {
-        Allocate<APClass>(InCount, buffer);
+    if (buffer_ == NULL) {
+        ENZO_FAIL("Buffer not allocated!");
     }
+    /* We increment the pointer as we fill */
+    char **buffer = &buffer_;
 
     AttributeVector &handlers = APClass::AttributeHandlers;
+
     APClass *In;
 
     for (i = 0; i < InCount; i++) {
         In = dynamic_cast<APClass*>(InList_[i]);
+        /* We'll put debugging output here */
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
-            size += it->GetAttribute(buffer, In);
+            size += (*it)->GetAttribute(buffer, In);
         }
+        /*
+        std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
+        PrintActiveParticle<APClass>(In);
+        */
     }
     return size;
 }
 
 template <class APClass> void Unpack(
-        char *buffer, int offset,
+        char *buffer_, int offset,
         ActiveParticleType** OutList_, int OutCount) {
 
     APClass **OutList = reinterpret_cast<APClass**>(OutList_);
     AttributeVector &handlers = APClass::AttributeHandlers;
-    APClass *ap;
+    APClass *Out;
     int i;
+    char *buffer = buffer_;
 
     for (i = 0; i < OutCount; i++) {
-        ap = new APClass();
-        OutList[i + offset] = ap;
+        Out = new APClass();
+        OutList[i + offset] = Out;
         for(AttributeVector::iterator it = handlers.begin();
             it != handlers.end(); ++it) {
-            it->SetAttribute(&buffer, ap);
+            (*it)->SetAttribute(&buffer, Out);
         }
+        /*
+        std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
+        PrintActiveParticle<APClass>(Out);
+        */
     }
 
 }
@@ -351,7 +378,7 @@ public:
 		  int ActiveParticleID),
    int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    void (*allocate_buffer)(int Count, char **buffer),
-   int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char **buffer),
+   int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
                        int OutCount),
    int (*element_size)(void),
@@ -372,6 +399,7 @@ public:
     this->UnpackBuffer = unpack_buffer;
     this->ReturnElementSize = element_size;
     this->particle_instance = particle;
+    this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
   }
 
@@ -403,7 +431,7 @@ public:
   void (*AllocateBuffer)(int Count, char **buffer);
   void (*UnpackBuffer)(char *buffer, int offset, ActiveParticleType **Outlist,
                        int OutCount);
-  int (*FillBuffer)(ActiveParticleType **InList, int InCount, char **buffer);
+  int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
   ActiveParticleType* particle_instance;
   std::string particle_name;

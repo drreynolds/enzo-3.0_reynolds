@@ -357,25 +357,25 @@ void ActiveParticleType::DestroyData(grid *_grid,
 }
 
 void ActiveParticleType::SetupBaseParticleAttributes(
-    std::vector<ParticleAttributeHandler> &handlers)
+    std::vector<ParticleAttributeHandler *> &handlers)
 {
     typedef ActiveParticleType ap;
 
     /* Can be handled manually */
    
-    handlers.push_back(ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_x", 0));
-    handlers.push_back(ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_y", 1));
-    handlers.push_back(ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_z", 2));
+    handlers.push_back(new ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_x", 0));
+    handlers.push_back(new ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_y", 1));
+    handlers.push_back(new ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_z", 2));
 
-    handlers.push_back(ArrayHandler<ap, float, 3, &ap::vel>("velocity_x", 0));
-    handlers.push_back(ArrayHandler<ap, float, 3, &ap::vel>("velocity_y", 1));
-    handlers.push_back(ArrayHandler<ap, float, 3, &ap::vel>("velocity_z", 2));
+    handlers.push_back(new ArrayHandler<ap, float, 3, &ap::vel>("velocity_x", 0));
+    handlers.push_back(new ArrayHandler<ap, float, 3, &ap::vel>("velocity_y", 1));
+    handlers.push_back(new ArrayHandler<ap, float, 3, &ap::vel>("velocity_z", 2));
 
-    handlers.push_back(Handler<ap, double, &ap::Mass>("mass"));
-    handlers.push_back(Handler<ap, float, &ap::BirthTime>("creation_time"));
-    handlers.push_back(Handler<ap, float, &ap::DynamicalTime>("dynamical_time"));
-    handlers.push_back(Handler<ap, float, &ap::Metallicity>("metallicity"));
-    handlers.push_back(Handler<ap, PINT, &ap::Identifier>("identifier"));
+    handlers.push_back(new Handler<ap, double, &ap::Mass>("mass"));
+    handlers.push_back(new Handler<ap, float, &ap::BirthTime>("creation_time"));
+    handlers.push_back(new Handler<ap, float, &ap::DynamicalTime>("dynamical_time"));
+    handlers.push_back(new Handler<ap, float, &ap::Metallicity>("metallicity"));
+    handlers.push_back(new Handler<ap, PINT, &ap::Identifier>("identifier"));
 }
 
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;

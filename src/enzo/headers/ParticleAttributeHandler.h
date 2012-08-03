@@ -35,13 +35,11 @@ class ParticleAttributeHandler
     int element_size;
     int offset;
 
-    virtual void SetAttribute(char **buffer, ActiveParticleType *pp) {
-        ENZO_FAIL("")
-    }
+    virtual void SetAttribute(char **buffer, ActiveParticleType *pp) = 0;
 
-    virtual int GetAttribute(char **buffer, ActiveParticleType *pp) {
-        ENZO_FAIL("")
-    }
+    virtual int GetAttribute(char **buffer, ActiveParticleType *pp)  = 0;
+
+    virtual void PrintAttribute(ActiveParticleType *pp)  = 0;
 
 };
 
@@ -82,6 +80,11 @@ class Handler : public ParticleAttributeHandler
         *(pb++) = pp->*var;
         *buffer = (char *) pb;
         return this->element_size;
+    }
+
+    void PrintAttribute(ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        std::cout << this->name << ": " << pp->*var;
     }
 
 };
@@ -134,8 +137,13 @@ class ArrayHandler : public ParticleAttributeHandler
         return this->element_size;
     }
 
+    void PrintAttribute(ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        std::cout << this->name << ": " << (pp->*var)[this->offset];
+    }
+
 };
 
-typedef std::vector<ParticleAttributeHandler> AttributeVector ;
+typedef std::vector<ParticleAttributeHandler*> AttributeVector ;
 
 #endif

@@ -203,7 +203,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	
 	ap_info->FillBuffer(LocalActiveParticlesOfThisType,
                         LocalNumberOfActiveParticles,
-                        &send_buffer);
+                        send_buffer);
 
 	/* Share all data with all processors */
 
