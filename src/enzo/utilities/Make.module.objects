@@ -32,6 +32,7 @@ ENZO_OBJS +=\
 	MemoryAllocationRoutines.o \
 	MemoryPoolRoutines.o \
 	MersenneTwister.o \
+	MessageQueue.o \
 	P_ColumnFormat.o \
 	ProjectToPlane.o \
 	ProjectToPlane2.o \
