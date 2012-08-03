@@ -3,11 +3,4 @@
 #   io
 #
 
-vpath %.C   io/python_bridge
-vpath %.c   io/python_bridge
-vpath %.F   io/python_bridge
-vpath %.F90 io/python_bridge
-vpath %.pyx io/python_bridge
-
-ENZO_OBJS +=\
-	problemtype_handler.o
+vpath %.pyx io/python_bridge/

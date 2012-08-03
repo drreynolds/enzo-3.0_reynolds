@@ -43,6 +43,7 @@ ENZO_OBJS +=\
 	ProblemType.o \
 	ProblemType_CollapsingCoolingCloud.o \
 	ProblemType_ExplodingCloud.o \
+	ProblemType_Python.o \
 	ProblemType_RotatingCylinder.o \
 	ProtostellarCollapseInitialize.o \
 	PutSinkRestartInitialize.o \
