@@ -47,10 +47,10 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActivePar
     R_noacc = M_noacc = sigma_noacc = Eacc = sigmaISM = 0.0;
   MdotAcc = 0.0;
   dtauOk = HIIregEsc = dissoc = dtauFloor = 0;
-  this->CalculateDerivedParameters();
+  //  this->CalculateDerivedParameters();
   // This is done twice on purpose.
-  this->UpdateDerivedParameters();
-  this->UpdateDerivedParameters();
+  //this->UpdateDerivedParameters();
+  //this->UpdateDerivedParameters();
   Ecl = 
     0.5 * aI * M * Rdot * Rdot +
     2.4 * M * sigma * sigma +
@@ -61,7 +61,7 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActivePar
 int ActiveParticleType_GMCParticle::InitializeParticleType()
 {
   if (ActiveParticleType_AccretingParticle::InitializeParticleType() == FAIL)
-    ENZO_FAIL("AccretingParticle Initialize failesd");
+    ENZO_FAIL("AccretingParticle Initialize failed");
   
   FILE *fpAccTable = fopen("GMCtable.in","r");
   if (fpAccTable == NULL)
@@ -93,7 +93,7 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   
   i = 0;
 
-  FILE *fpRadSolTable = fopen("RadSolTable","r");
+  FILE *fpRadSolTable = fopen("RadSolTable.in","r");
 
   if (fpRadSolTable == NULL)
       ENZO_FAIL("Error opening RadSolTable.in\n");
@@ -104,7 +104,6 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   radSolTable.xShellLook = new float[NUMTAU];
   radSolTable.xPrimeShellLook = new float[NUMTAU];
 
-  fpRadSolTable = fopen("/Users/goldbaum/Documents/RadSolTable","r");
   while (!feof(fpRadSolTable)){
     fscanf(fpRadSolTable,"%lf, %lf, %lf",&tau,&xShell,&xShellPrime);
     radSolTable.tauLook[i] = tau;
@@ -481,6 +480,23 @@ int ActiveParticleType_GMCParticle::ReadFromOutput(ActiveParticleType **&particl
   
   return SUCCESS;
 }
+
+int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data) 
+{
+  if (ActiveParticleType_AccretingParticle::EvaluateFormation(thisgrid_orig, data) == FAIL)
+    return FAIL;
+
+  if (data.NumberOfNewParticles) {
+    
+    for (int i = 0; i < data.NumberOfNewParticles; i++) {
+      ActiveParticleType_GMCParticle* np = static_cast<ActiveParticleType_GMCParticle*>(data.NewParticles[i]);
+      printf("This is a debug statement!\n");
+    }
+  }
+
+  return SUCCESS;
+}
+
 
 namespace {
   ActiveParticleType_info *GMCParticleInfo = 
