@@ -435,7 +435,7 @@
         ASSEMBLE_NEW_PROBLEM_TYPES_INCLUDES = $(MACH_INCLUDES_NEW_PROBLEM_TYPES)
         ASSEMBLE_NEW_PROBLEM_TYPES_LIBS     = $(MACH_LIBS_NEW_PROBLEM_TYPES)
         ifeq ($(CONFIG_PYTHON),yes)
-            OBJS_PYTHON += problemtype_handler.o
+            OBJS_PYTHON += problemtype_handler.o message_passing.o enzo_includes.o
         endif
     endif
 

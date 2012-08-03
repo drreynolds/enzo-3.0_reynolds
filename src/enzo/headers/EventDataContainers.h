@@ -20,3 +20,8 @@ public:
     static float norm;
     static int StaticLevelZero;
 };
+
+class TestEventDataContainer : public EventDataContainer {
+public:
+    int SomethingToPrint;
+};

@@ -12,6 +12,10 @@
 /
 ************************************************************************/
 
+#ifndef NEW_PROBLEM_TYPES
+#error "Sorry, you need to have the new problem types enabled."
+#endif
+
 #include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -23,7 +27,15 @@
 #include "Grid.h"
 #include "CosmologyParameters.h"
 #include "TopGridData.h"
-
+#include "ProblemType.h"
+#ifdef __cplusplus
+#undef __cplusplus
+#define __reset_cplusplus
+#endif
+#include "message_passing.h"
+#ifdef __reset_cplusplus
+#define __cplusplus
+#endif
 
 int ExposeDataHierarchy(TopGridData *MetaData, HierarchyEntry *Grid, 
 		       int &GridID, FLOAT WriteTime, int reset, int ParentID, int level);
@@ -31,7 +43,9 @@ void ExposeGridHierarchy(int NumberOfGrids);
 void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime, FLOAT OldTime, float dtFixed);
 void CommunicationBarrier();
 
-int CallPython(LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
+int CallPython(LevelHierarchyEntry *LevelArray[], 
+               HierarchyEntry *Grids[],
+               TopGridData *MetaData,
                int level, int from_topgrid)
 {
 #ifndef USE_PYTHON
@@ -51,6 +65,14 @@ int CallPython(LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
       if (!(PythonSubcycleSkip) ||
 	  (NumberOfPythonSubcycleCalls % PythonSubcycleSkip) != 0) return SUCCESS;
     }
+
+	/* Initialize our message passer */
+    static int message_passing_initialized = FALSE;
+    if (message_passing_initialized == FALSE) {
+        initmessage_passing();
+        message_passing_initialized = TRUE;
+    }
+	create_coordinator(Grids, *MetaData);
 
     FLOAT CurrentTime, OldTime;
     float dtFixed;
