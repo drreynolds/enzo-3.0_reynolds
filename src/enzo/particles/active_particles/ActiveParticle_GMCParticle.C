@@ -30,7 +30,6 @@ const char config_gmc_particle_defaults[] =
 
 void mt_init(unsigned_int seed);
 unsigned_long_int mt_random(void);
-int CommunicationBroadcastValue(int *Value, int BroadcastProcessor);
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActiveParticleType_AccretingParticle() {
   R = M = sigma = 1.0;
@@ -45,12 +44,45 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActivePar
   MstarRemain = 0.0;
   sigmadot_noacc = Rddot_noacc = Rdot_noacc = Ecl = Ecl_noacc =
     R_noacc = M_noacc = sigma_noacc = Eacc = sigmaISM = 0.0;
-  MdotAcc = 0.0;
   dtauOk = HIIregEsc = dissoc = dtauFloor = 0;
-  //  this->CalculateDerivedParameters();
+  this->CalculateDerivedParameters();
   // This is done twice on purpose.
-  //this->UpdateDerivedParameters();
-  //this->UpdateDerivedParameters();
+  this->UpdateDerivedParameters();
+  this->UpdateDerivedParameters();
+  Ecl = 
+    0.5 * aI * M * Rdot * Rdot +
+    2.4 * M * sigma * sigma +
+    1.5 * M * Mach0 -
+    5.0 * (0.6 * aprime * (1 - etaB*etaB) - chi) * M / (R * R * avir0);
+}
+
+ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleType_AccretingParticle *ap,
+							       ActiveParticleFormationData &data) 
+  : ActiveParticleType_AccretingParticle(ap) {
+  R = M = sigma = 1.0;
+  R0 = M0 = sigma0 = 1.0;
+  // Set initial radius to one cell size
+  FLOAT dx = data.CellSize;
+  R0 = dx*data.LengthUnits; 
+  M0 = ap->ReturnMass()*data.MassUnits;
+  sigma0 = SQRT(2.0*GravConst*M0/(5*R0)); // Assuming alpha_vir,0 = 2.0
+
+  Mdot = MdotAcc = AccretionRate*data.MassUnits/data.TimeUnits/M0*R0/sigma0; // The accretion rate in gmcevol units
+  sigmadot = Rdot = Rddot = Mddot = sigmadotAcc = 0.0;
+  tau = 0.0;
+  Massoc = Mstar = 0.0;
+  Tco = 0.0;
+  dtau = 1.0e-4;
+  dtauSave = 0.0;
+  nHIIreg = 0.0;
+  MstarRemain = 0.0;
+  sigmadot_noacc = Rddot_noacc = Rdot_noacc = Ecl = Ecl_noacc =
+    R_noacc = M_noacc = sigma_noacc = Eacc = sigmaISM = 0.0;
+  dtauOk = HIIregEsc = dissoc = dtauFloor = 0;
+  this->CalculateDerivedParameters();
+  // This is done twice on purpose.
+  this->UpdateDerivedParameters();
+  this->UpdateDerivedParameters();
   Ecl = 
     0.5 * aI * M * Rdot * Rdot +
     2.4 * M * sigma * sigma +
@@ -114,11 +146,10 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
 
   fclose(fpRadSolTable);
 
+  //MPI_Datatype DataTypeInt = (sizeof(GMCParticleGNCSeed) == 4) ? MPI_INT : MPI_LONG_LONG_INT;
+
   if (GMCParticleRNGSeed == INT_UNDEFINED) {
-    if (MyProcessorNumber == ROOT_PROCESSOR) {
-      GMCParticleRNGSeed = time(NULL);
-    }
-    CommunicationBroadcastValue(&GMCParticleRNGSeed, ROOT_PROCESSOR);
+    GMCParticleRNGSeed = time(NULL);
   }
 
   mt_init(GMCParticleRNGSeed);
@@ -486,11 +517,14 @@ int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, Activ
   if (ActiveParticleType_AccretingParticle::EvaluateFormation(thisgrid_orig, data) == FAIL)
     return FAIL;
 
-  if (data.NumberOfNewParticles) {
+  if (data.NumberOfNewParticles > 0) {
     
     for (int i = 0; i < data.NumberOfNewParticles; i++) {
-      ActiveParticleType_GMCParticle* np = static_cast<ActiveParticleType_GMCParticle*>(data.NewParticles[i]);
-      printf("This is a debug statement!\n");
+      ActiveParticleType_GMCParticle* np = 
+	new ActiveParticleType_GMCParticle(static_cast<ActiveParticleType_AccretingParticle*>(data.NewParticles[i]),data);
+      ActiveParticleType* temp = data.NewParticles[i];
+      data.NewParticles[i] = np;
+      delete temp;
     }
   }
 

@@ -196,6 +196,7 @@ struct ActiveParticleFormationData {
   int MetalIaNum;
   int ColourNum;
   int level;
+  FLOAT CellSize;
   int GridID;
 };
 

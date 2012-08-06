@@ -17,6 +17,8 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 public:
   // constructors
   ActiveParticleType_GMCParticle(void);
+  ActiveParticleType_GMCParticle(ActiveParticleType_AccretingParticle* ap,
+				 ActiveParticleFormationData &data);
 
   // static member functions
   static int InitializeParticleType();
@@ -29,17 +31,17 @@ public:
   int UpdateDerivedParameters();
 
   // See Goldbaum et al. 2011 Table 1
-  static const float krho    = 1.0;
-  static const float etaB    = 0.5;
-  static const float cs      = 0.19;
-  static const float etaV    = 1.2;
-  static const float phiIn   = 1.0;
-  static const float aVgcm2  = 214.3; // Av corresponding to a gas column density of 1 g cm^-2, assuming solar metallicity
-  static const float aVmin   = 1.4;
-  static const float HIIEff  = 2.0;
-  static const float etaIn   = 3.0;
-  static const float phicorr = 0.75; // See Goldbaum et al. 2011 section 3
-  static const float Pamb    = 3e4 * P_TO_CGS;
+  static const float krho;
+  static const float etaB;
+  static const float cs;
+  static const float etaV;
+  static const float phiIn;
+  static const float aVgcm2;
+  static const float aVmin;
+  static const float HIIEff;
+  static const float etaIn;
+  static const float phicorr;
+  static const float Pamb;
 
   // Scaling factors to physical units.
   float M0, R0, sigma0;
@@ -57,6 +59,22 @@ public:
   int nHIIreg, dtauOk, HIIregEsc, dissoc, dtauFloor;
 };
 
+// Static const member variables must be set outside the class definintion.  
+// C++11 has constepr for this.
+
+const float ActiveParticleType_GMCParticle::krho    = 1.0;
+const float ActiveParticleType_GMCParticle::etaB    = 0.5;
+const float ActiveParticleType_GMCParticle::cs      = 0.19;
+const float ActiveParticleType_GMCParticle::etaV    = 1.2;
+const float ActiveParticleType_GMCParticle::phiIn   = 1.0;
+const float ActiveParticleType_GMCParticle::aVgcm2  = 214.3; 
+// Av corresponding to a gas column density of 1 g cm^-2, assuming solar metallicity
+const float ActiveParticleType_GMCParticle::aVmin   = 1.4;
+const float ActiveParticleType_GMCParticle::HIIEff  = 2.0;
+const float ActiveParticleType_GMCParticle::etaIn   = 3.0;
+const float ActiveParticleType_GMCParticle::phicorr = 0.75; // See Goldbaum et al. 2011 section 3
+const float ActiveParticleType_GMCParticle::Pamb    = 3e4 * P_TO_CGS;
+
 class HIIregion {
 public:
 
@@ -69,22 +87,3 @@ public:
   int phase;
   int breakoutFlag;
 };
-
-struct accTableStor {
-  float* zetaLook;
-  float* fLook;
-  float* xiLook;
-  float* aprimeLook;
-  float* chiLook;
-  float* gammaLook;
-};
-
-accTableStor accTable;
-
-struct radSolTableStor {
-  float* tauLook;
-  float* xShellLook;
-  float* xPrimeShellLook;
-};
-
-radSolTableStor radSolTable;
