@@ -79,7 +79,7 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   accTable.gammaLook = new float[NUMZETA];
 
   while (!feof(fpAccTable)){
-    fscanf(fpAccTable,"%lf, %lf, %lf, %lf, %lf, %lf",&zeta,&f,&xi,&aprime,&chi,&gamma);
+    fscanf(fpAccTable,"%"FSYM", %"FSYM", %"FSYM", %"FSYM", %"FSYM", %"FSYM,&zeta,&f,&xi,&aprime,&chi,&gamma);
     accTable.zetaLook[i]=zeta;
     accTable.fLook[i]=f;
     accTable.xiLook[i]=xi;
