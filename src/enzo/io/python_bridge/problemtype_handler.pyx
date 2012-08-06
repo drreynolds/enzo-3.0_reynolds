@@ -13,6 +13,7 @@ cimport cython
 cimport libc.stdlib
 
 from enzo_includes cimport *
+from enzo_includes import *
 
 cdef extern from "LevelHierarchy.h":
     pass
