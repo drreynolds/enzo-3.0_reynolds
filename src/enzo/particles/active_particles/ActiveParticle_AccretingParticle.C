@@ -506,6 +506,7 @@ namespace {
     register_ptype <ActiveParticleType_AccretingParticle> 
     ("AccretingParticle");
 }
+
 std::vector<ParticleAttributeHandler*>
   ActiveParticleType_AccretingParticle::AttributeHandlers;
 

@@ -29,62 +29,12 @@
 #include "phys_constants.h"
 #include "FofLib.h"
 
-class ActiveParticleType_AccretingParticle;
-
-class AccretingParticleBufferHandler : public ParticleBufferHandler
-{
-public:
-  AccretingParticleBufferHandler(void) : ParticleBufferHandler() {
-    this->CalculateAccretingParticleElementSize();
-};
-  AccretingParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
-    // Any extra fields must be added to the buffer
-    if (this->NumberOfBuffers > 0) {
-      this->AccretionRate = new float[NumberOfParticles];
-      this->CalculateAccretingParticleElementSize();
-    }
-  };
-  AccretingParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
-  ~AccretingParticleBufferHandler() {
-    if (this->NumberOfBuffers > 0) {
-      delete [] AccretionRate;
-    }
-  };
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
-			     int type_num, int proc);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return ElementSizeInBytes; }
-  void CalculateAccretingParticleElementSize(void) {
-    Eint32 mpi_flag = 0;
-#ifdef USE_MPI
-    MPI_Initialized(&mpi_flag);
-#endif
-    Eint32 size;
-    if (mpi_flag == 1) {
-#ifdef USE_MPI
-      // float: 1 -- AccretionRate
-      MPI_Pack_size(1, FloatDataType, EnzoTopComm, &size);
-      this->ElementSizeInBytes += size;
-#endif
-    } else
-      this->ElementSizeInBytes += 1*sizeof(float);
-  };
-  float* AccretionRate;
-};
-
 class ActiveParticleType_AccretingParticle : public ActiveParticleType
 {
 public:
   // Constructors
   ActiveParticleType_AccretingParticle(void) : ActiveParticleType() {
     AccretionRate = 0;
-  };
-  ActiveParticleType_AccretingParticle(AccretingParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {
-    AccretionRate = buffer->AccretionRate[index];
   };
   ActiveParticleType_AccretingParticle(ActiveParticleType_AccretingParticle* part) :
     ActiveParticleType(static_cast<ActiveParticleType*>(part)) {
@@ -136,7 +86,7 @@ public:
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
   float AccretionRate;
-  static std::vector<ParticleAttributeHandler> AttributeHandlers;
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 };
 
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
