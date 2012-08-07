@@ -378,6 +378,22 @@ void ActiveParticleType::SetupBaseParticleAttributes(
     handlers.push_back(new Handler<ap, PINT, &ap::Identifier>("identifier"));
 }
 
+void ActiveParticleType::OutputPositionInformation()
+{
+    std::cout << "P: " << MyProcessorNumber << " ";
+    std::cout << "API: " << this->ReturnID() << ": ";
+    std::cout << this->pos[0] << " ";
+    std::cout << this->pos[1] << " ";
+    std::cout << this->pos[2] << " ";
+    std::cout << "V: ";
+    std::cout << this->vel[0] << " ";
+    std::cout << this->vel[1] << " ";
+    std::cout << this->vel[2] << " ";
+    std::cout << "M: ";
+    std::cout << this->Mass;
+    std::cout << std::endl;
+}
+
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
 
 

@@ -88,10 +88,12 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       // Pack the buffer, ordered by destination processor
       position = 0;
+      char *pack_buffer = mpi_buffer;
+      int offset = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
-	    mpi_buffer_size[proc] = ap_info->FillBuffer(SendList, size, mpi_buffer);
+	    mpi_buffer_size[proc] = ap_info->FillBuffer(SendList, size, mpi_buffer + offset);
+        offset += size*element_size + header_size;
       }
-
       /* Get counts from each processor to allocate buffers. */
 
       MPI_Arg *MPI_SendListCount = new MPI_Arg[NumberOfProcessors];
@@ -202,7 +204,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
     NumberOfReceives = TotalNumberToMove;
     SharedList = SendList;
   }
-  
+
   // First sort the list by destination grid, so the searching for
   // grids is more efficient.
   //qsort(SharedList, NumberOfReceives, star_data_size, compare_star_grid);

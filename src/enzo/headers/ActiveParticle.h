@@ -41,6 +41,8 @@ public:
   void static SetupBaseParticleAttributes(
     std::vector<ParticleAttributeHandler*> &handlers);
 
+  void OutputPositionInformation(void);
+
   /* Several pure virtual functions */
   
   /* This should return the number of new star particles created, and should
