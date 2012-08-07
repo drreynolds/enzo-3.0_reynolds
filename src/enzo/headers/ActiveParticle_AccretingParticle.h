@@ -117,9 +117,9 @@ public:
 
   // sink helper routines
 
-  static ActiveParticleType_AccretingParticle**  MergeAccretingParticles
-  (int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
-   int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel);
+  template <typename APT>
+  static APT** MergeAccretingParticles(int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
+					int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel);
 
   static int Accrete(int nParticles, ActiveParticleType** ParticleList,
 		     int AccretionRadius, FLOAT dx, 
@@ -135,4 +135,104 @@ public:
   float AccretionRate;
   static std::vector<ParticleAttributeHandler> AttributeHandlers;
 };
+
+int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
+		      HierarchyEntry **Grids[]);
+
+template <typename APT>
+APT** ActiveParticleType_AccretingParticle::MergeAccretingParticles
+(int *nParticles, ActiveParticleType** ParticleList, FLOAT LinkingLength, 
+ int *ngroups, LevelHierarchyEntry *LevelArray[], int ThisLevel)
+{
+  int i,j;
+  int dim;
+  int GroupNumberAssignment[*nParticles];
+  FLOAT* tempPos = NULL;
+  int *groupsize = NULL;
+  int **grouplist = NULL;
+  APT **MergedParticles = NULL;
+
+  HierarchyEntry** LevelGrids = NULL;
+
+  int NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &LevelGrids);
+
+  /* Construct list of sink particle positions to pass to Foflist */
+  FLOAT ParticleCoordinates[3*(*nParticles)];
+  
+  for (i=0; i<(*nParticles); i++) {
+    tempPos = ParticleList[i]->ReturnPosition();
+    for (dim=0; dim<3; dim++)
+      ParticleCoordinates[3*i+dim] = tempPos[dim];
+  }
+
+  /* Find mergeable groups using an FOF search */
+
+  *ngroups = FofList((*nParticles), ParticleCoordinates, LinkingLength, GroupNumberAssignment, &groupsize, &grouplist);
+  
+  MergedParticles = new APT*[*ngroups]();
+  
+  /* Merge the mergeable groups */
+
+  for (i=0; i<*ngroups; i++) {
+    MergedParticles[i] = static_cast<APT*>(ParticleList[grouplist[i][0]]);
+    if (groupsize[i] != 1) {
+      for (j=1; j<groupsize[i]; j++) {
+	MergedParticles[i]->Merge(static_cast<APT*>(ParticleList[grouplist[i][j]]));
+	if (ParticleList[grouplist[i][j]]->DisableParticle(LevelArray,MergedParticles[i]->
+							   ReturnCurrentGrid()->ReturnProcessorNumber()) == FAIL)
+	  ENZO_FAIL("MergeAccretingParticles: DisableParticle failed!\n");
+	if (NumberOfProcessors > 1) {
+	  delete ParticleList[grouplist[i][j]];
+	  ParticleList[grouplist[i][j]] = NULL;
+	}
+      }
+    }
+  }
+
+  delete [] groupsize;
+  groupsize = NULL;
+  for (i=0; i<*ngroups; i++)
+    delete [] grouplist[i];
+  delete [] grouplist;
+  grouplist = NULL;
+
+  /* Loop over the grids and check if any of the merged particles have
+     moved. If so, disable the particle on the current grid and assign
+     it to the new grid*/
+
+  int NewGrid = -1;
+
+  for (i = 0; i < *ngroups; i++) {
+    if (MergedParticles[i]->ReturnCurrentGrid()->PointInGrid(MergedParticles[i]->ReturnPosition()) == false) {
+      // Find the grid to transfer to 
+      for (j = 0; j < NumberOfGrids; j++) {
+	if (LevelGrids[j]->GridData->PointInGrid(MergedParticles[i]->ReturnPosition())) {
+	  NewGrid = j;
+	  break;
+	}
+      }
+      if (NewGrid == -1)
+	ENZO_FAIL("Cannot assign particle to grid after merging!\n");
+      int OldProc = MergedParticles[i]->CurrentGrid->ReturnProcessorNumber();
+      APT *temp = new APT(MergedParticles[i]);
+      MergedParticles[i]->DisableParticle(LevelArray,LevelGrids[NewGrid]->GridData->ReturnProcessorNumber()); 
+      if (LevelGrids[NewGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(temp)) == FAIL)
+      	ENZO_FAIL("Active particle grid assignment failed!\n");
+      if (MyProcessorNumber == OldProc) {
+	delete MergedParticles[i];
+	MergedParticles[i] = new APT(temp);
+      }
+      else if (MyProcessorNumber != temp->CurrentGrid->ReturnProcessorNumber())
+	delete temp;
+      MergedParticles[i]->AssignCurrentGrid(LevelGrids[NewGrid]->GridData);
+    }
+  }
+
+  delete [] LevelGrids;
+
+  *nParticles = *ngroups;
+
+  return MergedParticles;
+}
+
 

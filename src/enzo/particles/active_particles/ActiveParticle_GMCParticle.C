@@ -532,6 +532,8 @@ int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, Activ
 }
 
 
+
+
 namespace {
   ActiveParticleType_info *GMCParticleInfo = 
     register_ptype <ActiveParticleType_GMCParticle, GMCParticleBufferHandler> 
