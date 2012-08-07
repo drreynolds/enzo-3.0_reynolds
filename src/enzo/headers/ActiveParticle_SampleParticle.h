@@ -73,12 +73,12 @@ public:
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				 int ThisLevel, int TotalStarParticleCountPrevious[],
-				 int SampleParticleID);
+				 int SampleParticleID) { return SUCCESS; };
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				int ThisLevel, int TotalStarParticleCountPrevious[],
-				int SampleParticleID);
+				int SampleParticleID) {return SUCCESS; };
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType(void);
   
