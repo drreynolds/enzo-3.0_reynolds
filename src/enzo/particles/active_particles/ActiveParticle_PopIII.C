@@ -272,21 +272,6 @@ int ActiveParticleType_PopIII::SetFlaggingField(LevelHierarchyEntry *LevelArray[
   return SUCCESS;
 }
 
-int ActiveParticleType_PopIII::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						 int ThisLevel, int TotalStarParticleCountPrevious[],
-						 int PopIIIParticleID) {
-  return SUCCESS;
-
-}
-int ActiveParticleType_PopIII::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						int ThisLevel, int TotalStarParticleCountPrevious[],
-						int PopIIIParticleID) {
-  return SUCCESS;
-
-}
-
 void PopIIIParticleBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
 					       char *buffer, Eint32 total_buffer_size, int &buffer_size,
 					       Eint32 &position, int type_num, int proc=-1)

@@ -90,10 +90,73 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleTyp
     5.0 * (0.6 * aprime * (1 - etaB*etaB) - chi) * M / (R * R * avir0);
 }
 
+ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
+(ActiveParticleType_GMCParticle* part) : ActiveParticleType_AccretingParticle(part) {
+  M0             = part->M0;
+  R0             = part->R0;
+  sigma0         = part->sigma0;
+  
+  R              = part->R;
+  M              = part->M;
+  sigma          = part->sigma;
+  Rdot           = part->Rdot;
+  Mdot           = part->Mdot;
+
+  MdotAcc        = part->MdotAcc;
+  sigmadot       = part->sigmadot;
+  sigmadotAcc    = part->sigmadotAcc;
+  Rddot          = part->Rddot;
+  Mddot          = part->Mddot;
+  tau            = part->tau;
+  dtau           = part->dtau;
+  Mstar          = part->Mstar;
+  sigmaISM       = part->sigmaISM;
+  Tco            = part->Tco;
+  MdotStar       = part->MdotStar;
+  MdotHII        = part->MdotHII;
+  MddotHII       = part->MddotHII;
+  Lambda         = part->Lambda;
+  Gamma          = part->Gamma;
+  Massoc         = part->Massoc;
+  MstarRemain    = part->MstarRemain;
+  dtauSave       = part->dtauSave;
+  sigmadot_noacc = part->sigmadot_noacc;
+  Rddot_noacc    = part->Rddot_noacc;
+  Rdot_noacc     = part->Rdot_noacc;
+  R_noacc        = part->R_noacc;
+  M_noacc        = part->M_noacc;
+  sigma_noacc    = part->sigma_noacc;
+  Ecl            = part->Ecl;
+  Ecl_noacc      = part->Ecl_noacc;
+  Eacc           = part->Eacc;   
+
+  aI             = part->aI;
+  a              = part->a;
+  aprime         = part->aprime;
+  Mach0          = part->Mach0;
+  avir0          = part->avir0;
+  etaG           = part->etaG;
+  etaP           = part->etaP;
+  etaE           = part->etaE;
+  etaA           = part->etaA;
+  etaI           = part->etaI;
+  t0             = part->t0;
+  f              = part->f;
+  xi             = part->xi;
+  chi            = part->chi;
+  gamma          = part->gamma;
+
+  nHIIreg        = part->nHIIreg;
+  dtauOk         = part->dtauOk;
+  HIIregEsc      = part->HIIregEsc;
+  dissoc         = part->dissoc;
+  dtauFloor      = part->dtauFloor;
+}
+
 int ActiveParticleType_GMCParticle::InitializeParticleType()
 {
   if (ActiveParticleType_AccretingParticle::InitializeParticleType() == FAIL)
-    ENZO_FAIL("AccretingParticle Initialize failed");
+    ENZO_FAIL("AccretingParticle Initialize failed!");
   
   FILE *fpAccTable = fopen("GMCtable.in","r");
   if (fpAccTable == NULL)
@@ -530,9 +593,6 @@ int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, Activ
 
   return SUCCESS;
 }
-
-
-
 
 namespace {
   ActiveParticleType_info *GMCParticleInfo = 

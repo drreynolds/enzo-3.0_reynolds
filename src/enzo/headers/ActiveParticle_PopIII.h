@@ -92,14 +92,16 @@ public:
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			       int ThisLevel, int TotalStarParticleCountPrevious[],
-			       int PopIIIParticleID);
-  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			      int ThisLevel, int TotalStarParticleCountPrevious[],
-			      int PopIIIParticleID);
+  template <class active_particle_class>
+    static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int PopIIIParticleID) { return SUCCESS; };
+  template <class active_particle_class>
+    static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int TotalStarParticleCountPrevious[],
+				int PopIIIParticleID) {return SUCCESS; };
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, 
 			      int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();

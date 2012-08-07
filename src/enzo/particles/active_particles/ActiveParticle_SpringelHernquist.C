@@ -354,22 +354,6 @@ int ActiveParticleType_SpringelHernquist::ReadFromOutput(ActiveParticleType **&p
   return SUCCESS;
 }
 
-int ActiveParticleType_SpringelHernquist::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int SpringelHernquistID)
-{
-  return SUCCESS;
-}
-
-int ActiveParticleType_SpringelHernquist::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							int ThisLevel, int TotalStarParticleCountPrevious[],
-							int SpringelHernquistID)
-{
-  return SUCCESS;
-}
-
 int ActiveParticleType_SpringelHernquist::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
 							int TopGridDims[], int SpringelHernquistID)
 {

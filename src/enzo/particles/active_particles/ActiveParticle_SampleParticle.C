@@ -201,22 +201,6 @@ int ActiveParticleType_SampleParticle::ReadFromOutput(ActiveParticleType **&part
   return SUCCESS;
 }
 
-int ActiveParticleType_SampleParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int SampleParticleID)
-{
-  return SUCCESS;
-}
-
-int ActiveParticleType_SampleParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							int ThisLevel, int TotalStarParticleCountPrevious[],
-							int SampleParticleID)
-{
-  return SUCCESS;
-}
-
 int ActiveParticleType_SampleParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
 							int TopGridDims[], int SampleParticleID)
 {

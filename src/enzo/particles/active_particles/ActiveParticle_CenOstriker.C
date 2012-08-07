@@ -629,25 +629,6 @@ int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType **these_par
   return SUCCESS;
 }
 
-int ActiveParticleType_CenOstriker::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						       int ThisLevel, int TotalActiveParticleCountPrevious[],
-						       int CenOstrikerID)
-{
-
-  return SUCCESS;
-
-}
-
-int ActiveParticleType_CenOstriker::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalActiveParticleCountPrevious[],
-						      int CenOstrikerID)
-{
-
-  return SUCCESS;
-}
-
 int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level, int TopGridDims[], int ActiveParticleID)
 {
 

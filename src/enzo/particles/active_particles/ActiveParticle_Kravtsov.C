@@ -362,22 +362,6 @@ int ActiveParticleType_Kravtsov::ReadFromOutput(ActiveParticleType **&particles_
   return SUCCESS;
 }
 
-int ActiveParticleType_Kravtsov::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int KravtsovID)
-{
-  return SUCCESS;
-}
-
-int ActiveParticleType_Kravtsov::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							int ThisLevel, int TotalStarParticleCountPrevious[],
-							int KravtsovID)
-{
-  return SUCCESS;
-}
-
 int ActiveParticleType_Kravtsov::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
 							int TopGridDims[], int KravtsovID)
 {

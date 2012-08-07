@@ -14,17 +14,30 @@
 class GMCParticleBufferHandler : public AccretingParticleBufferHandler {};  
 
 class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingParticle {
-public:
+ public:
   // constructors
   ActiveParticleType_GMCParticle(void);
   ActiveParticleType_GMCParticle(ActiveParticleType_AccretingParticle* ap,
 				 ActiveParticleFormationData &data);
-
+  
+  ActiveParticleType_GMCParticle(ActiveParticleType_GMCParticle* part);
+  
   // static member functions
   static int InitializeParticleType();
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
+  template <class active_particle_class>
+  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int GMCParticleID);
+  template <class active_particle_class>
+  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int TotalStarParticleCountPrevious[],
+				int GMCParticleID);
+
 
   // instance member functions
   int CalculateDerivedParameters();
@@ -87,3 +100,30 @@ public:
   int phase;
   int breakoutFlag;
 };
+
+
+template <class active_particle_class>
+int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int GMCParticleID)
+{
+  if (ActiveParticleType_AccretingParticle::BeforeEvolveLevel<ActiveParticleType_GMCParticle>
+      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
+    ENZO_FAIL("AccretingParticle BeforeEvolveLevel failed!");
+
+  return SUCCESS;
+}
+
+template <class active_particle_class>
+int ActiveParticleType_GMCParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						     int ThisLevel, int TotalStarParticleCountPrevious[],
+						     int GMCParticleID)
+{
+  if (ActiveParticleType_AccretingParticle::AfterEvolveLevel<ActiveParticleType_GMCParticle>
+      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
+    ENZO_FAIL("AccretingParticle AfterEvolveLevel failed!");
+
+  return SUCCESS;
+}
