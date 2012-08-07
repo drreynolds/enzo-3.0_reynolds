@@ -376,6 +376,8 @@ void ActiveParticleType::SetupBaseParticleAttributes(
     handlers.push_back(new Handler<ap, float, &ap::DynamicalTime>("dynamical_time"));
     handlers.push_back(new Handler<ap, float, &ap::Metallicity>("metallicity"));
     handlers.push_back(new Handler<ap, PINT, &ap::Identifier>("identifier"));
+    handlers.push_back(new Handler<ap, int, &ap::level>("level"));
+    handlers.push_back(new Handler<ap, int, &ap::GridID>("GridID"));
 }
 
 void ActiveParticleType::OutputPositionInformation()
