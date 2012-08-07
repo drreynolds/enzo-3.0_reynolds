@@ -195,6 +195,7 @@ struct ActiveParticleFormationData {
   int MetalIaNum;
   int ColourNum;
   int level;
+  FLOAT CellSize;
   int GridID;
 };
 
@@ -463,8 +464,8 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&APClass::EvaluateFeedback),
      (&APClass::WriteToOutput),
      (&APClass::ReadFromOutput),
-     (&APClass::BeforeEvolveLevel),
-     (&APClass::AfterEvolveLevel),
+     (&APClass::template BeforeEvolveLevel<APClass>),
+     (&APClass::template AfterEvolveLevel<APClass>),
      (&APClass::SetFlaggingField),
      (&Allocate<APClass>),
      (&FillBuffer<APClass>),

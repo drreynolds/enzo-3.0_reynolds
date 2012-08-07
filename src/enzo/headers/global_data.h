@@ -940,6 +940,7 @@ class ActiveParticleType_info;
 
 /* For the database */
 EXTERN char *DatabaseLocation;
+EXTERN int ExtraOutputs[MAX_EXTRA_OUTPUTS];
 
 /* Active particles */
 EXTERN ActiveParticleType_info *EnabledActiveParticles[MAX_ACTIVE_PARTICLE_TYPES];

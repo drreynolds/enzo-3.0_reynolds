@@ -348,6 +348,7 @@ typedef int            HDF5_hid_t;
 #define max(A,B) ((A) > (B) ? (A) : (B))
 #define min(A,B) ((A) < (B) ? (A) : (B))
 #define sign(A)  ((A) >  0  ?  1  : -1 )
+#define SQRT(X) sqrt((double) (X))
 #define POW(X,Y) pow((double) (X), (double) (Y))
 #define COS(X) cos((double) (X))
 #define SIN(X) sin((double) (X))
@@ -378,6 +379,7 @@ typedef int            HDF5_hid_t;
 
 /* Definitions for grid::CommunicationSend/ReceiveRegion and 
    grid::DepositPositions */
+#define MAX_EXTRA_OUTPUTS                10 
 
 #define INTERPOLATED_FIELDS              -8
 #define PARTICLE_MASS_FLAGGING_FIELD     -7

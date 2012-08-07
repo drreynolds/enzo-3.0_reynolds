@@ -73,8 +73,6 @@
 #include "communicators.h"
 #endif /* USE_MPI */
  
-#include "preincludes.h"
-
 #include "EnzoTiming.h"
 #include "performance.h"
 #include "ErrorExceptions.h"
@@ -100,6 +98,18 @@ void RunEventHooks(char *, HierarchyEntry *Grid[], TopGridData &MetaData) {}
  
 /* function prototypes */
  
+#ifdef TRANSFER
+#define IMPLICIT_MACRO , ImplicitSolver
+#else
+#define IMPLICIT_MACRO 
+#endif
+
+#define EXTRA_OUTPUT_MACRO(A) ExtraOutput(A,LevelArray,MetaData,level,Exterior IMPLICIT_MACRO);
+int ExtraOutput(int output_flag, LevelHierarchyEntry *LevelArray[],TopGridData *MetaData, int level, ExternalBoundary *Exterior
+#ifdef TRANSFER
+		, ImplicitProblemABC *ImplicitSolver
+#endif
+		);
 
 int  RebuildHierarchy(TopGridData *MetaData,
 		      LevelHierarchyEntry *LevelArray[], int level);
@@ -405,7 +415,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
 	                     level, TotalActiveParticleCountPrevious);
     
-
 #ifdef TRANSFER
     /* Initialize the radiative transfer */
 
@@ -664,7 +673,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     CreateSUBlingList(MetaData, LevelArray, level, &SUBlingList);
 #endif /* FAST_SIB */
 #endif /* FLUX_FIX */
-
+    
 #ifdef FLUX_FIX
     UpdateFromFinerGrids(level, Grids, NumberOfGrids, NumberOfSubgrids,
 			     SubgridFluxesEstimate,SUBlingList,MetaData);

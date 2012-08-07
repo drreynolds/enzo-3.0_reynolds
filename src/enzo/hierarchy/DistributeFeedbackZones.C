@@ -49,7 +49,7 @@ int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
 
   for (i = 0; i < NumberOfGrids; i++) 
     for (j = 0; j < NumberOfFeedbackZones; j++) 
-      if (Grids[i]->GridData->CopyZonesFromGrid(FeedbackZones[j],ZeroVector) == FAIL)
+      if (Grids[i]->GridData->CopyActiveZonesFromGrid(FeedbackZones[j],ZeroVector) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     
   /* Send data */
@@ -58,7 +58,7 @@ int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
 
   for (i = 0; i < NumberOfGrids; i++) 
     for (j = 0; j < NumberOfFeedbackZones; j++) 
-      if (Grids[i]->GridData->CopyZonesFromGrid(FeedbackZones[j],ZeroVector) == FAIL)
+      if (Grids[i]->GridData->CopyActiveZonesFromGrid(FeedbackZones[j],ZeroVector) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
 
   /* Receive data */

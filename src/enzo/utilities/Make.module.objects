@@ -22,6 +22,7 @@ ENZO_OBJS +=\
 	EnzoVector_ExchangeStart.o \
 	EnzoVector_test.o \
 	ExtractSection.o \
+	ExtraOutput.o \
 	F_ColumnFormat.o \
 	FindField.o \
 	FreeRealMem.o \

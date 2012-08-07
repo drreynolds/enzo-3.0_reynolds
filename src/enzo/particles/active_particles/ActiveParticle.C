@@ -156,6 +156,8 @@ void ActiveParticleType::ConstructData(grid *_grid,
   for (dim = 0; dim < _grid->GridRank; dim++)
     size *= _grid->GridDimension[dim];
  
+  data.CellSize = _grid->CellWidth[0][0];
+
   /* Find fields: density, total energy, velocity1-3. */
  
   _grid->DebugCheck("StarParticleHandler");
@@ -172,6 +174,8 @@ void ActiveParticleType::ConstructData(grid *_grid,
 	       &data.TimeUnits, &data.VelocityUnits, _grid->Time) == FAIL) {
         ENZO_FAIL("Error in GetUnits.");
   }
+
+  data.MassUnits = data.DensityUnits*POW(data.LengthUnits,3);
 
   /* If using MHD, subtract magnetic energy from total energy because 
      density may be modified in star_maker8. */

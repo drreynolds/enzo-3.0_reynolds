@@ -35,7 +35,9 @@ char DefaultHistoryName[] = "history";
 char DefaultRedshiftName[] = "RedshiftOutput";
 char DefaultNewMovieName[] = "MoviePack";
 char DefaultTracerParticleName[] = "TracerOutput";
- 
+char DefaultExtraName[] = "ExtraDumpXX";
+char DefaultExtraDir[]="ED00"; 
+
 char DefaultRestartDir[] = "RS";
 char DefaultDataDir[] = "DD";
 char DefaultHistoryDir[] = "HD";
@@ -115,6 +117,8 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   //MetaData.RedshiftDumpNumber  = 0;
   MetaData.RedshiftDumpName    = DefaultRedshiftName;
   MetaData.RedshiftDumpDir     = DefaultRedshiftDir;
+  MetaData.ExtraDumpDir        = DefaultExtraDir;
+  MetaData.ExtraDumpName        = DefaultExtraName;
 
   MetaData.MetaDataIdentifier    = NULL;
   MetaData.SimulationUUID        = NULL;
@@ -541,6 +545,9 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   H2StarMakerH2FloorInColdGas = 0.0;
   H2StarMakerColdGasTemperature = 1e4;
 
+  GMCParticleRNGSeed               = INT_UNDEFINED;
+  GMCParticleRNGCalls              = 0;
+
   NumberOfParticleAttributes       = INT_UNDEFINED;
   AddParticleAttributes            = FALSE;
   LastSupernovaTime                = FLOAT_UNDEFINED;
@@ -762,6 +769,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   ShearingBoxProblemType = 0; 
   useMHD=0;
 
+  for(int i=0; i<MAX_EXTRA_OUTPUTS; i++) ExtraOutputs[i]=INT_UNDEFINED;
   MoveParticlesBetweenSiblings = TRUE;
 
   /* Particle Splitter */
