@@ -15,6 +15,7 @@ ENZO_OBJS +=\
         ActiveParticleInitialize.o \
         ActiveParticleRoutines.o \
         ActiveParticle_AccretingParticle.o \
+	ActiveParticle_GMCParticle.o \
         AssignActiveParticlesToGrids.o \
         DetachActiveParticles.o \
         RecordTotalActiveParticleCount.o \

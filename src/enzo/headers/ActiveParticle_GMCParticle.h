@@ -11,8 +11,6 @@
 #define NUMTAU  1402
 #define P_TO_CGS 1.381e-16  /* This is k_b*K*cm^-3 in dyn cm^-2 */
 
-class GMCParticleBufferHandler : public AccretingParticleBufferHandler {};  
-
 class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingParticle {
  public:
   // constructors
@@ -27,6 +25,7 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
+  static void SetupGMCParticleAttributes(std::vector<ParticleAttributeHandler*> &handlers);
   template <class active_particle_class>
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -39,11 +38,7 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 				int GMCParticleID);
 
 
-  // instance member functions
-  int CalculateDerivedParameters();
-  int UpdateDerivedParameters();
-
-  // See Goldbaum et al. 2011 Table 1
+   // See Goldbaum et al. 2011 Table 1
   static const float krho;
   static const float etaB;
   static const float cs;
@@ -60,20 +55,16 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   float M0, R0, sigma0;
 
   // State data (in gmcevol units)
-  float R, M, sigma, Rdot, Mdot, MdotAcc, sigmadot, sigmadotAcc, 
-    Rddot, Mddot, tau, dtau, Mstar, sigmaISM, Tco, MdotStar, MdotHII, 
-    MddotHII, Lambda, Gamma, Massoc, MstarRemain, dtauSave,sigmadot_noacc,
-    Rddot_noacc, Rdot_noacc, R_noacc, M_noacc, sigma_noacc, Ecl, 
-    Ecl_noacc, Eacc;
+  float R, Rdot, M, Mdot, MdotAcc, MdotStar, MdotHII, MstarRemain, sigma, 
+    tau, dtau, Mstar, Massoc, Eacc;
 
-  /* Derived parameters */
-  float aI, a, aprime, Mach0, avir0, etaG, etaP, etaE, etaA, etaI, t0, f, xi, chi, gamma;
+  int nHIIreg;
 
-  int nHIIreg, dtauOk, HIIregEsc, dissoc, dtauFloor;
+  /* Attribute handler instance */
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 };
 
 // Static const member variables must be set outside the class definintion.  
-// C++11 has constepr for this.
 
 const float ActiveParticleType_GMCParticle::krho    = 1.0;
 const float ActiveParticleType_GMCParticle::etaB    = 0.5;
@@ -91,16 +82,17 @@ const float ActiveParticleType_GMCParticle::Pamb    = 3e4 * P_TO_CGS;
 class HIIregion {
 public:
 
-  /* Constants determined at HII region creation and stored in                                                                      
+  /* Constants determined at HII region creation and stored in         
      dimensional numbers */
   float mcl, nh22, s49, t0, tms, rms, rdotms, Tcoms, pms, Lv, L39, tch, rch;
-  float r, rdot, Tco, mdot, mddot; /* Externally used quantities, stored in                                                        
-				       dimensionless numbers */
+  float r, rdot, Tco, mdot, mddot; 
+  
+  /* Externally used quantities, stored in                                                        
+     dimensionless numbers */
   float EHII; /* The energy added to the cloud by the HII region */
   int phase;
   int breakoutFlag;
 };
-
 
 template <class active_particle_class>
 int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
@@ -108,7 +100,7 @@ int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], T
 						      int ThisLevel, int TotalStarParticleCountPrevious[],
 						      int GMCParticleID)
 {
-  if (ActiveParticleType_AccretingParticle::BeforeEvolveLevel<ActiveParticleType_GMCParticle>
+  if (ActiveParticleType_AccretingParticle::BeforeEvolveLevel<active_particle_class>
       (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
     ENZO_FAIL("AccretingParticle BeforeEvolveLevel failed!");
 
@@ -121,7 +113,7 @@ int ActiveParticleType_GMCParticle::AfterEvolveLevel(HierarchyEntry *Grids[], To
 						     int ThisLevel, int TotalStarParticleCountPrevious[],
 						     int GMCParticleID)
 {
-  if (ActiveParticleType_AccretingParticle::AfterEvolveLevel<ActiveParticleType_GMCParticle>
+  if (ActiveParticleType_AccretingParticle::AfterEvolveLevel<active_particle_class>
       (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
     ENZO_FAIL("AccretingParticle AfterEvolveLevel failed!");
 
