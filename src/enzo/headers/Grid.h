@@ -796,6 +796,10 @@ gradient force to gravitational force for one-zone collapse test. */
 
    int DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT AccretionRadius); 
 
+/* Particles: calculate the mass density field from particles. */
+
+    int ComputeDarkMatterDensity(float *DarkMatterDensity);
+
 /* baryons: add baryon density to mass flaggin field (so the mass flagging
             field contains the mass in the cell (not the density) 
             (gg #3) */
