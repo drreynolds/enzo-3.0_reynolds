@@ -22,6 +22,7 @@
 #include "TopGridData.h"
 #endif
 #include "ParticleAttributeHandler.h"
+#include "h5utilities.h"
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
@@ -36,7 +37,7 @@ public:
 			  ActiveParticleFormationData &data);
   int static WriteDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 			  hid_t data_type, void *data);
-  int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+  int static ReadDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 			 hid_t data_type, void *read_to);
   void static SetupBaseParticleAttributes(
     std::vector<ParticleAttributeHandler*> &handlers);
@@ -299,6 +300,7 @@ template <class APClass> void WriteParticles(
     AttributeVector &handlers = APClass::AttributeHandlers;
     const char *_name = name.c_str();
     hid_t node = H5Gcreate(grid_node, _name, 0);
+    writeScalarAttribute(node, HDF5_INT, "Count", &Count);
 
     int ndims = 1;
     hsize_t dims[1] = {Count};
@@ -320,6 +322,44 @@ template <class APClass> void WriteParticles(
     }
 
     H5Gclose(node);
+}
+
+template <class APClass> int ReadParticles(
+        ActiveParticleType **OutList, int &offset, const std::string name,
+        hid_t grid_node)
+{
+    int i, size = 0;
+    AttributeVector &handlers = APClass::AttributeHandlers;
+    const char *_name = name.c_str();
+    hid_t node = H5Gopen(grid_node, _name);
+    /* We now have a reference to the top level node. */
+    int Count;
+    readAttribute(node, HDF5_INT, "Count", &Count, false);
+
+    char *buffer, *_buffer;
+    int ndims = 1;
+    hsize_t dims[1] = {Count};
+    for (i = 0; i < Count; i++) {
+        OutList[i+offset] = new APClass();
+    }
+
+    for (AttributeVector::iterator it = handlers.begin();
+        it != handlers.end(); ++it) {
+        size = Count * (*it)->element_size;
+        _buffer = buffer = new char[size];
+        _name = (*it)->name.c_str();
+        APClass::ReadDataset(ndims, dims, _name, node,
+                             (*it)->hdf5type, buffer);
+        for (i = 0; i < Count; i++) {
+            (*it)->SetAttribute(&_buffer, OutList[i+offset]);
+        }
+        delete buffer;
+    }
+
+    H5Gclose(node);
+    offset += Count;
+    return Count;
+
 }
 
 
@@ -421,6 +461,8 @@ public:
    int (*element_size)(void),
    void (*write_particles)(ActiveParticleType **particles, int num, const
                          std::string name, hid_t node),
+   int (*read_particles)(ActiveParticleType **particles, int &offset, const
+                         std::string name, hid_t node),
    ActiveParticleType *particle)
    {
 
@@ -438,6 +480,7 @@ public:
     this->UnpackBuffer = unpack_buffer;
     this->ReturnElementSize = element_size;
     this->WriteParticles = write_particles;
+    this->ReadParticles = read_particles;
     this->particle_instance = particle;
     this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
@@ -475,6 +518,8 @@ public:
   int (*ReturnElementSize)(void);
   void (*WriteParticles)(ActiveParticleType **InList, int InCount, const
                        std::string name, hid_t node);
+  int (*ReadParticles)(ActiveParticleType **OutList, int &offset, const
+                       std::string name, hid_t node);
   ActiveParticleType* particle_instance;
   std::string particle_name;
 
@@ -511,6 +556,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&Unpack<APClass>),
      (&CalculateElementSize<APClass>),
      (&WriteParticles<APClass>),
+     (&ReadParticles<APClass>),
      pp);
   return pinfo;
 }
