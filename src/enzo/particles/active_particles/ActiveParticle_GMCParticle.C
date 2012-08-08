@@ -32,35 +32,19 @@ void mt_init(unsigned_int seed);
 unsigned_long_int mt_random(void);
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActiveParticleType_AccretingParticle() {
-  R = M = sigma = 1.0;
-  R0 = M0 = sigma0 = 1.0;
-  Mdot = MdotAcc = sigmadot = Rdot = Rddot = Mddot = sigmadotAcc = 0.0;
-  tau = 0.0;
-  Massoc = Mstar = 0.0;
-  Tco = 0.0;
-  dtau = 1.0e-4;
-  dtauSave = 0.0;
-  nHIIreg = 0.0;
-  MstarRemain = 0.0;
-  sigmadot_noacc = Rddot_noacc = Rdot_noacc = Ecl = Ecl_noacc =
-    R_noacc = M_noacc = sigma_noacc = Eacc = sigmaISM = 0.0;
-  dtauOk = HIIregEsc = dissoc = dtauFloor = 0;
-  this->CalculateDerivedParameters();
-  // This is done twice on purpose.
-  this->UpdateDerivedParameters();
-  this->UpdateDerivedParameters();
-  Ecl = 
-    0.5 * aI * M * Rdot * Rdot +
-    2.4 * M * sigma * sigma +
-    1.5 * M * Mach0 -
-    5.0 * (0.6 * aprime * (1 - etaB*etaB) - chi) * M / (R * R * avir0);
+  // Shouldn't initialize a new particle with this constructor but we
+  // set these attributes to prevent undefined behavior
+  R = Rdot = M = Mstar = Massoc = 
+    MdotStar = MdotHII = MstarRemain = 
+    sigma = tau = dtau = Eacc = -1.0;
+  R0 = M0 = sigma0 = -1; 
 }
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleType_AccretingParticle *ap,
 							       ActiveParticleFormationData &data) 
   : ActiveParticleType_AccretingParticle(ap) {
+  // These are scaled dimensionless variables, see Goldbaum et al. 2011.
   R = M = sigma = 1.0;
-  R0 = M0 = sigma0 = 1.0;
   // Set initial radius to one cell size
   FLOAT dx = data.CellSize;
   R0 = dx*data.LengthUnits; 
@@ -68,26 +52,10 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleTyp
   sigma0 = SQRT(2.0*GravConst*M0/(5*R0)); // Assuming alpha_vir,0 = 2.0
 
   Mdot = MdotAcc = AccretionRate*data.MassUnits/data.TimeUnits/M0*R0/sigma0; // The accretion rate in gmcevol units
-  sigmadot = Rdot = Rddot = Mddot = sigmadotAcc = 0.0;
+  Mstar = Massoc = MdotStar = MdotHII = MstarRemain = 0.0;
   tau = 0.0;
-  Massoc = Mstar = 0.0;
-  Tco = 0.0;
   dtau = 1.0e-4;
-  dtauSave = 0.0;
-  nHIIreg = 0.0;
-  MstarRemain = 0.0;
-  sigmadot_noacc = Rddot_noacc = Rdot_noacc = Ecl = Ecl_noacc =
-    R_noacc = M_noacc = sigma_noacc = Eacc = sigmaISM = 0.0;
-  dtauOk = HIIregEsc = dissoc = dtauFloor = 0;
-  this->CalculateDerivedParameters();
-  // This is done twice on purpose.
-  this->UpdateDerivedParameters();
-  this->UpdateDerivedParameters();
-  Ecl = 
-    0.5 * aI * M * Rdot * Rdot +
-    2.4 * M * sigma * sigma +
-    1.5 * M * Mach0 -
-    5.0 * (0.6 * aprime * (1 - etaB*etaB) - chi) * M / (R * R * avir0);
+  Eacc = 0.0;
 }
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
@@ -98,59 +66,16 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
   
   R              = part->R;
   M              = part->M;
-  sigma          = part->sigma;
-  Rdot           = part->Rdot;
   Mdot           = part->Mdot;
-
   MdotAcc        = part->MdotAcc;
-  sigmadot       = part->sigmadot;
-  sigmadotAcc    = part->sigmadotAcc;
-  Rddot          = part->Rddot;
-  Mddot          = part->Mddot;
+  MdotStar       = part->MdotStar;
+  MdotHII        = part->MdotHII;
+  MstarRemain    = part->MstarRemain;
+  sigma          = part->sigma;
   tau            = part->tau;
   dtau           = part->dtau;
   Mstar          = part->Mstar;
-  sigmaISM       = part->sigmaISM;
-  Tco            = part->Tco;
-  MdotStar       = part->MdotStar;
-  MdotHII        = part->MdotHII;
-  MddotHII       = part->MddotHII;
-  Lambda         = part->Lambda;
-  Gamma          = part->Gamma;
-  Massoc         = part->Massoc;
-  MstarRemain    = part->MstarRemain;
-  dtauSave       = part->dtauSave;
-  sigmadot_noacc = part->sigmadot_noacc;
-  Rddot_noacc    = part->Rddot_noacc;
-  Rdot_noacc     = part->Rdot_noacc;
-  R_noacc        = part->R_noacc;
-  M_noacc        = part->M_noacc;
-  sigma_noacc    = part->sigma_noacc;
-  Ecl            = part->Ecl;
-  Ecl_noacc      = part->Ecl_noacc;
   Eacc           = part->Eacc;   
-
-  aI             = part->aI;
-  a              = part->a;
-  aprime         = part->aprime;
-  Mach0          = part->Mach0;
-  avir0          = part->avir0;
-  etaG           = part->etaG;
-  etaP           = part->etaP;
-  etaE           = part->etaE;
-  etaA           = part->etaA;
-  etaI           = part->etaI;
-  t0             = part->t0;
-  f              = part->f;
-  xi             = part->xi;
-  chi            = part->chi;
-  gamma          = part->gamma;
-
-  nHIIreg        = part->nHIIreg;
-  dtauOk         = part->dtauOk;
-  HIIregEsc      = part->HIIregEsc;
-  dissoc         = part->dissoc;
-  dtauFloor      = part->dtauFloor;
 }
 
 int ActiveParticleType_GMCParticle::InitializeParticleType()
@@ -225,14 +150,14 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   typedef ActiveParticleType_GMCParticle ap;
   AttributeVector &ah = ap::AttributeHandlers;
   ActiveParticleType::SetupBaseParticleAttributes(ah);
-  //SetupGMCParticleAttributes(ah);
+  SetupGMCParticleAttributes(ah);
 
   return SUCCESS;
 }
 
 #define CII 9.74e5 /* Sound speed in ionized gas, assuming T = 7000 K and mu = 0.61 */
 
-int ActiveParticleType_GMCParticle :: CalculateDerivedParameters() {
+/*int ActiveParticleType_GMCParticle :: CalculateDerivedParameters() {
   aI     = (3 - krho) / (5 - krho);
   a      = (15 - 5*krho) / (15 - 6.0*krho);
   aprime = a;
@@ -250,7 +175,7 @@ int ActiveParticleType_GMCParticle :: CalculateDerivedParameters() {
   MdotAcc = 0.0;
 
   return SUCCESS;
-}
+  }*/
 
 double logInterpolate(int zetaindex, double interpArray[NUMZETA],
                       double zeta, double zetamin, double zetamax){
@@ -260,7 +185,7 @@ double logInterpolate(int zetaindex, double interpArray[NUMZETA],
 }
 
 
-int ActiveParticleType_GMCParticle :: UpdateDerivedParameters() {
+/* int ActiveParticleType_GMCParticle :: UpdateDerivedParameters() {
   double rho   = (M*M0) / (f*4./3.*pi*(R*R*R*R0*R0*R0));
   double tff   = SQRT(3*pi / (32*GravConst*rho));
   double tauff = tff / t0;
@@ -293,7 +218,7 @@ int ActiveParticleType_GMCParticle :: UpdateDerivedParameters() {
   etaA = (5.0 - krho) / (4.0 - krho) * sqrt(xi * xi * 10.0 / (avir0 * f));
   
   return SUCCESS;
-}
+  } */
 
 int ActiveParticleType_GMCParticle::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
 {
@@ -587,7 +512,8 @@ int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, Activ
     
     for (int i = 0; i < data.NumberOfNewParticles; i++) {
       ActiveParticleType_GMCParticle* np = 
-	new ActiveParticleType_GMCParticle(static_cast<ActiveParticleType_AccretingParticle*>(data.NewParticles[i]),data);
+	new ActiveParticleType_GMCParticle
+	(static_cast<ActiveParticleType_AccretingParticle*>(data.NewParticles[i]),data);
       ActiveParticleType* temp = data.NewParticles[i];
       data.NewParticles[i] = np;
       delete temp;
@@ -595,6 +521,30 @@ int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, Activ
   }
 
   return SUCCESS;
+}
+
+void ActiveParticleType_GMCParticle::SetupGMCParticleAttributes(
+		std::vector<ParticleAttributeHandler*> &handlers)
+{
+
+  typedef ActiveParticleType_GMCParticle ap;
+  
+  handlers.push_back(new Handler<ap, FLOAT, &ap::M0>("gmcevol_M0"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::R0>("gmcevol_R0"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::sigma0>("gmcevol_sigma0"));
+  
+  handlers.push_back(new Handler<ap, FLOAT, &ap::R>("gmcevol_R"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::Rdot>("gmcevol_Rdot"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::M>("gmcevol_M"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::Mstar>("gmcevol_Mstar"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::Massoc>("gmcevol_Massoc"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::MdotStar>("gmcevol_MdotStar"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::MdotHII>("gmcevol_MdotHII"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::MstarRemain>("gmcevol_MstarRemain"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::sigma>("gmcevol_sigma"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::tau>("gmcevol_tau"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::dtau>("gmcevol_dtau"));
+  handlers.push_back(new Handler<ap, FLOAT, &ap::Eacc>("gmcevol_Eacc"));
 }
 
 namespace {

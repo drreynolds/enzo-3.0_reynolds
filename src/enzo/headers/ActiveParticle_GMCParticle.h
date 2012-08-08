@@ -25,6 +25,7 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
   static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
+  static void SetupGMCParticleAttributes(std::vector<ParticleAttributeHandler*> &handlers);
   template <class active_particle_class>
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -37,11 +38,7 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 				int GMCParticleID);
 
 
-  // instance member functions
-  int CalculateDerivedParameters();
-  int UpdateDerivedParameters();
-
-  // See Goldbaum et al. 2011 Table 1
+   // See Goldbaum et al. 2011 Table 1
   static const float krho;
   static const float etaB;
   static const float cs;
@@ -58,16 +55,10 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   float M0, R0, sigma0;
 
   // State data (in gmcevol units)
-  float R, M, sigma, Rdot, Mdot, MdotAcc, sigmadot, sigmadotAcc, 
-    Rddot, Mddot, tau, dtau, Mstar, sigmaISM, Tco, MdotStar, MdotHII, 
-    MddotHII, Lambda, Gamma, Massoc, MstarRemain, dtauSave,sigmadot_noacc,
-    Rddot_noacc, Rdot_noacc, R_noacc, M_noacc, sigma_noacc, Ecl, 
-    Ecl_noacc, Eacc;
+  float R, Rdot, M, Mdot, MdotAcc, MdotStar, MdotHII, MstarRemain, sigma, 
+    tau, dtau, Mstar, Massoc, Eacc;
 
-  /* Derived parameters */
-  float aI, a, aprime, Mach0, avir0, etaG, etaP, etaE, etaA, etaI, t0, f, xi, chi, gamma;
-
-  int nHIIreg, dtauOk, HIIregEsc, dissoc, dtauFloor;
+  int nHIIreg;
 
   /* Attribute handler instance */
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
@@ -102,7 +93,6 @@ public:
   int phase;
   int breakoutFlag;
 };
-
 
 template <class active_particle_class>
 int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
