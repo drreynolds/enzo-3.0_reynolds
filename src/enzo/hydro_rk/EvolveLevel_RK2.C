@@ -174,7 +174,9 @@ int FastSiblingLocatorInitializeStaticChainingMesh(ChainingMeshStructure *Mesh, 
 						   int TopGridDims[]); 
 
 double ReturnWallTime();
-int CallPython(LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
+int CallPython(LevelHierarchyEntry *LevelArray[],
+               HierarchyEntry *Grids[],
+               TopGridData *MetaData,
                int level, int from_topgrid);
 int SetLevelTimeStep(HierarchyEntry *Grids[], int NumberOfGrids, int level, 
 		     float *dtThisLevelSoFar, float *dtThisLevel, 
@@ -558,7 +560,7 @@ int EvolveLevel_RK2(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 			  , ImplicitSolver
 #endif
 			  );
-    CallPython(LevelArray, MetaData, level, 0);
+    CallPython(LevelArray, Grids, MetaData, level, 0);
 
 
     /* For each grid, delete the GravitatingMassFieldParticles. */

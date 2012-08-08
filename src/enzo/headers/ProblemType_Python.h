@@ -45,7 +45,7 @@ with C++ code mixed with public APIs.  It may some day become obsolete.
 #undef __cplusplus
 #define __reset_cplusplus
 #endif
-#include "python_bridge/problemtype_handler.h"
+#include "problemtype_handler.h"
 #ifdef __reset_cplusplus
 #define __cplusplus
 #endif

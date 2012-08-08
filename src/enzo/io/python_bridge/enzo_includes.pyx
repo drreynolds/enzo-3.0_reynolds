@@ -1,115 +1,74 @@
-cdef extern from "typedefs.h" nogil:
+"""
+The necessary imports for accessing Enzo data
 
-    enum: Density
-    enum: TotalEnergy
-    enum: InternalEnergy
-    enum: Pressure
-    enum: Velocity1
-    enum: Velocity2
-    enum: Velocity3
-    enum: ElectronDensity
-    enum: HIDensity
-    enum: HIIDensity
-    enum: HeIDensity
-    enum: HeIIDensity
-    enum: HeIIIDensity
-    enum: HMDensity
-    enum: H2IDensity
-    enum: H2IIDensity
-    enum: DIDensity
-    enum: DIIDensity
-    enum: HDIDensity
-    enum: SNColour
-    enum: Metallicity
-    enum: ExtraType0
-    enum: ExtraType1
-    enum: kphHI
-    enum: PhotoGamma
-    enum: kphHeI
-    enum: gammaHeI
-    enum: kphHeII
-    enum: gammaHeII
-    enum: kdissH2I
-    enum: GravPotential
-    enum: Acceleration0
-    enum: Acceleration1
-    enum: Acceleration2
-    enum: RadPressure0
-    enum: RadPressure1
-    enum: RadPressure2
-    enum: Emissivity0
-  
-    enum: gParticlePosition
-    enum: gParticleVelocity
-    enum: gParticleMass
-    enum: gParticleAcceleration
-    enum: gParticleNumber
-    enum: gParticleType
-    enum: gParticleAttribute
-    enum: gPotentialField
-    enum: gAccelerationField
-    enum: gGravitatingMassField
-    enum: gFlaggingField
-    enum: gVelocity
-  
-    enum: Bfield1
-    enum: Bfield2
-    enum: Bfield3
-    enum: PhiField
-    enum: Phi_pField
-    enum: DebugField
-  
-    enum: DrivingField1
-    enum: DrivingField2
-    enum: DrivingField3
-  
-    enum: AccelerationField1
-    enum: AccelerationField2
-    enum: AccelerationField3
-  
-    enum: Galaxy1Colour
-    enum: Galaxy2Colour
-  
-    enum: Mach
-    enum: PreShockTemperature
-    enum: PreShockDensity
-    enum: CRDensity
-  
-    enum: CIDensity
-    enum: CIIDensity
-    enum: OIDensity
-    enum: OIIDensity
-    enum: SiIDensity
-    enum: SiIIDensity
-    enum: SiIIIDensity
-    enum: CHIDensity
-    enum: CH2IDensity
-    enum: CH3IIDensity
-    enum: C2IDensity
-    enum: COIDensity
-    enum: HCOIIDensity
-    enum: OHIDensity
-    enum: H2OIDensity
-    enum: O2IDensity
-  
-    enum: MBHColour
-    enum: ForbiddenRefinement
-  
-  
-    enum: RadiationFreq0
-    enum: RadiationFreq1
-    enum: RadiationFreq2
-    enum: RadiationFreq3
-    enum: RadiationFreq4
-    enum: RadiationFreq5
-    enum: RadiationFreq6
-    enum: RadiationFreq7
-    enum: RadiationFreq8
-    enum: RadiationFreq9
-  
-    enum: RaySegments
-  
-    enum: FieldUndefined
+Author: Matthew Turk <matthewturk@gmail.com>
+Affiliation: Columbia University
+Homepage: http://enzo-project.org/
+License: This file is covered under the Enzo license
+"""
+
+cdef int E_ENPY_INT = ENPY_INT
+cdef int E_ENPY_PFLOAT = ENPY_PFLOAT
+cdef int E_ENPY_BFLOAT = ENPY_BFLOAT
+
+cdef int E_COMMUNICATION_SEND_RECEIVE = COMMUNICATION_SEND_RECEIVE
+cdef int E_COMMUNICATION_POST_RECEIVE = COMMUNICATION_POST_RECEIVE
+cdef int E_COMMUNICATION_SEND = COMMUNICATION_SEND
+cdef int E_COMMUNICATION_RECEIVE = COMMUNICATION_RECEIVE
+
+cdef int E_DEFAULT_GHOST_ZONES = DEFAULT_GHOST_ZONES
+cdef int E_MAX_DEPTH_OF_HIERARCHY = MAX_DEPTH_OF_HIERARCHY
+cdef int E_MAX_DIMENSION = MAX_DIMENSION
+cdef int E_MAX_NUMBER_OF_BARYON_FIELDS = MAX_NUMBER_OF_BARYON_FIELDS
+cdef int E_MAX_NUMBER_OF_PARTICLE_ATTRIBUTES = MAX_NUMBER_OF_PARTICLE_ATTRIBUTES
+cdef int E_MAX_COUNTERS = MAX_COUNTERS
+cdef int E_MAX_FLAGGING_METHODS = MAX_FLAGGING_METHODS
+cdef int E_MAX_MOVIE_FIELDS = MAX_MOVIE_FIELDS
+cdef int E_MAX_NAME_LENGTH = MAX_NAME_LENGTH
+cdef int E_MAX_NUMBER_OF_NODES = MAX_NUMBER_OF_NODES
+cdef int E_MAX_NUMBER_OF_OUTPUT_REDSHIFTS = MAX_NUMBER_OF_OUTPUT_REDSHIFTS
+cdef int E_MAX_NUMBER_OF_TASKS = MAX_NUMBER_OF_TASKS
+cdef int E_MAX_RECEIVE_BUFFERS = MAX_RECEIVE_BUFFERS
+cdef int E_MAX_STATIC_REGIONS = MAX_STATIC_REGIONS
+cdef int E_MAX_TIME_ACTIONS = MAX_TIME_ACTIONS
+
+cdef int E_ZERO_ALL_FIELDS = ZERO_ALL_FIELDS
+cdef int E_ZERO_UNDER_SUBGRID_FIELD = ZERO_UNDER_SUBGRID_FIELD
+
+cdef int E_PARTICLE_TYPE_GAS = PARTICLE_TYPE_GAS
+cdef int E_PARTICLE_TYPE_DARK_MATTER = PARTICLE_TYPE_DARK_MATTER
+cdef int E_PARTICLE_TYPE_STAR = PARTICLE_TYPE_STAR
+cdef int E_PARTICLE_TYPE_TRACER = PARTICLE_TYPE_TRACER
+cdef int E_PARTICLE_TYPE_MUST_REFINE = PARTICLE_TYPE_MUST_REFINE
+cdef int E_PARTICLE_TYPE_SINGLE_STAR = PARTICLE_TYPE_SINGLE_STAR
+cdef int E_PARTICLE_TYPE_BLACK_HOLE = PARTICLE_TYPE_BLACK_HOLE
+cdef int E_PARTICLE_TYPE_CLUSTER = PARTICLE_TYPE_CLUSTER
+cdef int E_PARTICLE_TYPE_MBH = PARTICLE_TYPE_MBH
+
+cdef int E_NORMAL_STAR = NORMAL_STAR
+cdef int E_UNIGRID_STAR = UNIGRID_STAR
+cdef int E_KRAVTSOV_STAR = KRAVTSOV_STAR
+cdef int E_POP3_STAR = POP3_STAR
+cdef int E_SINK_PARTICLE = SINK_PARTICLE
+cdef int E_STAR_CLUSTER = STAR_CLUSTER
+cdef int E_INSTANT_STAR = INSTANT_STAR
+cdef int E_SPRINGEL_HERNQUIST_STAR = SPRINGEL_HERNQUIST_STAR
+cdef int E_MBH_PARTICLE = MBH_PARTICLE
+
+cdef int E_TO_DELETE = TO_DELETE
+cdef int E_NO_FEEDBACK = NO_FEEDBACK
+cdef int E_ACCRETION = ACCRETION
+cdef int E_SUPERNOVA = SUPERNOVA
+cdef int E_CONT_SUPERNOVA = CONT_SUPERNOVA
+cdef int E_FORMATION = FORMATION
+cdef int E_STROEMGREN = STROEMGREN
+cdef int E_DEATH = DEATH
+cdef int E_MBH_THERMAL = MBH_THERMAL
+
+cdef int E_FAIL = FAIL
+cdef int E_SUCCESS = SUCCESS
+cdef int E_TRUE = TRUE
+cdef int E_FALSE = FALSE
 
 cdef field_enums = {
     "Density" : Density,
@@ -223,3 +182,6 @@ cdef field_enums = {
   
     "FieldUndefined" : FieldUndefined
 }
+
+cdef extern from "fix_enzo_defs.h":
+    pass
