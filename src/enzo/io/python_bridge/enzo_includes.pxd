@@ -279,7 +279,8 @@ cdef extern from "typedefs.h" nogil:
     enum: RadPressure1
     enum: RadPressure2
     enum: Emissivity0
-  
+    enum: Dark_Matter_Density
+
     enum: gParticlePosition
     enum: gParticleVelocity
     enum: gParticleMass

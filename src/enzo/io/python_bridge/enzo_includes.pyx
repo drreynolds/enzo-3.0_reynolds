@@ -109,6 +109,7 @@ cdef field_enums = {
     "RadPressure1" : RadPressure1,
     "RadPressure2" : RadPressure2,
     "Emissivity0" : Emissivity0,
+    "Dark_Matter_Density" : Dark_Matter_Density,
   
     "gParticlePosition" : gParticlePosition,
     "gParticleVelocity" : gParticleVelocity,

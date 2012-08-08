@@ -53,7 +53,8 @@ void grid::ConvertToNumpy(int GridID, PyArrayObject *container[], int ParentID, 
         int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
         int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
             DINum, DIINum, HDINum;
-        int field, dim;
+        int field, dim, i, j, k;
+        int ActiveDim[MAX_DIMENSION];
         FLOAT a = 1.0, dadt;
 
         /* Find fields: density, total energy, velocity1-3. */
@@ -111,6 +112,65 @@ void grid::ConvertToNumpy(int GridID, PyArrayObject *container[], int ParentID, 
     dataset->flags &= ~NPY_OWNDATA;
 	PyDict_SetItemString(grid_data, "Temperature", (PyObject*) dataset);
 	Py_DECREF(dataset);
+
+    /* Get grid particle density field */
+    if (SelfGravity && NumberOfParticles > 0) {
+      float SaveGravityResolution = GravityResolution;
+      GravityResolution = 1;
+      this->InitializeGravitatingMassFieldParticles(RefineBy);
+      this->ClearGravitatingMassFieldParticles();
+      this->DepositParticlePositions(this, Time,
+                         GRAVITATING_MASS_FIELD_PARTICLES);
+      GravityResolution = SaveGravityResolution;
+    }
+    
+    /* If present, write out the GravitatingMassFieldParticles. */
+
+    for (dim = 0; dim < 3; dim++)
+      ActiveDim[dim] = GridEndIndex[dim] - GridStartIndex[dim] +1;
+
+    if (GravitatingMassFieldParticles != NULL) {
+
+      float *YT_Dark_Matter_DensityField = new float[size];
+      
+      /* Set dimensions. */
+      
+      int StartIndex[] = {0,0,0}, EndIndex[] = {0,0,0};
+      for (dim = 0; dim < GridRank; dim++) {
+        StartIndex[dim] = nint((GridLeftEdge[dim] -
+                   GravitatingMassFieldParticlesLeftEdge[dim])/
+                   GravitatingMassFieldParticlesCellSize);
+        EndIndex[dim] = nint((GridRightEdge[dim] -
+                   GravitatingMassFieldParticlesLeftEdge[dim])/
+                   GravitatingMassFieldParticlesCellSize) - 1;
+      }
+        
+      /* Copy active part of field into grid */
+      
+      for (k = StartIndex[2]; k <= EndIndex[2]; k++)
+        for (j = StartIndex[1]; j <= EndIndex[1]; j++)
+          for (i = StartIndex[0]; i <= EndIndex[0]; i++)
+            YT_Dark_Matter_DensityField[(i-StartIndex[0]) +
+             (j-StartIndex[1])*ActiveDim[0] +
+             (k-StartIndex[2])*ActiveDim[0]*ActiveDim[1] ] =
+              GravitatingMassFieldParticles[ i +
+              j*GravitatingMassFieldParticlesDimension[0] +
+              k*GravitatingMassFieldParticlesDimension[0]*
+              GravitatingMassFieldParticlesDimension[1]];
+      
+      dataset = (PyArrayObject *) PyArray_SimpleNewFromData(
+        3, dims, ENPY_BFLOAT, YT_Dark_Matter_DensityField);
+      /*PyArray_ENABLEFLAGS(dataset, NPY_OWNDATA);*/
+      dataset->flags &= ~NPY_OWNDATA;
+      PyDict_SetItemString(grid_data, "Dark_Matter_Density", (PyObject*) dataset);
+      Py_DECREF(dataset);
+
+      /* Clean up if we modified the resolution. */
+      
+      if (SelfGravity && GravityResolution != 1)
+        this->DeleteGravitatingMassFieldParticles();
+    
+    } // end of (if GravitatingMassFieldParticles != NULL)
 
         /* Now we do our particle fields */
 
