@@ -55,12 +55,16 @@ class Handler : public ParticleAttributeHandler
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
             this->mpitype = IntDataType;
+            this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
             this->mpitype = FloatDataType;
+            this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
             this->mpitype = MPI_DOUBLE;
+            this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
             this->mpitype = FLOATDataType;
+            this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
         }
@@ -101,12 +105,16 @@ class ArrayHandler : public ParticleAttributeHandler
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
             this->mpitype = IntDataType;
+            this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
             this->mpitype = FloatDataType;
+            this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
             this->mpitype = MPI_DOUBLE;
+            this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
             this->mpitype = FLOATDataType;
+            this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
         }

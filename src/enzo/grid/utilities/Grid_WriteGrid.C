@@ -670,10 +670,9 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 	
 	/* Write them to disk */
 
-	ActiveParticleTypeToEvaluate->WriteToOutput(ActiveParticlesOfThisType,
-						     NumberOfActiveParticlesOfThisType,
-						     GridRank,
-						     ActiveParticleGroupID);
+    ActiveParticleTypeToEvaluate->WriteParticles(
+        ActiveParticlesOfThisType, NumberOfActiveParticlesOfThisType, 
+        ActiveParticleTypeToEvaluate->particle_name, ActiveParticleGroupID);
 						     
 	/* Clean up */
 

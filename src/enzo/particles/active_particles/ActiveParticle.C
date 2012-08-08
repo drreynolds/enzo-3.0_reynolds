@@ -99,7 +99,7 @@ int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, char *name, hid_t 
   return SUCCESS;
 }
 
-int ActiveParticleType::WriteDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+int ActiveParticleType::WriteDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 				     hid_t data_type, void *data)
 {
 

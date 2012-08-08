@@ -34,7 +34,7 @@ public:
 			    ActiveParticleFormationData &data);
   void static DestroyData(grid *_grid,
 			  ActiveParticleFormationData &data);
-  int static WriteDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+  int static WriteDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 			  hid_t data_type, void *data);
   int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
 			 hid_t data_type, void *read_to);
@@ -290,6 +290,40 @@ template <class APClass> void PrintActiveParticle(APClass *ap,
 
 }
 
+template <class APClass> void WriteParticles(
+        ActiveParticleType **InList, int Count, const std::string name,
+        hid_t grid_node)
+{
+    int i, size = 0;
+    char *buffer, *_buffer;
+    AttributeVector &handlers = APClass::AttributeHandlers;
+    const char *_name = name.c_str();
+    hid_t node = H5Gcreate(grid_node, _name, 0);
+
+    int ndims = 1;
+    hsize_t dims[1] = {Count};
+
+    APClass *In;
+
+    for (AttributeVector::iterator it = handlers.begin();
+        it != handlers.end(); ++it) {
+        size = Count * (*it)->element_size;
+        _buffer = buffer = new char[size];
+        for (i = 0; i < Count; i++) {
+            (*it)->GetAttribute(&_buffer, InList[i]);
+        }
+        /* Now write it to disk */
+        _name = (*it)->name.c_str();
+        APClass::WriteDataset(ndims, dims, _name, node,
+                              (*it)->hdf5type, buffer);
+        delete buffer;
+    }
+
+    H5Gclose(node);
+}
+
+
+
 template <class APClass> int FillBuffer(
         ActiveParticleType **InList_, int InCount, char *buffer_) {
 
@@ -385,6 +419,8 @@ public:
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
                        int OutCount),
    int (*element_size)(void),
+   void (*write_particles)(ActiveParticleType **particles, int num, const
+                         std::string name, hid_t node),
    ActiveParticleType *particle)
    {
 
@@ -401,6 +437,7 @@ public:
     this->AllocateBuffer = allocate_buffer;
     this->UnpackBuffer = unpack_buffer;
     this->ReturnElementSize = element_size;
+    this->WriteParticles = write_particles;
     this->particle_instance = particle;
     this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
@@ -436,6 +473,8 @@ public:
                        int OutCount);
   int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
+  void (*WriteParticles)(ActiveParticleType **InList, int InCount, const
+                       std::string name, hid_t node);
   ActiveParticleType* particle_instance;
   std::string particle_name;
 
@@ -471,6 +510,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&FillBuffer<APClass>),
      (&Unpack<APClass>),
      (&CalculateElementSize<APClass>),
+     (&WriteParticles<APClass>),
      pp);
   return pinfo;
 }
