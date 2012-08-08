@@ -26,47 +26,14 @@
 #include "EventHooks.h"
 #include "ActiveParticle.h"
 
-
-class ActiveParticleType_SampleParticle;
-
-class SampleParticleBufferHandler : public ParticleBufferHandler
-{
-public:
-  // No extra fields in SampleParticle.  Same base constructor.
-  SampleParticleBufferHandler(void) : ParticleBufferHandler() {};
-
-  SampleParticleBufferHandler(int NumberOfParticles) :
-    ParticleBufferHandler(NumberOfParticles) {};
-  
-  SampleParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) :
-    ParticleBufferHandler(np, NumberOfParticles, type, proc) {};
-
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer,
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position,
-			     int type_num, int proc);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return ElementSizeInBytes; }
-
-  // Extra fields would go here.  See
-  // ActiveParticle_AccretingParticle.C for a particle type that uses
-  // extra fields.
-};
-
 class ActiveParticleType_SampleParticle : public ActiveParticleType
 {
 public:
   // Constructors
   ActiveParticleType_SampleParticle(void) : ActiveParticleType() {};
 
-  ActiveParticleType_SampleParticle(SampleParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {};
-
   // Static members
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   template <class active_particle_class>
@@ -82,6 +49,8 @@ public:
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType(void);
   
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
+
   // Need this to make active particle ID work correctly.
   int GetEnabledParticleID(int myid = -1) {				
     static int ParticleID = -1;						
