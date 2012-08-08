@@ -108,9 +108,9 @@ int ActiveParticleType_CenOstriker::InitializeParticleType() {
 
 #endif
 
-  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler();
-  delete pbuffer;
-  
+  ActiveParticleType::SetupBaseParticleAttributes(
+    ActiveParticleType_CenOstriker::AttributeHandlers);
+
   return SUCCESS;
 }
 
@@ -472,162 +472,6 @@ void ActiveParticleType_CenOstriker::DescribeSupplementalData(ActiveParticleForm
   flags.MetalField = true;
 }
 
-int ActiveParticleType_CenOstriker::ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id)
-{
-  int i,dim;
-
-  /* Open the subgroup within the active particle for active particles of type CenOstriker */
-
-  hid_t CenOstrikerGroupID = H5Gopen(group_id,"CenOstriker");
-
-  readAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
-
-  char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
-  char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
-
-  FLOAT *Position[MAX_DIMENSION];
-  float *Velocity[MAX_DIMENSION];
-  double *Mass = new double[n];
-  float *BirthTime = new float[n];
-  float *DynamicalTime = new float[n];
-  float *Metallicity = new float[n];
-  PINT  *ID = new PINT[n];
-
-  for (dim = 0; dim < GridRank; dim++) {
-    Position[dim] = new FLOAT[n];
-    Velocity[dim] = new float[n];
-  }
-  
-  hsize_t TempInt;
-  TempInt = n;
-  
-  for (dim = 0; dim < GridRank; dim++) {
-    ReadDataset(1,&TempInt,ParticlePositionLabel[dim],
-		  CenOstrikerGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
-  }
-
-  for (dim = 0; dim < GridRank; dim++) {
-    ReadDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  CenOstrikerGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
-  }
-  ReadDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_R8,(VOIDP) Mass);
-  ReadDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) BirthTime);
-  ReadDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
-  ReadDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_REAL,(VOIDP) Metallicity);
-  ReadDataset(1,&TempInt,"identifier",CenOstrikerGroupID,HDF5_PINT,(VOIDP) ID);
-
-  particles_to_read = new ActiveParticleType*[n];
-  for (i = 0; i < n; i++) {
-    ActiveParticleType_CenOstriker *np = new ActiveParticleType_CenOstriker();
-    particles_to_read[i] = np;
-    np->Mass = Mass[i];
-    np->type = np->GetEnabledParticleID();
-    np->BirthTime = BirthTime[i];
-    np->DynamicalTime = DynamicalTime[i];
-    np->Metallicity = Metallicity[i];
-    np->Identifier = ID[i];
-    for (dim = 0; dim < GridRank; dim++){
-      np->pos[dim] = Position[dim][i];
-      np->vel[dim] = Velocity[dim][i];
-    }
-  }
-
-  delete[] Mass;
-  delete[] BirthTime;
-  delete[] DynamicalTime;
-  delete[] Metallicity;
-  delete[] ID;
-  
-  for (dim = 0; dim < GridRank; dim++) {
-    delete[] Position[dim];
-    delete[] Velocity[dim];
-  }
-  H5Gclose(CenOstrikerGroupID);
-
-  return SUCCESS;
-
-}
-
-int ActiveParticleType_CenOstriker::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
-{
-  /* Create a new subgroup within the active particle group for active particles of type CenOstriker */
-  hid_t CenOstrikerGroupID = H5Gcreate(group_id,"CenOstriker",0);
-
-  writeScalarAttribute(CenOstrikerGroupID,HDF5_INT,"number_of_active_particles_of_this_type",&n);
-
-  char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
-  char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
-
-  /* Create temporary buffers to store particle data */
-
-  FLOAT *Position[MAX_DIMENSION];
-  float *Velocity[MAX_DIMENSION]; 
-  double *Mass = new double [n];
-  float *BirthTime = new float[n];
-  float *DynamicalTime = new float[n];
-  float *Metallicity = new float[n];
-  PINT  *ID = new PINT[n];
-  
-  int i,dim;
-
-  for (dim = 0; dim < GridRank; dim++) {
-    Position[dim] = new FLOAT[n];
-    Velocity[dim] = new float[n];
-  }
-
-  hsize_t TempInt;
-  TempInt = n;
-    
-  ActiveParticleType_CenOstriker *ParticleToWrite;
-  for (i=0;i<n;i++) {
-    ParticleToWrite = static_cast<ActiveParticleType_CenOstriker*>(these_particles[i]);
-    for (dim = 0; dim < GridRank; dim++) {
-      Position[dim][i] = ParticleToWrite->pos[dim];
-      Velocity[dim][i] = ParticleToWrite->vel[dim];
-    }
-    Mass[i] = ParticleToWrite->Mass;
-    BirthTime[i] = ParticleToWrite->BirthTime;
-    DynamicalTime[i] = ParticleToWrite->DynamicalTime;
-    Metallicity[i] = ParticleToWrite->Metallicity;
-    ID[i] = ParticleToWrite->Identifier;
-  }
-
-  for (dim = 0; dim < GridRank; dim++) {
-    WriteDataset(1,&TempInt,ParticlePositionLabel[dim],
-		  CenOstrikerGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
-  }
-
-  for (dim = 0; dim < GridRank; dim++) {
-    WriteDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  CenOstrikerGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
-  }
-  
-  WriteDataset(1,&TempInt,"mass",CenOstrikerGroupID,HDF5_R8,(VOIDP) Mass);
-  WriteDataset(1,&TempInt,"creation_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) BirthTime);
-  WriteDataset(1,&TempInt,"dynamical_time",CenOstrikerGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
-  WriteDataset(1,&TempInt,"metallicity_fraction",CenOstrikerGroupID,HDF5_REAL,(VOIDP) Metallicity);
-  WriteDataset(1,&TempInt,"identifier",CenOstrikerGroupID,HDF5_PINT,(VOIDP) ID);
-
-  /* Clean up */
-
-  for (dim = 0; dim < GridRank; dim++) {
-    delete[] Position[dim];
-    delete[] Velocity[dim];
-  }
-  delete[] Mass;
-  delete[] BirthTime;
-  delete[] DynamicalTime;
-  delete[] Metallicity;
-  delete[] ID;
-
-  H5Gclose(CenOstrikerGroupID);
-
-  return SUCCESS;
-}
 
 int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelArray[],int level, int TopGridDims[], int ActiveParticleID)
 {
@@ -635,45 +479,11 @@ int ActiveParticleType_CenOstriker::SetFlaggingField(LevelHierarchyEntry *LevelA
   return SUCCESS;
 }
 
-void CenOstrikerBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, 
-					      char *buffer, Eint32 total_buffer_size, 
-					      int &buffer_size, Eint32 &position, 
-					      int type_num, int proc)
-{
-  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(np, NumberOfParticles, type_num, proc);
-  pbuffer->_AllocateBuffer(buffer, total_buffer_size, buffer_size, position);
-  // If any extra fields are added in the future, then they would be
-  // transferred to the buffer here.
-  // Example below is defined out
-#ifdef EXAMPLE
-  MPI_Pack(this->field, this->NumberOfBuffers, FloatDataType, buffer, buffer_size,
-	   &position, EnzoTopComm);
-#endif /* EXAMPLE */
-  delete pbuffer;
-  return;
-}
-
-void CenOstrikerBufferHandler::UnpackBuffer
-(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
- ActiveParticleType **np, int &npart)
-{
-  int i;
-  Eint32 position = 0;
-  CenOstrikerBufferHandler *pbuffer = new CenOstrikerBufferHandler(NumberOfParticles);
-  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
-  // If any extra fields are added in the future, then they would be
-  // transferred to the buffer here.
-#ifdef EXAMPLE
-  MPI_Unpack(mpi_buffer, mpi_buffer_size, &position, pbuffer->field,
-	     pbuffer->NumberOfBuffers, FloatDataType, EnzoTopComm);
-#endif /* EXAMPLE */
-  /* Convert the particle buffer into active particles */
-  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
-    np[npart++] = new ActiveParticleType_CenOstriker(pbuffer, i);
-  return;
-}
-
 namespace {
   ActiveParticleType_info *CenOstrikerInfo = 
-    register_ptype <ActiveParticleType_CenOstriker, CenOstrikerBufferHandler> ("CenOstriker");
+    register_ptype <ActiveParticleType_CenOstriker> ("CenOstriker");
 }
+
+std::vector<ParticleAttributeHandler*>
+  ActiveParticleType_CenOstriker::AttributeHandlers;
+

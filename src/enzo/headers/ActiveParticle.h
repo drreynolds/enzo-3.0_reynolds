@@ -465,8 +465,6 @@ public:
    void (*describe_data)(ActiveParticleFormationDataFlags &flags),
    int (*initialize)(),
    int (*feedback)(grid *thisgrid_orig, ActiveParticleFormationData &data),
-   int (*write)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id),
-   int (*read)(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id),
    int (*before_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
@@ -492,8 +490,6 @@ public:
     this->InitializeParticleType = initialize;
     this->EvaluateFormation = evaluate_formation;
     this->EvaluateFeedback = feedback;
-    this->WriteToOutput = write;
-    this->ReadFromOutput = read;
     this->BeforeEvolveLevel = before_evolvelevel;
     this->AfterEvolveLevel = after_evolvelevel;
     this->SetFlaggingField = flagfield;
@@ -522,8 +518,6 @@ public:
   int (*InitializeParticleType)(void);
   int (*EvaluateFormation)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*EvaluateFeedback)(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  int (*WriteToOutput)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  int (*ReadFromOutput)(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   int (*BeforeEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				     int ThisLevel, int TotalStarParticleCountPrevious[],
@@ -570,8 +564,6 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&APClass::DescribeSupplementalData),
      (&APClass::InitializeParticleType),
      (&APClass::EvaluateFeedback),
-     (&APClass::WriteToOutput),
-     (&APClass::ReadFromOutput),
      (&APClass::template BeforeEvolveLevel<APClass>),
      (&APClass::template AfterEvolveLevel<APClass>),
      (&APClass::SetFlaggingField),
