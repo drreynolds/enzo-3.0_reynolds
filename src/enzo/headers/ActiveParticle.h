@@ -254,169 +254,191 @@ const struct ActiveParticleFormationDataFlags flags_default = {
   false     // MetalField
 };
 
-template <class APClass> int CalculateElementSize() {
-    static int particle_size = 0;
-    if (particle_size > 0) return particle_size;
-    AttributeVector &handlers = APClass::AttributeHandlers;
-    for(AttributeVector::iterator it = handlers.begin();
+namespace ActiveParticleHelpers {
+
+  template <class APClass> int CalculateElementSize() {
+      static int particle_size = 0;
+      if (particle_size > 0) return particle_size;
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      for(AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          particle_size += (**it).element_size;
+      }
+      return particle_size;
+  }
+
+  template <class APClass> void Allocate(int Count, char **buffer) {
+          
+      /* This routine is called for each particle type. */
+      /* So we need to re-calculate the element and header size for each. */
+
+      int particle_size = CalculateElementSize<APClass>();
+      int header_size = sizeof(int);
+
+      *buffer = new char[particle_size * Count + header_size];
+
+  }
+
+  template <class APClass> void PrintActiveParticle(APClass *ap,
+      const std::string prefix = "") {
+
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      for(AttributeVector::iterator it = handlers.begin();
         it != handlers.end(); ++it) {
-        particle_size += (**it).element_size;
-    }
-    return particle_size;
-}
+          (*it)->PrintAttribute(ap);
+          std::cout << " ";
+      }
 
-template <class APClass> void Allocate(int Count, char **buffer) {
-        
-    /* This routine is called for each particle type. */
-    /* So we need to re-calculate the element and header size for each. */
+      std::cout << std::endl;
 
-    int particle_size = CalculateElementSize<APClass>();
-    int header_size = sizeof(int);
+  }
 
-    *buffer = new char[particle_size * Count + header_size];
+  template <class APClass> void WriteParticles(
+          ActiveParticleType **InList, int ParticleTypeID,
+          int TotalParticles,
+          const std::string name, hid_t grid_node)
+  {
+      int i, size = 0, Count = 0;
+      char *buffer, *_buffer;
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      const char *_name = name.c_str();
+      hid_t node = H5Gcreate(grid_node, _name, 0);
 
-}
+      /* Now we count up our particles */
+      for (i = 0; i < TotalParticles; i++) {
+        if (InList[i]->GetEnabledParticleID() == ParticleTypeID) Count++;
+      }
 
-template <class APClass> void PrintActiveParticle(APClass *ap,
-    const std::string prefix = "") {
+      writeScalarAttribute(node, HDF5_INT, "Count", &Count);
 
-    AttributeVector &handlers = APClass::AttributeHandlers;
-    for(AttributeVector::iterator it = handlers.begin();
-      it != handlers.end(); ++it) {
-        (*it)->PrintAttribute(ap);
-        std::cout << " ";
-    }
+      if(Count == 0) {
+        H5Gclose(node);
+        return;
+      }
 
-    std::cout << std::endl;
+      int ndims = 1;
+      hsize_t dims[1] = {Count};
 
-}
+      APClass *In;
 
-template <class APClass> void WriteParticles(
-        ActiveParticleType **InList, int Count, const std::string name,
-        hid_t grid_node)
-{
-    int i, size = 0;
-    char *buffer, *_buffer;
-    AttributeVector &handlers = APClass::AttributeHandlers;
-    const char *_name = name.c_str();
-    hid_t node = H5Gcreate(grid_node, _name, 0);
-    writeScalarAttribute(node, HDF5_INT, "Count", &Count);
-
-    int ndims = 1;
-    hsize_t dims[1] = {Count};
-
-    APClass *In;
-
-    for (AttributeVector::iterator it = handlers.begin();
-        it != handlers.end(); ++it) {
-        size = Count * (*it)->element_size;
-        _buffer = buffer = new char[size];
-        for (i = 0; i < Count; i++) {
+      for (AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          size = Count * (*it)->element_size;
+          _buffer = buffer = new char[size];
+          for (i = 0; i < TotalParticles; i++) {
+            if (InList[i]->GetEnabledParticleID() != ParticleTypeID)
+              continue;
             (*it)->GetAttribute(&_buffer, InList[i]);
-        }
-        /* Now write it to disk */
-        _name = (*it)->name.c_str();
-        APClass::WriteDataset(ndims, dims, _name, node,
-                              (*it)->hdf5type, buffer);
-        delete buffer;
-    }
+          }
+          /* Now write it to disk */
+          _name = (*it)->name.c_str();
+          APClass::WriteDataset(ndims, dims, _name, node,
+                                (*it)->hdf5type, buffer);
+          delete buffer;
+      }
 
-    H5Gclose(node);
-}
+      H5Gclose(node);
+  }
 
-template <class APClass> int ReadParticles(
-        ActiveParticleType **OutList, int &offset, const std::string name,
-        hid_t grid_node)
-{
-    int i, size = 0;
-    AttributeVector &handlers = APClass::AttributeHandlers;
-    const char *_name = name.c_str();
-    hid_t node = H5Gopen(grid_node, _name);
-    /* We now have a reference to the top level node. */
-    int Count;
-    readAttribute(node, HDF5_INT, "Count", &Count, false);
+  template <class APClass> int ReadParticles(
+          ActiveParticleType **OutList, int &offset, const std::string name,
+          hid_t grid_node)
+  {
+      int i, size = 0;
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      const char *_name = name.c_str();
+      hid_t node = H5Gopen(grid_node, _name);
+      /* We now have a reference to the top level node. */
+      int Count;
+      readAttribute(node, HDF5_INT, "Count", &Count, false);
+      if(Count == 0) {
+        H5Gclose(node);
+        return offset;
+      }
 
-    char *buffer, *_buffer;
-    int ndims = 1;
-    hsize_t dims[1] = {Count};
-    for (i = 0; i < Count; i++) {
-        OutList[i+offset] = new APClass();
-    }
+      char *buffer, *_buffer;
+      int ndims = 1;
+      hsize_t dims[1] = {Count};
+      for (i = 0; i < Count; i++) {
+          OutList[i+offset] = new APClass();
+      }
 
-    for (AttributeVector::iterator it = handlers.begin();
-        it != handlers.end(); ++it) {
-        size = Count * (*it)->element_size;
-        _buffer = buffer = new char[size];
-        _name = (*it)->name.c_str();
-        APClass::ReadDataset(ndims, dims, _name, node,
-                             (*it)->hdf5type, buffer);
-        for (i = 0; i < Count; i++) {
-            (*it)->SetAttribute(&_buffer, OutList[i+offset]);
-        }
-        delete buffer;
-    }
+      for (AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          size = Count * (*it)->element_size;
+          _buffer = buffer = new char[size];
+          _name = (*it)->name.c_str();
+          APClass::ReadDataset(ndims, dims, _name, node,
+                               (*it)->hdf5type, buffer);
+          for (i = 0; i < Count; i++) {
+              (*it)->SetAttribute(&_buffer, OutList[i+offset]);
+          }
+          delete buffer;
+      }
 
-    H5Gclose(node);
-    offset += Count;
-    return Count;
+      H5Gclose(node);
+      offset += Count;
+      return Count;
 
-}
+  }
 
 
 
-template <class APClass> int FillBuffer(
-        ActiveParticleType **InList_, int InCount, char *buffer_) {
+  template <class APClass> int FillBuffer(
+          ActiveParticleType **InList_, int InCount, char *buffer_) {
 
-    int i;
-    int size = 0;
+      int i;
+      int size = 0;
 
-    if (buffer_ == NULL) {
-        ENZO_FAIL("Buffer not allocated!");
-    }
-    /* We increment the pointer as we fill */
-    char **buffer = &buffer_;
+      if (buffer_ == NULL) {
+          ENZO_FAIL("Buffer not allocated!");
+      }
+      /* We increment the pointer as we fill */
+      char **buffer = &buffer_;
 
-    AttributeVector &handlers = APClass::AttributeHandlers;
+      AttributeVector &handlers = APClass::AttributeHandlers;
 
-    APClass *In;
+      APClass *In;
 
-    for (i = 0; i < InCount; i++) {
-        In = dynamic_cast<APClass*>(InList_[i]);
-        /* We'll put debugging output here */
-        for(AttributeVector::iterator it = handlers.begin();
-            it != handlers.end(); ++it) {
-            size += (*it)->GetAttribute(buffer, In);
-        }
-        /*
-        std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
-        PrintActiveParticle<APClass>(In);
-        */
-    }
-    return size;
-}
+      for (i = 0; i < InCount; i++) {
+          In = dynamic_cast<APClass*>(InList_[i]);
+          /* We'll put debugging output here */
+          for(AttributeVector::iterator it = handlers.begin();
+              it != handlers.end(); ++it) {
+              size += (*it)->GetAttribute(buffer, In);
+          }
+          /*
+          std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
+          PrintActiveParticle<APClass>(In);
+          */
+      }
+      return size;
+  }
 
-template <class APClass> void Unpack(
-        char *buffer_, int offset,
-        ActiveParticleType** OutList_, int OutCount) {
+  template <class APClass> void Unpack(
+          char *buffer_, int offset,
+          ActiveParticleType** OutList_, int OutCount) {
 
-    APClass **OutList = reinterpret_cast<APClass**>(OutList_);
-    AttributeVector &handlers = APClass::AttributeHandlers;
-    APClass *Out;
-    int i;
-    char *buffer = buffer_;
+      APClass **OutList = reinterpret_cast<APClass**>(OutList_);
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      APClass *Out;
+      int i;
+      char *buffer = buffer_;
 
-    for (i = 0; i < OutCount; i++) {
-        Out = new APClass();
-        OutList[i + offset] = Out;
-        for(AttributeVector::iterator it = handlers.begin();
-            it != handlers.end(); ++it) {
-            (*it)->SetAttribute(&buffer, Out);
-        }
-        /*
-        std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
-        PrintActiveParticle<APClass>(Out);
-        */
-    }
+      for (i = 0; i < OutCount; i++) {
+          Out = new APClass();
+          OutList[i + offset] = Out;
+          for(AttributeVector::iterator it = handlers.begin();
+              it != handlers.end(); ++it) {
+              (*it)->SetAttribute(&buffer, Out);
+          }
+          /*
+          std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
+          PrintActiveParticle<APClass>(Out);
+          */
+      }
+
+  }
 
 }
 
@@ -459,8 +481,9 @@ public:
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
                        int OutCount),
    int (*element_size)(void),
-   void (*write_particles)(ActiveParticleType **particles, int num, const
-                         std::string name, hid_t node),
+   void (*write_particles)(ActiveParticleType **particles, 
+                         int type_id, int total_particles,
+                         const std::string name, hid_t node),
    int (*read_particles)(ActiveParticleType **particles, int &offset, const
                          std::string name, hid_t node),
    ActiveParticleType *particle)
@@ -516,8 +539,9 @@ public:
                        int OutCount);
   int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
-  void (*WriteParticles)(ActiveParticleType **InList, int InCount, const
-                       std::string name, hid_t node);
+  void (*WriteParticles)(ActiveParticleType **InList, 
+                       int ParticleTypeID, int TotalParticles,
+                       const std::string name, hid_t node);
   int (*ReadParticles)(ActiveParticleType **OutList, int &offset, const
                        std::string name, hid_t node);
   ActiveParticleType* particle_instance;
@@ -551,12 +575,12 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&APClass::template BeforeEvolveLevel<APClass>),
      (&APClass::template AfterEvolveLevel<APClass>),
      (&APClass::SetFlaggingField),
-     (&Allocate<APClass>),
-     (&FillBuffer<APClass>),
-     (&Unpack<APClass>),
-     (&CalculateElementSize<APClass>),
-     (&WriteParticles<APClass>),
-     (&ReadParticles<APClass>),
+     (&ActiveParticleHelpers::Allocate<APClass>),
+     (&ActiveParticleHelpers::FillBuffer<APClass>),
+     (&ActiveParticleHelpers::Unpack<APClass>),
+     (&ActiveParticleHelpers::CalculateElementSize<APClass>),
+     (&ActiveParticleHelpers::WriteParticles<APClass>),
+     (&ActiveParticleHelpers::ReadParticles<APClass>),
      pp);
   return pinfo;
 }

@@ -643,41 +643,18 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
 
-	/* Instantitate an active particle helper of this type
-	   This class contains the function that allows us to write to disk */
+        /* Instantitate an active particle helper of this type
+           This class contains the function that allows us to write to disk */
 
-	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+        ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
 
-	/* Count the number of active particles of this type  */
-	
-	std::vector<int> LocationOfActiveParticlesOfThisType;
-	
-	for (j = 0; j<NumberOfActiveParticles; j++) {
-	  if (this->ActiveParticles[j]->GetEnabledParticleID() == i) {
-	    LocationOfActiveParticlesOfThisType.push_back(j);
-	  }
-	}
-	
-	int NumberOfActiveParticlesOfThisType = LocationOfActiveParticlesOfThisType.size();
+        /* Write them to disk */
 
-	/* Put the active particles of this type in a temporary buffer */
-	
-	ActiveParticleType **ActiveParticlesOfThisType = new ActiveParticleType*[NumberOfActiveParticlesOfThisType];
-
-	for (j = 0; j<NumberOfActiveParticlesOfThisType; j++) {
-	  ActiveParticlesOfThisType[j] = this->ActiveParticles[LocationOfActiveParticlesOfThisType[j]];
-	}
-	
-	/* Write them to disk */
-
-    ActiveParticleTypeToEvaluate->WriteParticles(
-        ActiveParticlesOfThisType, NumberOfActiveParticlesOfThisType, 
-        ActiveParticleTypeToEvaluate->particle_name, ActiveParticleGroupID);
+        ActiveParticleTypeToEvaluate->WriteParticles(
+            this->ActiveParticles, i, NumberOfActiveParticles,
+            ActiveParticleTypeToEvaluate->particle_name,
+            ActiveParticleGroupID);
 						     
-	/* Clean up */
-
-	delete [] ActiveParticlesOfThisType;
-
       }
 
     H5Gclose(ActiveParticleGroupID);
