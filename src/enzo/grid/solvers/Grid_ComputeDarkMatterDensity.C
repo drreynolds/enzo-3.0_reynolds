@@ -11,10 +11,7 @@
 /  RETURNS:
 /
 ************************************************************************/
- 
-// Compute the pressure at the requested time.  The pressure here is
-//   just the ideal-gas equation-of-state.
- 
+
 #include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
