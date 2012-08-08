@@ -23,8 +23,6 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   // static member functions
   static int InitializeParticleType();
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void SetupGMCParticleAttributes(std::vector<ParticleAttributeHandler*> &handlers);
   template <class active_particle_class>
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
