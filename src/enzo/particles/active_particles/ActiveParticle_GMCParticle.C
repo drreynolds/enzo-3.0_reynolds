@@ -209,8 +209,6 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
 
   fclose(fpRadSolTable);
 
-  //MPI_Datatype DataTypeInt = (sizeof(GMCParticleGNCSeed) == 4) ? MPI_INT : MPI_LONG_LONG_INT;
-
   if (GMCParticleRNGSeed == INT_UNDEFINED) {
     GMCParticleRNGSeed = time(NULL);
   }
@@ -218,11 +216,16 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   mt_init(GMCParticleRNGSeed);
 
   // If this is a restart, reset the RNG to the 
-  // appropriate position in the RN stream
+  // appropriate position in the stream
 
   unsigned_long_int trash;
   for (int i = 0; i < 1 + GMCParticleRNGCalls; i++)
     trash = mt_random();
+
+  typedef ActiveParticleType_GMCParticle ap;
+  AttributeVector &ah = ap::AttributeHandlers;
+  ActiveParticleType::SetupBaseParticleAttributes(ah);
+  //SetupGMCParticleAttributes(ah);
 
   return SUCCESS;
 }
@@ -596,6 +599,10 @@ int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, Activ
 
 namespace {
   ActiveParticleType_info *GMCParticleInfo = 
-    register_ptype <ActiveParticleType_GMCParticle, GMCParticleBufferHandler> 
+    register_ptype <ActiveParticleType_GMCParticle> 
     ("GMCParticle");
 }
+
+std::vector<ParticleAttributeHandler*>
+    ActiveParticleType_GMCParticle::AttributeHandlers;
+

@@ -507,7 +507,7 @@ namespace {
     ("AccretingParticle");
 }
 
-std::vector<ParticleAttributeHandler*>
-  ActiveParticleType_AccretingParticle::AttributeHandlers;
+std::vector<ParticleAttributeHandler*> 
+   ActiveParticleType_AccretingParticle::AttributeHandlers;
 
 #undef DEBUG
