@@ -12,8 +12,10 @@
 /
 ************************************************************************/
 
+#ifdef USE_PYTHON
 #ifndef NEW_PROBLEM_TYPES
 #error "Sorry, you need to have the new problem types enabled."
+#endif
 #endif
 
 #include "preincludes.h"
@@ -32,7 +34,9 @@
 #undef __cplusplus
 #define __reset_cplusplus
 #endif
+#ifdef NEW_PROBLEM_TYPES
 #include "message_passing.h"
+#endif
 #ifdef __reset_cplusplus
 #define __cplusplus
 #endif

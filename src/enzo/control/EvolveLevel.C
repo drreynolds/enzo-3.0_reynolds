@@ -94,8 +94,8 @@
 #include "EventHooks.h"
 #include "EventDataContainers.h"
 #else
-void RunEventHooks(char *, HierarchyEntry *Grid[], TopGridData &MetaData,
-                    NULL) {}
+void RunEventHooks(char *, HierarchyEntry *Grids[],
+                   TopGridData &MetaData, void *) {};
 #endif
  
 /* function prototypes */
