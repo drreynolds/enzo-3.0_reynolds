@@ -18,44 +18,14 @@
 
 class ActiveParticleType_Kravtsov;
 
-class KravtsovBufferHandler : public ParticleBufferHandler
-{
-  public:
-  // No extra fields in CenOstriker.  Same base constructor.
-  KravtsovBufferHandler(void) : ParticleBufferHandler() {};
-
-  KravtsovBufferHandler(int NumberOfParticles) :
-    ParticleBufferHandler(NumberOfParticles) {};
-
-  KravtsovBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) :
-    ParticleBufferHandler(np, NumberOfParticles, type, proc) {};
-
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer,
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position,
-			     int type_num, int proc);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return ElementSizeInBytes; }
-
-  // Extra fields would go here.  See
-  // ActiveParticle_AccretingParticle.C for a particle type that uses
-  // extra fields.
-};
-
 class ActiveParticleType_Kravtsov : public ActiveParticleType
 {
 public:
   // Constructors
   ActiveParticleType_Kravtsov(void) : ActiveParticleType() {};
 
-  ActiveParticleType_Kravtsov(KravtsovBufferHandler *buffer, int index) :
-    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {};
-  
   // Static members
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &supp_data);
-  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
   template <class active_particle_class>
@@ -82,5 +52,7 @@ public:
   };
 
   static float DensityThreshold, StarFormationTimeConstant, MinimumStarMass;
+
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 
 };

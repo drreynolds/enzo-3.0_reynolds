@@ -68,12 +68,16 @@ int ActiveParticleType_Kravtsov::InitializeParticleType(void) {
 #endif
   
   /* Add on the Particle Array Handlers */
-  typedef ActiveParticleType_AccretingParticle ap;
+  typedef ActiveParticleType_Kravtsov ap;
   AttributeVector &ah = ap::AttributeHandlers;
   ActiveParticleType::SetupBaseParticleAttributes(ah);
 
-  ah.push_back(new Handler<ap, float, &ap::AccretionRate>("AccretionRate"));
-
+  /* We don't want to change the attribute this is tied with, but we do want to
+  update the name. */
+  
+  for(AttributeVector::iterator it = ah.begin(); it != ah.end(); ++it) {
+    if((*it)->name == "metallicity") (*it)->name = "metallicity_fraction";
+  }
 
   return SUCCESS;
 }
@@ -226,3 +230,7 @@ namespace {
   ActiveParticleType_info *KravtsovInfo = 
     register_ptype <ActiveParticleType_Kravtsov> ("Kravtsov");
 }
+
+std::vector<ParticleAttributeHandler*>
+  ActiveParticleType_Kravtsov::AttributeHandlers;
+
