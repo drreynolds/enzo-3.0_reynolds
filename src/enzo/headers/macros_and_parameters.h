@@ -88,7 +88,7 @@
 
 #define ROOT_PROCESSOR                      0
 
-#define VERSION                             2.0  /* current version number */
+#define VERSION                             2.2  /* current version number */
 
 /* Unmodifiable Parameters */
 
