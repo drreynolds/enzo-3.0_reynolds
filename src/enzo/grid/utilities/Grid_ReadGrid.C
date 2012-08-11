@@ -510,9 +510,9 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
     /* Loop over enabled active particle types */
 
-    int NumberOfActiveParticlesOnDisk = 0;
-    
-    ActiveParticleType **ActiveParticlesOnDisk = NULL;
+    this->ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles];
+
+    int offset = 0;
 
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
@@ -522,39 +522,10 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
 	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
 	
-	/* Create an empty buffer that particles in the data file will be read into */
-
-	ActiveParticleType **ActiveParticlesOfThisTypeOnDisk;
-	int NumberOfActiveParticlesOfThisType;
-
-	/* Read the active particles from disk */
-
-	ActiveParticleTypeToEvaluate->read_function(ActiveParticlesOfThisTypeOnDisk,
-						    NumberOfActiveParticlesOfThisType,
-						    GridRank,
-						    ActiveParticleGroupID);
-
-	/* Add the active particles read from disk to the active particle buffer */
-
-	int OldNumberOfActiveParticles = NumberOfActiveParticlesOnDisk;
-
-	ActiveParticleType **OldActiveParticles = ActiveParticlesOnDisk;
-
-	NumberOfActiveParticlesOnDisk += NumberOfActiveParticlesOfThisType;
-	
-	ActiveParticlesOnDisk = new ActiveParticleType*[NumberOfActiveParticlesOnDisk];
-
-	for (i = 0; i < OldNumberOfActiveParticles; i++) {
-	  ActiveParticlesOnDisk[i] = OldActiveParticles[i];
-	}
-	for (i = 0; i < NumberOfActiveParticlesOfThisType; i++) {
-	  ActiveParticlesOnDisk[OldNumberOfActiveParticles + i] = ActiveParticlesOfThisTypeOnDisk[i];
-	}
-
-	/* clean up */
-
-	delete [] OldActiveParticles;
-	delete [] ActiveParticlesOfThisTypeOnDisk;
+        ActiveParticleTypeToEvaluate->ReadParticles(
+            this->ActiveParticles, offset,
+            ActiveParticleTypeToEvaluate->particle_name,
+            ActiveParticleGroupID);
 	
       } // end: for EnabledActiveParticlesCount
 
@@ -564,7 +535,6 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
       (GridEndIndex[0] - GridStartIndex[0] + 1);
     int level = nint(logf(TopGridDx[0]/dx) / logf(RefineBy));
 
-    this->ActiveParticles = ActiveParticlesOnDisk;
     for (i = 0; i < NumberOfActiveParticles; i++) {
       this->ActiveParticles[i]->AssignCurrentGrid(this); // this->ID not defined yet
       this->ActiveParticles[i]->SetLevel(level);

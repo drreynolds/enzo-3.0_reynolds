@@ -28,58 +28,30 @@
 
 #include "phys_constants.h"
 
-class ActiveParticleType_SpringelHernquist;
-class SpringelHernquistBufferHandler : public ParticleBufferHandler
-{
-public:
-  // No extra fields in SpringelHernquist.  Same base constructor.
-  SpringelHernquistBufferHandler(void) : ParticleBufferHandler() {};
-
-  SpringelHernquistBufferHandler(int NumberOfParticles) :
-    ParticleBufferHandler(NumberOfParticles) {};
-  
-  SpringelHernquistBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc) :
-    ParticleBufferHandler(np, NumberOfParticles, type, proc) {};
-
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer,
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position,
-			     int type_num, int proc);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return ElementSizeInBytes; }
-
-  // Extra fields would go here.  See
-  // ActiveParticle_AccretingParticle.C for a particle type that uses
-  // extra fields.
-};
-
 class ActiveParticleType_SpringelHernquist : public ActiveParticleType
 {
 public:
   // Constructors
   ActiveParticleType_SpringelHernquist(void) : ActiveParticleType() {};
 
-  ActiveParticleType_SpringelHernquist(SpringelHernquistBufferHandler *buffer, int index) :
-    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {};
-
   // Static members
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			       int ThisLevel, int TotalStarParticleCountPrevious[],
-			       int SpringelHernquistID);
-  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			      int ThisLevel, int TotalStarParticleCountPrevious[],
-			      int SpringelHernquistID);
+  template <class active_particle_class>
+    static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int SpringelHernquistID) { return SUCCESS; };
+  template <class active_particle_class>
+    static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int TotalStarParticleCountPrevious[],
+				int SpringelHernquistID) { return SUCCESS; };
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType(void);
-  
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
+
   // Need this to make active particle ID work correctly.
   int GetEnabledParticleID(int myid = -1) {				
     static int ParticleID = -1;						

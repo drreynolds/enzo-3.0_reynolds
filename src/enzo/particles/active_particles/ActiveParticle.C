@@ -59,7 +59,7 @@ void EnableActiveParticleType(char *active_particle_type_name) {
     }
     
     // retrieves active particle specific parameters
-    my_type->initialize();
+    my_type->InitializeParticleType();
 
     EnabledActiveParticles[EnabledActiveParticlesCount++] = my_type;
     int this_id = my_type->Enable();
@@ -71,8 +71,8 @@ void EnableActiveParticleType(char *active_particle_type_name) {
     return;
 }
 
-int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
-				    hid_t data_type, void *read_to)
+int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, const char *name,
+                    hid_t group, hid_t data_type, void *read_to)
 {
   hid_t file_dsp_id;
   hid_t dset_id;
@@ -99,7 +99,7 @@ int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, char *name, hid_t 
   return SUCCESS;
 }
 
-int ActiveParticleType::WriteDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+int ActiveParticleType::WriteDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 				     hid_t data_type, void *data)
 {
 
@@ -156,6 +156,8 @@ void ActiveParticleType::ConstructData(grid *_grid,
   for (dim = 0; dim < _grid->GridRank; dim++)
     size *= _grid->GridDimension[dim];
  
+  data.CellSize = _grid->CellWidth[0][0];
+
   /* Find fields: density, total energy, velocity1-3. */
  
   _grid->DebugCheck("StarParticleHandler");
@@ -172,6 +174,8 @@ void ActiveParticleType::ConstructData(grid *_grid,
 	       &data.TimeUnits, &data.VelocityUnits, _grid->Time) == FAIL) {
         ENZO_FAIL("Error in GetUnits.");
   }
+
+  data.MassUnits = data.DensityUnits*POW(data.LengthUnits,3);
 
   /* If using MHD, subtract magnetic energy from total energy because 
      density may be modified in star_maker8. */
@@ -357,29 +361,45 @@ void ActiveParticleType::DestroyData(grid *_grid,
 }
 
 void ActiveParticleType::SetupBaseParticleAttributes(
-    std::vector<ParticleAttributeHandler> &handlers)
+    std::vector<ParticleAttributeHandler *> &handlers)
 {
     typedef ActiveParticleType ap;
 
     /* Can be handled manually */
    
-    handlers.push_back(ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_x", 0));
-    handlers.push_back(ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_y", 1));
-    handlers.push_back(ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_z", 2));
+    handlers.push_back(new ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_x", 0));
+    handlers.push_back(new ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_y", 1));
+    handlers.push_back(new ArrayHandler<ap, FLOAT, 3, &ap::pos>("position_z", 2));
 
-    handlers.push_back(ArrayHandler<ap, float, 3, &ap::vel>("velocity_x", 0));
-    handlers.push_back(ArrayHandler<ap, float, 3, &ap::vel>("velocity_y", 1));
-    handlers.push_back(ArrayHandler<ap, float, 3, &ap::vel>("velocity_z", 2));
+    handlers.push_back(new ArrayHandler<ap, float, 3, &ap::vel>("velocity_x", 0));
+    handlers.push_back(new ArrayHandler<ap, float, 3, &ap::vel>("velocity_y", 1));
+    handlers.push_back(new ArrayHandler<ap, float, 3, &ap::vel>("velocity_z", 2));
 
-    handlers.push_back(Handler<ap, double, &ap::Mass>("mass"));
-    handlers.push_back(Handler<ap, float, &ap::BirthTime>("creation_time"));
-    handlers.push_back(Handler<ap, float, &ap::DynamicalTime>("dynamical_time"));
-    handlers.push_back(Handler<ap, float, &ap::Metallicity>("metallicity"));
-    handlers.push_back(Handler<ap, PINT, &ap::Identifier>("identifier"));
+    handlers.push_back(new Handler<ap, double, &ap::Mass>("mass"));
+    handlers.push_back(new Handler<ap, float, &ap::BirthTime>("creation_time"));
+    handlers.push_back(new Handler<ap, float, &ap::DynamicalTime>("dynamical_time"));
+    handlers.push_back(new Handler<ap, float, &ap::Metallicity>("metallicity"));
+    handlers.push_back(new Handler<ap, PINT, &ap::Identifier>("identifier"));
+    handlers.push_back(new Handler<ap, int, &ap::level>("level"));
+    handlers.push_back(new Handler<ap, int, &ap::GridID>("GridID"));
+}
+
+void ActiveParticleType::OutputPositionInformation()
+{
+    std::cout << "P: " << MyProcessorNumber << " ";
+    std::cout << "API: " << this->ReturnID() << ": ";
+    std::cout << this->pos[0] << " ";
+    std::cout << this->pos[1] << " ";
+    std::cout << this->pos[2] << " ";
+    std::cout << "V: ";
+    std::cout << this->vel[0] << " ";
+    std::cout << this->vel[1] << " ";
+    std::cout << this->vel[2] << " ";
+    std::cout << "M: ";
+    std::cout << this->Mass;
+    std::cout << std::endl;
 }
 
 int ActiveParticleType_info::TotalEnabledParticleCount = 0;
-int ParticleBufferHandler::ElementSizeInBytes;
-int ParticleBufferHandler::HeaderSizeInBytes;
 
 

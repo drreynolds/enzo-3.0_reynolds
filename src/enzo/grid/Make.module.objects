@@ -181,6 +181,7 @@ ENZO_OBJS +=\
 	Grid_ComputeCellCenteredField.o \
 	Grid_ComputeConductionTimeStep.o \
 	Grid_ComputeCoolingTime.o \
+	Grid_ComputeDarkMatterDensity.o \
 	Grid_ComputeDustTemperatureField.o \
 	Grid_ComputeElementalDensity.o \
 	Grid_ComputeEnergy.o \

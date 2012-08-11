@@ -21,8 +21,8 @@
 #ifdef FLUX_FIX
 #include "TopGridData.h"
 #endif
-#include "ParticleBufferHandler.h"
 #include "ParticleAttributeHandler.h"
+#include "h5utilities.h"
 
 struct ActiveParticleFormationData;
 struct ActiveParticleFormationDataFlags;
@@ -35,12 +35,14 @@ public:
 			    ActiveParticleFormationData &data);
   void static DestroyData(grid *_grid,
 			  ActiveParticleFormationData &data);
-  int static WriteDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+  int static WriteDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 			  hid_t data_type, void *data);
-  int static ReadDataset(int ndims, hsize_t *dims, char *name, hid_t group,
+  int static ReadDataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 			 hid_t data_type, void *read_to);
   void static SetupBaseParticleAttributes(
-    std::vector<ParticleAttributeHandler> &handlers);
+    std::vector<ParticleAttributeHandler*> &handlers);
+
+  void OutputPositionInformation(void);
 
   /* Several pure virtual functions */
   
@@ -51,7 +53,6 @@ public:
   ActiveParticleType(grid *_grid, ActiveParticleFormationData &data);
   ActiveParticleType(grid *_grid, int _id, int _level);
   ActiveParticleType(ActiveParticleType* part);
-  ActiveParticleType(ParticleBufferHandler *buffer, int index);
   ~ActiveParticleType(void);
 
   void operator=(ActiveParticleType *a);
@@ -131,7 +132,6 @@ private: /* Cannot be accessed by subclasses! */
   
   friend class grid;
   friend class ActiveParticleType_info;
-  friend class ParticleBufferHandler;
 
 };
 
@@ -196,6 +196,7 @@ struct ActiveParticleFormationData {
   int MetalIaNum;
   int ColourNum;
   int level;
+  FLOAT CellSize;
   int GridID;
 };
 
@@ -253,6 +254,193 @@ const struct ActiveParticleFormationDataFlags flags_default = {
   false     // MetalField
 };
 
+namespace ActiveParticleHelpers {
+
+  template <class APClass> int CalculateElementSize() {
+      static int particle_size = 0;
+      if (particle_size > 0) return particle_size;
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      for(AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          particle_size += (**it).element_size;
+      }
+      return particle_size;
+  }
+
+  template <class APClass> void Allocate(int Count, char **buffer) {
+          
+      /* This routine is called for each particle type. */
+      /* So we need to re-calculate the element and header size for each. */
+
+      int particle_size = CalculateElementSize<APClass>();
+      int header_size = sizeof(int);
+
+      *buffer = new char[particle_size * Count + header_size];
+
+  }
+
+  template <class APClass> void PrintActiveParticle(APClass *ap,
+      const std::string prefix = "") {
+
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      for(AttributeVector::iterator it = handlers.begin();
+        it != handlers.end(); ++it) {
+          (*it)->PrintAttribute(ap);
+          std::cout << " ";
+      }
+
+      std::cout << std::endl;
+
+  }
+
+  template <class APClass> void WriteParticles(
+          ActiveParticleType **InList, int ParticleTypeID,
+          int TotalParticles,
+          const std::string name, hid_t grid_node)
+  {
+      int i, size = 0, Count = 0;
+      char *buffer, *_buffer;
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      const char *_name = name.c_str();
+      hid_t node = H5Gcreate(grid_node, _name, 0);
+
+      /* Now we count up our particles */
+      for (i = 0; i < TotalParticles; i++) {
+        if (InList[i]->GetEnabledParticleID() == ParticleTypeID) Count++;
+      }
+
+      writeScalarAttribute(node, HDF5_INT, "Count", &Count);
+
+      if(Count == 0) {
+        H5Gclose(node);
+        return;
+      }
+
+      int ndims = 1;
+      hsize_t dims[1] = {Count};
+
+      APClass *In;
+
+      for (AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          size = Count * (*it)->element_size;
+          _buffer = buffer = new char[size];
+          for (i = 0; i < TotalParticles; i++) {
+            if (InList[i]->GetEnabledParticleID() != ParticleTypeID)
+              continue;
+            (*it)->GetAttribute(&_buffer, InList[i]);
+          }
+          /* Now write it to disk */
+          _name = (*it)->name.c_str();
+          APClass::WriteDataset(ndims, dims, _name, node,
+                                (*it)->hdf5type, buffer);
+          delete buffer;
+      }
+
+      H5Gclose(node);
+  }
+
+  template <class APClass> int ReadParticles(
+          ActiveParticleType **OutList, int &offset, const std::string name,
+          hid_t grid_node)
+  {
+      int i, size = 0;
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      const char *_name = name.c_str();
+      hid_t node = H5Gopen(grid_node, _name);
+      /* We now have a reference to the top level node. */
+      int Count;
+      readAttribute(node, HDF5_INT, "Count", &Count, false);
+      if(Count == 0) {
+        H5Gclose(node);
+        return offset;
+      }
+
+      char *buffer, *_buffer;
+      int ndims = 1;
+      hsize_t dims[1] = {Count};
+      for (i = 0; i < Count; i++) {
+          OutList[i+offset] = new APClass();
+      }
+
+      for (AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          size = Count * (*it)->element_size;
+          _buffer = buffer = new char[size];
+          _name = (*it)->name.c_str();
+          APClass::ReadDataset(ndims, dims, _name, node,
+                               (*it)->hdf5type, buffer);
+          for (i = 0; i < Count; i++) {
+              (*it)->SetAttribute(&_buffer, OutList[i+offset]);
+          }
+          delete buffer;
+      }
+
+      H5Gclose(node);
+      offset += Count;
+      return Count;
+
+  }
+
+
+
+  template <class APClass> int FillBuffer(
+          ActiveParticleType **InList_, int InCount, char *buffer_) {
+
+      int i;
+      int size = 0;
+
+      if (buffer_ == NULL) {
+          ENZO_FAIL("Buffer not allocated!");
+      }
+      /* We increment the pointer as we fill */
+      char **buffer = &buffer_;
+
+      AttributeVector &handlers = APClass::AttributeHandlers;
+
+      APClass *In;
+
+      for (i = 0; i < InCount; i++) {
+          In = dynamic_cast<APClass*>(InList_[i]);
+          /* We'll put debugging output here */
+          for(AttributeVector::iterator it = handlers.begin();
+              it != handlers.end(); ++it) {
+              size += (*it)->GetAttribute(buffer, In);
+          }
+          /*
+          std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
+          PrintActiveParticle<APClass>(In);
+          */
+      }
+      return size;
+  }
+
+  template <class APClass> void Unpack(
+          char *buffer_, int offset,
+          ActiveParticleType** OutList_, int OutCount) {
+
+      APClass **OutList = reinterpret_cast<APClass**>(OutList_);
+      AttributeVector &handlers = APClass::AttributeHandlers;
+      APClass *Out;
+      int i;
+      char *buffer = buffer_;
+
+      for (i = 0; i < OutCount; i++) {
+          Out = new APClass();
+          OutList[i + offset] = Out;
+          for(AttributeVector::iterator it = handlers.begin();
+              it != handlers.end(); ++it) {
+              (*it)->SetAttribute(&buffer, Out);
+          }
+          /*
+          std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
+          PrintActiveParticle<APClass>(Out);
+          */
+      }
+
+  }
+
+}
 
 //! maps the name of a plug-in to a pointer of the factory pattern
 class ActiveParticleType_info;
@@ -272,46 +460,47 @@ public:
   /* We will add more functions to this as necessary */
   ActiveParticleType_info
   (std::string this_name,
-   int (*ffunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
-   void (*dfunc)(ActiveParticleFormationDataFlags &flags),
-   void (*abfunc)(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-		  Eint32 total_buffer_size, int &buffer_size,
-		  Eint32 &position, int ap_id, int proc),
-   void (*unfunc)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-		  ActiveParticleType **np, int &npart),
-   int (*ifunc)(),
-   int (*feedfunc)(grid *thisgrid_orig, ActiveParticleFormationData &data),
-   int (*writefunc)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id),
-   int (*readfunc)(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id),
-   int (*belfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
+   /* These functions hang off the ActiveParticle subclass */
+   int (*evaluate_formation)(grid *thisgrid_orig, ActiveParticleFormationData &data),
+   void (*describe_data)(ActiveParticleFormationDataFlags &flags),
+   int (*initialize)(),
+   int (*feedback)(grid *thisgrid_orig, ActiveParticleFormationData &data),
+   int (*before_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
-   int (*aelfunc)(HierarchyEntry *Grids[], TopGridData *MetaData,
+   int (*after_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
-   int (*flagfunc)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
-   int (*headerfunc)(void),
-   int (*elementfunc)(void),
-   ActiveParticleType *particle,
-   ParticleBufferHandler *buffer
-   ){
-    this->formation_function = ffunc;
-    this->describe_data_flags = dfunc;
-    this->allocate_buffer = abfunc;
-    this->unpack_buffer = unfunc;
+   int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
+   void (*allocate_buffer)(int Count, char **buffer),
+   int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
+   void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
+                       int OutCount),
+   int (*element_size)(void),
+   void (*write_particles)(ActiveParticleType **particles, 
+                         int type_id, int total_particles,
+                         const std::string name, hid_t node),
+   int (*read_particles)(ActiveParticleType **particles, int &offset, const
+                         std::string name, hid_t node),
+   ActiveParticleType *particle)
+   {
+
+    this->InitializeParticleType = initialize;
+    this->EvaluateFormation = evaluate_formation;
+    this->EvaluateFeedback = feedback;
+    this->BeforeEvolveLevel = before_evolvelevel;
+    this->AfterEvolveLevel = after_evolvelevel;
+    this->SetFlaggingField = flagfield;
+    this->DescribeSupplementalData = describe_data;
+    this->FillBuffer = fill_buffer;
+    this->AllocateBuffer = allocate_buffer;
+    this->UnpackBuffer = unpack_buffer;
+    this->ReturnElementSize = element_size;
+    this->WriteParticles = write_particles;
+    this->ReadParticles = read_particles;
     this->particle_instance = particle;
-    this->buffer_instance = buffer;
-    this->initialize = ifunc;
-    this->feedback_function = feedfunc;
-    this->write_function = writefunc;
-    this->read_function = readfunc;
-    this->before_evolvelevel_function = belfunc;
-    this->after_evolvelevel_function = aelfunc;
-    this->flagging_function = flagfunc;
-    this->return_header_size = headerfunc;
-    this->return_element_size = elementfunc;
     this->particle_name = this_name;
     get_active_particle_types()[this_name] = this;
   }
@@ -326,32 +515,34 @@ public:
     return this->MyEnabledParticleID;
   }
 
-  int (*initialize)(void);
-  int (*formation_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  int (*feedback_function)(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  int (*write_function)(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  int (*read_function)(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
-  int (*before_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
+  int (*InitializeParticleType)(void);
+  int (*EvaluateFormation)(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  int (*EvaluateFeedback)(grid *thisgrid_orig, ActiveParticleFormationData &data);
+  int (*BeforeEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				     int ThisLevel, int TotalStarParticleCountPrevious[],
 				     int ActiveParticleID);
-  int (*after_evolvelevel_function)(HierarchyEntry *Grids[], TopGridData *MetaData,
+  int (*AfterEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
-  int (*flagging_function)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
-  void (*describe_data_flags)(ActiveParticleFormationDataFlags &flags);
-  void (*allocate_buffer)(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			  Eint32 total_buffer_size, int &buffer_size,
-			  Eint32 &position, int ap_id, int proc);
-  void (*unpack_buffer)(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles, 
-			ActiveParticleType **np, int &npart);
-  int (*return_header_size)(void);
-  int (*return_element_size)(void);
+  int (*SetFlaggingField)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
+  void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
+  void (*AllocateBuffer)(int Count, char **buffer);
+  void (*UnpackBuffer)(char *buffer, int offset, ActiveParticleType **Outlist,
+                       int OutCount);
+  int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
+  int (*ReturnElementSize)(void);
+  void (*WriteParticles)(ActiveParticleType **InList, 
+                       int ParticleTypeID, int TotalParticles,
+                       const std::string name, hid_t node);
+  int (*ReadParticles)(ActiveParticleType **OutList, int &offset, const
+                       std::string name, hid_t node);
   ActiveParticleType* particle_instance;
-  ParticleBufferHandler* buffer_instance;
   std::string particle_name;
 
+
+  int ReturnHeaderSize(void) { return sizeof(int); }
 
 private:
   /* This is distinct from the global as a redundant error-checking
@@ -362,27 +553,27 @@ private:
 
 };
 
-template <class active_particle_class, class particle_buffer_handler>
+template <class APClass>
 ActiveParticleType_info *register_ptype(std::string name)
 {
-  active_particle_class *pp = new active_particle_class();
-  particle_buffer_handler *bb = new particle_buffer_handler();
+  APClass *pp = new APClass();
+  
   ActiveParticleType_info *pinfo = new ActiveParticleType_info
     (name,
-     (&active_particle_class::EvaluateFormation),
-     (&active_particle_class::DescribeSupplementalData),
-     (&particle_buffer_handler::AllocateBuffer),
-     (&particle_buffer_handler::UnpackBuffer),
-     (&active_particle_class::InitializeParticleType),
-     (&active_particle_class::EvaluateFeedback),
-     (&active_particle_class::WriteToOutput),
-     (&active_particle_class::ReadFromOutput),
-     (&active_particle_class::BeforeEvolveLevel),
-     (&active_particle_class::AfterEvolveLevel),
-     (&active_particle_class::SetFlaggingField),
-     (&particle_buffer_handler::ReturnHeaderSize),
-     (&particle_buffer_handler::ReturnElementSize),
-     pp, bb);
+     (&APClass::EvaluateFormation),
+     (&APClass::DescribeSupplementalData),
+     (&APClass::InitializeParticleType),
+     (&APClass::EvaluateFeedback),
+     (&APClass::template BeforeEvolveLevel<APClass>),
+     (&APClass::template AfterEvolveLevel<APClass>),
+     (&APClass::SetFlaggingField),
+     (&ActiveParticleHelpers::Allocate<APClass>),
+     (&ActiveParticleHelpers::FillBuffer<APClass>),
+     (&ActiveParticleHelpers::Unpack<APClass>),
+     (&ActiveParticleHelpers::CalculateElementSize<APClass>),
+     (&ActiveParticleHelpers::WriteParticles<APClass>),
+     (&ActiveParticleHelpers::ReadParticles<APClass>),
+     pp);
   return pinfo;
 }
 

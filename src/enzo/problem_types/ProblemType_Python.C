@@ -12,11 +12,13 @@
 #ifdef NEW_PROBLEM_TYPES
 #ifdef USE_PYTHON
 
+#include "preincludes.h"
 #include <Python.h>
 #include "numpy/arrayobject.h"
 #include "ProblemType_Python.h"
 
-void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime);
+void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime,
+                         FLOAT OldTime, float dtFixed);
 int InitializePythonInterface(int argc, char **argv);
 
 namespace{
@@ -27,6 +29,7 @@ namespace{
 char *argv[] = {"enzo.exe", "-d", "Something"};
 
 ProblemType_Python::ProblemType_Python() : EnzoProblemType() {
+
 }
 
 ProblemType_Python::~ProblemType_Python() { }
@@ -63,12 +66,6 @@ void ProblemType_Python::GetGridInformation(
     return;
 }
 
-int ProblemType_Python::InitializeSimulation(
-    HierarchyEntry &TopGrid, TopGridData &MetaData)
-{
-    return SUCCESS;
-}
-
 // All methods must go above this method
 
 int ProblemType_Python::InitializeSimulation(FILE *pftr, FILE *Outfptr,
@@ -83,7 +80,7 @@ int ProblemType_Python::InitializeSimulation(FILE *pftr, FILE *Outfptr,
     PythonGrid *pgrid = static_cast<PythonGrid*> (TopGrid.GridData);
     pgrid->Level = 0;
 
-    ExportParameterFile(&MetaData, MetaData.Time);
+    ExportParameterFile(&MetaData, MetaData.Time, MetaData.Time, 0.0);
 
     rv = create_problem_instance(this, pgrid);
 

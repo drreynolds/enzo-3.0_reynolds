@@ -30,6 +30,7 @@
 
 #include "ActiveParticle.h"
 
+
 ParticleBufferHandler::ParticleBufferHandler(void)
 {
   this->NumberOfBuffers = 0;
@@ -125,15 +126,9 @@ void ParticleBufferHandler::AllocateMemory(void)
   return;
 }
 
-void ParticleBufferHandler::CalculateElementSize(void)
+static int ParticleBufferHandler::ReturnHeadersize(void)
 {
-  // Define the element size in bytes (excluding the processor number)
-  // float: 6 -- vel[3], BirthTime, DynamicalTime, Metallicity
-  // FLOAT: 3 -- pos[3]
-  // double: 1 -- Mass
-  // int: 3 -- level, GridID, type
-  // PINT: 1 -- Identifier
-
+  return sizeof(int);
   Eint32 mpi_flag = 0;
   this->ElementSizeInBytes = 0;
   this->HeaderSizeInBytes = 0;
@@ -145,25 +140,12 @@ void ParticleBufferHandler::CalculateElementSize(void)
   Eint32 size;
   if (mpi_flag == 1) {
 #ifdef USE_MPI
-    MPI_Pack_size(6, FloatDataType, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(3, MY_MPIFLOAT, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(1, MPI_DOUBLE, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(3, IntDataType, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-    MPI_Pack_size(1, PINTDataType, EnzoTopComm, &size);
-    this->ElementSizeInBytes += size;
-  
     // Header:
     // 1. Number of buffers (int)
     MPI_Pack_size(1, IntDataType, EnzoTopComm, &size);
     this->HeaderSizeInBytes += size;
 #endif
   } else {
-    this->ElementSizeInBytes = 6*sizeof(float) + 3*sizeof(FLOAT) + 1*sizeof(double) +
-      3*sizeof(int) + 1*sizeof(PINT);
     this->HeaderSizeInBytes = 1*sizeof(int);
   }
   return;

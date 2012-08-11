@@ -1,0 +1,6 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   io
+#
+
+vpath %.pyx io/python_bridge/

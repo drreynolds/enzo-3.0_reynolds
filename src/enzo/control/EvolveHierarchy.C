@@ -131,7 +131,9 @@ int SetEvolveRefineRegion(FLOAT time);
 Eint64 mused(void);
 #endif
 #ifdef USE_PYTHON
-int CallPython(LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
+int CallPython(LevelHierarchyEntry *LevelArray[],
+               HierarchyEntry *Grids[],
+               TopGridData *MetaData,
                int level, int from_topgrid);
 #endif
 
@@ -604,7 +606,7 @@ int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &MetaData,
 
 #ifdef USE_PYTHON
     LCAPERF_START("CallPython");
-    CallPython(LevelArray, &MetaData, 0, 1);
+    CallPython(LevelArray, NULL, &MetaData, 0, 1);
     LCAPERF_STOP("CallPython");
 #endif
 

@@ -22,6 +22,8 @@
 
 #include "communicators.h"
 
+class ActiveParticleType;
+
 class ParticleAttributeHandler
 {
 
@@ -30,7 +32,15 @@ class ParticleAttributeHandler
     std::string name;
     MPI_Datatype mpitype;
     Eint32 hdf5type;
+    int element_size;
     int offset;
+
+    virtual void SetAttribute(char **buffer, ActiveParticleType *pp) = 0;
+
+    virtual int GetAttribute(char **buffer, ActiveParticleType *pp)  = 0;
+
+    virtual void PrintAttribute(ActiveParticleType *pp)  = 0;
+
 };
 
 template <class APClass, typename Type, Type APClass::*var>
@@ -45,34 +55,40 @@ class Handler : public ParticleAttributeHandler
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
             this->mpitype = IntDataType;
+            this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
             this->mpitype = FloatDataType;
+            this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
             this->mpitype = MPI_DOUBLE;
+            this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
             this->mpitype = FLOATDataType;
+            this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
         }
+        this->element_size = sizeof(Type);
     }
 
-    void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
-                      int NumberOParticles, int *position,
-                      ParticleBufferHandler *PBHInstance) {
-
-        MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   PBHInstance->*var[this->offset],
-                   PBHInstance->NumberOfBuffers,
-                   mpitype, MPI_COMM_WORLD);
+    void SetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        Type *pb = (Type *)(*buffer);
+        pp->*var = *(pb++);
+        *buffer = (char *) pb;
     }
 
-    void *AllocateArray(int n) {
-        return (void *) new Type[n];
+    int GetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        Type *pb = (Type *)(*buffer);
+        *(pb++) = pp->*var;
+        *buffer = (char *) pb;
+        return this->element_size;
     }
 
-    void CopyToArray(int pos, void *output_, APClass instance) {
-        Type *output = (Type *) output_;
-        output[pos] = *(&(instance->*var) + this->offset);
+    void PrintAttribute(ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        std::cout << this->name << ": " << pp->*var;
     }
 
 };
@@ -89,38 +105,53 @@ class ArrayHandler : public ParticleAttributeHandler
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
             this->mpitype = IntDataType;
+            this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
             this->mpitype = FloatDataType;
+            this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
             this->mpitype = MPI_DOUBLE;
+            this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
             this->mpitype = FLOATDataType;
+            this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
         }
+        this->element_size = sizeof(Type);
     }
 
     void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
                       int NumberOParticles, int *position,
-                      ParticleBufferHandler *PBHInstance) {
+                      int n, APClass **pp) {
 
         MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   PBHInstance->*var[this->offset],
-                   PBHInstance->NumberOfBuffers,
+                   pp[n]->*var[this->offset],
                    mpitype, MPI_COMM_WORLD);
     }
 
-    void *AllocateArray(int n) {
-        return (void *) new Type[n];
+    void SetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        Type *pb = (Type *)(*buffer);
+        (pp->*var)[this->offset] = *(pb++);
+        *buffer = (char *) pb;
     }
 
-    void CopyToArray(int pos, void *output_, APClass instance) {
-        Type *output = (Type *) output_;
-        output[pos] = *(&(instance->*var) + this->offset);
+    int GetAttribute(char **buffer, ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        Type *pb = (Type *)(*buffer);
+        *(pb++) = (pp->*var)[this->offset];
+        *buffer = (char *) pb;
+        return this->element_size;
+    }
+
+    void PrintAttribute(ActiveParticleType *pp_) {
+        APClass *pp = static_cast<APClass*>(pp_);
+        std::cout << this->name << ": " << (pp->*var)[this->offset];
     }
 
 };
 
-typedef std::vector<ParticleAttributeHandler> AttributeVector ;
+typedef std::vector<ParticleAttributeHandler*> AttributeVector ;
 
 #endif

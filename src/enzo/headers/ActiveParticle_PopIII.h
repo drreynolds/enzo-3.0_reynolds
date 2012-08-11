@@ -35,46 +35,6 @@
 
 class ActiveParticleType_PopIII;
 
-class PopIIIParticleBufferHandler : public ParticleBufferHandler
-{
-public:
-  PopIIIParticleBufferHandler(void) : ParticleBufferHandler() { this->CalculatePopIIIParticleElementSize(); };
-
-  PopIIIParticleBufferHandler(int NumberOfParticles) : ParticleBufferHandler(NumberOfParticles) {
-    if (this->NumberOfBuffers > 0)
-      Lifetime = new float[NumberOfParticles];
-  };
-  PopIIIParticleBufferHandler(ActiveParticleType **np, int NumberOfParticles, int type, int proc);
-  ~PopIIIParticleBufferHandler() {
-    if (this->NumberOfBuffers > 0)
-      delete [] Lifetime;
-  };
-  static void AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer, 
-			     Eint32 total_buffer_size, int &buffer_size, Eint32 &position, 
-			     int type_num, int proc);
-  static void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-			   ActiveParticleType **np, int &npart);
-  static int ReturnHeaderSize(void) {return HeaderSizeInBytes; }
-  static int ReturnElementSize(void) {return ElementSizeInBytes; }
-  void CalculatePopIIIParticleElementSize(void) {
-    Eint32 mpi_flag = 0;
-#ifdef USE_MPI
-    MPI_Initialized(&mpi_flag);
-#endif
-    Eint32 size;
-    if (mpi_flag == 1) {
-#ifdef USE_MPI
-      // float: 1 -- Lifetime
-      MPI_Pack_size(1, FloatDataType, EnzoTopComm, &size);
-      this->ElementSizeInBytes += size;
-#endif
-    }
-    else {
-      this->ElementSizeInBytes += 1*sizeof(float);
-    }
-  };
-  float *Lifetime;
-};
 
 class ActiveParticleType_PopIII : public ActiveParticleType
 {
@@ -83,23 +43,19 @@ public:
   ActiveParticleType_PopIII(void) : ActiveParticleType() {
     Lifetime = 0; 
   };
-  ActiveParticleType_PopIII(PopIIIParticleBufferHandler *buffer, int index) :
-    ActiveParticleType(static_cast<ParticleBufferHandler*>(buffer), index) {
-    Lifetime = buffer->Lifetime[index];
-  };
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &supp_data);
-  static int WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id);
-  static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   static void DescribeSupplementalData(ActiveParticleFormationDataFlags &flags);
   static int EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data);
-  static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			       int ThisLevel, int TotalStarParticleCountPrevious[],
-			       int PopIIIParticleID);
-  static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-			      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			      int ThisLevel, int TotalStarParticleCountPrevious[],
-			      int PopIIIParticleID);
+  template <class active_particle_class>
+    static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int PopIIIParticleID) { return SUCCESS; };
+  template <class active_particle_class>
+    static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int TotalStarParticleCountPrevious[],
+				int PopIIIParticleID) {return SUCCESS; };
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, 
 			      int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
@@ -110,4 +66,6 @@ public:
     H2CriticalFraction, StarMass;
 
   float Lifetime;
+
+  static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 };

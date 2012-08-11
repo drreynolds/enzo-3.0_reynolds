@@ -53,7 +53,7 @@ void grid::ConvertToNumpy(int GridID, PyArrayObject *container[], int ParentID, 
         int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
         int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
             DINum, DIINum, HDINum;
-        int field, dim;
+        int field, dim, i, j, k;
         FLOAT a = 1.0, dadt;
 
         /* Find fields: density, total energy, velocity1-3. */
@@ -107,9 +107,24 @@ void grid::ConvertToNumpy(int GridID, PyArrayObject *container[], int ParentID, 
 	}
 	dataset = (PyArrayObject *) PyArray_SimpleNewFromData(
 	        3, dims, ENPY_BFLOAT, YT_TemperatureField);
-	PyArray_ENABLEFLAGS(dataset, NPY_OWNDATA);
+	/*PyArray_ENABLEFLAGS(dataset, NPY_OWNDATA);*/
+    dataset->flags &= ~NPY_OWNDATA;
 	PyDict_SetItemString(grid_data, "Temperature", (PyObject*) dataset);
 	Py_DECREF(dataset);
+
+    /* Get grid particle density field */
+    if (SelfGravity && NumberOfParticles > 0) {
+      float *YT_Dark_Matter_DensityField = new float[size];
+      if (this->ComputeDarkMatterDensity(YT_Dark_Matter_DensityField) == FAIL) {
+        ENZO_FAIL("Error in grid->ComputeDarkMatterDensity.\n")
+      }
+      dataset = (PyArrayObject *) PyArray_SimpleNewFromData(
+        3, dims, ENPY_BFLOAT, YT_Dark_Matter_DensityField);
+      /*PyArray_ENABLEFLAGS(dataset, NPY_OWNDATA);*/
+      dataset->flags &= ~NPY_OWNDATA;
+      PyDict_SetItemString(grid_data, "Dark_Matter_Density", (PyObject*) dataset);
+      Py_DECREF(dataset);
+    }
 
         /* Now we do our particle fields */
 

@@ -25,35 +25,50 @@
 
 #include "ProblemType.h"
 #include "EventHooks.h"
+#include "EventDataContainers.h"
 
 void RunEventHooks(std::string event_name, HierarchyEntry *Grids[],
-                    TopGridData &MetaData)
+                    TopGridData &MetaData, EventDataContainer *LocalData)
 {
     if (event_hooks.empty()) {
         return;
     }
+
+    EnzoPluginMap *plugins = get_plugins();
+
     std::pair<std::multimap<std::string, std::string>::iterator,
-              std::multimap<std::string, std::string>::iterator> it;
+              std::multimap<std::string, std::string>::iterator> range;
 
-    it = event_hooks.equal_range(event_name);
+    range = event_hooks.equal_range(event_name);
 
-    std::multimap<std::string, std::string>::iterator itr = it.first;
-
-    if (itr == event_hooks.end())
+    if (range.first == range.second)
     {
         /* This is commented out until further notice */
-        /*std::cout << "Event plugin for hook " << event_name;
-        std::cout << " not found." << std::endl;*/
-        return;
+        std::cout << "Event plugins for hook " << event_name;
+        std::cout << " not found." << std::endl;
+        ENZO_FAIL("Event hook not found!");
     }
-    for (; itr != it.second ; itr++)
+    for (std::multimap<std::string, std::string>::iterator itr = range.first;
+         itr != range.second;
+         ++itr)
     {
         std::string plugin_name = (*itr).second;
         /* Debugging statement is next */
-        /*std::cout << "Loading event plugin for hook " << event_name;
+        /*std::cout << "Loading event plugin for hook " << (*itr).first;
         std::cout << " with name " << plugin_name << std::endl;*/
-        plugin_function the_plugin = plugins[plugin_name];
-        the_plugin(Grids, MetaData);
+        if ((*plugins).count(plugin_name) == 0) {
+            std::cout << "Could not find the plugin " << plugin_name << std::endl;
+            std::cout << "But found " << (*plugins).count(plugin_name) << " values." << std::endl;
+            std::cout << "Found:" << std::endl;
+            std::map<std::string, plugin_function>::iterator pit;
+            for (pit = (*plugins).begin() ; pit != (*plugins).end() ; ++pit) {
+                std::cout << "    " << pit->first << std::endl;
+            }
+            std::cout << std::endl;
+            ENZO_FAIL("Could not find the plugin!");
+        }
+        plugin_function the_plugin = (*plugins)[plugin_name];
+        the_plugin(Grids, MetaData, LocalData);
     }
 
 }
@@ -65,20 +80,25 @@ void RegisterEventHook(std::string event_name, std::string plugin_name)
     event_hooks.insert(std::pair<std::string, std::string>
                     (event_name, plugin_name));
                     
-    if (event_hooks.empty()) {
-        std::cout << "EVENT HOOKS IS EMPTY1" << std::endl;
-    }
-    if (event_hooks.empty()) {
-        std::cout << "EVENT HOOKS IS EMPTY2" << std::endl;
-    }
 }
 
-void RegisterEventPlugin(std::string plugin_name, plugin_function the_plugin)
+int RegisterEventPlugin(std::string plugin_name, plugin_function the_plugin)
 {
-    std::cout << "Registering plugin " << plugin_name << std::endl;
+    
+    if (the_plugin == NULL) ENZO_FAIL("Plugin is null!");
 
-    plugins.insert(std::pair<std::string, plugin_function >
-                    (plugin_name, the_plugin));
+    EnzoPluginMap *plugins = get_plugins();
+    std::cout << "Registering plugin " << plugin_name << " so we have " 
+              << (*plugins).size() << " plugins. " << std::endl;
+
+    (*plugins)[plugin_name] = the_plugin;
+    return (*plugins).size();
+}
+
+EnzoPluginMap *get_plugins()
+{
+    static EnzoPluginMap the_plugins;
+    return &the_plugins;
 }
 
 #endif

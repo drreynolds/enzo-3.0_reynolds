@@ -173,8 +173,8 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	Eint32 total_buffer_size=0, local_buffer_size, position = 0;
 	int mpi_buffer_size;
 	char *send_buffer = NULL, *recv_buffer = NULL;
-	header_size = ap_info->return_header_size();
-	element_size = ap_info->return_element_size();
+	header_size = ap_info->ReturnHeaderSize();
+	element_size = ap_info->ReturnElementSize();
 	
 	for (i = 0; i < NumberOfProcessors; i++) {
 	  if (nCount[i] > 0)
@@ -201,8 +201,9 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
 	
-	ap_info->allocate_buffer(LocalActiveParticlesOfThisType, LocalNumberOfActiveParticles, send_buffer,
-				 local_buffer_size, mpi_buffer_size, position, ap_id, -1);
+	ap_info->FillBuffer(LocalActiveParticlesOfThisType,
+                        LocalNumberOfActiveParticles,
+                        send_buffer);
 
 	/* Share all data with all processors */
 
@@ -216,9 +217,9 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	count = 0;
 	for (proc = 0; proc < NumberOfProcessors; proc++) {
 	  if (nCount[proc] > 0) {
-	    buffer_size = header_size+(nCount[proc]*element_size);
-	    ap_info->unpack_buffer(recv_buffer+displace[proc],buffer_size,nCount[proc],
-				   GlobalList, count);
+	    ap_info->UnpackBuffer(recv_buffer+displace[proc], count,
+                              GlobalList, nCount[proc]);
+        count += nCount[proc];
 	  }
 	}
 

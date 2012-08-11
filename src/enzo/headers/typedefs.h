@@ -83,6 +83,7 @@ const field_type
   RadPressure1    = 35,
   RadPressure2    = 36,
   Emissivity0     = 37,
+  Dark_Matter_Density = 38,
 
 /* these pseudo-fields are used to access grid data 
    the "g" prefix is to avoid namespace conflict */

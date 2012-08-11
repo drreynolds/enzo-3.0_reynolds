@@ -18,6 +18,10 @@
 #define ENZO_PYTHON_IMPORTED
 #endif
 
+#ifndef NEW_PROBLEM_TYPES
+#error "Sorry, you need to have the new problem types enabled."
+#endif
+
 #include <Python.h>
 #include "numpy/arrayobject.h"
 
@@ -32,15 +36,25 @@
 #include "Grid.h"
 #include "CosmologyParameters.h"
 #include "TopGridData.h"
+#include "EventHooks.h"
+#include "EventDataContainers.h"
 
 int  GetUnits(float *DensityUnits, float *LengthUnits,
-		       float *TemperatureUnits, float *TimeUnits,
-		       float *VelocityUnits, FLOAT Time);
+               float *TemperatureUnits, float *TimeUnits,
+               float *VelocityUnits, FLOAT Time);
 int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);
 
 int ExposeDataHierarchy(TopGridData *MetaData, HierarchyEntry *Grid, 
-		       int &GridID, FLOAT WriteTime, int reset, int ParentID, int level);
+               int &GridID, FLOAT WriteTime, int reset, int ParentID, int level);
 void ExposeGridHierarchy(int NumberOfGrids);
+
+void PrintTestValue(HierarchyEntry *Grids[], TopGridData &MetaData,
+                    EventDataContainer *data)
+{
+    TestEventDataContainer *tedc = static_cast<TestEventDataContainer *>(data);
+    std::cout << "I was told to print this: " << tedc->SomethingToPrint;
+    std::cout << std::endl;
+}
 
 static PyObject *_parameterFindingError;
 
@@ -107,6 +121,9 @@ int InitializePythonInterface(int argc, char *argv[])
     if (PyRun_SimpleString("import user_script\n")) ENZO_FAIL("Importing user_script failed!");
     if(debug)fprintf(stdout, "Completed Python interpreter initialization\n");
     PythonEnzoModuleInitialized = 1;
+    /* Now we register our event hook */
+    RegisterEventPlugin("PrintingFromPython", &PrintTestValue);
+    RegisterEventHook("Python Event", "PrintingFromPython");
   }
   return SUCCESS;
 }
@@ -123,7 +140,7 @@ int FinalizePythonInterface()
 #define TEMP_PYSTRING(A) Py_XDECREF(temp_string); temp_string = PyString_FromString(A);
 
 void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime, FLOAT OldTime, 
-			 float dtFixed)
+             float dtFixed)
 {
   /* We need: */
 
@@ -131,7 +148,7 @@ void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime, FLOAT OldTime
     VelocityUnits = 1;
 
   GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
-	       &TimeUnits, &VelocityUnits, CurrentTime);
+           &TimeUnits, &VelocityUnits, CurrentTime);
 
   PyObject *temp_int = NULL;
   PyObject *temp_float = NULL;
@@ -268,15 +285,15 @@ void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime, FLOAT OldTime
     if (DataLabel[dim]) {
       if (strstr(DataLabel[dim], "Density") != NULL) {
         TEMP_PYFLOAT(DensityUnits);
-	    PyDict_SetItemString(conversion_factors, DataLabel[dim], temp_float);
+        PyDict_SetItemString(conversion_factors, DataLabel[dim], temp_float);
         }
       if (strstr(DataLabel[dim], "velocity") != NULL) {
         TEMP_PYFLOAT(VelocityUnits);
-	    PyDict_SetItemString(conversion_factors, DataLabel[dim], temp_float);
+        PyDict_SetItemString(conversion_factors, DataLabel[dim], temp_float);
         }
       if (strstr(DataLabel[dim], "_kph") != NULL)  {
         TEMP_PYFLOAT(1./TimeUnits);
-	    PyDict_SetItemString(conversion_factors, DataLabel[dim], temp_float);
+        PyDict_SetItemString(conversion_factors, DataLabel[dim], temp_float);
         }
     }
   }
@@ -285,6 +302,7 @@ void ExportParameterFile(TopGridData *MetaData, FLOAT CurrentTime, FLOAT OldTime
   Py_XDECREF(temp_int); Py_XDECREF(temp_float); Py_XDECREF(temp_string);
   return;
 }
+
 
 
 #endif

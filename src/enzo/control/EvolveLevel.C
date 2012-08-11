@@ -92,8 +92,10 @@
 #endif
 #ifdef NEW_PROBLEM_TYPES
 #include "EventHooks.h"
+#include "EventDataContainers.h"
 #else
-void RunEventHooks(char *, HierarchyEntry *Grid[], TopGridData &MetaData) {}
+void RunEventHooks(char *, HierarchyEntry *Grids[],
+                   TopGridData &MetaData, void *) {};
 #endif
  
 /* function prototypes */
@@ -241,7 +243,9 @@ int SetLevelTimeStep(HierarchyEntry *Grids[],
 
 void my_exit(int status);
  
-int CallPython(LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
+int CallPython(LevelHierarchyEntry *LevelArray[],
+               HierarchyEntry *Grids[],
+               TopGridData *MetaData,
                int level, int from_topgrid);
 int MovieCycleCount[MAX_DEPTH_OF_HIERARCHY];
 double LevelWallTime[MAX_DEPTH_OF_HIERARCHY];
@@ -266,6 +270,14 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 		)
 {
   /* Declarations */
+
+#ifdef NEW_PROBLEM_TYPES
+  EvolveLevelEventDataContainer *LocalData = new EvolveLevelEventDataContainer;
+  EventDataContainer *LocalDataP = static_cast<EventDataContainer*>(LocalData);
+#else
+  void *LocalDataP = NULL;
+  void *Localata = NULL;
+#endif
 
   int dbx = 0;
 
@@ -293,7 +305,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   int *NumberOfSubgrids = new int[NumberOfGrids];
   fluxes ***SubgridFluxesEstimate = new fluxes **[NumberOfGrids];
   int *TotalActiveParticleCountPrevious = new int[NumberOfGrids];
-  RunEventHooks("EvolveLevelTop", Grids, *MetaData);
+  /*RunEventHooks("EvolveLevelTop", Grids, *MetaData, LocalDataP);*/
 
 #ifdef FLUX_FIX
   /* Create a SUBling list of the subgrids */
@@ -636,7 +648,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 			  );
 #ifdef USE_PYTHON
     LCAPERF_START("CallPython");
-    CallPython(LevelArray, MetaData, level, 0);
+    CallPython(LevelArray, Grids, MetaData, level, 0);
     LCAPERF_STOP("CallPython");
 #endif
 

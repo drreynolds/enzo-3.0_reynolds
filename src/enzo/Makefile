@@ -45,6 +45,7 @@ OUTPUT   = out.compile
 ENZO_DIR = .
 CONFIG_DIR = build/config
 BUILD_DIR = build/objects
+GEN_DIR = build/generated_code
 UTILS_DIR = build/utilities
 MODULES  = 
 VERBOSE  = 0
@@ -53,6 +54,10 @@ ETAGS_COMMAND = "0"
 LFLAGS=--header-file=libconfig/scanner.h --prefix=libconfig_yy
 
 SVN      = hg
+
+vpath %.o $(BUILD_DIR)/
+vpath %.C $(GEN_DIR)/
+vpath %.h $(GEN_DIR)/
 
 #-----------------------------------------------------------------------
 # Make.config.settings is used for setting default values to all compile-time 
@@ -104,6 +109,7 @@ MACH_SHARED_EXT=so
 # OBJECT FILES
 #=======================================================================
 
+include io/python_bridge/Make.module.objects
 include communication/Make.module.objects
 include control/Make.module.objects
 include grid/Make.module.objects
@@ -115,8 +121,6 @@ include problem_types/Make.module.objects
 include solvers/Make.module.objects
 include utilities/Make.module.objects
 
-vpath %.o $(BUILD_DIR)/
-
 OBJS_CONFIG_LIB=$(ENZO_OBJS)
 OBJS_LINK=$(addprefix $(BUILD_DIR)/, $(OBJS_LIB))
 
@@ -125,6 +129,7 @@ OBJS_LINK=$(addprefix $(BUILD_DIR)/, $(OBJS_LIB))
 #-----------------------------------------------------------------------
 
 all: MKDIR MACHNOTES MAKETAGS $(EXE).exe
+.DEFAULT_GOAL: all
 
 # I believe this has to be done here, as it is target-specific.
 lib: CFLAGS   += $(MACH_SHARED_FLAGS) 
@@ -139,10 +144,13 @@ lib: lib$(EXE)_p$(ASSEMBLE_PARTICLE_NUMBER)_b$(ASSEMBLE_PRECISION_NUMBER).$(MACH
 #-----------------------------------------------------------------------
 
 .PHONY: MKDIR
-MKDIR: $(BUILD_DIR)
+MKDIR: $(BUILD_DIR) $(GEN_DIR)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+
+$(GEN_DIR):
+	mkdir -p $(GEN_DIR)
 
 MAKETAGS:
 	@(if [ "$(ETAGS_COMMAND)" != "0" ]; then \
@@ -193,11 +201,8 @@ lib%.$(MACH_SHARED_EXT): $(MODULES) autogen dep enzo.o $(OBJS_LIB)
 	   echo "Failed! See $(OUTPUT) for error messages"; \
 	fi)
 
-.pyx.C: 
-	@cython --cplus $*.pyx -o $< 
-ProblemType_Python.o: python_bridge/problemtype_handler.o
-InitializePythonInterface.C: $(PYTHON_INTERFACE_TARGETS)
-InitializePythonInterface_finderfunctions.inc: global_data.h
+io/InitializePythonInterface.C: io/InitializePythonInterface_finderfunctions.inc
+io/InitializePythonInterface_finderfunctions.inc: headers/global_data.h
 	@python $(UTILS_DIR)/create_dictionary_mapping.py 
 
 #-----------------------------------------------------------------------
@@ -284,6 +289,30 @@ verbose: $(EXE).exe
           fi ; \
 	else \
 	  $(CC) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CFLAGS) $(INCLUDES) $< \
+	    >> $(OUTPUT) 2>&1 ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
+	     echo "See $(OUTPUT) for error messages"; \
+	     exit 1; \
+	  fi ; \
+	fi)
+
+.pyx.o:
+	@rm -f $(BUILD_DIR)/$@
+	@echo "Compiling $<"
+	@cython --cplus $< -o $(GEN_DIR)/$*.C
+	@(if [ $(VERBOSE) -eq 0 ]; then \
+	  $(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $(GEN_DIR)/$*.C \
+	    >& $(OUTPUT) ; \
+	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
+             echo; \
+             echo "$(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $*.C"; \
+             echo; \
+             $(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $<;\
+             echo; \
+             exit 1; \
+          fi ; \
+	else \
+	  $(CXX) -c -o $(BUILD_DIR)/$@ $(DEFINES) $(CXXFLAGS) $(INCLUDES) $(GEN_DIR)/$*.C \
 	    >> $(OUTPUT) 2>&1 ; \
 	  if [ ! -e $(BUILD_DIR)/$@ ]; then \
 	     echo "See $(OUTPUT) for error messages"; \
@@ -378,7 +407,13 @@ io/auto_show_compile_options.C:
 .PHONY: dep
 dep:
 	@echo "Updating DEPEND"
-	-@(makedepend $(DEFINES) $(INCLUDES) -fDEPEND -o.o -m -- -- */*.C  *.C *.c *.F *.F90 */*.h *.h) >& out.make.DEPEND
+	-@(makedepend $(DEFINES) $(INCLUDES) -fDEPEND -o.o -m -- -- */*.C  ) >& out.make.DEPEND	
+	-@(makedepend $(DEFINES) $(INCLUDES) -a -fDEPEND -o.o -m -- -- *.C) >> out.make.DEPEND 2>&1
+	-@(makedepend $(DEFINES) $(INCLUDES) -a -fDEPEND -o.o -m -- -- *.c) >> out.make.DEPEND 2>&1	
+	-@(makedepend $(DEFINES) $(INCLUDES) -a -fDEPEND -o.o -m -- -- *.F) >> out.make.DEPEND 2>&1
+	-@(makedepend $(DEFINES) $(INCLUDES) -a -fDEPEND -o.o -m -- -- *.F90) >> out.make.DEPEND 2>&1
+	-@(makedepend $(DEFINES) $(INCLUDES) -a -fDEPEND -o.o -m -- -- */*.h) >> out.make.DEPEND 2>&1
+	-@(makedepend $(DEFINES) $(INCLUDES) -a -fDEPEND -o.o -m -- -- *.h) >> out.make.DEPEND 2>&1
 
 include DEPEND
 
@@ -424,12 +459,12 @@ help:
 clean:
 	-@rm -f *.so *.o uuid/*.o *.mod *.f *.f90 DEPEND.bak *~ $(OUTPUT) *.exe \
           $(BUILD_DIR)/*.o \
+          $(BUILD_DIR)/*.C \
+          $(BUILD_DIR)/*.h \
+          $(GEN_DIR)/*.C $(GEN_DIR)/*.h \
           io/auto_show*.C hydro_rk/*.o *.oo hydro_rk/*.oo \
           uuid/*.oo DEPEND TAGS \
-          libconfig/*.o \
-          python_bridge/problemtype_handler.C \
-          python_bridge/problemtype_handler.h \
-          python_bridge/problemtype_handler.o
+          libconfig/*.o 
 	-@touch DEPEND
 
 #-----------------------------------------------------------------------

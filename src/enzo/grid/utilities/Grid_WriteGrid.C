@@ -456,53 +456,14 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     if (OutputSmoothedDarkMatter == FALSE) {
     
       if (SelfGravity && NumberOfParticles > 0) {
-	float SaveGravityResolution = GravityResolution;
-	GravityResolution = 1;
-	this->InitializeGravitatingMassFieldParticles(RefineBy);
-	this->ClearGravitatingMassFieldParticles();
-	this->DepositParticlePositions(this, Time,
-				       GRAVITATING_MASS_FIELD_PARTICLES);
-	GravityResolution = SaveGravityResolution;
-      }
- 
-      /* If present, write out the GravitatingMassFieldParticles. */
- 
-      if (GravitatingMassFieldParticles != NULL) {
- 
-	/* Set dimensions. */
- 
-	int StartIndex[] = {0,0,0}, EndIndex[] = {0,0,0};
-	for (dim = 0; dim < GridRank; dim++) {
-	  StartIndex[dim] = nint((GridLeftEdge[dim] -
-				  GravitatingMassFieldParticlesLeftEdge[dim])/
-				 GravitatingMassFieldParticlesCellSize);
-	  EndIndex[dim] = nint((GridRightEdge[dim] -
-				GravitatingMassFieldParticlesLeftEdge[dim])/
-			       GravitatingMassFieldParticlesCellSize) - 1;
-	}
- 
-	/* Copy active part of field into grid */
- 
-	for (k = StartIndex[2]; k <= EndIndex[2]; k++)
-	  for (j = StartIndex[1]; j <= EndIndex[1]; j++)
-	    for (i = StartIndex[0]; i <= EndIndex[0]; i++)
-	      temp[(i-StartIndex[0])                           +
-		   (j-StartIndex[1])*ActiveDim[0]              +
-		   (k-StartIndex[2])*ActiveDim[0]*ActiveDim[1] ] =
-			GravitatingMassFieldParticles[ i +
-			j*GravitatingMassFieldParticlesDimension[0] +
-			k*GravitatingMassFieldParticlesDimension[0]*
-			GravitatingMassFieldParticlesDimension[1]];
+        if (this->ComputeDarkMatterDensity(temp) == FAIL) {
+          ENZO_FAIL("Error in grid->ComputeDarkMatterDensity.\n")
+        }
  
     this->write_dataset(GridRank, OutDims, "Dark_Matter_Density",
                   group_id, file_type_id, (VOIDP) temp, FALSE);
- 
-	/* Clean up if we modified the resolution. */
- 
-	if (SelfGravity && GravityResolution != 1)
-	  this->DeleteGravitatingMassFieldParticles();
- 
-      } // end of (if GravitatingMassFieldParticles != NULL)
+
+      } // end of (if (SelfGravity && NumberOfParticles > 0))
 
     } // ENDIF !OutputSmoothedDarkMatter
 
@@ -643,42 +604,18 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
 
-	/* Instantitate an active particle helper of this type
-	   This class contains the function that allows us to write to disk */
+        /* Instantitate an active particle helper of this type
+           This class contains the function that allows us to write to disk */
 
-	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
+        ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
 
-	/* Count the number of active particles of this type  */
-	
-	std::vector<int> LocationOfActiveParticlesOfThisType;
-	
-	for (j = 0; j<NumberOfActiveParticles; j++) {
-	  if (this->ActiveParticles[j]->GetEnabledParticleID() == i) {
-	    LocationOfActiveParticlesOfThisType.push_back(j);
-	  }
-	}
-	
-	int NumberOfActiveParticlesOfThisType = LocationOfActiveParticlesOfThisType.size();
+        /* Write them to disk */
 
-	/* Put the active particles of this type in a temporary buffer */
-	
-	ActiveParticleType **ActiveParticlesOfThisType = new ActiveParticleType*[NumberOfActiveParticlesOfThisType];
-
-	for (j = 0; j<NumberOfActiveParticlesOfThisType; j++) {
-	  ActiveParticlesOfThisType[j] = this->ActiveParticles[LocationOfActiveParticlesOfThisType[j]];
-	}
-	
-	/* Write them to disk */
-
-	ActiveParticleTypeToEvaluate->write_function(ActiveParticlesOfThisType,
-						     NumberOfActiveParticlesOfThisType,
-						     GridRank,
-						     ActiveParticleGroupID);
+        ActiveParticleTypeToEvaluate->WriteParticles(
+            this->ActiveParticles, i, NumberOfActiveParticles,
+            ActiveParticleTypeToEvaluate->particle_name,
+            ActiveParticleGroupID);
 						     
-	/* Clean up */
-
-	delete [] ActiveParticlesOfThisType;
-
       }
 
     H5Gclose(ActiveParticleGroupID);

@@ -66,6 +66,18 @@ int ActiveParticleType_Kravtsov::InitializeParticleType(void) {
   MinimumStarMass = StarMakerMinimumMass;
   
 #endif
+  
+  /* Add on the Particle Array Handlers */
+  typedef ActiveParticleType_Kravtsov ap;
+  AttributeVector &ah = ap::AttributeHandlers;
+  ActiveParticleType::SetupBaseParticleAttributes(ah);
+
+  /* We don't want to change the attribute this is tied with, but we do want to
+  update the name. */
+  
+  for(AttributeVector::iterator it = ah.begin(); it != ah.end(); ++it) {
+    if((*it)->name == "metallicity") (*it)->name = "metallicity_fraction";
+  }
 
   return SUCCESS;
 }
@@ -208,220 +220,17 @@ void ActiveParticleType_Kravtsov::DescribeSupplementalData
   flags.MetalField = true;
 }
 
-int ActiveParticleType_Kravtsov::WriteToOutput(ActiveParticleType **these_particles, int n, int GridRank, hid_t group_id)
-{
-    /* Create a new subgroup within the active particle group for active particles of type Kravtsov */
-  hid_t KravtsovGroupID = H5Gcreate(group_id,"Kravtsov",0);
-
-  writeScalarAttribute(KravtsovGroupID,HDF5_INT,"Number of Kravtsov Particles",&n);  
-
-  char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
-  char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
-
-  /* Create temporary buffers to store particle data */
-
-  FLOAT *Position[MAX_DIMENSION];
-  float *Velocity[MAX_DIMENSION]; 
-  double *Mass = new double[n];
-  float *BirthTime = new float[n];
-  float *DynamicalTime = new float[n];
-  float *Metallicity = new float[n];
-  PINT *ID = new PINT[n];
-
-  int i,dim;
-
-  for (dim = 0; dim < GridRank; dim++) {
-    Position[dim] = new FLOAT[n];
-    Velocity[dim] = new float[n];
-  }
-
-  hsize_t TempInt;
-  TempInt = n;
-    
-  ActiveParticleType_Kravtsov *ParticleToWrite;
-  for (i=0;i<n;i++) {
-    ParticleToWrite = static_cast<ActiveParticleType_Kravtsov*>(these_particles[i]);
-    for (dim = 0; dim < GridRank; dim++) {
-      Position[dim][i] = ParticleToWrite->pos[dim];
-      Velocity[dim][i] = ParticleToWrite->vel[dim];
-    }
-    Mass[i] = ParticleToWrite->Mass;
-    BirthTime[i] = ParticleToWrite->BirthTime;
-    DynamicalTime[i] = ParticleToWrite->DynamicalTime;
-    Metallicity[i] = ParticleToWrite->Metallicity;
-    ID[i] = ParticleToWrite->Identifier;
-  }
-
-  for (dim = 0; dim < GridRank; dim++) {
-    WriteDataset(1,&TempInt,ParticlePositionLabel[dim],
-		 KravtsovGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
-  }
-  
-  for (dim = 0; dim < GridRank; dim++) {
-    WriteDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  KravtsovGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
-  }
-  
-  WriteDataset(1,&TempInt,"mass",KravtsovGroupID,HDF5_REAL,(VOIDP) Mass);
-  WriteDataset(1,&TempInt,"creation_time",KravtsovGroupID,HDF5_REAL,(VOIDP) BirthTime);
-  WriteDataset(1,&TempInt,"dynamical_time",KravtsovGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
-  WriteDataset(1,&TempInt,"metallicity_fraction",KravtsovGroupID,HDF5_REAL,(VOIDP) Metallicity);
-  WriteDataset(1,&TempInt,"identifier",KravtsovGroupID,HDF5_PINT,(VOIDP) ID);
-
-  /* Clean up */
-
-  for (dim = 0; dim < GridRank; dim++) {
-    delete[] Position[dim];
-    delete[] Velocity[dim];
-  }
-  delete[] Mass;
-  delete[] BirthTime;
-  delete[] DynamicalTime;
-  delete[] Metallicity;
-  H5Gclose(KravtsovGroupID);
-
-  return SUCCESS;
-}
-
-int ActiveParticleType_Kravtsov::ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id)
-{
-  int i,dim;
-  hsize_t TempInt;
-  
-  hid_t KravtsovGroupID = H5Gopen(group_id,"Kravtsov");
-  
-  readAttribute(KravtsovGroupID,HDF5_INT,"Number of Kravtsov Particles",&n);
-  
-  particles_to_read = new ActiveParticleType*[n];
-  
-  char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
-  char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
-
-  FLOAT *Position[MAX_DIMENSION];
-  float *Velocity[MAX_DIMENSION];
-  double *Mass = new double[n];
-  float *BirthTime = new float[n];
-  float *DynamicalTime = new float[n];
-  float *Metallicity = new float[n];
-  PINT  *ID = new PINT[n];
-
-  for (dim = 0; dim < GridRank; dim++) {
-    Position[dim] = new FLOAT[n];
-    Velocity[dim] = new float[n];
-  }
-  
-  TempInt = n;
-  
-  for (dim = 0; dim < GridRank; dim++) {
-    ReadDataset(1,&TempInt,ParticlePositionLabel[dim],
-		  KravtsovGroupID, HDF5_FILE_PREC, (VOIDP) Position[dim]);
-  }
-
-  for (dim = 0; dim < GridRank; dim++) {
-    ReadDataset(1,&TempInt,ParticleVelocityLabel[dim],
-		  KravtsovGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
-  }
-  ReadDataset(1,&TempInt,"mass",KravtsovGroupID,HDF5_R8,(VOIDP) Mass);
-  ReadDataset(1,&TempInt,"creation_time",KravtsovGroupID,HDF5_REAL,(VOIDP) BirthTime);
-  ReadDataset(1,&TempInt,"dynamical_time",KravtsovGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
-  ReadDataset(1,&TempInt,"metallicity_fraction",KravtsovGroupID,HDF5_REAL,(VOIDP) Metallicity);
-  ReadDataset(1,&TempInt,"identifier",KravtsovGroupID,HDF5_PINT,(VOIDP) ID);
-
-  for (i = 0; i < n; i++) {
-    ActiveParticleType_Kravtsov *np = new ActiveParticleType_Kravtsov();
-    np->Mass = Mass[i];
-    np->type = np->GetEnabledParticleID();
-    np->BirthTime = BirthTime[i];
-    np->DynamicalTime = DynamicalTime[i];
-    np->Metallicity = Metallicity[i];
-    np->Identifier = ID[i];
-    for (dim = 0; dim < GridRank; dim++){
-      np->pos[dim] = Position[dim][i];
-      np->vel[dim] = Velocity[dim][i];
-    }
-    particles_to_read[i] = static_cast<ActiveParticleType*>(np);
-  }
-
-  delete[] Mass;
-  delete[] BirthTime;
-  delete[] DynamicalTime;
-  delete[] Metallicity;
-  delete[] ID;
-
-  for (dim = 0; dim < GridRank; dim++) {
-    delete[] Position[dim];
-    delete[] Velocity[dim];
-  }
-  H5Gclose(KravtsovGroupID);
-
-
-  return SUCCESS;
-}
-
-int ActiveParticleType_Kravtsov::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int KravtsovID)
-{
-  return SUCCESS;
-}
-
-int ActiveParticleType_Kravtsov::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							int ThisLevel, int TotalStarParticleCountPrevious[],
-							int KravtsovID)
-{
-  return SUCCESS;
-}
-
 int ActiveParticleType_Kravtsov::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
 							int TopGridDims[], int KravtsovID)
 {
   return SUCCESS;
 }
 
-void KravtsovBufferHandler::AllocateBuffer(ActiveParticleType **np, int NumberOfParticles, char *buffer,
-						 Eint32 total_buffer_size, int &buffer_size, Eint32 &position,
-						 int type_num, int proc)
-{
-  KravtsovBufferHandler *pbuffer = new KravtsovBufferHandler(np, NumberOfParticles, type_num, proc);
-  pbuffer->_AllocateBuffer(buffer, total_buffer_size, buffer_size, position);
-#ifdef USE_MPI
-  if (pbuffer->NumberOfBuffers > 0) {
-    // If any extra fields are added in the future, then they would be
-    // transferred to the buffer here.
-  }
-#endif
-  delete pbuffer;
-  return;
-}
-
-void KravtsovBufferHandler::UnpackBuffer(char *mpi_buffer, int mpi_buffer_size, int NumberOfParticles,
-					       ActiveParticleType **np, int &npart)
-{
-  int i;
-  Eint32 position;
-  KravtsovBufferHandler *pbuffer = new KravtsovBufferHandler(NumberOfParticles);
-  pbuffer->_UnpackBuffer(mpi_buffer, mpi_buffer_size, position);
-#ifdef USE_MPI
-  if (pbuffer->NumberOfBuffers > 0) {
-    // If any extra fields are added in the future, then they would be
-    // transferred to the buffer here.
-  }
-#endif
-   /* Convert the particle buffer into active particles */
-  
-  for (i = 0; i < pbuffer->NumberOfBuffers; i++)
-    np[npart++] = new ActiveParticleType_Kravtsov(pbuffer, i);
-  delete pbuffer;
-  return;
-}
-
 namespace {
   ActiveParticleType_info *KravtsovInfo = 
-    register_ptype <ActiveParticleType_Kravtsov, KravtsovBufferHandler> ("Kravtsov");
+    register_ptype <ActiveParticleType_Kravtsov> ("Kravtsov");
 }
+
+std::vector<ParticleAttributeHandler*>
+  ActiveParticleType_Kravtsov::AttributeHandlers;
+

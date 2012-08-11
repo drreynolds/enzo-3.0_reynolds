@@ -74,7 +74,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
   for (i = 0; i < EnabledActiveParticlesCount; i++)
   {
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-    ActiveParticleTypeToEvaluate->describe_data_flags(flags);
+    ActiveParticleTypeToEvaluate->DescribeSupplementalData(flags);
   }
 
   struct ActiveParticleFormationData supplemental_data = data_default;
@@ -90,7 +90,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
   for (i = 0; i < EnabledActiveParticlesCount; i++)
   {
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-    ActiveParticleTypeToEvaluate->formation_function(
+    ActiveParticleTypeToEvaluate->EvaluateFormation(
                                 this, supplemental_data);
     NumberOfNewParticles += supplemental_data.NumberOfNewParticles;
     
@@ -119,7 +119,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     for (i = 0; i < EnabledActiveParticlesCount; i++)
       {
 	ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-	ActiveParticleTypeToEvaluate->feedback_function(this, supplemental_data);
+	ActiveParticleTypeToEvaluate->EvaluateFeedback(this, supplemental_data);
       }
   
   ActiveParticleType::DestroyData(this, supplemental_data);

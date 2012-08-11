@@ -17,14 +17,17 @@
    instantiated by things like EnzoProblemType instances and be registered in
    that fashion.
 */
-typedef void(*plugin_function)(HierarchyEntry *Grids[], TopGridData &MetaData);
+class EventDataContainer;
+typedef void(*plugin_function)(HierarchyEntry *Grids[], TopGridData &MetaData,
+             EventDataContainer *LocalData);
+typedef std::map<std::string, plugin_function> EnzoPluginMap;
+EnzoPluginMap *get_plugins();
 
 std::multimap<std::string, std::string> &get_event_hooks();
-std::map<std::string, plugin_function> &get_plugins();
 void RunEventHooks(std::string event_name, HierarchyEntry *Grid[],
-                    TopGridData &MetaData);
-void RegisterEventPlugin(std::string plugin_name, plugin_function the_plugin);
+                    TopGridData &MetaData, EventDataContainer *LocalData);
 void RegisterEventHook(std::string event_name, std::string plugin_name);
+int RegisterEventPlugin(std::string plugin_name, plugin_function the_plugin);
 
 /*
    This should really be stored in a static variable returned by a function,
@@ -33,6 +36,5 @@ void RegisterEventHook(std::string event_name, std::string plugin_name);
 */
 
 EXTERN std::multimap<std::string, std::string> event_hooks;
-EXTERN std::map<std::string, plugin_function> plugins;
 #endif
 #endif

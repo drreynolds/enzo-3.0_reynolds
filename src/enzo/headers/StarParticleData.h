@@ -128,6 +128,26 @@ SPEXTERN float  H2StarMakerH2DissociationFlux_MW;
 SPEXTERN float  H2StarMakerH2FloorInColdGas;
 SPEXTERN float  H2StarMakerColdGasTemperature;
 
+struct accTableStor {
+  float* zetaLook;
+  float* fLook;
+  float* xiLook;
+  float* aprimeLook;
+  float* chiLook;
+  float* gammaLook;
+};
+
+struct radSolTableStor {
+  float* tauLook;
+  float* xShellLook;
+  float* xPrimeShellLook;
+};
+
+SPEXTERN int    GMCParticleRNGSeed;
+SPEXTERN int    GMCParticleRNGCalls;
+SPEXTERN accTableStor accTable;
+SPEXTERN radSolTableStor radSolTable;
+
 SPEXTERN float minStarLifetime;
 SPEXTERN FLOAT LastSupernovaTime;
 SPEXTERN float *IMFData;
