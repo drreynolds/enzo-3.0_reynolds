@@ -30,6 +30,10 @@
 
 float bondi_alpha(float x);
 
+int GetUnits(float *DensityUnits, float *LengthUnits,
+	     float *TemperatureUnits, float *TimeUnits,
+	     float *VelocityUnits, FLOAT Time);
+
 int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT AccretionRadius,
 				       float* AccretionRate){
 
@@ -38,6 +42,13 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
     return SUCCESS;
   
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
+
+  
+  float DensityUnits, LengthUnits, TemperatureUnits, TimeUnits, 
+    VelocityUnits, CriticalDensity = 1, BoxLength = 1, mu = Mu;
+  
+  GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits, &TimeUnits, 
+	   &VelocityUnits, Time);
 
   FLOAT *ParticlePosition = (*ThisParticle)->ReturnPosition();
   
@@ -116,7 +127,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 		   pow(vsink[2] - velz,2));
 
   CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : Temperature[cgindex];
-  cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;
+  cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/LengthUnits*TimeUnits;
   BondiHoyleRadius = GravitationalConstant*msink/
     (pow(vInfinity,2) + pow(cInfinity,2));
 
