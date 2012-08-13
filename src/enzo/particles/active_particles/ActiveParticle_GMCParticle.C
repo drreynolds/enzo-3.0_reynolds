@@ -36,8 +36,9 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActivePar
   // set these attributes to prevent undefined behavior
   R = Rdot = M = Mstar = Massoc = 
     MdotStar = MdotHII = MstarRemain = 
-    sigma = tau = dtau = Eacc = -1.0;
+    sigma = tau = dtau = Eacc = ReservoirRatio = -1.0;
   R0 = M0 = sigma0 = -1; 
+  nHIIreg = 0;
 }
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleType_AccretingParticle *ap,
@@ -51,11 +52,12 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleTyp
   M0 = ap->ReturnMass()*data.MassUnits;
   sigma0 = SQRT(2.0*GravConst*M0/(5*R0)); // Assuming alpha_vir,0 = 2.0
 
-  Mdot = MdotAcc = AccretionRate*data.MassUnits/data.TimeUnits/M0*R0/sigma0; // The accretion rate in gmcevol units
   Mstar = Massoc = MdotStar = MdotHII = MstarRemain = 0.0;
+  ReservoirRatio = 1.0;
   tau = 0.0;
   dtau = 1.0e-4;
   Eacc = 0.0;
+  nHIIreg = 0;
 }
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
@@ -66,16 +68,18 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
   
   R              = part->R;
   M              = part->M;
-  Mdot           = part->Mdot;
-  MdotAcc        = part->MdotAcc;
   MdotStar       = part->MdotStar;
   MdotHII        = part->MdotHII;
   MstarRemain    = part->MstarRemain;
+  Massoc         = part->Massoc;
   sigma          = part->sigma;
   tau            = part->tau;
   dtau           = part->dtau;
   Mstar          = part->Mstar;
-  Eacc           = part->Eacc;   
+  Eacc           = part->Eacc;  
+  ReservoirRatio = part->ReservoirRatio;
+
+  nHIIreg        = part->nHIIreg;
 }
 
 int ActiveParticleType_GMCParticle::InitializeParticleType()
@@ -156,13 +160,6 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
 }
 
 #define CII 9.74e5 /* Sound speed in ionized gas, assuming T = 7000 K and mu = 0.61 */
-
-double logInterpolate(int zetaindex, double interpArray[NUMZETA],
-                      double zeta, double zetamin, double zetamax){
-  double gridArea = log10(zetamax) - log10(zetamin);
-  return( (interpArray[zetaindex]*(log10(zetamax) - log10(zeta))
-           + interpArray[zetaindex+1]*(log10(zeta) - log10(zetamin)))/gridArea ) ;
-}
 
 /*int ActiveParticleType_GMCParticle :: CalculateDerivedParameters() {
   aI     = (3 - krho) / (5 - krho);
@@ -245,22 +242,98 @@ void ActiveParticleType_GMCParticle::SetupGMCParticleAttributes(
 
   typedef ActiveParticleType_GMCParticle ap;
   
-  handlers.push_back(new Handler<ap, FLOAT, &ap::M0>("gmcevol_M0"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::R0>("gmcevol_R0"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::sigma0>("gmcevol_sigma0"));
+  handlers.push_back(new Handler<ap, float, &ap::M0>("gmcevol_M0"));
+  handlers.push_back(new Handler<ap, float, &ap::R0>("gmcevol_R0"));
+  handlers.push_back(new Handler<ap, float, &ap::sigma0>("gmcevol_sigma0"));
   
-  handlers.push_back(new Handler<ap, FLOAT, &ap::R>("gmcevol_R"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::Rdot>("gmcevol_Rdot"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::M>("gmcevol_M"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::Mstar>("gmcevol_Mstar"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::Massoc>("gmcevol_Massoc"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::MdotStar>("gmcevol_MdotStar"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::MdotHII>("gmcevol_MdotHII"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::MstarRemain>("gmcevol_MstarRemain"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::sigma>("gmcevol_sigma"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::tau>("gmcevol_tau"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::dtau>("gmcevol_dtau"));
-  handlers.push_back(new Handler<ap, FLOAT, &ap::Eacc>("gmcevol_Eacc"));
+  handlers.push_back(new Handler<ap, float, &ap::R>("gmcevol_R"));
+  handlers.push_back(new Handler<ap, float, &ap::Rdot>("gmcevol_Rdot"));
+  handlers.push_back(new Handler<ap, float, &ap::M>("gmcevol_M"));
+  handlers.push_back(new Handler<ap, float, &ap::Mstar>("gmcevol_Mstar"));
+  handlers.push_back(new Handler<ap, float, &ap::MstarRemain>("gmcevol_MstarRemain"));
+  handlers.push_back(new Handler<ap, float, &ap::Massoc>("gmcevol_Massoc"));
+  handlers.push_back(new Handler<ap, float, &ap::MdotStar>("gmcevol_MdotStar"));
+  handlers.push_back(new Handler<ap, float, &ap::MdotHII>("gmcevol_MdotHII"));
+  handlers.push_back(new Handler<ap, float, &ap::MstarRemain>("gmcevol_MstarRemain"));
+  handlers.push_back(new Handler<ap, float, &ap::sigma>("gmcevol_sigma"));
+  handlers.push_back(new Handler<ap, float, &ap::tau>("gmcevol_tau"));
+  handlers.push_back(new Handler<ap, float, &ap::dtau>("gmcevol_dtau"));
+  handlers.push_back(new Handler<ap, float, &ap::Eacc>("gmcevol_Eacc"));
+  handlers.push_back(new Handler<ap, float, &ap::ReservoirRatio>("gmcevol_f"));
+
+  handlers.push_back(new Handler<ap, int, &ap::nHIIreg>("gmcevol_nhIIreg"));
+}
+
+int GetUnits(float *DensityUnits, float *LengthUnits,
+	     float *TemperatureUnits, float *TimeUnits,
+	     float *VelocityUnits, float *MassUnits, 
+	     FLOAT Time);
+
+int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
+{
+  // Get enzo units
+  float DensityUnits, LengthUnits, TemperatureUnits, TimeUnits,
+    VelocityUnits, MassUnits;
+    
+  GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits, &TimeUnits,
+	   &VelocityUnits, &MassUnits, Time); 
+
+
+  // Declare derived parameters;
+  float Mach0 = sigma0 / cs;
+  float avir0 = 5*sigma0*sigma0*R0 / (GravConst*M0);
+  float t0    = R0 / sigma0;
+  float etaP  = 4 * pi * R0 * R0 * R0 * Pamb / 
+    (aI * M0 * sigma0 * sigma0);
+  // My use of the global units variables will not work for cosmological simulations
+  float MdotAcc     = AccretionRate / (MassUnits*M0) * (TimeUnits*t0);
+  float rho   = (M*M0) / (ReservoirRatio*4./3.*pi*(R*R*R*R0*R0*R0));
+  float tff   = SQRT(3*pi / (32*GravConst*rho));
+  float tauff = tff / t0;
+  float zeta  = MdotAcc*tauff/M;
+
+  float aprime, xi, chi, gamma, etaI;
+
+  if (zeta > 1000) 
+    ENZO_FAIL("GMCParticle: Zeta is greater than 1000!\n");
+  if (zeta >= 0.001) {
+    int zetaindex = (log10(zeta)+3)*10; // Converting to the log space in the zeta lookup table
+    double zetamin = accTable.zetaLook[zetaindex];
+    double zetamax = accTable.zetaLook[zetaindex+1];
+
+    aprime = logInterpolate(zetaindex,accTable.aprimeLook, zeta, zetamin, zetamax);
+    ReservoirRatio = logInterpolate(zetaindex,accTable.fLook,zeta,zetamin,zetamax);
+    xi = logInterpolate(zetaindex,accTable.xiLook,zeta,zetamin,zetamax);
+    chi = logInterpolate(zetaindex,accTable.chiLook,zeta,zetamin,zetamax);
+    gamma = logInterpolate(zetaindex,accTable.gammaLook,zeta,zetamin,zetamax);
+
+    etaI = (10 * gamma) / (ReservoirRatio * aI * avir0);
+  }
+  else {
+    aprime = a;
+    ReservoirRatio = 1.0;
+    xi = 1.11484; // Analytic value in the limit M_res = 0
+    chi = 0.0;
+    etaI = 10/(aI * avir0);
+  }
+
+  float etaG  = 3 * aprime * (1.0 - etaB*etaB) / (aI*avir0);
+  float etaA  = (5.0 - krho) / (4.0 - krho) * sqrt(xi * xi * 10.0 / (avir0 * ReservoirRatio));
+
+  // Setup temporary state variables;
+  float Mdot, sigmadot, Rddot, Mddot, Rdot, Tco, dtauSave, 
+    sigmadot_noacc, Rddot_noacc, Rdot_noacc, Ecl, Ecl_noacc, R_noacc,
+    M_noacc, sigma_noacc, sigmaISM;
+
+  Mdot = MdotAcc + MdotHII + MdotStar;
+  Rdot = sigmadot = Rddot = Mddot = Tco = dtauSave = sigmadot_noacc = 
+    Rddot_noacc = Rdot_noacc = Ecl_noacc = R_noacc = M_noacc =
+    sigma_noacc = 0;
+
+  Ecl = 0.5*aI*M*Rdot*Rdot + 2.4*M*sigma*sigma + 1.5*M*Mach0 -
+    5.0/avir0*(0.6*aprime*(1 - etaB*etaB) - chi) * M/R/R;
+
+  return SUCCESS;
 }
 
 namespace {

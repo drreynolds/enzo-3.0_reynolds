@@ -6,6 +6,7 @@
 
 #include "ActiveParticle_AccretingParticle.h"
 #include "StarParticleData.h"
+#include "TopGridData.h"
 
 #define NUMZETA 62
 #define NUMTAU  1402
@@ -35,9 +36,13 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 				int ThisLevel, int TotalStarParticleCountPrevious[],
 				int GMCParticleID);
 
+  // Does the grunt work of advancing gmcevol
+  int AdvanceCloudModel(FLOAT Time);
 
    // See Goldbaum et al. 2011 Table 1
   static const float krho;
+  static const float aI;
+  static const float a;
   static const float etaB;
   static const float cs;
   static const float etaV;
@@ -53,8 +58,8 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   float M0, R0, sigma0;
 
   // State data (in gmcevol units)
-  float R, Rdot, M, Mdot, MdotAcc, MdotStar, MdotHII, MstarRemain, sigma, 
-    tau, dtau, Mstar, Massoc, Eacc;
+  float R, Rdot, M, MdotStar, MdotHII, MstarRemain, sigma, 
+    tau, dtau, Mstar, Massoc, Eacc, ReservoirRatio;
 
   int nHIIreg;
 
@@ -65,6 +70,8 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 // Static const member variables must be set outside the class definintion.  
 
 const float ActiveParticleType_GMCParticle::krho    = 1.0;
+const float ActiveParticleType_GMCParticle::aI      = (3 - krho) / (5 - krho);
+const float ActiveParticleType_GMCParticle::a       = (15 - 5*krho) / (15 - 6*krho);
 const float ActiveParticleType_GMCParticle::etaB    = 0.5;
 const float ActiveParticleType_GMCParticle::cs      = 0.19;
 const float ActiveParticleType_GMCParticle::etaV    = 1.2;
@@ -105,6 +112,13 @@ int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], T
   return SUCCESS;
 }
 
+double logInterpolate(int zetaindex, double interpArray[NUMZETA],
+                      double zeta, double zetamin, double zetamax){
+  double gridArea = log10(zetamax) - log10(zetamin);
+  return( (interpArray[zetaindex]*(log10(zetamax) - log10(zeta))
+           + interpArray[zetaindex+1]*(log10(zeta) - log10(zetamin)))/gridArea ) ;
+}
+
 template <class active_particle_class>
 int ActiveParticleType_GMCParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -115,5 +129,25 @@ int ActiveParticleType_GMCParticle::AfterEvolveLevel(HierarchyEntry *Grids[], To
       (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
     ENZO_FAIL("AccretingParticle AfterEvolveLevel failed!");
 
+  ActiveParticleType** ParticleList = NULL;
+  int nParticles;
+
+  ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GMCParticleID);
+
+  /* Return if there are no GMC particles */
+
+  if (nParticles == 0)
+    return SUCCESS;
+
+  /* Advance the GMC model for each particle */
+  
+  active_particle_class *GMCParticle = NULL;
+
+  for (int i = 0; i < nParticles; i++) {
+    GMCParticle = static_cast<active_particle_class*>(ParticleList[i]);
+    GMCParticle->AdvanceCloudModel(MetaData->Time);
+  }      
+      
   return SUCCESS;
 }
+
