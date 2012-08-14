@@ -161,61 +161,6 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
 
 #define CII 9.74e5 /* Sound speed in ionized gas, assuming T = 7000 K and mu = 0.61 */
 
-/*int ActiveParticleType_GMCParticle :: CalculateDerivedParameters() {
-  aI     = (3 - krho) / (5 - krho);
-  a      = (15 - 5*krho) / (15 - 6.0*krho);
-  aprime = a;
-  Mach0  = sigma0 / cs;
-  avir0  = (5 * sigma0 * sigma0 * R0) / (GravConst * M0);
-  etaG   = 3 * aprime * (1.0 - etaB*etaB) / (aI * avir0);
-  etaP   = 4 * pi * R0 * R0 * R0 * Pamb / 
-    (aI * M0 * sigma0 * sigma0);
-  etaE   = (5.0 - krho) / (4 - krho) * 2 * CII / sigma0;
-  etaA   = (5.0 - krho) / (4 - krho) * SQRT(10.0/avir0);
-  t0     = R0 / sigma0;
-  f      = 1.0;
-  etaI   = 10/(aI*avir0);
-  xi     = 1.11483349347388;
-  MdotAcc = 0.0;
-
-  return SUCCESS;
-  }*/
-
-/* int ActiveParticleType_GMCParticle :: UpdateDerivedParameters() {
-  double rho   = (M*M0) / (f*4./3.*pi*(R*R*R*R0*R0*R0));
-  double tff   = SQRT(3*pi / (32*GravConst*rho));
-  double tauff = tff / t0;
-  double zeta  = MdotAcc*tauff/M;
-
-  if (zeta >= 1000)
-    ENZO_FAIL("GMCParticle: Zeta is greater than 1000!\n");
-  if (zeta >= 0.001) {
-    int zetaindex = (log10(zeta)+3)*10; // Converting to the log space in the zeta lookup table
-    double zetamin = accTable.zetaLook[zetaindex];
-    double zetamax = accTable.zetaLook[zetaindex+1];
-
-    aprime = logInterpolate(zetaindex,accTable.aprimeLook, zeta, zetamin, zetamax);
-    f = logInterpolate(zetaindex,accTable.fLook,zeta,zetamin,zetamax);
-    xi = logInterpolate(zetaindex,accTable.xiLook,zeta,zetamin,zetamax);
-    chi = logInterpolate(zetaindex,accTable.chiLook,zeta,zetamin,zetamax);
-    gamma = logInterpolate(zetaindex,accTable.gammaLook,zeta,zetamin,zetamax);
-
-    etaI = (10 * gamma) / (f * aI * avir0);
-  }
-  else {
-    aprime = a;
-    f = 1.0;
-    xi = 1.11484;
-    chi = 0.0;
-    // The above values are the analytic values for krho = 1 and zeta = 0.
-    // If using a different value of krho, they will need to be updated.
-  }
-  etaG = 3 * aprime * (1.0 - etaB * etaB) / (aI * avir0);
-  etaA = (5.0 - krho) / (4.0 - krho) * sqrt(xi * xi * 10.0 / (avir0 * f));
-  
-  return SUCCESS;
-  } */
-
 int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data) 
 {
   if (ActiveParticleType_AccretingParticle::EvaluateFormation(thisgrid_orig, data) == FAIL)
