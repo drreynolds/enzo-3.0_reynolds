@@ -230,7 +230,6 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
   float t0    = R0 / sigma0;
   float etaP  = 4 * pi * R0 * R0 * R0 * Pamb / 
     (aI * M0 * sigma0 * sigma0);
-  // My use of the global units variables will not work for cosmological simulations
   float MdotAcc     = AccretionRate / (MassUnits*M0) * (TimeUnits*t0);
   float rho   = (M*M0) / (ReservoirRatio*4./3.*pi*(R*R*R*R0*R0*R0));
   float tff   = SQRT(3*pi / (32*GravConst*rho));
