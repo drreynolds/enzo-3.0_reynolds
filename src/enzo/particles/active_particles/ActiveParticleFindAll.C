@@ -36,7 +36,7 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], 
 			  int *GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
 {
-  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, proc, buffer_size, 
+  int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, proc,
     LocalNumberOfActiveParticlesOnThisLevel, header_size, element_size, count, offset;
   ActiveParticleType **LocalActiveParticlesOfThisType= NULL, **LocalActiveParticlesOnThisLevel = NULL;
   ActiveParticleType **ParticlesOnThisProc = NULL;
@@ -171,7 +171,6 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 #ifdef USE_MPI
 	/* Construct the MPI packed  buffer from the list of local particles*/
 	Eint32 total_buffer_size=0, local_buffer_size, position = 0;
-	int mpi_buffer_size;
 	char *send_buffer = NULL, *recv_buffer = NULL;
 	header_size = ap_info->ReturnHeaderSize();
 	element_size = ap_info->ReturnElementSize();
