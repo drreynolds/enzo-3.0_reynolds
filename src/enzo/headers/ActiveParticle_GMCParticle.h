@@ -19,10 +19,11 @@ public:
   /* Constants determined at HII region creation and stored in         
      dimensional numbers */
   float mcl, nh22, s49, t0, tms, rms, rdotms, Tcoms, pms, Lv, L39, tch, rch;
+
+  /* HII region state variables, stored in                                                        
+     dimensionless numbers */
   float r, rdot, Tco, mdot, mddot; 
   
-  /* Externally used quantities, stored in                                                        
-     dimensionless numbers */
   float EHII; /* The energy added to the cloud by the HII region */
   int phase;
   int breakoutFlag;
