@@ -149,7 +149,7 @@ struct TopGridData
   /* Active Particle Data */
 
   /* TODO: Update NumberOfActiveParticles
-  /* PINT   NumberOfActiveParticles; */
+     PINT   NumberOfActiveParticles; */
 
   /* Hydro Parameters.  
      These are here out of convenience, the real ones are in the grids. */

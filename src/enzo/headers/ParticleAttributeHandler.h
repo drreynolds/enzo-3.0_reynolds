@@ -30,7 +30,6 @@ class ParticleAttributeHandler
   public:
 
     std::string name;
-    MPI_Datatype mpitype;
     Eint32 hdf5type;
     int element_size;
     int offset;
@@ -54,17 +53,13 @@ class Handler : public ParticleAttributeHandler
 
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
-            this->mpitype = IntDataType;
-            this->hdf5type = HDF5_INT;
+	  this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
-            this->mpitype = FloatDataType;
-            this->hdf5type = HDF5_REAL;
+	  this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
-            this->mpitype = MPI_DOUBLE;
-            this->hdf5type = HDF5_R8;
+	  this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
-            this->mpitype = FLOATDataType;
-            this->hdf5type = HDF5_PREC;
+	  this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
         }
@@ -104,30 +99,17 @@ class ArrayHandler : public ParticleAttributeHandler
 
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
-            this->mpitype = IntDataType;
-            this->hdf5type = HDF5_INT;
+	  this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
-            this->mpitype = FloatDataType;
-            this->hdf5type = HDF5_REAL;
+	  this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
-            this->mpitype = MPI_DOUBLE;
-            this->hdf5type = HDF5_R8;
+	  this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
-            this->mpitype = FLOATDataType;
-            this->hdf5type = HDF5_PREC;
+	  this->hdf5type = HDF5_PREC;
         } else {
-            ENZO_FAIL("Unrecognized data type");
+	  ENZO_FAIL("Unrecognized data type");
         }
         this->element_size = sizeof(Type);
-    }
-
-    void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
-                      int NumberOParticles, int *position,
-                      int n, APClass **pp) {
-
-        MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   pp[n]->*var[this->offset],
-                   mpitype, MPI_COMM_WORLD);
     }
 
     void SetAttribute(char **buffer, ActiveParticleType *pp_) {

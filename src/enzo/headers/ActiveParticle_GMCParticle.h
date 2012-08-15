@@ -11,6 +11,22 @@
 #define NUMZETA 62
 #define NUMTAU  1402
 #define P_TO_CGS 1.381e-16  /* This is k_b*K*cm^-3 in dyn cm^-2 */
+#define MAX_NUMBER_OF_HII_REGIONS 5000
+
+class HIIregion {
+public:
+
+  /* Constants determined at HII region creation and stored in         
+     dimensional numbers */
+  float mcl, nh22, s49, t0, tms, rms, rdotms, Tcoms, pms, Lv, L39, tch, rch;
+  float r, rdot, Tco, mdot, mddot; 
+  
+  /* Externally used quantities, stored in                                                        
+     dimensionless numbers */
+  float EHII; /* The energy added to the cloud by the HII region */
+  int phase;
+  int breakoutFlag;
+};
 
 class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingParticle {
  public:
@@ -38,6 +54,7 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 
   // Does the grunt work of advancing gmcevol
   int AdvanceCloudModel(FLOAT Time);
+  float sfr(void);
 
    // See Goldbaum et al. 2011 Table 1
   static const float krho;
@@ -62,6 +79,7 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
     tau, dtau, Mstar, Massoc, Eacc, ReservoirRatio;
 
   int nHIIreg;
+  HIIregion HIIregions[MAX_NUMBER_OF_HII_REGIONS];
 
   /* Attribute handler instance */
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
@@ -84,19 +102,127 @@ const float ActiveParticleType_GMCParticle::etaIn   = 3.0;
 const float ActiveParticleType_GMCParticle::phicorr = 0.75; // See Goldbaum et al. 2011 section 3
 const float ActiveParticleType_GMCParticle::Pamb    = 3e4 * P_TO_CGS;
 
-class HIIregion {
-public:
+hid_t    HIIregion_tid;  /* HDF5 datatype identifier */
 
-  /* Constants determined at HII region creation and stored in         
-     dimensional numbers */
-  float mcl, nh22, s49, t0, tms, rms, rdotms, Tcoms, pms, Lv, L39, tch, rch;
-  float r, rdot, Tco, mdot, mddot; 
-  
-  /* Externally used quantities, stored in                                                        
-     dimensionless numbers */
-  float EHII; /* The energy added to the cloud by the HII region */
-  int phase;
-  int breakoutFlag;
+void setup_HIIregion_output() {
+  HIIregion_tid = H5Tcreate(H5T_COMPOUND, sizeof(HIIregion));
+  H5Tinsert(HIIregion_tid, "HIIregion_mcl", HOFFSET(HIIregion, mcl), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_nh22", HOFFSET(HIIregion, nh22), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_s49", HOFFSET(HIIregion, s49), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_t0", HOFFSET(HIIregion, t0), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_tms", HOFFSET(HIIregion, tms), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_rms", HOFFSET(HIIregion, rms), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_rdotms", HOFFSET(HIIregion, rdotms), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_Tcoms", HOFFSET(HIIregion, Tcoms), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_pms", HOFFSET(HIIregion, pms), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_Lv", HOFFSET(HIIregion, Lv), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_L39", HOFFSET(HIIregion, L39), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_tch", HOFFSET(HIIregion, tch), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_tch", HOFFSET(HIIregion, rch), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_r", HOFFSET(HIIregion, r), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_rdot", HOFFSET(HIIregion, rdot), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_Tco", HOFFSET(HIIregion, Tco), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_mdot", HOFFSET(HIIregion, mdot), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_mddot", HOFFSET(HIIregion, mddot), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_EHII", HOFFSET(HIIregion, EHII), H5T_NATIVE_FLOAT);
+  H5Tinsert(HIIregion_tid, "HIIregion_phase", HOFFSET(HIIregion, phase), H5T_NATIVE_INT);
+  H5Tinsert(HIIregion_tid, "HIIregion_breakoutFlag", HOFFSET(HIIregion, breakoutFlag), H5T_NATIVE_INT);
+}
+
+/* Create the memory datatype */
+
+template <class APClass>
+class HIIregionHandler : public ParticleAttributeHandler
+{
+ public:
+
+  HIIregionHandler(int offset = 0) {
+    this->name = "gmcevol_HIIregions";
+    this->offset = offset;
+    this->hdf5type = HIIregion_tid;
+    this->element_size = 18*sizeof(float) + 2*sizeof(int);
+  }
+
+  void SetAttribute(char **buffer, ActiveParticleType *pp_) {
+    APClass *pp = static_cast<APClass*>(pp_);
+    float *pbf = (float *)(*buffer);
+    pp->HIIregions[this->offset].mcl    = *(pbf++);
+    pp->HIIregions[this->offset].nh22   = *(pbf++);
+    pp->HIIregions[this->offset].s49    = *(pbf++);
+    pp->HIIregions[this->offset].t0     = *(pbf++);
+    pp->HIIregions[this->offset].tms    = *(pbf++);
+    pp->HIIregions[this->offset].rdotms = *(pbf++);
+    pp->HIIregions[this->offset].Tcoms  = *(pbf++);
+    pp->HIIregions[this->offset].pms    = *(pbf++);
+    pp->HIIregions[this->offset].Lv     = *(pbf++);
+    pp->HIIregions[this->offset].L39    = *(pbf++);
+    pp->HIIregions[this->offset].tch    = *(pbf++);
+    pp->HIIregions[this->offset].rch    = *(pbf++);
+    pp->HIIregions[this->offset].r      = *(pbf++);
+    pp->HIIregions[this->offset].rdot   = *(pbf++);
+    pp->HIIregions[this->offset].Tco    = *(pbf++);
+    pp->HIIregions[this->offset].mdot   = *(pbf++);
+    pp->HIIregions[this->offset].mddot  = *(pbf++);
+    pp->HIIregions[this->offset].EHII   = *(pbf++);
+    int *pbi = (int *)(pbf);
+    pp->HIIregions[this->offset].phase  = *(pbi++);
+    pp->HIIregions[this->offset].breakoutFlag   = *(pbi++);
+    *buffer = (char *) pbi;
+  }
+
+  int GetAttribute(char **buffer, ActiveParticleType *pp_) {
+    APClass *pp = static_cast<APClass*>(pp_);
+    this->element_size = 0;
+    float *pbf = (float *)(*buffer);
+    *(pbf++) = (pp->HIIregions)[this->offset].mcl;
+    *(pbf++) = (pp->HIIregions)[this->offset].nh22;
+    *(pbf++) = (pp->HIIregions)[this->offset].s49;
+    *(pbf++) = (pp->HIIregions)[this->offset].t0;
+    *(pbf++) = (pp->HIIregions)[this->offset].tms;
+    *(pbf++) = (pp->HIIregions)[this->offset].rdotms;
+    *(pbf++) = (pp->HIIregions)[this->offset].Tcoms;
+    *(pbf++) = (pp->HIIregions)[this->offset].pms;
+    *(pbf++) = (pp->HIIregions)[this->offset].Lv;
+    *(pbf++) = (pp->HIIregions)[this->offset].L39;
+    *(pbf++) = (pp->HIIregions)[this->offset].tch;
+    *(pbf++) = (pp->HIIregions)[this->offset].rch;
+    *(pbf++) = (pp->HIIregions)[this->offset].r;
+    *(pbf++) = (pp->HIIregions)[this->offset].rdot;
+    *(pbf++) = (pp->HIIregions)[this->offset].Tco;
+    *(pbf++) = (pp->HIIregions)[this->offset].mdot;
+    *(pbf++) = (pp->HIIregions)[this->offset].mddot;
+    *(pbf++) = (pp->HIIregions)[this->offset].EHII;
+    int *pbi = (int *)(pbf);
+    *(pbi++) = (pp->HIIregions)[this->offset].phase;
+    *(pbi++) = (pp->HIIregions)[this->offset].breakoutFlag;
+    return this->element_size;
+  }
+
+  void PrintAttribute(ActiveParticleType *pp_) {
+    APClass *pp = static_cast<APClass*>(pp_);
+    std::cout << this->name << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].mcl << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].nh22 << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].s49 << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].t0 << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].tms << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].rdotms << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].Tcoms << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].pms << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].Lv << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].L39 << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].tch << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].rch << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].r << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].rdot << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].Tco << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].mdot << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].mddot << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].EHII << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].phase << std::endl;
+    std::cout << (pp->HIIregions)[this->offset].breakoutFlag << std::endl;
+  }
+
 };
 
 template <class active_particle_class>

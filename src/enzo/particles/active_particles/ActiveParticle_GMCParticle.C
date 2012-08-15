@@ -51,10 +51,11 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleTyp
   R0 = dx*data.LengthUnits; 
   M0 = ap->ReturnMass()*data.MassUnits;
   sigma0 = SQRT(2.0*GravConst*M0/(5*R0)); // Assuming alpha_vir,0 = 2.0
+  
 
   Mstar = Massoc = MdotStar = MdotHII = MstarRemain = 0.0;
   ReservoirRatio = 1.0;
-  tau = 0.0;
+  tau  = this->BirthTime*R0/sigma0;
   dtau = 1.0e-4;
   Eacc = 0.0;
   nHIIreg = 0;
@@ -156,6 +157,8 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   ActiveParticleType::SetupBaseParticleAttributes(ah);
   SetupGMCParticleAttributes(ah);
 
+  setup_HIIregion_output();
+
   return SUCCESS;
 }
 
@@ -207,6 +210,32 @@ void ActiveParticleType_GMCParticle::SetupGMCParticleAttributes(
   handlers.push_back(new Handler<ap, float, &ap::ReservoirRatio>("gmcevol_f"));
 
   handlers.push_back(new Handler<ap, int, &ap::nHIIreg>("gmcevol_nhIIreg"));
+  handlers.push_back(new HIIregionHandler<ap>);
+}
+
+float ActiveParticleType_GMCParticle::sfr() 
+{
+  float rho, tff, tcr0, mach, avir, sfrff, sfrtot;
+
+  /* Free-fall time */
+  rho = (M*M0) / (ReservoirRatio*4./3.*PI*(R*R*R*R0*R0*R0));
+  tff = sqrt(3*PI / (32*GravConst*rho));
+
+  /* Crossing time at start of run -- sets time units */
+  tcr0 = R0 / sigma0;
+
+  /* Mach number and virial parameter */
+  mach = (sigma*sigma0) / cs;
+  avir = 5*(sigma*sigma*sigma0*sigma0) * (R*R0) /
+    (GravConst * (M*M0));
+
+  /* Star formation rate per free-fall time */
+  /* See Krumholz et al. (2005)             */
+  sfrff = 0.022*pow(avir/1.3, -0.68)*pow(mach/25.0, -0.33);
+
+  /* Star formation rate */
+  sfrtot = sfrff * M / (tff/tcr0);
+  return(sfrtot);
 }
 
 int GetUnits(float *DensityUnits, float *LengthUnits,
@@ -223,23 +252,23 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
   GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits, &TimeUnits,
 	   &VelocityUnits, &MassUnits, Time); 
 
-
   // Declare derived parameters;
-  float Mach0 = sigma0 / cs;
-  float avir0 = 5*sigma0*sigma0*R0 / (GravConst*M0);
-  float t0    = R0 / sigma0;
-  float etaP  = 4 * pi * R0 * R0 * R0 * Pamb / 
+  float Mach0   = sigma0 / cs;
+  float avir0   = 5*sigma0*sigma0*R0 / (GravConst*M0);
+  float t0      = R0 / sigma0;
+  float etaP    = 4 * pi * R0 * R0 * R0 * Pamb / 
     (aI * M0 * sigma0 * sigma0);
-  float MdotAcc     = AccretionRate / (MassUnits*M0) * (TimeUnits*t0);
-  float rho   = (M*M0) / (ReservoirRatio*4./3.*pi*(R*R*R*R0*R0*R0));
-  float tff   = SQRT(3*pi / (32*GravConst*rho));
-  float tauff = tff / t0;
-  float zeta  = MdotAcc*tauff/M;
-
+  float MdotAcc = AccretionRate / (MassUnits*M0) * (TimeUnits*t0);
+  float rho     = (M*M0) / (ReservoirRatio*4./3.*pi*(R*R*R*R0*R0*R0));
+  float tauMax  = Time * TimeUnits / t0;
+  float tff     = SQRT(3*pi / (32*GravConst*rho));
+  float tauff   = tff / t0;
+  float zeta    = MdotAcc*tauff/M;
   float aprime, xi, chi, gamma, etaI;
 
-  if (zeta > 1000) 
-    ENZO_FAIL("GMCParticle: Zeta is greater than 1000!\n");
+
+  if (zeta > 5) 
+    ENZO_FAIL("GMCParticle: Zeta is greater than 5!\n");
   if (zeta >= 0.001) {
     int zetaindex = (log10(zeta)+3)*10; // Converting to the log space in the zeta lookup table
     double zetamin = accTable.zetaLook[zetaindex];
@@ -265,9 +294,11 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
   float etaA  = (5.0 - krho) / (4.0 - krho) * sqrt(xi * xi * 10.0 / (avir0 * ReservoirRatio));
 
   // Setup temporary state variables;
-  float Mdot, sigmadot, Rddot, Mddot, Rdot, Tco, dtauSave, 
+  float Mdot, sigmadot, Rddot, Mddot, MddotHII, Rdot, Tco, dtauSave, 
     sigmadot_noacc, Rddot_noacc, Rdot_noacc, Ecl, Ecl_noacc, R_noacc,
     M_noacc, sigma_noacc, sigmaISM;
+
+  int i;
 
   Mdot = MdotAcc + MdotHII + MdotStar;
   Rdot = sigmadot = Rddot = Mddot = Tco = dtauSave = sigmadot_noacc = 
@@ -277,6 +308,19 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
   Ecl = 0.5*aI*M*Rdot*Rdot + 2.4*M*sigma*sigma + 1.5*M*Mach0 -
     5.0/avir0*(0.6*aprime*(1 - etaB*etaB) - chi) * M/R/R;
 
+  /* Main update loop */
+  while (tau < tauMax) {
+    /* compute current star formation rate */
+    MdotStar = -this->sfr();
+    
+    /* compute current mass loss rate from sufficiently large HII regions */
+    for (i=0, MdotHII=0, MddotHII=0; i<nHIIreg; i++) {
+      //MdotHII -= HIIreg[i].mdot;
+      //MddotHII -= HIIreg[i].mddot;
+    }
+
+    
+  }
   return SUCCESS;
 }
 
