@@ -113,13 +113,9 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
   int i,j,k,index,method,MassRefinementMethod;
 
   float *density = thisGrid->BaryonField[data.DensNum];
-  float *velx = thisGrid->BaryonField[data.Vel1Num];
-  float *vely = thisGrid->BaryonField[data.Vel2Num];
-  float *velz = thisGrid->BaryonField[data.Vel3Num];
   float JeansDensityUnitConversion = (Gamma*pi*kboltz) / (Mu*mh*GravConst);
   float CellTemperature = 0;
   float JeansDensity = 0;
-  float MassRefinementDensity = 0;
   float DensityThreshold = huge_number;
   float ExtraDensity = 0;
 
@@ -263,11 +259,6 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   int i, NumberOfGrids;
   HierarchyEntry **Grids = NULL;
-  grid *sinkGrid = NULL;
-  
-  bool SinkIsOnThisProc, SinkIsOnThisGrid;
-  
-  float SubtractedMass, SubtractedMomentum[3] = {};
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
