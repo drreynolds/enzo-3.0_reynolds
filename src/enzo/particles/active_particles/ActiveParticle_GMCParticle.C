@@ -270,7 +270,7 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
   if (zeta > 5) 
     ENZO_FAIL("GMCParticle: Zeta is greater than 5!\n");
   if (zeta >= 0.001) {
-    int zetaindex = (log10(zeta)+3)*10; // Converting to the log space in the zeta lookup table
+    int zetaindex = (log10(zeta)+3)*10; // Converting to the log space of the zeta lookup table
     double zetamin = accTable.zetaLook[zetaindex];
     double zetamax = accTable.zetaLook[zetaindex+1];
 
@@ -315,10 +315,10 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
     
     /* compute current mass loss rate from sufficiently large HII regions */
     for (i=0, MdotHII=0, MddotHII=0; i<nHIIreg; i++) {
-      //MdotHII -= HIIreg[i].mdot;
-      //MddotHII -= HIIreg[i].mddot;
+      MdotHII -= HIIregions[i].mdot;
+      MddotHII -= HIIregions[i].mddot;
     }
-
+    
     
   }
   return SUCCESS;

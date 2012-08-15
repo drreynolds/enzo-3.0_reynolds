@@ -15,7 +15,6 @@
 
 class HIIregion {
 public:
-
   /* Constants determined at HII region creation and stored in         
      dimensional numbers */
   float mcl, nh22, s49, t0, tms, rms, rdotms, Tcoms, pms, Lv, L39, tch, rch;
@@ -130,6 +129,58 @@ void setup_HIIregion_output() {
   H5Tinsert(HIIregion_tid, "HIIregion_breakoutFlag", HOFFSET(HIIregion, breakoutFlag), H5T_NATIVE_INT);
 }
 
+template <class active_particle_class>
+int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int GMCParticleID)
+{
+  if (ActiveParticleType_AccretingParticle::BeforeEvolveLevel<active_particle_class>
+      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
+    ENZO_FAIL("AccretingParticle BeforeEvolveLevel failed!");
+
+  return SUCCESS;
+}
+
+double logInterpolate(int zetaindex, double interpArray[NUMZETA],
+                      double zeta, double zetamin, double zetamax){
+  double gridArea = log10(zetamax) - log10(zetamin);
+  return( (interpArray[zetaindex]*(log10(zetamax) - log10(zeta))
+           + interpArray[zetaindex+1]*(log10(zeta) - log10(zetamin)))/gridArea ) ;
+}
+
+template <class active_particle_class>
+int ActiveParticleType_GMCParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+						     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+						     int ThisLevel, int TotalStarParticleCountPrevious[],
+						     int GMCParticleID)
+{
+  if (ActiveParticleType_AccretingParticle::AfterEvolveLevel<active_particle_class>
+      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
+    ENZO_FAIL("AccretingParticle AfterEvolveLevel failed!");
+
+  ActiveParticleType** ParticleList = NULL;
+  int nParticles;
+
+  ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GMCParticleID);
+
+  /* Return if there are no GMC particles */
+
+  if (nParticles == 0)
+    return SUCCESS;
+
+  /* Advance the GMC model for each particle */
+  
+  active_particle_class *GMCParticle = NULL;
+
+  for (int i = 0; i < nParticles; i++) {
+    GMCParticle = static_cast<active_particle_class*>(ParticleList[i]);
+    GMCParticle->AdvanceCloudModel(MetaData->Time);
+  }      
+      
+  return SUCCESS;
+}
+
 /* Create the memory datatype */
 
 template <class APClass>
@@ -225,56 +276,3 @@ class HIIregionHandler : public ParticleAttributeHandler
   }
 
 };
-
-template <class active_particle_class>
-int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalStarParticleCountPrevious[],
-						      int GMCParticleID)
-{
-  if (ActiveParticleType_AccretingParticle::BeforeEvolveLevel<active_particle_class>
-      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
-    ENZO_FAIL("AccretingParticle BeforeEvolveLevel failed!");
-
-  return SUCCESS;
-}
-
-double logInterpolate(int zetaindex, double interpArray[NUMZETA],
-                      double zeta, double zetamin, double zetamax){
-  double gridArea = log10(zetamax) - log10(zetamin);
-  return( (interpArray[zetaindex]*(log10(zetamax) - log10(zeta))
-           + interpArray[zetaindex+1]*(log10(zeta) - log10(zetamin)))/gridArea ) ;
-}
-
-template <class active_particle_class>
-int ActiveParticleType_GMCParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-						     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						     int ThisLevel, int TotalStarParticleCountPrevious[],
-						     int GMCParticleID)
-{
-  if (ActiveParticleType_AccretingParticle::AfterEvolveLevel<active_particle_class>
-      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
-    ENZO_FAIL("AccretingParticle AfterEvolveLevel failed!");
-
-  ActiveParticleType** ParticleList = NULL;
-  int nParticles;
-
-  ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GMCParticleID);
-
-  /* Return if there are no GMC particles */
-
-  if (nParticles == 0)
-    return SUCCESS;
-
-  /* Advance the GMC model for each particle */
-  
-  active_particle_class *GMCParticle = NULL;
-
-  for (int i = 0; i < nParticles; i++) {
-    GMCParticle = static_cast<active_particle_class*>(ParticleList[i]);
-    GMCParticle->AdvanceCloudModel(MetaData->Time);
-  }      
-      
-  return SUCCESS;
-}
-

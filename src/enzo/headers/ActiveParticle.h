@@ -319,8 +319,6 @@ namespace ActiveParticleHelpers {
       int ndims = 1;
       hsize_t dims[1] = {Count};
 
-      APClass *In;
-
       for (AttributeVector::iterator it = handlers.begin();
           it != handlers.end(); ++it) {
           size = Count * (*it)->element_size;
