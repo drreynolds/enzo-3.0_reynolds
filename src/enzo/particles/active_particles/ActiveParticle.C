@@ -78,7 +78,6 @@ int ActiveParticleType::ReadDataset(int ndims, hsize_t *dims, const char *name,
   hid_t dset_id;
   hid_t h5_status;
   herr_t      h5_error = -1;
-  int i, j, k, dim;
   /* get data into temporary array */
 
   file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
@@ -146,9 +145,8 @@ void ActiveParticleType::ConstructData(grid *_grid,
     
   /* initialize */
  
-  int dim, i, j, k, index, size, field, GhostZones = DEFAULT_GHOST_ZONES;
+  int dim, i, j, k, index, size;
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num, B1Num, B2Num, B3Num,H2INum, H2IINum;
-  const double m_h = 1.673e-24;
 
   /* Compute size (in floats) of the current grid. */
  
