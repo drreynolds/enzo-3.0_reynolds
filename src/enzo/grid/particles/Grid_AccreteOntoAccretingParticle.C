@@ -45,7 +45,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
   
   float DensityUnits, LengthUnits, TemperatureUnits, TimeUnits, 
-    VelocityUnits, CriticalDensity = 1, BoxLength = 1, mu = Mu;
+    VelocityUnits;
   
   GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits, &TimeUnits, 
 	   &VelocityUnits, Time);
@@ -60,7 +60,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   FLOAT CellSize, KernelRadius, radius2;
 
   int i, j, k, dim, index;
-  float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10., 
+  float lambda_c = 0.25*exp(1.5), CellVolume = 1., SmallRhoFac = 10., 
     SmallEFac = 10., AccretedMass = 0, AccretedMomentum[3], 
     RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, ke, Weight, maccreted, 
     rhocell, pcell[3], paccrete[3], etotnew, mnew, rhonew, reff[3], rsqr, 
@@ -69,7 +69,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
     dxmin, huge = 1.0e30, WeightedSum = 0, 
     SumOfWeights = 0, AverageDensity = 0;
 
-  int isub, jsub, ksub, excluded, NDIV = 8, NumberOfCells=0;
+  int isub, jsub, ksub, NDIV = 8, NumberOfCells=0;
 
   for (i = 0; i < 3; i++) {
     AccretedMomentum[i] = 0;
