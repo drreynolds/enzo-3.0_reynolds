@@ -61,7 +61,7 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleTyp
   dtau = 1.0e-4;
   Eacc = 0.0;
   nHIIreg = 0;
-  //for (int n = 0; n < MAX_NUMBER_OF_HII_REGIONS; n++)
+  //for (intn = 0; n < MAX_NUMBER_OF_HII_REGIONS; n++)
   //  HIIregions[n].phase = -1;
 }
 
@@ -581,10 +581,282 @@ void ActiveParticleType_GMCParticle::UpdateHIIregions(bool* HIIregEsc) {
 
 }
 
-void ActiveParticleType_GMCParticle::CreateHIIregions() {
-
-
+float ranUniform() {
+  unsigned_long_int random_int = mt_random();
+  const int max_random = (1<<16);
+  return (float) (random_int%max_random) / (float) (max_random);
 }
+
+float ranpowerlaw(float min, float max, float index) {
+  // see http://mathworld.wolfram.com/RandomNumber.html
+  float x = ranUniform();
+  return POW((POW(max,index+1) - POW(min,index+1))*x + POW(min,index+1),POW(index+1,-1));
+}
+
+#define MMINASSOC 20.0
+
+float Massocgen(float Mcl) {
+  
+  float Mmax = 0.1*Mcl/SolarMass;
+  
+  return (ranpowerlaw(MMINASSOC, Mmax, -2.0));
+}
+
+/* Lookup for ionizing luminosity s and main sequence lifetime tms
+   versus m from fit of Parravano et al. (2003) */
+float s49Lookup(float m) {
+
+  if (m<5) {
+    return(0.0);
+  } else if (m<7) {
+    return(2.23e-15*POW(m,11.5));
+  } else if (m<12) {
+    return(3.69e-13*POW(m,8.87));
+  } else if (m<20) {
+    return(4.8e-12*POW(m,7.85));
+  } else if (m<30) {
+    return(3.12e-8*POW(m,4.91));
+  } else if (m<40) {
+    return(2.8e-5*POW(m,2.91));
+  } else if (m<60) {
+    return(3.49e-4*POW(m,2.23));
+  } else {
+    return(2.39e-3*POW(m,1.76));
+  }
+}
+
+float tmsmyrLookup(float m) {
+
+  if (m<3) {
+    return(7.65e3*POW(m,-2.8));
+  } else if (m<6) {
+    return(4.73e3*POW(m,-2.36));
+  } else if (m<9) {
+    return(2.76e3*POW(m,-2.06));
+  } else if (m<12) {
+    return(1.59e3*POW(m, -1.81));
+  } else {
+    return(7.6e2*POW(m,-1.57)+2.3);
+  }
+}
+
+
+
+/*
+  Lookup table for v band luminosity, e.g. Parravano et al. (2003).  
+  Found using Lejeune spectral library and Geneva evolutionary tracks,
+  see Lejeune & Schaerer 2001
+ */
+float LvLookup(float m) {
+  if (m<5) {
+    return(0.0);
+  } else if (m<7) {
+    return(6.431965*POW(m,2.127491));
+  } else if (m<10) {
+    return(5.978640*POW(m,2.165051));
+  } else if (m<12) {
+    return(6.261533*POW(m,2.144973));
+  } else if (m<15) {
+    return(5.437515*POW(m,2.201753));
+  } else if (m<20) {
+    return(7.649976*POW(m,2.075689));
+  } else if (m<25) {
+    return(15.810358*POW(m,1.833356));
+  } else if (m<40) {
+    return(15.057851*POW(m,1.848506));
+  } else if (m<60) {
+    return(0.175271*POW(m,3.055736));
+  } else if (m<85) {
+    return(9321.468750*POW(m,0.398047));
+  } else {
+    return(375.282410*POW(m,1.121127));
+  }
+}
+
+/*  
+  Lookup table for bolometric luminosity, e.g. Parravano et al. (2003).
+ */
+
+float LbolLookup(float m) {
+  if (m<5) {
+    return(0.0);
+  } else if (m<7) {
+    return(3.332853*POW(m,3.420702));
+  } else if (m<10) {
+    return(4.362311*POW(m,3.282376));
+  } else if (m<12) {
+    return(7.052795*POW(m,3.073731));
+  } else if (m<15) {
+    return(10.108081*POW(m,2.928888));
+  } else if (m<20) {
+    return(19.547123*POW(m,2.685352));
+  } else if (m<25) {
+    return(35.611240*POW(m,2.485123));
+  } else if (m<40) {
+    return(80.401276*POW(m,2.232125));
+  } else if (m<60) {
+    return(274.946289*POW(m,1.898816));
+  } else if (m<85) {
+    return(815.505310*POW(m,1.633271));
+  } else {
+    return(2082.599121*POW(m,1.422234));
+  }
+}
+
+/* Routine to pick a massive star from the Kroupa (2001) IMF, which is 
+   dN / dlog m \propto 
+   m^0.7 (0.01 < m < 0.08)
+   m^-0.8 (0.08 < m < 0.5)
+   m^-1.7 (0.5 < m < 1)
+   m^-1.3 (1 < m < 120)
+*/
+
+/* Probability of being in each interval of the Kroupa IMF */
+#define WGT1 0.4967
+#define WGT2 0.4360
+#define WGT3 0.0426
+#define WGT4 0.0247
+
+float Mstargen() {
+
+  float x, mmin, mmax, gamma;
+
+  /* First decide which power-law interval to draw from. Note we use
+     gamma 1 less than the exponent in Kroupa (2001), because we want
+     to draw from dN / dm = (dN / dlog m) / m */
+  x = ranUniform();
+  if (x <= WGT1) {
+    mmin = 0.01;
+    mmax = 0.08;
+    gamma = -0.3;
+  } else if (x <= WGT1+WGT2) {
+    mmin = 0.08;
+    mmax = 0.5;
+    gamma = -1.8;
+  } else if (x <= WGT1+WGT2+WGT3) {
+    mmin = 0.5;
+    mmax = 1.0;
+    gamma = -2.7;
+  } else {
+    mmin = 1.0;
+    mmax = 120.0;
+    gamma = -2.3;
+  }
+
+  /* Now draw from a power-law in m and return */
+  return(ranpowerlaw(mmin, mmax, gamma));
+}
+
+#define LSUN      3.839e33
+#define PC        3.09e18
+#define YR        (365.25*24.*3600.)
+#define MYR       (1.0e6*YR)
+#define MSTARMEAN 0.21
+
+void ActiveParticleType_GMCParticle::CreateHIIregions() {
+  float Massocremain;
+  int nstarProb, starPtr=0, nstarMem, nstar;
+  float m, tms = 0, Lvtot = 0, Lboltot = 0, s49tot = 0, s49sum = 0, tmscut;
+
+  struct sort_pfirst {
+    bool operator()(const std::pair<float,float> &left, const std::pair<float,float> &right) {
+      return left.first < right.first;
+    }
+  };
+
+  struct pair_add {
+    float operator()(float lhs, const std::pair<float, float>& x) {
+      return lhs + x.first;
+    }
+  };
+ 
+  /* Increase the mass of stars available to ho into a cluster, stored
+     in solar masses. */
+  MstarRemain += (-MdotStar)*M0*dtau/SolarMass;
+
+  if (Massoc == 0.0) 
+    Massoc = Massocgen(M*M0);
+
+  while (MstarRemain >= 0.5*Massoc) {
+
+    /* Remove mass in stars from the 'waiting to be born' mass */
+    MstarRemain -= Massoc;
+
+    /* Allocate memory to hold s49 and tms lists */
+    std::vector<std::pair<float,float> > starData;
+
+    /* Generate stars in the association until we have enough to add
+       up to the association mass */
+    Massocremain = Massoc;
+    while (Massocremain > 0) {
+      m = Mstargen();
+
+      /* Subtract mass from remaining association mass */
+      if (Massocremain > m) {
+	Massocremain -= m;
+      } else {
+	m = Massocremain;
+	Massocremain = 0.0;
+      }
+	
+      /* If star is massive enough to bother, store ionizing
+	 luminosity, lifetime, Lbol and Lv */
+      if (m > 5) {
+	starData.push_back(std::make_pair(s49Lookup(m),tmsmyrLookup(m)*MYR));
+	Lvtot += LvLookup(m);
+	Lboltot += LbolLookup(m);
+      }
+
+    }
+    /* Generate next association mass */
+    Massoc = Massocgen(M*M0);
+    
+    /* Sort stars by ionizing luminosity */
+    std::sort(starData.begin(), starData.end(), sort_pfirst());
+    s49tot = std::accumulate(starData.begin(), starData.end(), 0, pair_add());
+    
+    for (s49sum=0, starPtr=starData.size(); starPtr>=0; starPtr--) {
+      s49sum += starData[starPtr].first;
+      if (s49sum >= s49tot/2.0) break;
+    }
+
+    tmscut = starData[starPtr].second;
+    
+    starData.clear();
+    
+    /* Set HII region properties */
+    
+    bool set = false;
+    
+    for (int n = 0; n < MAX_NUMBER_OF_HII_REGIONS; n++) {
+      if (HIIregions[n].phase == -1) {
+	HIIregions[n].r = HIIregions[n].rdot = HIIregions[n].mdot = 
+	  HIIregions[n].Tco = 0.0;
+	
+	HIIregions[n].t0 = tau*sigma0/R0;
+	HIIregions[n].rms = tau*sigma0/R0+tmscut;
+	HIIregions[n].s49 = s49tot;
+	HIIregions[n].Lv = Lvtot;
+	HIIregions[n].L39 = Lboltot*LSUN/1e39;
+	HIIregions[n].mcl = M*M0;
+	HIIregions[n].nh22 = M/(pi*R*R) * M0 / (R0*R0) / (1.0e22*MU_CLOUD);
+	HIIregions[n].tch = 6456 * YR * sqrt(HIIregions[n].nh22/1.28) *
+	  POW(HIIregions[n].L39,5.0/2.0) * POW(s49tot,-3.0/2.0);
+	HIIregions[n].rch = .1*PC/(HIIregions[n].s49) *
+	  POW((HIIregions[n].L39),2);
+	HIIregions[n].phase = 0;
+	HIIregions[n].rms = 0;
+	HIIregions[n].rdotms = 0;
+	HIIregions[n].Tcoms = 0;
+	set = true;
+	break;
+      }
+    }
+    if (!set)
+      ENZO_FAIL("Exceeded MAX_NUMBER_OF_HII_REGIONS!");
+  }
+}
+
 
 namespace {
   ActiveParticleType_info *GMCParticleInfo = 

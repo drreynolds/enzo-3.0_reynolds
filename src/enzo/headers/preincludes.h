@@ -26,6 +26,7 @@
 #include "mpi.h"
 #endif
 #include <algorithm>
+#include <numeric>
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
