@@ -416,7 +416,7 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
        should dissociate */
     double aV;
     
-    aV = (M*M0)/(pi*R*R0*R0)*aVgcm2;
+    aV = (M*M0)/(pi*R*R*R0*R0)*aVgcm2;
     if (aV < aVmin)
       return -1;
 
