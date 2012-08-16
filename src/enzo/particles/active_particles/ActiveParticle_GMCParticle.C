@@ -753,24 +753,24 @@ float Mstargen() {
 #define MYR       (1.0e6*YR)
 #define MSTARMEAN 0.21
 
+struct sort_pfirst {
+  bool operator()(const std::pair<float,float> &left, const std::pair<float,float> &right) {
+    return left.first < right.first;
+  }
+};
+
+struct pair_add {
+  float operator()(float lhs, const std::pair<float, float>& x) {
+    return lhs + x.first;
+  }
+};
+
 void ActiveParticleType_GMCParticle::CreateHIIregions() {
   float Massocremain;
   int nstarProb, starPtr=0, nstarMem, nstar;
   float m, tms = 0, Lvtot = 0, Lboltot = 0, s49tot = 0, s49sum = 0, tmscut;
 
-  struct sort_pfirst {
-    bool operator()(const std::pair<float,float> &left, const std::pair<float,float> &right) {
-      return left.first < right.first;
-    }
-  };
-
-  struct pair_add {
-    float operator()(float lhs, const std::pair<float, float>& x) {
-      return lhs + x.first;
-    }
-  };
- 
-  /* Increase the mass of stars available to ho into a cluster, stored
+  /* Increase the mass of stars available to go into a cluster, stored
      in solar masses. */
   MstarRemain += (-MdotStar)*M0*dtau/SolarMass;
 
@@ -808,6 +808,7 @@ void ActiveParticleType_GMCParticle::CreateHIIregions() {
       }
 
     }
+
     /* Generate next association mass */
     Massoc = Massocgen(M*M0);
     
