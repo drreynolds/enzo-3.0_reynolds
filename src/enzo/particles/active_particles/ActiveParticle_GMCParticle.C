@@ -163,6 +163,9 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
 }
 
 #define CII 9.74e5 /* Sound speed in ionized gas, assuming T = 7000 K and mu = 0.61 */
+#define STEPMAX 0.001
+#define DTINCRMAX 0.1
+#define MINSTEP 1.0e-8
 
 int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data) 
 {
@@ -258,50 +261,60 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
   float t0      = R0 / sigma0;
   float etaP    = 4 * pi * R0 * R0 * R0 * Pamb / 
     (aI * M0 * sigma0 * sigma0);
+  float etaE    = (5.0 - krho) / (4.0 - krho) * 2 * CII / sigma0;
   float MdotAcc = AccretionRate / (MassUnits*M0) * (TimeUnits*t0);
-  float rho     = (M*M0) / (ReservoirRatio*4./3.*pi*(R*R*R*R0*R0*R0));
-  float tauMax  = Time * TimeUnits / t0;
-  float tff     = SQRT(3*pi / (32*GravConst*rho));
-  float tauff   = tff / t0;
-  float zeta    = MdotAcc*tauff/M;
-  float aprime, xi, chi, gamma, etaI;
 
+  float rho, tauMax, tff, tauff, zeta, aprime, xi, chi, gamma, etaI,
+    zetamin, zetamax, f;
+  int zetaindex;
+  bool Converged = false;
+  bool HIIregEsc = false;
 
-  if (zeta > 5) 
-    ENZO_FAIL("GMCParticle: Zeta is greater than 5!\n");
-  if (zeta >= 0.001) {
-    int zetaindex = (log10(zeta)+3)*10; // Converting to the log space of the zeta lookup table
-    double zetamin = accTable.zetaLook[zetaindex];
-    double zetamax = accTable.zetaLook[zetaindex+1];
+  while (!Converged) {
+    rho     = (M*M0) / (ReservoirRatio*4./3.*pi*(R*R*R*R0*R0*R0));
+    tauMax  = Time * TimeUnits / t0;
+    tff     = SQRT(3*pi / (32*GravConst*rho));
+    tauff   = tff / t0;
+    zeta    = MdotAcc*tauff/M;
+    if (zeta > 5) 
+      ENZO_FAIL("GMCParticle: Zeta is greater than 5!\n");
+    if (zeta >= 0.001) {
+      zetaindex = floor((log10(zeta)+3)*10); // Converting to the log space of the zeta lookup table
+      zetamin = accTable.zetaLook[zetaindex];
+      zetamax = accTable.zetaLook[zetaindex+1];
 
-    aprime = logInterpolate(zetaindex,accTable.aprimeLook, zeta, zetamin, zetamax);
-    ReservoirRatio = logInterpolate(zetaindex,accTable.fLook,zeta,zetamin,zetamax);
-    xi = logInterpolate(zetaindex,accTable.xiLook,zeta,zetamin,zetamax);
-    chi = logInterpolate(zetaindex,accTable.chiLook,zeta,zetamin,zetamax);
-    gamma = logInterpolate(zetaindex,accTable.gammaLook,zeta,zetamin,zetamax);
-
-    etaI = (10 * gamma) / (ReservoirRatio * aI * avir0);
-  }
-  else {
-    aprime = a;
-    ReservoirRatio = 1.0;
-    xi = 1.11484; // Analytic value in the limit M_res = 0
-    chi = 0.0;
-    etaI = 10/(aI * avir0);
+      aprime = logInterpolate(zetaindex,accTable.aprimeLook, zeta, zetamin, zetamax);
+      f = logInterpolate(zetaindex,accTable.fLook,zeta,zetamin,zetamax);
+      xi = logInterpolate(zetaindex,accTable.xiLook,zeta,zetamin,zetamax);
+      chi = logInterpolate(zetaindex,accTable.chiLook,zeta,zetamin,zetamax);
+      gamma = logInterpolate(zetaindex,accTable.gammaLook,zeta,zetamin,zetamax);
+      
+      etaI = (10 * gamma) / (f * aI * avir0);
+      if (abs((f - ReservoirRatio)/ReservoirRatio > 1e-5))
+	Converged=true;
+      ReservoirRatio = f;
+    }
+    else {
+      aprime = a;
+      ReservoirRatio = 1.0;
+      xi = 1.11484; // Analytic value in the limit M_res = 0
+      chi = 0.0;
+      etaI = 10/(aI * avir0);
+    }
   }
 
   float etaG  = 3 * aprime * (1.0 - etaB*etaB) / (aI*avir0);
   float etaA  = (5.0 - krho) / (4.0 - krho) * sqrt(xi * xi * 10.0 / (avir0 * ReservoirRatio));
 
   // Setup temporary state variables;
-  float Mdot, sigmadot, Rddot, Mddot, MddotHII, Rdot, Tco, dtauSave, 
+  float Mdot, sigmadot, Rddot, Rdot, Tco, dtauSave, 
     sigmadot_noacc, Rddot_noacc, Rdot_noacc, Ecl, Ecl_noacc, R_noacc,
-    M_noacc, sigma_noacc, sigmaISM;
+    M_noacc, sigma_noacc, sigmaISM, Lambda;
 
   int i;
+  int dtauFloor = 0;
 
-  Mdot = MdotAcc + MdotHII + MdotStar;
-  Rdot = sigmadot = Rddot = Mddot = Tco = dtauSave = sigmadot_noacc = 
+  Rdot = sigmadot = Rddot = Tco = dtauSave = sigmadot_noacc = 
     Rddot_noacc = Rdot_noacc = Ecl_noacc = R_noacc = M_noacc =
     sigma_noacc = 0;
 
@@ -314,12 +327,112 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
     MdotStar = -this->sfr();
     
     /* compute current mass loss rate from sufficiently large HII regions */
-    for (i=0, MdotHII=0, MddotHII=0; i<nHIIreg; i++) {
+    for (i=0, MdotHII=0, Tco = 0; i<nHIIreg; i++) {
       MdotHII -= HIIregions[i].mdot;
-      MddotHII -= HIIregions[i].mddot;
+      Tco += HIIregions[i].Tco;
     }
     
+    Mdot = MdotAcc + MdotHII + MdotStar;
+
+    Lambda = (etaV / phiIn) * M * sigma * sigma * sigma / R;
     
+    Rddot = (3.9*sigma*sigma + 3.0/(Mach0*Mach0)) / (aI*R) 
+      - etaG * M / (R*R)
+      - etaP * R*R/M
+      - MdotAcc * Rdot / M
+      + etaE * MdotHII / M
+      - etaA *MdotAcc / SQRT(M*R);
+    
+    sigmadot = aI / 4.8 * 
+      (
+       - Rdot * Rddot / sigma
+       - etaG * M * Rdot / (R * R * sigma)
+       - etaP * R * R * Rdot / (M * sigma)
+       + etaE * MdotHII * Rdot / (M * sigma)
+       - etaA * MdotAcc * Rdot / (SQRT(M*R)*sigma)
+       - MdotAcc * Rdot * Rdot / (M * sigma)
+       - (3 - 1.5*phicorr) * MdotAcc * sigma / (aI * M)
+       + (3*phicorr)/(2*aI) * MdotAcc/(M*sigma) * (sigmaISM*sigmaISM)/(sigma0*sigma0)
+       + etaI * phicorr * MdotAcc / (R*sigma)
+       - 1.0/aI * Lambda / (M * sigma)
+       );
+    
+    /* Make sure subcycle step isn't too big.  If so, scale it back */
+    if (tau+dtau > tauMax) dtau = tauMax - tau;
+    bool dtauOk = 1;
+    while((fabs(Rdot*dtau) > STEPMAX*R) ||
+	  (fabs(0.5*Rddot*dtau*dtau) > STEPMAX*R) ||
+	  (fabs(Mdot*dtau) > STEPMAX*M) ||
+	  (fabs(sigmadot*dtau) > STEPMAX*sigma)) {
+      dtau /= 2.0;
+      dtauOk = 0;
+    }
+    
+    if(dtau/tau < MINSTEP) 
+      if (R < 0.01)
+	return -3;
+      else
+	return -4;
+    
+    /* Update Cloud quantities */
+
+    Rddot_noacc = (3.9*sigma*sigma + 3.0/(Mach0*Mach0)) / (aI*R)
+      - etaG * M/(R*R)
+      - etaP * R*R/M
+      + etaE * (MdotHII) / M;
+
+    Rdot_noacc = Rdot + Rddot_noacc*dtau;
+
+    sigmadot_noacc = aI / 4.8 *
+      (
+       - Rdot_noacc * Rddot_noacc / sigma
+       - etaG * M * Rdot_noacc / (R * R * sigma)
+       - etaP * R * R * Rdot_noacc / (M * sigma)
+       + etaE * MdotHII * Rdot_noacc / (M * sigma)
+       - 1.0/aI * Lambda / (M * sigma)
+       	   );
+
+    R_noacc = R + Rdot_noacc*dtau;
+    M_noacc = M + MdotHII*dtau;
+    sigma_noacc = sigma + sigmadot_noacc*dtau;
+    
+    R += Rdot*dtau;
+    Rdot += Rddot*dtau;
+    M += Mdot*dtau;
+    sigma += sigmadot*dtau;
+    Mstar += -MdotStar*dtau;
+    tau += dtau;
+      
+    Ecl = 0.5*aI*M*Rdot*Rdot + 2.4*M*sigma*sigma + 1.5*M/(Mach0*Mach0) - 
+      5.0/avir0*(0.6*aprime*(1-etaB*etaB) - chi)*M*M/R;
+
+    Ecl_noacc = 0.5*aI*M_noacc*Rdot_noacc*Rdot_noacc 
+      + 2.4*M_noacc*sigma_noacc*sigma_noacc + 1.5*M_noacc/(Mach0*Mach0) - 
+      5.0/avir0*(0.6*aprime*(1-etaB*etaB) - chi)*M_noacc*M_noacc/R_noacc;
+
+    Eacc += Ecl - Ecl_noacc;
+
+    /* Exit if cloud surface density has dropped to the point where it
+       should dissociate */
+    double aV;
+    
+    aV = (M*M0)/(pi*R*R0*R0)*aVgcm2;
+    if (aV < aVmin)
+      return -1;
+
+    /* Update state of existing HII regions */
+    //this->UpdateHIIregions(&HIIregEsc);
+    
+    /* Exit if an HII region has encompassed the whole cloud */
+    if (HIIregEsc)
+      return -2;
+
+    /* Check to see if any new HII regions should appear */
+    //this->HIIregCreate();
+    
+    /* Increase time step if we can */
+    if (dtauOk) dtau *= (1.0+DTINCRMAX);
+        
   }
   return SUCCESS;
 }
