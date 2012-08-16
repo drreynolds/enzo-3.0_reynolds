@@ -525,12 +525,59 @@ void ActiveParticleType_GMCParticle::UpdateHIIregions(bool* HIIregEsc) {
     ENZO_FAIL("HII region accounting is inconsistent!");
 
   /* Turn off HII regions that we no longer need to track */
-  int nremove;
+  int nremove = 0;
   double p_sh;
 
   *HIIregEsc = 0;
 
+  for (n=0; n<MAX_NUMBER_OF_HII_REGIONS; n++) {
+
+    if (HIIregions[n].phase == -1)
+      continue;
+
+    /* First check if the his HII region is expanding slower thant he
+       cloud velocity dispersion.  If so, remove it. */
+    if (HIIregions[n].rdot <= (sigma*sqrt(HIIregions[n].r/R))) {
+      HIIregions[n].phase = 3;
+      nremove++;
+    }
+ 
+    /* Second check if the radius of this HII region exceeds the cloud radius */
+    else if (HIIregions[n].r >= R) {
+      
+      /* Now compare the HII region expansion velocity to the loud
+	 escape velocity and set the HII region disruption flag if it
+	 is larger */
+      
+      if (HIIregions[n].rdot*sigma0 > SQRT(2*GravConst*M*M0 / (ReservoirRatio*R*R0))) {
+	*HIIregEsc = true;
+	HIIregions[n].phase = 2;
+	return;
+      }
+
+      /* If we're here, the HII region cannot unbind the cloud.  Merge
+	 the HII region either if it is a snowplow (phase 1) or if it
+	 is driven but has a radius > 1.741 R */
+      if ((HIIregions[n].phase == 1) || (HIIregions[n].r > 1.741*R)) { 
+	HIIregions[n].phase = 3;
+	nremove++;
+      }
+    }
+  }
   
+  /* Deal with phase 3 (to-be-merged) HII regions */
+  if (nremove != 0) {
+    for (n=0; n<MAX_NUMBER_OF_HII_REGIONS; n++) {
+
+      /* Should we destroy this one? */
+
+      if (HIIregions[n].phase == 3) {
+	sigma = SQRT(sigma*sigma + 2./3.*HIIregions[n].Tco / M * 
+		     SQRT(HIIregions[n].r / (phiIn*R)));
+	HIIregions[n].phase = -1;
+      }
+    }
+  }
 
 }
 

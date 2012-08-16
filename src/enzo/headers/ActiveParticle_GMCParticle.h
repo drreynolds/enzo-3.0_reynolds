@@ -23,7 +23,6 @@ public:
      dimensionless numbers */
   float r, rdot, Tco, mdot; 
   
-  float EHII; /* The energy added to the cloud by the HII region */
   int phase;
   int breakoutFlag;
 };
@@ -128,7 +127,6 @@ void setup_HIIregion_output() {
   H5Tinsert(HIIregion_tid, "HIIregion_rdot", HOFFSET(HIIregion, rdot), H5T_NATIVE_FLOAT);
   H5Tinsert(HIIregion_tid, "HIIregion_Tco", HOFFSET(HIIregion, Tco), H5T_NATIVE_FLOAT);
   H5Tinsert(HIIregion_tid, "HIIregion_mdot", HOFFSET(HIIregion, mdot), H5T_NATIVE_FLOAT);
-  H5Tinsert(HIIregion_tid, "HIIregion_EHII", HOFFSET(HIIregion, EHII), H5T_NATIVE_FLOAT);
   H5Tinsert(HIIregion_tid, "HIIregion_phase", HOFFSET(HIIregion, phase), H5T_NATIVE_INT);
   H5Tinsert(HIIregion_tid, "HIIregion_breakoutFlag", HOFFSET(HIIregion, breakoutFlag), H5T_NATIVE_INT);
 }
@@ -195,7 +193,7 @@ class HIIregionHandler : public ParticleAttributeHandler
   HIIregionHandler() {
     this->name = "gmcevol_HIIregions";
     this->hdf5type = HIIregion_tid;
-    this->element_size = MAX_NUMBER_OF_HII_REGIONS*(18*sizeof(float) + 2*sizeof(int));
+    this->element_size = MAX_NUMBER_OF_HII_REGIONS*(16*sizeof(float) + 2*sizeof(int));
   }
 
   void SetAttribute(char **buffer, ActiveParticleType *pp_) {
@@ -218,7 +216,6 @@ class HIIregionHandler : public ParticleAttributeHandler
       pp->HIIregions[i].rdot   = *(pbf++);
       pp->HIIregions[i].Tco    = *(pbf++);
       pp->HIIregions[i].mdot   = *(pbf++);
-      pp->HIIregions[i].EHII   = *(pbf++);
       int *pbi = (int *)(pbf);
       pp->HIIregions[i].phase  = *(pbi++);
       pp->HIIregions[i].breakoutFlag   = *(pbi++);
@@ -247,7 +244,6 @@ class HIIregionHandler : public ParticleAttributeHandler
       *(pbf++) = (pp->HIIregions)[i].rdot;
       *(pbf++) = (pp->HIIregions)[i].Tco;
       *(pbf++) = (pp->HIIregions)[i].mdot;
-      *(pbf++) = (pp->HIIregions)[i].EHII;
       int *pbi = (int *)(pbf);
       *(pbi++) = (pp->HIIregions)[i].phase;
       *(pbi++) = (pp->HIIregions)[i].breakoutFlag;
@@ -275,7 +271,6 @@ class HIIregionHandler : public ParticleAttributeHandler
     std::cout << (pp->HIIregions)[this->offset].rdot << std::endl;
     std::cout << (pp->HIIregions)[this->offset].Tco << std::endl;
     std::cout << (pp->HIIregions)[this->offset].mdot << std::endl;
-    std::cout << (pp->HIIregions)[this->offset].EHII << std::endl;
     std::cout << (pp->HIIregions)[this->offset].phase << std::endl;
     std::cout << (pp->HIIregions)[this->offset].breakoutFlag << std::endl; */
   }
