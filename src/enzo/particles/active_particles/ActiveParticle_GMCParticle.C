@@ -39,6 +39,8 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(void) : ActivePar
     sigma = tau = dtau = Eacc = ReservoirRatio = -1.0;
   R0 = M0 = sigma0 = -1; 
   nHIIreg = 0;
+  for (int n = 0; n < MAX_NUMBER_OF_HII_REGIONS; n++)
+    HIIregions[n].phase = -1;
 }
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleType_AccretingParticle *ap,
@@ -59,6 +61,8 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle(ActiveParticleTyp
   dtau = 1.0e-4;
   Eacc = 0.0;
   nHIIreg = 0;
+  //for (int n = 0; n < MAX_NUMBER_OF_HII_REGIONS; n++)
+  //  HIIregions[n].phase = -1;
 }
 
 ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
@@ -81,6 +85,9 @@ ActiveParticleType_GMCParticle::ActiveParticleType_GMCParticle
   ReservoirRatio = part->ReservoirRatio;
 
   nHIIreg        = part->nHIIreg;
+
+  for (int n = 0; n < MAX_NUMBER_OF_HII_REGIONS; n++)
+    HIIregions[n] = part->HIIregions[n];
 }
 
 int ActiveParticleType_GMCParticle::InitializeParticleType()
@@ -166,6 +173,7 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
 #define STEPMAX 0.001
 #define DTINCRMAX 0.1
 #define MINSTEP 1.0e-8
+#define MU_CLOUD 2.34e-24
 
 int ActiveParticleType_GMCParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data) 
 {
@@ -421,20 +429,114 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
       return -1;
 
     /* Update state of existing HII regions */
-    //this->UpdateHIIregions(&HIIregEsc);
+    this->UpdateHIIregions(&HIIregEsc);
     
     /* Exit if an HII region has encompassed the whole cloud */
     if (HIIregEsc)
       return -2;
 
     /* Check to see if any new HII regions should appear */
-    //this->HIIregCreate();
+    this->CreateHIIregions();
     
     /* Increase time step if we can */
     if (dtauOk) dtau *= (1.0+DTINCRMAX);
         
   }
   return SUCCESS;
+}
+
+void ActiveParticleType_GMCParticle::UpdateHIIregions(bool* HIIregEsc) {
+  int n;
+  double t, p, pdotgas;
+
+  int ActiveCount = 0;
+
+  /* Get physical time */
+  t = tau*R0/sigma0;
+
+  for (n=0; n < MAX_NUMBER_OF_HII_REGIONS; n++) {
+    
+    if (HIIregions[n].phase == -1)
+      continue;
+
+    ActiveCount++;
+
+    /* Update based on phase */
+    if (HIIregions[n].phase == 0) {
+
+      /* Phase 0, HII region is still driven */
+
+      /* Compute new values of Tco, r, r', and M', first in physical units */
+      float tauRad = (t - HIIregions[n].t0)/HIIregions[n].tch;
+      int tauIndex = floor(125*log10(tauRad)+625);
+      if (tauIndex < 0) tauIndex = 0;
+      float tauMin = radSolTable.tauLook[tauIndex];
+      float tauMax = radSolTable.tauLook[tauIndex+1];
+      float xShell = logInterpolate(tauIndex,radSolTable.xShellLook, tauRad, tauMin, tauMax);
+      float xPrimeShell = logInterpolate(tauIndex,radSolTable.xPrimeShellLook, tauRad, tauMin, tauMax);
+
+      HIIregions[n].r = HIIregions[n].rch * xShell;
+      HIIregions[n].rdot = HIIregions[n].rch / HIIregions[n].tch * xPrimeShell;
+
+      p = pi/2 * HIIregions[n].nh22*MU_CLOUD*1e22 * POW(HIIregions[n].r,2) * HIIregions[n].rdot;
+
+      pdotgas = 3.33564095e28 * HIIregions[n].L39 * sqrt(xShell);
+
+      HIIregions[n].mdot = pdotgas / (2*CII);
+      HIIregions[n].Tco = p*HIIregions[n].rdot/2.0;
+
+      /* Check if we should convert this HII region to phase 1 
+	 and store transition values */
+
+      if (t > HIIregions[n].tms) {
+	HIIregions[n].phase = 1;
+	HIIregions[n].rms = HIIregions[n].r;
+	HIIregions[n].rdotms = HIIregions[n].rdot;
+	HIIregions[n].Tcoms = HIIregions[n].Tco;
+	HIIregions[n].mdot = 0;
+	HIIregions[n].pms = p;
+      }
+
+    }
+    else if (HIIregions[n].phase == 1) {
+      
+      /* Phase 1, undriven snowplow expansion */
+      
+      /* Compute new values of Tco, r, r', and M' in physical units */
+      HIIregions[n].r = HIIregions[n].rms * 
+	POW(3*HIIregions[n].rdotms/HIIregions[n].rms * (t - HIIregions[n].tms) + 1, 1./3.);
+      HIIregions[n].rdot = HIIregions[n].rdotms *
+	POW(3*HIIregions[n].rdotms/HIIregions[n].rms * (t - HIIregions[n].tms) + 1, -2./3.);
+      HIIregions[n].Tco = HIIregions[n].pms*HIIregions[n].rdot/2.0;
+      
+    }
+    else
+      ENZO_FAIL("HII region phase unrecognized");
+
+    /* Convert state data to dimensionless gmcevol units */
+    HIIregions[n].Tco /= M0*sigma0*sigma0;
+    HIIregions[n].mdot *= R0/(sigma0*M0);
+    HIIregions[n].r /= R0;
+    HIIregions[n].rdot /= sigma0;
+
+  }
+
+  if (ActiveCount != nHIIreg)
+    ENZO_FAIL("HII region accounting is inconsistent!");
+
+  /* Turn off HII regions that we no longer need to track */
+  int nremove;
+  double p_sh;
+
+  *HIIregEsc = 0;
+
+  
+
+}
+
+void ActiveParticleType_GMCParticle::CreateHIIregions() {
+
+
 }
 
 namespace {
