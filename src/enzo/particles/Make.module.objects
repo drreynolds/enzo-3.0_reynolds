@@ -20,6 +20,7 @@ ENZO_OBJS +=\
         RecordTotalActiveParticleCount.o \
         ActiveParticle_DisableParticle.o \
         ActiveParticle_CenOstriker.o \
+        ActiveParticle_GalaxyParticle.o \
         ActiveParticle_Kravtsov.o \
         ActiveParticle_MirrorToParticle.o \
         ActiveParticle_PopIII.o \
