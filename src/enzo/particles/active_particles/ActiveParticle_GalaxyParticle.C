@@ -33,12 +33,110 @@ int ActiveParticleType_GalaxyParticle::InitializeParticleType(void)
   return SUCCESS;
 }
 
-int ActiveParticleType_GalaxyParticle::EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data)
+int ActiveParticleType_GalaxyParticle::EvaluateFormation
+(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
-  GalaxyParticleGrid *thisgrid =
+  // No need to do the rest if we're not on the maximum refinement level.
+  if (data.level != MaximumRefinementLevel) {
+    return SUCCESS;
+  }
+
+  // Let's read in some galaxy particle data. This will be replaced by
+  // the Python interface someday.
+  FILE *fptr;
+  char line[MAX_LINE_LENGTH];
+  char fname[20];
+  sprintf(fname, "gp%04"ISYM".txt", LevelCycleCount[0]);
+
+  if ((fptr = fopen(fname, "r")) == NULL) {
+    fprintf(stderr, "galaxy particle text file not found for this cycle.\n");
+    return SUCCESS;
+  }
+
+  float x, y, z, dens, radius, dist, temp, ExtraDensity;
+  float xx, yy, zz;
+  int i, j, k, index, mark;
+
+  GalaxyParticleGrid *thisGrid =
     static_cast<GalaxyParticleGrid *>(thisgrid_orig);
+
+  float *density = thisGrid->BaryonField[data.DensNum];
+  float *velx = thisGrid->BaryonField[data.Vel1Num];
+  float *vely = thisGrid->BaryonField[data.Vel2Num];
+  float *velz = thisGrid->BaryonField[data.Vel3Num];
+  float *tvel;
+
+  int GridDimension[3] = {thisGrid->GridDimension[0],
+                          thisGrid->GridDimension[1],
+                          thisGrid->GridDimension[2]};
+
+  while (fgets(line, MAX_LINE_LENGTH, fptr) != NULL) {
+    sscanf(line, "%"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM,
+      &x, &y, &z, &dens, &radius);
+    
+    fprintf(stderr,"inserting particle %"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM"\n",
+        x, y, z, dens, radius);
+    
+    // If this particle is outside this grid, we don't do anything.
+    if (x < thisGrid->GridLeftEdge[0] || x >= thisGrid->GridRightEdge[0] ||
+        y < thisGrid->GridLeftEdge[1] || y >= thisGrid->GridRightEdge[1] ||
+        z < thisGrid->GridLeftEdge[2] || z >= thisGrid->GridRightEdge[2]) {
+      continue;
+    }
+
+	// If no more room for particles, throw an ENZO_FAIL
+	if (data.NumberOfNewParticles >= data.MaxNumberOfNewParticles)
+	  return FAIL;
+
+    ActiveParticleType_GalaxyParticle *np = new ActiveParticleType_GalaxyParticle();
+	data.NewParticles[data.NumberOfNewParticles++] = np;
+	
+	np->type = np->GetEnabledParticleID();
+	np->BirthTime = thisGrid->ReturnTime();
+	
+	np->level = data.level;
+	np->GridID = data.GridID;
+	np->CurrentGrid = thisGrid;
+	
+	np->pos[0] = x;
+	np->pos[1] = y;
+	np->pos[2] = z;
+    
+    // Find the closest cell to x, y, z.
+    dist = huge_number;
+    for (k = thisGrid->GridStartIndex[2]; k <= thisGrid->GridEndIndex[2]; k++) {
+      for (j = thisGrid->GridStartIndex[1]; j <= thisGrid->GridEndIndex[1]; j++) {
+        for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++) {
+	      index = GRIDINDEX_NOGHOST(i, j, k);
+    	  xx = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
+	      yy = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
+	      zz = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
+	      temp = (xx - x) * (xx - x) + (yy - y) * (yy - y) + (zz - z) * (zz - z);
+	      if (temp < dist) {
+	        dist = temp;
+	        mark = index;
+	      }
+	    }
+	  }
+    }
+    
+    ExtraDensity = density[mark] - dens;
+	np->Mass = ExtraDensity;
+	tvel = thisGrid->AveragedVelocityAtCell(mark ,data.DensNum,data.Vel1Num);
+	
+	np->vel[0] = tvel[0];
+	np->vel[1] = tvel[1];
+	np->vel[2] = tvel[2];
+	
+	// Remove mass from the grid.
+	density[mark] = dens;
+    
+	// Clean up
+	delete [] tvel;
+  } // end while fgets...
+
   fprintf(stderr, "Checking formation of galaxy particles.\n");
-  return 0;
+  return SUCCESS;
 }
 
 int ActiveParticleType_GalaxyParticle::EvaluateFeedback
