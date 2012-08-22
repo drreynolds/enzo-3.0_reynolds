@@ -101,7 +101,7 @@ int ActiveParticleType_GMCParticle::InitializeParticleType()
   
   int i = 0;
   
-  float theta, zeta, f, xi, aprime, chi, gamma;
+  float zeta, f, xi, aprime, chi, gamma;
 
   accTable.zetaLook = new float[NUMZETA];
   accTable.fLook = new float[NUMZETA];
@@ -320,7 +320,6 @@ int ActiveParticleType_GMCParticle::AdvanceCloudModel(FLOAT Time)
     M_noacc, sigma_noacc, sigmaISM, Lambda;
 
   int i;
-  int dtauFloor = 0;
 
   Rdot = sigmadot = Rddot = Tco = dtauSave = sigmadot_noacc = 
     Rddot_noacc = Rdot_noacc = Ecl_noacc = R_noacc = M_noacc =
@@ -526,7 +525,6 @@ void ActiveParticleType_GMCParticle::UpdateHIIregions(bool* HIIregEsc) {
 
   /* Turn off HII regions that we no longer need to track */
   int nremove = 0;
-  double p_sh;
 
   *HIIregEsc = 0;
 
@@ -767,8 +765,8 @@ struct pair_add {
 
 void ActiveParticleType_GMCParticle::CreateHIIregions() {
   float Massocremain;
-  int nstarProb, starPtr=0, nstarMem, nstar;
-  float m, tms = 0, Lvtot = 0, Lboltot = 0, s49tot = 0, s49sum = 0, tmscut;
+  int n;
+  float m, Lvtot = 0, Lboltot = 0, s49tot = 0, s49sum = 0, tmscut;
 
   /* Increase the mass of stars available to go into a cluster, stored
      in solar masses. */
@@ -816,12 +814,14 @@ void ActiveParticleType_GMCParticle::CreateHIIregions() {
     std::sort(starData.begin(), starData.end(), sort_pfirst());
     s49tot = std::accumulate(starData.begin(), starData.end(), 0, pair_add());
     
-    for (s49sum=0, starPtr=starData.size(); starPtr>=0; starPtr--) {
-      s49sum += starData[starPtr].first;
+    int starCtr = starData.size();
+
+    for (s49sum=0; starCtr>=0; starCtr--) {
+      s49sum += starData[starCtr].first;
       if (s49sum >= s49tot/2.0) break;
     }
 
-    tmscut = starData[starPtr].second;
+    tmscut = starData[starCtr].second;
     
     starData.clear();
     

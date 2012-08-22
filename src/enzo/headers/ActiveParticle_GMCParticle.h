@@ -243,12 +243,12 @@ class HIIregionHandler : public ParticleAttributeHandler
       *(pbf++) = (pp->HIIregions)[i].mdot;
       int *pbi = (int *)(pbf);
       *(pbi++) = (pp->HIIregions)[i].phase;
-      return this->element_size;
     }
+    return this->element_size;
   }
   
   void PrintAttribute(ActiveParticleType *pp_) {
-    APClass *pp = static_cast<APClass*>(pp_);
+    //APClass *pp = static_cast<APClass*>(pp_);
     std::cout << this->name << std::endl;
     // For now I don't want to print 5000 entries
     /*std::cout << (pp->HIIregions)[this->offset].mcl << std::endl;

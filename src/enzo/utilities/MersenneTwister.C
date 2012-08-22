@@ -1,7 +1,7 @@
 /* 
    This is an implementation of the Mersenne Twister which was written by  Michael
    Brundage. The original source code, which was copied and pasted into this file,
-   can be found at http://qbrundage.com/michaelb/pubs/essays/random_number_generation,
+   can be found at http://qbrundage.com/michaelb/pubs/essays/random_number_generation.html,
    and a description of the Mersenne Twister random number generator can be found here:
    http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
    It has a claimed periodicity of 2^{19937}-1, which is pretty incredible.  The algorithm
