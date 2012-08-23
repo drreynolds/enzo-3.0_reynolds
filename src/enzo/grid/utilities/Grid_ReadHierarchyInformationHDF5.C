@@ -231,6 +231,7 @@ int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, double &Attrib
 #endif
 
 // FLOAT
+#ifndef CONFIG_BFLOAT_4
 int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, FLOAT &Attribute, FILE *log_fptr) {
 
   hid_t attr_id;
@@ -253,6 +254,7 @@ int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, FLOAT &Attribu
 
   return SUCCESS;
 }
+#endif
 
 // int vector
 int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, int Attribute[], int NumberOfElements, FILE *log_fptr) {

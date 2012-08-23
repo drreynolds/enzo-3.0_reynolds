@@ -84,7 +84,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
       CellSize = APGrids[i]->GetCellWidth(dim,0);
       GridGZLeftEdge = APGrids[i]->GetCellLeftEdge(dim,0);
       
-      LeftCellOffset[dim] = modf((ParticlePosition[i][dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
+      LeftCellOffset[dim] = MODF((ParticlePosition[i][dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
 
       FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius);
       FeedbackZoneRightEdge[dim] = GridGZLeftEdge + CellSize*(ncells[dim]+FeedbackRadius+1);
