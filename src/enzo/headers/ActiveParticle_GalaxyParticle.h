@@ -30,7 +30,13 @@ class ActiveParticleType_GalaxyParticle : public ActiveParticleType
 {
 public:
   // Constructors
-  ActiveParticleType_GalaxyParticle(void) : ActiveParticleType() {};
+  ActiveParticleType_GalaxyParticle(void) : ActiveParticleType() {
+    Radius = 0;
+  };
+  ActiveParticleType_GalaxyParticle(ActiveParticleType_GalaxyParticle* part) :
+    ActiveParticleType(static_cast<ActiveParticleType*>(part)) {
+    Radius = part->Radius;
+  };
 
   // Static members
   static int EvaluateFormation(grid *thisgrid_orig, ActiveParticleFormationData &data);
@@ -60,5 +66,8 @@ public:
     }									
     return ParticleID;							
   };
+  
+  // Galaxy Particle specific stuff.
+  float Radius;
 };
 
