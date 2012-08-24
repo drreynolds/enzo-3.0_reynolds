@@ -48,15 +48,11 @@ void my_exit(int status);
 
 int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eint32 Attribute, FILE *log_fptr);
 int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eint64 Attribute, FILE *log_fptr);
-int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, FLOAT Attribute, FILE *log_fptr);
+int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt32 Attribute, FILE *log_fptr);
+int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt64 Attribute, FILE *log_fptr);
+int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt128 Attribute, FILE *log_fptr);
 int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, int *Attribute, int NumberOfElements, FILE *log_fptr);
 int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, char *Attribute, FILE *log_fptr);
-#ifdef CONFIG_PFLOAT_16
-int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, double Attribute, FILE *log_fptr);
-#endif
-#ifdef SMALL_INTS
-int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eint64 Attribute, FILE *log_fptr);
-#endif
 
 int HDF5_WriteDataset(hid_t group_id, const char *DatasetName, int Dataset, FILE *log_fptr);
 int HDF5_WriteDataset(hid_t group_id, const char *DatasetName, int *Dataset, int NumberOfElements, FILE *log_fptr);
@@ -350,9 +346,39 @@ int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eint64 Attrib
 }
 
 
-#ifdef CONFIG_PFLOAT_16
-// double
-int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, double Attribute, FILE *log_fptr) {
+// 32-bit float (Eflt32)
+int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt32 Attribute, FILE *log_fptr) {
+
+  hid_t dspace_id, attr_id;
+
+  herr_t h5_status;
+
+  int io_log = 0;
+#ifdef IO_LOG
+  io_log = 1;
+#endif
+
+  dspace_id = H5Screate(H5S_SCALAR);
+  if (io_log) fprintf(log_fptr, "H5Screate: dspace_id = %"ISYM"\n", (int) dspace_id);
+
+  attr_id = H5Acreate(group_id, AttributeName, HDF5_R4, dspace_id, H5P_DEFAULT);
+  if (io_log) fprintf(log_fptr, "H5Acreate: attr_id = %"ISYM"\n", (int) attr_id);
+
+  h5_status = H5Awrite(attr_id,  HDF5_R4, &Attribute);
+  if (io_log) fprintf(log_fptr, "H5Awrite: status = %"ISYM"\n", (int) h5_status);
+
+  h5_status = H5Aclose(attr_id);
+  if (io_log) fprintf(log_fptr, "H5Aclose: status = %"ISYM"\n", (int) h5_status);
+  
+  h5_status = H5Sclose(dspace_id);
+  if (io_log) fprintf(log_fptr, "H5Sclose: status = %"ISYM"\n", (int) h5_status);
+
+  return SUCCESS;
+}
+
+
+// 64-bit float (Eflt64)
+int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt64 Attribute, FILE *log_fptr) {
 
   hid_t dspace_id, attr_id;
 
@@ -380,10 +406,10 @@ int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, double Attrib
 
   return SUCCESS;
 }
-#endif
 
-// FLOAT
-int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, FLOAT Attribute, FILE *log_fptr) {
+
+// 128-bit float (Eflt128)
+int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt128 Attribute, FILE *log_fptr) {
 
   hid_t dspace_id, attr_id;
 
@@ -397,10 +423,10 @@ int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, FLOAT Attribu
   dspace_id = H5Screate(H5S_SCALAR);
   if (io_log) fprintf(log_fptr, "H5Screate: dspace_id = %"ISYM"\n", (int) dspace_id);
 
-  attr_id = H5Acreate(group_id, AttributeName, HDF5_FILE_PREC, dspace_id, H5P_DEFAULT);
+  attr_id = H5Acreate(group_id, AttributeName, HDF5_R16, dspace_id, H5P_DEFAULT);
   if (io_log) fprintf(log_fptr, "H5Acreate: attr_id = %"ISYM"\n", (int) attr_id);
 
-  h5_status = H5Awrite(attr_id,  HDF5_PREC, &Attribute);
+  h5_status = H5Awrite(attr_id,  HDF5_R16, &Attribute);
   if (io_log) fprintf(log_fptr, "H5Awrite: status = %"ISYM"\n", (int) h5_status);
 
   h5_status = H5Aclose(attr_id);
@@ -411,6 +437,71 @@ int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, FLOAT Attribu
 
   return SUCCESS;
 }
+
+
+
+// #ifdef CONFIG_PFLOAT_16
+// // double
+// int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, double Attribute, FILE *log_fptr) {
+
+//   hid_t dspace_id, attr_id;
+
+//   herr_t h5_status;
+
+//   int io_log = 0;
+// #ifdef IO_LOG
+//   io_log = 1;
+// #endif
+
+//   dspace_id = H5Screate(H5S_SCALAR);
+//   if (io_log) fprintf(log_fptr, "H5Screate: dspace_id = %"ISYM"\n", (int) dspace_id);
+
+//   attr_id = H5Acreate(group_id, AttributeName, HDF5_R8, dspace_id, H5P_DEFAULT);
+//   if (io_log) fprintf(log_fptr, "H5Acreate: attr_id = %"ISYM"\n", (int) attr_id);
+
+//   h5_status = H5Awrite(attr_id,  HDF5_R8, &Attribute);
+//   if (io_log) fprintf(log_fptr, "H5Awrite: status = %"ISYM"\n", (int) h5_status);
+
+//   h5_status = H5Aclose(attr_id);
+//   if (io_log) fprintf(log_fptr, "H5Aclose: status = %"ISYM"\n", (int) h5_status);
+  
+//   h5_status = H5Sclose(dspace_id);
+//   if (io_log) fprintf(log_fptr, "H5Sclose: status = %"ISYM"\n", (int) h5_status);
+
+//   return SUCCESS;
+// }
+// #endif
+
+// // FLOAT
+// int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, FLOAT Attribute, FILE *log_fptr) {
+
+//   hid_t dspace_id, attr_id;
+
+//   herr_t h5_status;
+
+//   int io_log = 0;
+// #ifdef IO_LOG
+//   io_log = 1;
+// #endif
+
+//   dspace_id = H5Screate(H5S_SCALAR);
+//   if (io_log) fprintf(log_fptr, "H5Screate: dspace_id = %"ISYM"\n", (int) dspace_id);
+
+//   attr_id = H5Acreate(group_id, AttributeName, HDF5_FILE_PREC, dspace_id, H5P_DEFAULT);
+//   if (io_log) fprintf(log_fptr, "H5Acreate: attr_id = %"ISYM"\n", (int) attr_id);
+
+//   h5_status = H5Awrite(attr_id,  HDF5_PREC, &Attribute);
+//   if (io_log) fprintf(log_fptr, "H5Awrite: status = %"ISYM"\n", (int) h5_status);
+
+//   h5_status = H5Aclose(attr_id);
+//   if (io_log) fprintf(log_fptr, "H5Aclose: status = %"ISYM"\n", (int) h5_status);
+  
+//   h5_status = H5Sclose(dspace_id);
+//   if (io_log) fprintf(log_fptr, "H5Sclose: status = %"ISYM"\n", (int) h5_status);
+
+//   return SUCCESS;
+// }
+
 
 // int vector
 int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, int *Attribute, int NumberOfElements, FILE *log_fptr) {
