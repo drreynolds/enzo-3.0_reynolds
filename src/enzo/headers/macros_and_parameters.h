@@ -354,6 +354,10 @@ typedef int            HDF5_hid_t;
 #define SIN(X) sin((double) (X))
 #ifdef CONFIG_PFLOAT_4
 #define MODF(X,Y) modff((X), (Y))
+#elif CONFIG_PFLOAT_8
+#define MODF(X,Y) modf((X), (Y))
+#elif CONFIG_PFLOAT_16
+#define MODF(X,Y) modfl((X), (Y))
 #else
 #define MODF(X,Y) modf((X), (Y))
 #endif
