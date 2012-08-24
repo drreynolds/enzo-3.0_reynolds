@@ -352,7 +352,11 @@ typedef int            HDF5_hid_t;
 #define POW(X,Y) pow((double) (X), (double) (Y))
 #define COS(X) cos((double) (X))
 #define SIN(X) sin((double) (X))
-#define MODF(X,Y) modf((double) (X), (double*) (Y)) 
+#ifdef CONFIG_BFLOAT_4
+#define MODF(X,Y) modff((X), (Y))
+#else
+#define MODF(X,Y) modf((X), (Y))
+#endif
 
 /* Macros for grid indices (with and without ghost zones, and
    vertex-centered data) */
