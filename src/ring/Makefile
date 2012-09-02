@@ -93,7 +93,7 @@ include $(ENZO_DIR)/build/config/Make.config.assemble
 #-----------------------------------------------------------------------
 
 -include $(ENZO_DIR)/build/machines/Make.mach.$(CONFIG_MACHINE)
--include $(HOME)/.enzo/build/machines/Make.mach.$(CONFIG_MACHINE)
+-include $(HOME)/.enzo/Make.mach.$(CONFIG_MACHINE)
 
 #=======================================================================
 # OBJECT FILES
