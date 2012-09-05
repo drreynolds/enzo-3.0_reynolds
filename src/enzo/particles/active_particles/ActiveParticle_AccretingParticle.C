@@ -322,8 +322,8 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   for (i=0 ; i<nParticles; i++){
     pos = AccretingParticleList[i]->ReturnPosition();
     for (Temp = LevelArray[level]; Temp; Temp = Temp->NextGridThisLevel)
-      if (Temp->GridData->DepositAccretionZone(level,pos,AccretionRadius*dx) == FAIL) {
-	ENZO_FAIL("Error in grid->DepositAccretionZone.\n")
+      if (Temp->GridData->DepositRefinementZone(level,pos,AccretionRadius*dx) == FAIL) {
+	ENZO_FAIL("Error in grid->DepositRefinementZone.\n")
 	  }
   }
 

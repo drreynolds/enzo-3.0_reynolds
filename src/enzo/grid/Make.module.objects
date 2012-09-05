@@ -306,7 +306,7 @@ ENZO_OBJS +=\
 	Grid_DeleteFlaggingField.o \
 	Grid_DeleteObsoleteFields.o \
 	Grid_DeletePhotonPackages.o \
-	Grid_DepositAccretionZone.o \
+	Grid_DepositRefinementZone.o \
 	Grid_DepositBaryons.o \
 	Grid_DepositParticlePositions.o \
 	Grid_DepositParticlePositionsLocal.o \

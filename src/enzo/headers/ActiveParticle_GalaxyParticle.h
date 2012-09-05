@@ -32,10 +32,12 @@ public:
   // Constructors
   ActiveParticleType_GalaxyParticle(void) : ActiveParticleType() {
     Radius = 0;
+    initialized = 0;
   };
   ActiveParticleType_GalaxyParticle(ActiveParticleType_GalaxyParticle* part) :
     ActiveParticleType(static_cast<ActiveParticleType*>(part)) {
     Radius = part->Radius;
+    initialized = part->initialized;
   };
 
   // Static members
@@ -46,12 +48,12 @@ public:
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				 int ThisLevel, int TotalStarParticleCountPrevious[],
-				 int GalaxyParticleID) { return SUCCESS; };
+				 int GalaxyParticleID);
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				int ThisLevel, int TotalStarParticleCountPrevious[],
-				int GalaxyParticleID) {return SUCCESS; };
+				int GalaxyParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType(void);
   
@@ -69,5 +71,26 @@ public:
   
   // Galaxy Particle specific stuff.
   float Radius;
+  int initialized; // Has mass been subtracted from the grid?
 };
 
+template <class active_particle_class>
+int ActiveParticleType_GalaxyParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							    int ThisLevel, int TotalStarParticleCountPrevious[],
+							    int GalaxyParticleID)
+{
+
+  return SUCCESS;
+}
+
+template <class active_particle_class>
+int ActiveParticleType_GalaxyParticle::AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
+							   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							   int ThisLevel, int TotalStarParticleCountPrevious[],
+							   int GalaxyParticleID)
+{
+
+  return SUCCESS;
+
+}

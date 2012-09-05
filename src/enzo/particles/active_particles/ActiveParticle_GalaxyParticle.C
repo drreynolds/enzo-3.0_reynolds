@@ -50,6 +50,7 @@ int ActiveParticleType_GalaxyParticle::InitializeParticleType(void)
   ActiveParticleType::SetupBaseParticleAttributes(ah);
 
   ah.push_back(new Handler<ap, float, &ap::Radius>("Radius"));
+  ah.push_back(new Handler<ap, int, &ap::initialized>("initialized"));
 
   return SUCCESS;
 }
@@ -57,10 +58,12 @@ int ActiveParticleType_GalaxyParticle::InitializeParticleType(void)
 int ActiveParticleType_GalaxyParticle::EvaluateFormation
 (grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
-  // No need to do the rest if we're not on the maximum refinement level.
-  if (data.level != MaximumRefinementLevel) {
-    return SUCCESS;
-  }
+  // We actually allow insertion where there isn't maximum refinement,
+  // although it's probably the case already, because we care about halos
+  // not gas properties.
+  //if (data.level != MaximumRefinementLevel) {
+  //  return SUCCESS;
+  //}
   fprintf(stderr, "Checking formation of galaxy particles.\n");
   // Let's read in some galaxy particle data. This will be replaced by
   // the Python interface someday.
@@ -104,8 +107,8 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
       continue;
     }
 
-    fprintf(stderr,"%d inserting particle %"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM"\n",
-        data.GridID, x, y, z, dens, radius);
+    fprintf(stderr,"%d %d inserting particle %"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM"\n",
+        MyProcessorNumber, data.GridID, x, y, z, dens, radius);
 
 	// If no more room for particles, throw an ENZO_FAIL
 	if (data.NumberOfNewParticles >= data.MaxNumberOfNewParticles)
@@ -155,6 +158,8 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
 	np->vel[2] = tvel[2];
 	
 	np->Radius = radius;
+	np->Metallicity = 0.0;
+	np->initialized = 0;
 	
 	// Clean up
 	delete [] tvel;
@@ -177,6 +182,35 @@ void ActiveParticleType_GalaxyParticle::DescribeSupplementalData(ActiveParticleF
 int ActiveParticleType_GalaxyParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
 							int TopGridDims[], int GalaxyParticleID)
 {
+  /* Generate a list of all galaxy particles in the simulation box */
+  int i, nParticles;
+  FLOAT *pos = NULL, dx=0, rad;
+  ActiveParticleType **GalaxyParticleList = NULL ;
+  LevelHierarchyEntry *Temp = NULL;
+  
+  GalaxyParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GalaxyParticleID);
+  
+  /* Calculate CellWidth on maximum refinement level */
+  
+  // this will fail for noncubic boxes or simulations with MinimimMassForRefinementLevelExponent
+  dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
+    (TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+  
+  for (i=0 ; i<nParticles; i++){
+    pos = GalaxyParticleList[i]->ReturnPosition();
+    rad = static_cast<ActiveParticleType_GalaxyParticle*>(GalaxyParticleList[i])->Radius;
+    for (Temp = LevelArray[level]; Temp; Temp = Temp->NextGridThisLevel)
+      if (Temp->GridData->DepositRefinementZone(level,pos,rad*dx) == FAIL) {
+	ENZO_FAIL("Error in grid->DepositRefinementZone.\n")
+	  }
+  }
+
+  if (NumberOfProcessors > 1)
+    for (i = 0; i < nParticles; i++)
+      delete GalaxyParticleList[i];
+
+  delete GalaxyParticleList;
+
   return SUCCESS;
 }
 

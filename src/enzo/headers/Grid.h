@@ -792,9 +792,9 @@ gradient force to gravitational force for one-zone collapse test. */
 
    int DepositMustRefineParticles(int pmethod, int level);
 
-/* Particles: deposit regions in the accretion zone to ensure flagging */
+/* Particles: deposit regions in the feedback zone to ensure flagging */
 
-   int DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT AccretionRadius); 
+   int DepositRefinementZone(int level, FLOAT* ParticlePosition, FLOAT RefinementRadius); 
 
 /* Particles: calculate the mass density field from particles. */
 

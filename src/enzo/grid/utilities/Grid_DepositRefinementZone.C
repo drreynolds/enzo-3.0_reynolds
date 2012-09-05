@@ -1,11 +1,11 @@
 /*********************************************************************
 /
-/  GRID CLASS (FLAG CELLS TO BE REFINED IN THE ACCRETION 
+/  GRID CLASS (FLAG CELLS TO BE REFINED IN THE REFINEMENT 
 /             ZONE OF AN ACTIVE PARTICLE)
 /
 /  written by: Nathan Goldbaum
 /  date:       January, 2012
-/  modified1:
+/  modified1: Stephen Skory, Sept 2012, name change.
 /
 /  PURPOSE:
 /
@@ -24,7 +24,8 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
 
-int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT AccretionRadius)
+int grid::DepositRefinementZone(int level, FLOAT* ParticlePosition,
+    FLOAT RefinementRadius)
 {
   /* Return if this grid is not on this processor. */
 
@@ -47,9 +48,9 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
     RightCorner[dim] = LeftCorner[dim] + CellSize*FLOAT((GridDimension[dim]+1));
   }
 
-  if ((LeftCorner[0] > ParticlePosition[0]+AccretionRadius) || (RightCorner[0] < ParticlePosition[0]-AccretionRadius) ||
-      (LeftCorner[1] > ParticlePosition[1]+AccretionRadius) || (RightCorner[1] < ParticlePosition[1]-AccretionRadius) ||
-      (LeftCorner[2] > ParticlePosition[2]+AccretionRadius) || (RightCorner[2] < ParticlePosition[2]-AccretionRadius))
+  if ((LeftCorner[0] > ParticlePosition[0]+RefinementRadius) || (RightCorner[0] < ParticlePosition[0]-RefinementRadius) ||
+      (LeftCorner[1] > ParticlePosition[1]+RefinementRadius) || (RightCorner[1] < ParticlePosition[1]-RefinementRadius) ||
+      (LeftCorner[2] > ParticlePosition[2]+RefinementRadius) || (RightCorner[2] < ParticlePosition[2]-RefinementRadius))
     return SUCCESS;
 
   /* Error checks */
@@ -85,12 +86,12 @@ int grid::DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT Accreti
 	// Need to do this sort of expensive check since a derefined
 	// cell could enclose the accretion zone yet still be centered
 	// outside the accretion radius
-	if (!((CellLeftEdge[0][i] > ParticlePosition[0]+AccretionRadius) || 
-	      (CellLeftEdge[1][j] > ParticlePosition[1]+AccretionRadius) || 
-	      (CellLeftEdge[2][k] > ParticlePosition[2]+AccretionRadius) || 
-	      (CellLeftEdge[0][i]+CellSize < ParticlePosition[0]-AccretionRadius) ||
-	      (CellLeftEdge[1][j]+CellSize < ParticlePosition[1]-AccretionRadius) ||
-	      (CellLeftEdge[2][k]+CellSize < ParticlePosition[2]-AccretionRadius)))
+	if (!((CellLeftEdge[0][i] > ParticlePosition[0]+RefinementRadius) || 
+	      (CellLeftEdge[1][j] > ParticlePosition[1]+RefinementRadius) || 
+	      (CellLeftEdge[2][k] > ParticlePosition[2]+RefinementRadius) || 
+	      (CellLeftEdge[0][i]+CellSize < ParticlePosition[0]-RefinementRadius) ||
+	      (CellLeftEdge[1][j]+CellSize < ParticlePosition[1]-RefinementRadius) ||
+	      (CellLeftEdge[2][k]+CellSize < ParticlePosition[2]-RefinementRadius)))
 	      {
 	    FlaggingField[index] = 1;
 	    NumberOfFlaggedCells++;
