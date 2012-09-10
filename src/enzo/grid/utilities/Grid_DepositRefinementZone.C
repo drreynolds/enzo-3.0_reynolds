@@ -37,7 +37,7 @@ int grid::DepositRefinementZone(int level, FLOAT* ParticlePosition,
   float MustRefineMass;
   bool overlaps[GridRank];
   FLOAT CellSize, LeftCorner[MAX_DIMENSION], RightCorner[MAX_DIMENSION];
-  FLOAT period[GridRank], left, right, pleft, pright, dist2, rad2;
+  FLOAT period[MAX_DIMENSION], left, right, pleft, pright, dist2, rad2;
   
   if (MyProcessorNumber != ProcessorNumber)
     return SUCCESS;

@@ -10,6 +10,7 @@ vpath %.F90 utilities/
 vpath %.c   utilities/uuid/
 
 ENZO_OBJS +=\
+	CheckOverlap.o \
 	ComputeTable.o \
 	CosmologyComputeExpansionFactor.o \
 	CosmologyComputeExpansionTimestep.o \

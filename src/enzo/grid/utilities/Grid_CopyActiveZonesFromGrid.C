@@ -45,7 +45,11 @@ extern "C" void FORTRAN_NAME(copy3drel)(float *source, float *dest,
 
 int FindField(int field, int farray[], int numfields);
 
- 
+int check_overlap(FLOAT a[MAX_DIMENSION], FLOAT b[MAX_DIMENSION],
+                  FLOAT s[MAX_DIMENSION], FLOAT t[MAX_DIMENSION],
+                  int dims, FLOAT period[MAX_DIMENSION],
+                  int *shift);
+
 int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
 {
  
@@ -61,6 +65,10 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
  
   FLOAT GridLeft[MAX_DIMENSION]; FLOAT GridRight[MAX_DIMENSION];
   FLOAT ActiveLeft[MAX_DIMENSION]; FLOAT ActiveRight[MAX_DIMENSION];
+  FLOAT period[MAX_DIMENSION];
+  int *shift;
+
+  shift = new int[MAX_DIMENSION];
 
   int dim;
 
@@ -71,14 +79,30 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
     GridRight[dim] = CellLeftEdge[dim][GridDimension[dim]-1] +
       CellWidth[dim][GridDimension[dim]-1]    +
       EdgeOffset[dim];
+    period[dim] = DomainRightEdge[dim] - DomainLeftEdge[dim];
   }
  
-  /* Do a quick check to see if there is any overlap. */
- 
-  for (dim = 0; dim < GridRank; dim++)
-    if (ActiveLeft[dim]  >= OtherGrid->GridRightEdge[dim] ||
-        ActiveRight[dim] <= OtherGrid->GridLeftEdge[dim]   )   
-      return SUCCESS;
+  /* Check to see if there's overlap. */
+  int overlap;
+  overlap = check_overlap(ActiveLeft, ActiveRight,
+    OtherGrid->GridLeftEdge, OtherGrid->GridRightEdge,
+    GridRank, period, shift);
+  if (!(overlap)) {
+    delete [] shift;
+    return SUCCESS;
+  }
+  
+  /* If we're here, then there is overlap, and we should fix our edges
+     so the math works out. */
+  FLOAT shift_temp;
+  for (dim = 0; dim < GridRank; dim++) {
+    shift_temp = period[dim] * FLOAT(shift[dim]);
+    ActiveLeft[dim]  = GridLeftEdge[dim]  + shift_temp;
+    ActiveRight[dim] = GridRightEdge[dim] + shift_temp;
+    GridLeft[dim]  = CellLeftEdge[dim][0] + shift_temp;
+    GridRight[dim] = CellLeftEdge[dim][GridDimension[dim]-1] +
+      CellWidth[dim][GridDimension[dim]-1] + shift_temp;
+  }
 
   /* There is some overlap, so copy overlapping region */
  
@@ -189,6 +213,8 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
   
   if (MyProcessorNumber != OtherGrid->ProcessorNumber)
     OtherGrid->DeleteAllFields();
+  
+  delete [] shift;
   
   this->DebugCheck("CopyZonesFromGrid (after)");
 
