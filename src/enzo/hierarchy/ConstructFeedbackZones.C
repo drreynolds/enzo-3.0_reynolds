@@ -37,11 +37,12 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 
 
 
-grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
-			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids)
+grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids)
 {
   int i,j,dim,size;
-  int FeedbackZoneRank; 
+  int FeedbackZoneRank;
+  FLOAT FBRdx;
   FLOAT** ParticlePosition = new FLOAT*[nParticles]();
 
   /* Build array of AP grids and check for errors */
@@ -49,18 +50,20 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) {
     APGrids[i] = ParticleList[i]->ReturnCurrentGrid();
+    FBRdx = dx * FLOAT(FeedbackRadius[i]);
+    
     if (APGrids[i] == NULL)
       ENZO_FAIL("Particle CurrentGrid is invalid!\n");
 
     ParticlePosition[i] = ParticleList[i]->ReturnPosition();
     
     // This should only happen if the grid pointer is invalid
-    if ((APGrids[i]->GetGridLeftEdge(0) > ParticlePosition[i][0]+FeedbackRadius) || 
-	(APGrids[i]->GetGridLeftEdge(1) > ParticlePosition[i][1]+FeedbackRadius) || 
-	(APGrids[i]->GetGridLeftEdge(2) > ParticlePosition[i][2]+FeedbackRadius) || 
-	(APGrids[i]->GetGridRightEdge(0) < ParticlePosition[i][0]-FeedbackRadius) ||
-	(APGrids[i]->GetGridRightEdge(1) < ParticlePosition[i][1]-FeedbackRadius) ||
-	(APGrids[i]->GetGridRightEdge(2) < ParticlePosition[i][2]-FeedbackRadius))
+    if ((APGrids[i]->GetGridLeftEdge(0) > ParticlePosition[i][0]+FBRdx) || 
+	(APGrids[i]->GetGridLeftEdge(1) > ParticlePosition[i][1]+FBRdx) || 
+	(APGrids[i]->GetGridLeftEdge(2) > ParticlePosition[i][2]+FBRdx) || 
+	(APGrids[i]->GetGridRightEdge(0) < ParticlePosition[i][0]-FBRdx) ||
+	(APGrids[i]->GetGridRightEdge(1) < ParticlePosition[i][1]-FBRdx) ||
+	(APGrids[i]->GetGridRightEdge(2) < ParticlePosition[i][2]-FBRdx))
       ENZO_FAIL("Particle outside own grid!\n");
   }
 
@@ -79,15 +82,15 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
     size = 1;
 
     for (int dim = 0; dim < FeedbackZoneRank; dim++) {
-      FeedbackZoneDimension[dim] = (2*(FeedbackRadius+DEFAULT_GHOST_ZONES)+1);
+      FeedbackZoneDimension[dim] = (2*(FeedbackRadius[i]+DEFAULT_GHOST_ZONES)+1);
       size *= FeedbackZoneDimension[dim];
       CellSize = APGrids[i]->GetCellWidth(dim,0);
       GridGZLeftEdge = APGrids[i]->GetCellLeftEdge(dim,0);
       
       LeftCellOffset[dim] = modf((ParticlePosition[i][dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
 
-      FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius);
-      FeedbackZoneRightEdge[dim] = GridGZLeftEdge + CellSize*(ncells[dim]+FeedbackRadius+1);
+      FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius[i]);
+      FeedbackZoneRightEdge[dim] = GridGZLeftEdge + CellSize*(ncells[dim]+FeedbackRadius[i]+1);
     }
     
     grid *FeedbackZone = new grid;

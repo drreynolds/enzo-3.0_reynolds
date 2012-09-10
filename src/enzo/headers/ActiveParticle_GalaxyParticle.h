@@ -55,6 +55,10 @@ public:
 				int ThisLevel, int TotalStarParticleCountPrevious[],
 				int GalaxyParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
+  // below is a work in progress.
+  static int SubtractMassFromGrid(int nParticles,
+    ActiveParticleType** ParticleList, LevelHierarchyEntry *LevelArray[],
+    FLOAT dx, int ThisLevel);
   static int InitializeParticleType(void);
   
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
@@ -73,6 +77,11 @@ public:
   float Radius;
   int initialized; // Has mass been subtracted from the grid?
 };
+
+int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
+		      HierarchyEntry **Grids[]);
+int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticles, 
+				 LevelHierarchyEntry *LevelArray[]); 
 
 template <class active_particle_class>
 int ActiveParticleType_GalaxyParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,

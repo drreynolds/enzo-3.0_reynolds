@@ -18,6 +18,22 @@ class GalaxyParticleGrid : private grid {
   friend class ActiveParticleType_GalaxyParticle;
 };
 
+FLOAT calc_dist2(FLOAT x1, FLOAT y1, FLOAT z1,
+    FLOAT x2, FLOAT y2, FLOAT z2, FLOAT period[])
+{
+    int dim;
+    float part_dist2, xdist, ydist, zdist;
+    // Periodicity
+    xdist = fabs(x1 - x2);
+    xdist = min(xdist, period[0] - xdist);
+    ydist = fabs(y1 - y2);
+    ydist = min(ydist, period[1] - ydist);
+    zdist = fabs(z1 - z2);
+    zdist = min(zdist, period[2] - zdist);
+    part_dist2 = xdist * xdist + ydist * ydist + zdist * zdist;
+    return part_dist2;
+}
+
 /* Note that we only refer to GalaxyParticleGrid here. 
  * Given a grid object, we static cast to get this:
  *
@@ -64,7 +80,7 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
   //if (data.level != MaximumRefinementLevel) {
   //  return SUCCESS;
   //}
-  fprintf(stderr, "Checking formation of galaxy particles.\n");
+  //fprintf(stderr, "Checking formation of galaxy particles.\n");
   // Let's read in some galaxy particle data. This will be replaced by
   // the Python interface someday.
   FILE *fptr;
@@ -73,7 +89,7 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
   sprintf(fname, "gp%04"ISYM".txt", LevelCycleCount[0]);
 
   if ((fptr = fopen(fname, "r")) == NULL) {
-    fprintf(stderr, "galaxy particle text file not found for this cycle.\n");
+    //fprintf(stderr, "galaxy particle text file not found for this cycle.\n");
     return SUCCESS;
   }
 
@@ -153,9 +169,12 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
     }
 	tvel = thisGrid->AveragedVelocityAtCell(mark ,data.DensNum,data.Vel1Num);
 	
-	np->vel[0] = tvel[0];
-	np->vel[1] = tvel[1];
-	np->vel[2] = tvel[2];
+	float vvv;
+	vvv = max(tvel[0], max(tvel[1], tvel[2]));
+	
+	np->vel[0] = 1000 * vvv; tvel[0] * 1000;
+	np->vel[1] = 1000 * vvv; tvel[1] * 1000;
+	np->vel[2] = 1000 * vvv; tvel[2] * 1000;
 	
 	np->Radius = radius;
 	np->Metallicity = 0.0;
@@ -171,21 +190,112 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
 int ActiveParticleType_GalaxyParticle::EvaluateFeedback
 (grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
+  GalaxyParticleGrid *thisGrid =
+    static_cast<GalaxyParticleGrid *>(thisgrid_orig);
+
+  int ID = thisGrid->ID;
+  printf("Doing feedback on grid %d\n", ID);
+
+  float *density = thisGrid->BaryonField[data.DensNum];
+  float *metals = thisGrid->BaryonField[data.MetalNum];
+  
+  int npart = thisGrid->NumberOfActiveParticles;
+  int GridXSize = thisGrid->GridDimension[0];
+  int GridYSize = thisGrid->GridDimension[1];
+  int GridZSize = thisGrid->GridDimension[2];
+  FLOAT GridLeft[3] = {thisGrid->GridLeftEdge[0],
+    thisGrid->GridLeftEdge[1], thisGrid->GridLeftEdge[2]};
+  FLOAT GridRight[3] = {thisGrid->GridRightEdge[0],
+    thisGrid->GridRightEdge[1], thisGrid->GridRightEdge[2]};
+  int NumberOfGhostZones = thisGrid->GridStartIndex[0];
+  int GridDimension[3] = {thisGrid->GridDimension[0],
+            thisGrid->GridDimension[1],
+            thisGrid->GridDimension[2]};
+  float dx = float(thisGrid->CellWidth[0][0]);
+  float dy = float(thisGrid->CellWidth[1][0]);
+  float dz = float(thisGrid->CellWidth[2][0]);
+
+  FLOAT xpos, ypos, zpos, Xpos, Ypos, Zpos, dist2;
+  float rad, rad2, rad2dx;
+  int n, dim, i, j, k, index, rad_cells, ishift, jshift, kshift;
+  
+  FLOAT xstart = thisGrid->CellLeftEdge[0][0];
+  FLOAT ystart = thisGrid->CellLeftEdge[1][0];
+  FLOAT zstart = thisGrid->CellLeftEdge[2][0];
+
+  FLOAT period[3];
+  for (dim = 0; dim < 3; dim++) {
+    period[dim] = DomainRightEdge[dim] - DomainLeftEdge[dim];
+  }
+
+  for (n=0; n < npart; n++) {
+    ActiveParticleType_GalaxyParticle *particle = 
+      static_cast<ActiveParticleType_GalaxyParticle*>(thisGrid->ActiveParticles[n]);
+        
+    xpos = particle->pos[0];
+    ypos = particle->pos[1];
+    zpos = particle->pos[2];
+    rad = particle->Radius;
+    rad2 = rad * rad;
+    // This is just an idea: that cells with centers > rad, but with a small
+    // part of the cell in the sphere still get feedback (that might be reduced
+    // accordingly).
+    rad2dx = (rad + dx) * (rad + dx);
+    rad_cells = int(rad / dx) + 1;
+    
+    // See if this extended galaxy particle impacts this grid.
+    if ((GridLeft[0] > xpos + rad) || (GridRight[0] < xpos - rad) ||
+        (GridLeft[1] > ypos + rad) || (GridRight[1] < ypos - rad) ||
+        (GridLeft[2] > zpos + rad) || (GridRight[2] < zpos - rad)) {
+      continue;
+    }
+    
+    printf("still doing fb on grid %d, %f %f %f %f %f %f\n",
+        ID, GridLeft[0], GridLeft[1], GridLeft[2], GridRight[0],
+        GridRight[1], GridRight[2]);
+    
+    // We actually need the distance from a cell to the particle, so these
+    // heavy loops are required.
+    for (k = thisGrid->GridStartIndex[2]; k <= thisGrid->GridEndIndex[2]; k++) {
+      for (j = thisGrid->GridStartIndex[1]; j <= thisGrid->GridEndIndex[1]; j++) {
+        index = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0], j, k);
+        for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++, index++) {
+          dist2 = calc_dist2(thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i],
+            thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j],
+            thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k],
+            xpos, ypos, zpos, period);
+          if (dist2 > rad2dx) continue;
+          // If we've gotten this far, at least some part of this cell overlaps
+          // with the sphere of this GP.
+          if (data.MetalNum != -1) {
+            metals[index] = density[index] / 10.;
+          }
+        } // i
+      } // j
+    } // k
+  } // npart
+
   return SUCCESS;
 }
 
-void ActiveParticleType_GalaxyParticle::DescribeSupplementalData(ActiveParticleFormationDataFlags &flags)
+void ActiveParticleType_GalaxyParticle::DescribeSupplementalData
+(ActiveParticleFormationDataFlags &flags)
 {
   flags.DarkMatterDensity = true;
+  flags.Temperature = true;
+  flags.UnitConversions = true;
+  flags.DataFieldNumbers = true;
+  flags.MetalField = true;
 }
 
-int ActiveParticleType_GalaxyParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
+int ActiveParticleType_GalaxyParticle::SetFlaggingField
+(LevelHierarchyEntry *LevelArray[], int level,
 							int TopGridDims[], int GalaxyParticleID)
 {
   /* Generate a list of all galaxy particles in the simulation box */
   int i, nParticles;
   FLOAT *pos = NULL, dx=0, rad;
-  ActiveParticleType **GalaxyParticleList = NULL ;
+  ActiveParticleType **GalaxyParticleList = NULL;
   LevelHierarchyEntry *Temp = NULL;
   
   GalaxyParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GalaxyParticleID);
@@ -200,7 +310,7 @@ int ActiveParticleType_GalaxyParticle::SetFlaggingField(LevelHierarchyEntry *Lev
     pos = GalaxyParticleList[i]->ReturnPosition();
     rad = static_cast<ActiveParticleType_GalaxyParticle*>(GalaxyParticleList[i])->Radius;
     for (Temp = LevelArray[level]; Temp; Temp = Temp->NextGridThisLevel)
-      if (Temp->GridData->DepositRefinementZone(level,pos,rad*dx) == FAIL) {
+      if (Temp->GridData->DepositRefinementZone(level,pos,rad) == FAIL) {
 	ENZO_FAIL("Error in grid->DepositRefinementZone.\n")
 	  }
   }
@@ -212,6 +322,82 @@ int ActiveParticleType_GalaxyParticle::SetFlaggingField(LevelHierarchyEntry *Lev
   delete GalaxyParticleList;
 
   return SUCCESS;
+}
+
+grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+
+int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
+			    HierarchyEntry** Grids, int NumberOfGrids);
+
+int ActiveParticleType_GalaxyParticle::SubtractMassFromGrid(int nParticles,
+    ActiveParticleType** ParticleList, LevelHierarchyEntry *LevelArray[],
+    FLOAT dx, int ThisLevel)
+{
+
+  // This function is a work in progress.
+  return SUCCESS;
+
+  /* Skip subtraction if we're not on the maximum refinement level. 
+     This should only ever happen right after creation and then
+     only in pathological cases where sink creation is happening at 
+     the edges of two regions at the maximum refinement level.
+     At any rate, this means that the subtraction may be delayed by a cycle
+     at most.
+   */
+
+//   if (ThisLevel < MaximumRefinementLevel)
+//     return SUCCESS;
+// 
+//   /* For each particle, loop over all of the grids and subtract
+//      if the grid overlaps with the accretion zone. */
+//   
+//   int i, NumberOfGrids;
+//   int *FeedbackRadius = NULL;
+//   HierarchyEntry **Grids = NULL;
+//   grid *particleGrid = NULL;
+// 
+//   bool ParticleIsOnThisProc, ParticleIsOnThisGrid;
+//   
+//   float SubtractedMass, SubtractedMomentum[3] = {};
+//   
+//   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
+//   
+//   // FeedbackRadius is different for all galaxy particles, and we need to
+//   // convert it to cells.
+//   FeedbackRadius = new int[nParticles];
+//   for (i = 0; i < nParticles; i++) {
+//     FeedbackRadius[i] = int(static_cast<ActiveParticleType_GalaxyParticle*>(ParticleList[i])->Radius / dx);
+//   }
+//   grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
+//     FeedbackRadius, dx, Grids, NumberOfGrids);
+// 
+//   for (i = 0; i < nParticles; i++) {
+//     grid* FeedbackZone = FeedbackZones[i];
+//     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
+//     
+//         
+//       if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],FeedbackRadius[i]*dx,&AccretionRate) == FAIL)
+// 	return FAIL;
+//   
+//       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
+//       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
+//     }
+//   }
+//   
+//   DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
+// 
+//   for (i = 0; i < nParticles; i++) {
+//     delete FeedbackZones[i];    
+//   }
+// 
+//   delete [] FeedbackZones;
+// 
+//   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
+//     return FAIL;
+// 
+//   delete [] Grids;
+//   return SUCCESS;
 }
 
 namespace {

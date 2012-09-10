@@ -239,8 +239,8 @@ void ActiveParticleType_AccretingParticle::DescribeSupplementalData(ActivePartic
 }
 
 
-grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles, int FeedbackRadius, 
-			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
 
 int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
 			    HierarchyEntry** Grids, int NumberOfGrids);
@@ -262,6 +262,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
      if the grid overlaps with the accretion zone                   */
   
   int i, NumberOfGrids;
+  int *FeedbackRadius = NULL;
   HierarchyEntry **Grids = NULL;
   grid *sinkGrid = NULL;
   
@@ -271,7 +272,18 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles, AccretionRadius, dx, Grids, NumberOfGrids);
+  // Some active particles have different feedback radii for each particle,
+  // so we need to set that up here, despite the fact that these accreting
+  // particles don't (right now).
+  FeedbackRadius = new int[nParticles];
+  for (i = 0; i < nParticles; i++) {
+    FeedbackRadius[i] = AccretionRadius;
+  }
+  
+  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
+    FeedbackRadius, dx, Grids, NumberOfGrids);
+
+  delete FeedbackRadius;
 
   for (i = 0; i < nParticles; i++) {
     grid* FeedbackZone = FeedbackZones[i];
