@@ -39,11 +39,19 @@ int check_overlap(FLOAT a[MAX_DIMENSION], FLOAT b[MAX_DIMENSION],
   // a (left), b (right) - corners of box 1
   // s, t - corners of box 2
   FLOAT a_temp[MAX_DIMENSION], b_temp[MAX_DIMENSION];
-  int shift0, shift1, shift2, dim, overlap, max1, max2;
-  // Test the simplest case.
+  FLOAT max_shift[MAX_DIMENSION];
+  int max_sum = -1, this_sum;
+  int shift0, shift1, shift2, dim, overlap, any_overlap, max1, max2;
+  any_overlap = 0;
+  // Test the simplest case, where they already overlap.
   overlap = one_overlap(a, b, s, t, dims);
   if (overlap) return SUCCESS;
   // If we're here, we need to test all cases.
+  // Keep checking until max_sum = dim or we've exhausted all cases.
+  // This is to ensure that the box is shifted in all the dimensions it needs
+  // to for reproducibility, meaning if we shift box 1 by an amount, we would
+  // (swapping box 1 and box 2 in the algorithm) shift box 2 by the exact
+  // opposite amount.
   // Shift box 1 around, keeping grid 2 static.
   overlap = SUCCESS;
   // Decide how many dimensions we move in.
@@ -57,14 +65,33 @@ int check_overlap(FLOAT a[MAX_DIMENSION], FLOAT b[MAX_DIMENSION],
         if (max2 > 0) shift[2] = shift2;
         // We can skip [0,0,0]...
         if ((shift0 == 0) && (shift1 == 0) && (shift2 == 0)) continue;
+        this_sum = 0;
         for (dim = 0; dim < dims; dim++) {
           a_temp[dim] = a[dim] + shift[dim] * period[dim];
           b_temp[dim] = b[dim] + shift[dim] * period[dim];
+          this_sum += abs(shift[dim]);
         }
         overlap = one_overlap(a_temp, b_temp, s, t, dims);
-        if (overlap) return SUCCESS;
-      }
+        if (overlap) {
+          if (this_sum == dim) return SUCCESS;
+          any_overlap = 1;
+          max_sum = max(max_sum, this_sum);
+          if (max_sum == this_sum) {
+            for (dim = 0; dim < dims; dim++) {
+              max_shift[dim] = shift[dim];
+            }
+          }
+        } // if overlap
+      } // shift2
+    } // shift1
+  } // shift0
+  // If we've had any overlap at all, copy max_shift back to shift and return
+  // positively.
+  if (any_overlap) {
+    for (dim = 0; dim < dims; dim++) {
+      shift[dim] = max_shift[dim];
     }
+    return SUCCESS;
   }
   // If we get here, they don't overlap.
   return FAIL;

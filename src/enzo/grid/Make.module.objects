@@ -45,6 +45,7 @@ ENZO_OBJS +=\
 	Grid_AppendActiveParticles.o \
 	Grid_AppendActiveParticlesToList.o \
 	Grid_AppendNewActiveParticles.o \
+	Grid_ApplyGalaxyParticleFeedback.o \
 	Grid_ChangeParticleTypeBeforeSN.o \
 	Grid_CollectActiveParticles.o \
 	Grid_CollectParticles.o \

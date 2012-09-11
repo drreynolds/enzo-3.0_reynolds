@@ -66,13 +66,15 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
   FLOAT GridLeft[MAX_DIMENSION]; FLOAT GridRight[MAX_DIMENSION];
   FLOAT ActiveLeft[MAX_DIMENSION]; FLOAT ActiveRight[MAX_DIMENSION];
   FLOAT period[MAX_DIMENSION];
-  int *shift;
+  int *shift, size = 1;
 
   shift = new int[MAX_DIMENSION];
 
   int dim;
 
   for (dim = 0; dim < GridRank; dim++) {
+    // delete me below
+    size = GridDimension[dim];
     ActiveLeft[dim]  = GridLeftEdge[dim]  + EdgeOffset[dim];
     ActiveRight[dim] = GridRightEdge[dim] + EdgeOffset[dim];
     GridLeft[dim]  = CellLeftEdge[dim][0] + EdgeOffset[dim];
@@ -80,6 +82,7 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       CellWidth[dim][GridDimension[dim]-1]    +
       EdgeOffset[dim];
     period[dim] = DomainRightEdge[dim] - DomainLeftEdge[dim];
+    shift[dim] = 0;
   }
  
   /* Check to see if there's overlap. */
@@ -125,7 +128,7 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
  
   for (dim = 0; dim < GridRank; dim++){
     if (GridDimension[dim] > 1) {
- 
+    shift_temp = period[dim] * FLOAT(shift[dim]);
       /* Compute left and right positions in problem space.
 	 note: include buffer zones of this grid but not the other grid. */
  
@@ -150,7 +153,8 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       /* Copy dimensions into temporary space */
  
       OtherDim[dim] = OtherGrid->GridDimension[dim];
-    }}
+    }
+  }
 
   /* Calculate dimensions */
   
@@ -201,14 +205,14 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
   int velocityTypes[3]={Velocity1, Velocity2, Velocity3};
   int Zero[3] = {0,0,0};
 
-  for (int field = 0; field < NumberOfBaryonFields; field++)
+  for (int field = 0; field < NumberOfBaryonFields; field++) {
     FORTRAN_NAME(copy3drel)(OtherGrid->BaryonField[field], BaryonField[field],
 			    Dim, Dim+1, Dim+2,
 			    OtherDim, OtherDim+1, OtherDim+2,
 			    GridDimension, GridDimension+1, GridDimension+2,
 			    StartOther, StartOther+1, StartOther+2,
 			    Start, Start+1, Start+2);
-  
+   }
   /* Clean up if we have transfered data. */
   
   if (MyProcessorNumber != OtherGrid->ProcessorNumber)

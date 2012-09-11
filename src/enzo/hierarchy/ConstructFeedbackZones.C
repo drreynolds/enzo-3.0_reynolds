@@ -127,7 +127,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) 
     for (j = 0; j < NumberOfGrids; j++) 
-      if (FeedbackZones[i]->CopyZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     
   /* Send data */
@@ -136,7 +136,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) {
     for (j = 0; j < NumberOfGrids; j++) {
-      if (FeedbackZones[i]->CopyZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     }
   }

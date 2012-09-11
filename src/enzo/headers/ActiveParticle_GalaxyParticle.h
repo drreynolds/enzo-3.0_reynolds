@@ -55,11 +55,14 @@ public:
 				int ThisLevel, int TotalStarParticleCountPrevious[],
 				int GalaxyParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
-  // below is a work in progress.
+  // Galaxy Particle helper routines.
   static int SubtractMassFromGrid(int nParticles,
     ActiveParticleType** ParticleList, LevelHierarchyEntry *LevelArray[],
     FLOAT dx, int ThisLevel);
   static int InitializeParticleType(void);
+  static int GalaxyParticleFeedback(int nParticles, ActiveParticleType** ParticleList,
+		     FLOAT dx, 
+		     LevelHierarchyEntry *LevelArray[], int ThisLevel);
   
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 
@@ -99,6 +102,39 @@ int ActiveParticleType_GalaxyParticle::AfterEvolveLevel(HierarchyEntry *Grids[],
 							   int ThisLevel, int TotalStarParticleCountPrevious[],
 							   int GalaxyParticleID)
 {
+
+  /* Galaxy particles live on the maximum refinement level.
+     If we are on a lower level, this does not concern us */
+
+  if (ThisLevel == MaximumRefinementLevel)
+    {
+
+      /* Generate a list of all galaxy particles in the simulation box */
+      int i,nParticles;
+      ActiveParticleType** ParticleList = NULL;
+
+      ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GalaxyParticleID);
+
+      /* Return if there are no accreting particles */
+      
+      if (nParticles == 0)
+	return SUCCESS;
+
+      /* Calculate CellWidth on maximum refinement level */
+
+      // This assumes a cubic box and may not work for simulations with
+      // MinimumMassForRefinementLevelExponent
+      FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
+	(MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+
+     /* Apply feedback */
+      if (GalaxyParticleFeedback(nParticles, ParticleList,
+        dx, LevelArray, ThisLevel) == FAIL)
+	ENZO_FAIL("Galaxy Particle Feedback failed. \n");
+
+    delete [] ParticleList;
+
+    }
 
   return SUCCESS;
 
