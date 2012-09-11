@@ -66,15 +66,13 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
   FLOAT GridLeft[MAX_DIMENSION]; FLOAT GridRight[MAX_DIMENSION];
   FLOAT ActiveLeft[MAX_DIMENSION]; FLOAT ActiveRight[MAX_DIMENSION];
   FLOAT period[MAX_DIMENSION];
-  int *shift, size = 1;
+  int *shift;
 
   shift = new int[MAX_DIMENSION];
 
   int dim;
 
   for (dim = 0; dim < GridRank; dim++) {
-    // delete me below
-    size = GridDimension[dim];
     ActiveLeft[dim]  = GridLeftEdge[dim]  + EdgeOffset[dim];
     ActiveRight[dim] = GridRightEdge[dim] + EdgeOffset[dim];
     GridLeft[dim]  = CellLeftEdge[dim][0] + EdgeOffset[dim];
