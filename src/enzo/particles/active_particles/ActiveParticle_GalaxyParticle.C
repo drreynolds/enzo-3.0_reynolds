@@ -402,7 +402,7 @@ int ActiveParticleType_GalaxyParticle::SubtractMassFromGrid(int nParticles,
 
 int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
     ActiveParticleType** ParticleList, FLOAT dx, 
-	LevelHierarchyEntry *LevelArray[], int ThisLevel)
+	LevelHierarchyEntry *LevelArray[], int ThisLevel, FLOAT period[MAX_DIMENSION])
 {
   
   /* Skip if we're not on the maximum refinement level. 
@@ -450,6 +450,12 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
   }
 
   delete [] FeedbackZones;
+
+  // Fix particles that have moved "outside" the box right before we re-assign
+  // them to grids.
+  for (i = 0; i < nParticles; i++) {
+    ParticleList[i]->SetPositionPeriod(period);
+  }
 
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;

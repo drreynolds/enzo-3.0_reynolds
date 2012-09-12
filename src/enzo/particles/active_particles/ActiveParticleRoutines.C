@@ -217,6 +217,14 @@ void ActiveParticleType::SetVelocity(float NewVelocity[])
   return;
 }
 
+void ActiveParticleType::SetPositionPeriod(FLOAT period[])
+{
+  int i;
+  for (i = 0; i<3; i++)
+    pos[i] = fmod(pos[i], period[i]);
+  return;
+}
+
 void ActiveParticleType::Merge(ActiveParticleType *a)
 {
   int dim;

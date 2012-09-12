@@ -61,8 +61,8 @@ public:
     FLOAT dx, int ThisLevel);
   static int InitializeParticleType(void);
   static int GalaxyParticleFeedback(int nParticles, ActiveParticleType** ParticleList,
-		     FLOAT dx, 
-		     LevelHierarchyEntry *LevelArray[], int ThisLevel);
+		     FLOAT dx, LevelHierarchyEntry *LevelArray[], int ThisLevel,
+		     FLOAT period[3]);
   
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 
@@ -126,10 +126,17 @@ int ActiveParticleType_GalaxyParticle::AfterEvolveLevel(HierarchyEntry *Grids[],
       // MinimumMassForRefinementLevelExponent
       FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
 	(MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+	  // Find the period of the box.
+	  // I'm going to be cheap here because galaxy particles are only ever
+	  // meant to be run in 3D.
+	  FLOAT period[3];
+	  for (int dim = 0; dim < 3; dim++) {
+	    period[dim] = DomainRightEdge[0] - DomainLeftEdge[0];
+	  }
 
      /* Apply feedback */
       if (GalaxyParticleFeedback(nParticles, ParticleList,
-        dx, LevelArray, ThisLevel) == FAIL)
+        dx, LevelArray, ThisLevel, period) == FAIL)
 	ENZO_FAIL("Galaxy Particle Feedback failed. \n");
 
     delete [] ParticleList;
