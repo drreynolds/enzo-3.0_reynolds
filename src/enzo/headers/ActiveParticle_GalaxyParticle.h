@@ -67,18 +67,20 @@ public:
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 
   // Need this to make active particle ID work correctly.
-  int GetEnabledParticleID(int myid = -1) {				
-    static int ParticleID = -1;						
-    if (myid >= 0) {							
-      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");	
-      ParticleID = myid;						
-    }									
-    return ParticleID;							
+  int GetEnabledParticleID(int myid = -1) {
+    static int ParticleID = -1;
+    if (myid >= 0) {
+      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");
+      ParticleID = myid;
+    }
+    return ParticleID;
   };
   
   // Galaxy Particle specific stuff.
   float Radius;
-  int initialized; // Has mass been subtracted from the grid?
+  int initialized; // Unused right now...
+  
+  
 };
 
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
