@@ -196,7 +196,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     buffer_size = header_size + NumberOfNewParticles*element_size;
     npart = 0;
     ap_info->UnpackBuffer(buffer, npart,
-			   NewParticles, NumberOfNewParticles, element_size);
+			   NewParticles, NumberOfNewParticles);
 
     for (i = 0; i < NumberOfNewParticles; i++)
       NewParticles[i]->AssignCurrentGrid(ToGrid);

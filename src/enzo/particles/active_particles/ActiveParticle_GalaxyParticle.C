@@ -172,9 +172,9 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
 	float vvv;
 	vvv = max(tvel[0], max(tvel[1], tvel[2]));
 	
-	np->vel[0] = 1000 * vvv; tvel[0] * 1000;
-	np->vel[1] = 1000 * vvv; tvel[1] * 1000;
-	np->vel[2] = 1000 * vvv; tvel[2] * 1000;
+	np->vel[0] = 100000 * vvv; tvel[0] * 1000;
+	np->vel[1] = 100000 * vvv; tvel[1] * 1000;
+	np->vel[2] = 100000 * vvv; tvel[2] * 1000;
 	
 	np->Radius = radius;
 	np->Metallicity = 0.0;

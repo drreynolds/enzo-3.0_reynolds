@@ -418,12 +418,16 @@ namespace ActiveParticleHelpers {
 
   template <class APClass> void Unpack(
           char *buffer_, int offset,
-          ActiveParticleType** OutList_, int OutCount,
-          int size) {
+          ActiveParticleType** OutList_, int OutCount) {
 
       APClass **OutList = reinterpret_cast<APClass**>(OutList_);
       AttributeVector &handlers = APClass::AttributeHandlers;
       APClass *Out;
+      int size = 0;
+      for(AttributeVector::iterator it = handlers.begin();
+          it != handlers.end(); ++it) {
+          size += (*it)->element_size;
+      }
       int i;
       char *buffer = buffer_;
       for (i = 0; i < OutCount; i++) {
@@ -478,7 +482,7 @@ public:
    void (*allocate_buffer)(int Count, char **buffer),
    int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
-                       int OutCount, int size),
+                       int OutCount),
    int (*element_size)(void),
    void (*write_particles)(ActiveParticleType **particles, 
                          int type_id, int total_particles,
@@ -531,7 +535,7 @@ public:
   void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
   void (*AllocateBuffer)(int Count, char **buffer);
   void (*UnpackBuffer)(char *buffer, int offset, ActiveParticleType **Outlist,
-                       int OutCount, int size);
+                       int OutCount);
   int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
   void (*WriteParticles)(ActiveParticleType **InList, 
