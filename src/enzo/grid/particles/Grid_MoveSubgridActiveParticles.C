@@ -111,6 +111,7 @@ int grid::MoveSubgridActiveParticles(int NumberOfSubgrids, grid* ToGrids[],
 	np->IncreaseLevel();
 	np->AdjustMassByFactor(MassIncrease);
 	np->GridID = ToGrids[subgrid[i]]->ID;
+	int Actual;
 	ToGrids[subgrid[i]]->AddActiveParticles(&np, 1);
 
 	this->NumberOfActiveParticles--;

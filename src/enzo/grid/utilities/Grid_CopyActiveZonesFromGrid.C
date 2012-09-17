@@ -55,8 +55,9 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
  
   /* Return if this doesn't involve us. */
   if (ProcessorNumber != MyProcessorNumber &&
-      OtherGrid->ProcessorNumber != MyProcessorNumber)
+      OtherGrid->ProcessorNumber != MyProcessorNumber) {
     return SUCCESS;
+    }
  
   if (NumberOfBaryonFields == 0)
     return SUCCESS;
@@ -74,7 +75,6 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
 
   for (dim = 0; dim < GridRank; dim++) {
     period[dim] = DomainRightEdge[dim] - DomainLeftEdge[dim];
-    // This setting controls where the loop in check_overlap starts.
     shift[dim] = -1;
   }
 
@@ -173,10 +173,8 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
         for (dim = 0; dim < GridRank; dim++)
           CommunicationReceiveArgument[dim][CommunicationReceiveIndex] = 
         EdgeOffset[dim];
-        //CommunicationReceiveIndex++;
       }
     #endif /* USE_MPI */
-    
       /* Copy data from other processor if needed (modify OtherDim and
          StartOther to reflect the fact that we are only copying part of
          the grid. */
@@ -201,14 +199,9 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
     
       /* Return if this is not our concern. */
      
-      if (ProcessorNumber != MyProcessorNumber)
+      if (ProcessorNumber != MyProcessorNumber) {
         return SUCCESS;
-    
-      /* Copy zones */
-    
-      int addDim[3] = {1, OtherDim[0], OtherDim[0]*OtherDim[1]};
-      int velocityTypes[3]={Velocity1, Velocity2, Velocity3};
-      int Zero[3] = {0,0,0};
+        }
     
       for (int field = 0; field < NumberOfBaryonFields; field++) {
         FORTRAN_NAME(copy3drel)(OtherGrid->BaryonField[field], BaryonField[field],
@@ -221,8 +214,9 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       /* Clean up if we have transfered data. */
 
   } // end while(true)
-  if (MyProcessorNumber != OtherGrid->ProcessorNumber)
+  if (MyProcessorNumber != OtherGrid->ProcessorNumber) {
     OtherGrid->DeleteAllFields();
+    }
 
   delete [] shift;
 

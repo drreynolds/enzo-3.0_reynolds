@@ -36,11 +36,11 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
 
   IsHere = false;
   TPpos = ThisParticle->ReturnPosition();
-  if (TPpos[0] > GridLeftEdge[0] &&
+  if (TPpos[0] >= GridLeftEdge[0] &&
       TPpos[0] < GridRightEdge[0] &&
-      TPpos[1] > GridLeftEdge[1] &&
+      TPpos[1] >= GridLeftEdge[1] &&
       TPpos[1] < GridRightEdge[1] &&
-      TPpos[2] > GridLeftEdge[2] &&
+      TPpos[2] >= GridLeftEdge[2] &&
       TPpos[2] < GridRightEdge[2]) {
     IsHere = true;
   }

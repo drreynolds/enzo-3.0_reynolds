@@ -408,27 +408,27 @@ namespace ActiveParticleHelpers {
               it != handlers.end(); ++it) {
               size += (*it)->GetAttribute(buffer, In);
           }
-          /*
-          std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
+          /* 
+          std::cout << "APF[" << MyProcessorNumber << "] " << i << " " << size << " ";
           PrintActiveParticle<APClass>(In);
-          */
+           */
       }
       return size;
   }
 
   template <class APClass> void Unpack(
           char *buffer_, int offset,
-          ActiveParticleType** OutList_, int OutCount) {
+          ActiveParticleType** OutList_, int OutCount,
+          int size) {
 
       APClass **OutList = reinterpret_cast<APClass**>(OutList_);
       AttributeVector &handlers = APClass::AttributeHandlers;
       APClass *Out;
       int i;
       char *buffer = buffer_;
-
       for (i = 0; i < OutCount; i++) {
           Out = new APClass();
-          OutList[i + offset] = Out;
+          OutList[i * size + offset] = Out;
           for(AttributeVector::iterator it = handlers.begin();
               it != handlers.end(); ++it) {
               (*it)->SetAttribute(&buffer, Out);
@@ -436,7 +436,7 @@ namespace ActiveParticleHelpers {
           /*
           std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
           PrintActiveParticle<APClass>(Out);
-          */
+           */
       }
 
   }
@@ -478,7 +478,7 @@ public:
    void (*allocate_buffer)(int Count, char **buffer),
    int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
-                       int OutCount),
+                       int OutCount, int size),
    int (*element_size)(void),
    void (*write_particles)(ActiveParticleType **particles, 
                          int type_id, int total_particles,
@@ -531,7 +531,7 @@ public:
   void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
   void (*AllocateBuffer)(int Count, char **buffer);
   void (*UnpackBuffer)(char *buffer, int offset, ActiveParticleType **Outlist,
-                       int OutCount);
+                       int OutCount, int size);
   int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
   void (*WriteParticles)(ActiveParticleType **InList, 
