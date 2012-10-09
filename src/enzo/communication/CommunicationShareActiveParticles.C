@@ -78,7 +78,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       mpi_recv_buffer_size = new int[NumberOfProcessors];
 
       // First determine the buffer size, then we can fill it.
-      header_size = ap_info->ReturnHeaderSize(); sizeof(int);
+      header_size = ap_info->ReturnHeaderSize();
       element_size = ap_info->ReturnElementSize();
       size = 0;
       for (i = 0; i < TotalNumberToMove; i++)

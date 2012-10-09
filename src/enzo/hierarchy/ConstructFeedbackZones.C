@@ -115,7 +115,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
   delete [] ParticlePosition; 
 
   // Copy zones from this grid (which must overlap the position of the AP).
-  float ZeroVector[] = {0,0,0};
+  FLOAT ZeroVector[] = {0,0,0};
 
   /* Post receives */
 
