@@ -87,7 +87,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
       CellSize = APGrids[i]->GetCellWidth(dim,0);
       GridGZLeftEdge = APGrids[i]->GetCellLeftEdge(dim,0);
       
-      LeftCellOffset[dim] = modf((ParticlePosition[i][dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
+      LeftCellOffset[dim] = MODF((ParticlePosition[i][dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
 
       FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius[i]);
       FeedbackZoneRightEdge[dim] = GridGZLeftEdge + CellSize*(ncells[dim]+FeedbackRadius[i]+1);
@@ -116,6 +116,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   // Copy zones from this grid (which must overlap the position of the AP).
   FLOAT ZeroVector[] = {0,0,0};
+
 
   /* Post receives */
 

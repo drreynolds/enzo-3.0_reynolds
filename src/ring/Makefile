@@ -50,14 +50,14 @@ MODULES  =
 # configuration settings.
 #-----------------------------------------------------------------------
 
-include $(ENZO_DIR)/Make.config.settings
+include $(ENZO_DIR)/build/config/Make.config.settings
 
 #-----------------------------------------------------------------------
 # Make.config.machine is used for setting which Make.mach.* file to use
 #-----------------------------------------------------------------------
 
-MAKE_CONFIG_MACHINE  = $(ENZO_DIR)/Make.config.machine
-include $(ENZO_DIR)/Make.config.machine
+MAKE_CONFIG_MACHINE  = $(ENZO_DIR)/build/config/Make.config.machine
+include $(MAKE_CONFIG_MACHINE)
 
 #-----------------------------------------------------------------------
 # Make.config.override is used for overriding the default settings in
@@ -66,7 +66,7 @@ include $(ENZO_DIR)/Make.config.machine
 # like lcatest.
 #-----------------------------------------------------------------------
 
-MAKE_CONFIG_OVERRIDE = $(ENZO_DIR)/Make.config.override
+MAKE_CONFIG_OVERRIDE = $(ENZO_DIR)/build/config/Make.config.override
 include $(MAKE_CONFIG_OVERRIDE)
 
 # THIS WAY OF DOING THE ABOVE DOES NOT WORK:
@@ -86,13 +86,13 @@ CONFIG_LCAPERF   = no
 # required by this makefile.  E.g. $(CXX), $(CXXFLAGS), etc.
 #-----------------------------------------------------------------------
 
-include $(ENZO_DIR)/Make.config.assemble
+include $(ENZO_DIR)/build/config/Make.config.assemble
 
 #-----------------------------------------------------------------------
 # Make.mach.<machine-name> defines all machine-dependent settings.
 #-----------------------------------------------------------------------
 
--include $(ENZO_DIR)/Make.mach.$(CONFIG_MACHINE)
+-include $(ENZO_DIR)/build/machines/Make.mach.$(CONFIG_MACHINE)
 -include $(HOME)/.enzo/Make.mach.$(CONFIG_MACHINE)
 
 #=======================================================================
@@ -248,4 +248,4 @@ clean:
 # Include configuration targets
 #-----------------------------------------------------------------------
 
-include $(ENZO_DIR)/Make.config.targets
+include $(ENZO_DIR)/build/config/Make.config.targets

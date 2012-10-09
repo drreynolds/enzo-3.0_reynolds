@@ -40,7 +40,7 @@ int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
 {
   int i,j;
 
-  float ZeroVector[] = {0, 0, 0};
+  FLOAT ZeroVector[] = {0, 0, 0};
 
   /* Post receives */
   CommunicationReceiveIndex = 0;
