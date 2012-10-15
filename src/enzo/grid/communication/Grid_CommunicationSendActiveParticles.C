@@ -205,7 +205,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     if (MyProcessorNumber == ProcessorNumber) {
       // send the actual particle data.
       CommunicationBufferedSend(buffer, Count, MPI_PACKED, 
-				Dest, MPI_SENDAP_TAG, EnzoTopComm, 
+				Dest, MPI_SENDAP_TAG + 1 + type, EnzoTopComm, 
 				BUFFER_IN_PLACE);
 	}
 
@@ -214,7 +214,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
       if (CommunicationDirection == COMMUNICATION_POST_RECEIVE) {
 	
 	MPI_Irecv(buffer, Count, MPI_PACKED, Source,
-		  MPI_SENDAP_TAG, EnzoTopComm,
+		  MPI_SENDAP_TAG + 1 + type, EnzoTopComm,
 		  CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
 
 	CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
@@ -229,7 +229,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
       if (CommunicationDirection == COMMUNICATION_SEND_RECEIVE)
 	MPI_Recv(buffer, Count, MPI_PACKED, Source,
-		 MPI_SENDAP_TAG, EnzoTopComm, &status);
+		 MPI_SENDAP_TAG + 1 + type, EnzoTopComm, &status);
 
     } // ENDIF MyProcessorNumber == ToProcessor
 

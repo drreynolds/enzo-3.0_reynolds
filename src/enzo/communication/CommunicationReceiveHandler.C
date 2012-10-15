@@ -325,7 +325,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
     if (CommunicationReceiveCallType[index] == 20) {
       for (index2 = 0; index2 < TotalReceives; index2++) {
         if (CommunicationReceiveCallType[index2] == 20) {
-          CommunicationReceiveGridOne[index] = NULL;
+          CommunicationReceiveGridOne[index2] = NULL;
           ReceivesCompletedToDate++;
         }
       }
