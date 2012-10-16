@@ -217,7 +217,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	count = 0;
 	for (proc = 0; proc < NumberOfProcessors; proc++) {
 	  if (nCount[proc] > 0) {
-	    ap_info->UnpackBuffer(recv_buffer+displace[proc], 0, //count,
+	    ap_info->UnpackBuffer(recv_buffer+displace[proc], count,
                               GlobalList, nCount[proc]);
         count += nCount[proc];
 	  }

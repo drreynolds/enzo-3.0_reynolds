@@ -78,15 +78,14 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       mpi_recv_buffer_size = new int[NumberOfProcessors];
 
       // First determine the buffer size, then we can fill it.
-      header_size = ap_info->ReturnHeaderSize();
+      header_size = sizeof(int);
       element_size = ap_info->ReturnElementSize();
       size = 0;
       for (i = 0; i < TotalNumberToMove; i++)
 	if (SendList[i]->ReturnType() == type) size++;
-      total_buffer_size = NumberOfProcessors*size*element_size;
+      total_buffer_size = NumberOfProcessors*header_size + size*element_size;
       // SS: Apprently, Alltoallv doesn't like sending emzpy arrays,
       // even if no elements are used by other processors.
-      if (total_buffer_size == 0) total_buffer_size = NumberOfProcessors*header_size;
       mpi_buffer = new char[total_buffer_size];
       // Pack the buffer, ordered by destination processor
       position = 0;
@@ -94,7 +93,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       int offset = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
 	    mpi_buffer_size[proc] = ap_info->FillBuffer(SendList, size, mpi_buffer + offset);
-        offset += size*element_size;
+        offset += size*element_size + header_size;
       }
       /* Get counts from each processor to allocate buffers. */
 
@@ -161,16 +160,16 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       // Determine how many particles we have received from the buffer
       // size (NumberOfReceives is in bytes)
-      NumberOfNewParticles = (NumberOfReceives) / element_size; 
+      NumberOfNewParticles = (NumberOfReceives - NumberOfProcessors*header_size) / element_size;
       SharedList = new ActiveParticleType*[NumberOfNewParticles];
 
       // Now convert the MPI buffer
       count = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
-	NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc]) / element_size;
+        NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc] - header_size) / element_size;
 	if (NumberOfNewParticlesThisProcessor > 0) {
 	  ap_info->UnpackBuffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
-                 count, SharedList, NumberOfNewParticlesThisProcessor);
+                 count, SharedList, MPI_RecvListCount[proc]);
       }
       count += MPI_RecvListCount[proc];
       }
