@@ -512,6 +512,7 @@ public:
 
   static int count(){return get_active_particle_types().size();}
   int GetEnabledParticleID(){return this->MyEnabledParticleID;}
+  std::string GetEnabledParticleName(){return this->particle_name;}
 
   int Enable(){
     /* 0-indexed */

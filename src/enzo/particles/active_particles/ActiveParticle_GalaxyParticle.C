@@ -336,7 +336,6 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
   int i, NumberOfGrids;
   int *FeedbackRadius = NULL;
   HierarchyEntry **Grids = NULL;
-  grid *sinkGrid = NULL;
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
