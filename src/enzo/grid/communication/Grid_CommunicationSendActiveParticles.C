@@ -266,9 +266,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     // type_count should have been received by now...
     NewParticles = new ActiveParticleType*[type_count[type]];
     npart = 0;
-    ap_info->UnpackBuffer(buffer, npart,
-			   NewParticles, type_count[type]);
-
+    ap_info->UnpackBuffer(buffer, type_count[type],
+			   NewParticles, npart);
     for (i = 0; i < type_count[type]; i++)
       NewParticles[i]->AssignCurrentGrid(ToGrid);
     ToGrid->AddActiveParticles(NewParticles, type_count[type]);

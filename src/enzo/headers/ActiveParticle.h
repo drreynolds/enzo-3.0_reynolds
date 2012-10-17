@@ -423,16 +423,12 @@ namespace ActiveParticleHelpers {
       APClass **OutList = reinterpret_cast<APClass**>(OutList_);
       AttributeVector &handlers = APClass::AttributeHandlers;
       APClass *Out;
-      int size = 0;
-      for(AttributeVector::iterator it = handlers.begin();
-          it != handlers.end(); ++it) {
-          size += (*it)->element_size;
-      }
       int i;
       char *buffer = buffer_;
+
       for (i = 0; i < OutCount; i++) {
           Out = new APClass();
-          OutList[i * size + offset] = Out;
+          OutList[i + offset] = Out;
           for(AttributeVector::iterator it = handlers.begin();
               it != handlers.end(); ++it) {
               (*it)->SetAttribute(&buffer, Out);
@@ -440,7 +436,7 @@ namespace ActiveParticleHelpers {
           /*
           std::cout << "APU[" << MyProcessorNumber << "] " << i << " ";
           PrintActiveParticle<APClass>(Out);
-           */
+          */
       }
 
   }
