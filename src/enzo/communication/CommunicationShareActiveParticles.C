@@ -43,6 +43,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
   int TotalNumberToMove = 0;
   for (proc = 0; proc < NumberOfProcessors; proc++)
     TotalNumberToMove += NumberToMove[proc];
+  if (TotalNumberToMove == 0) return SUCCESS;
   //std::sort(SendList, SendList+TotalNumberToMove, cmp_ap_proc());
 
   SharedList = NULL;

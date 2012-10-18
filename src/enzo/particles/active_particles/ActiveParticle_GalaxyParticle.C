@@ -93,7 +93,7 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
     return SUCCESS;
   }
 
-  float x, y, z, dens, radius, dist, temp;
+  float x, y, z, dens, radius, dist, temp, vx, vy, vz;
   float xx, yy, zz;
   int i, j, k, index, mark;
 
@@ -109,11 +109,11 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
   float *velx = thisGrid->BaryonField[data.Vel1Num];
   float *vely = thisGrid->BaryonField[data.Vel2Num];
   float *velz = thisGrid->BaryonField[data.Vel3Num];
-  float *tvel;
+  //float *tvel;
 
   while (fgets(line, MAX_LINE_LENGTH, fptr) != NULL) {
-    sscanf(line, "%"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM,
-      &x, &y, &z, &dens, &radius);
+    sscanf(line, "%"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM" %"FSYM,
+      &x, &y, &z, &vx, &vy, &vz, &dens, &radius);
 
     // If this particle is outside this grid,
     // we don't do anything.
@@ -151,37 +151,34 @@ int ActiveParticleType_GalaxyParticle::EvaluateFormation
 	// future we will either want this calculated in concert with the mass
 	// above, or have it be supplied by the halo finder.
     // Find the closest cell to x, y, z.
-    dist = huge_number;
-    for (k = thisGrid->GridStartIndex[2]; k <= thisGrid->GridEndIndex[2]; k++) {
-      for (j = thisGrid->GridStartIndex[1]; j <= thisGrid->GridEndIndex[1]; j++) {
-        for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++) {
-          index = GRIDINDEX_NOGHOST(i, j, k);
-   	      xx = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
-          yy = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
-          zz = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
-          temp = (xx - x) * (xx - x) + (yy - y) * (yy - y) + (zz - z) * (zz - z);
-          if (temp < dist) {
-            dist = temp;
-             mark = index;
-          }
-        }
-      }
-    }
-	tvel = thisGrid->AveragedVelocityAtCell(mark ,data.DensNum,data.Vel1Num);
+//     dist = huge_number;
+//     for (k = thisGrid->GridStartIndex[2]; k <= thisGrid->GridEndIndex[2]; k++) {
+//       for (j = thisGrid->GridStartIndex[1]; j <= thisGrid->GridEndIndex[1]; j++) {
+//         for (i = thisGrid->GridStartIndex[0]; i <= thisGrid->GridEndIndex[0]; i++) {
+//           index = GRIDINDEX_NOGHOST(i, j, k);
+//    	      xx = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
+//           yy = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
+//           zz = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
+//           temp = (xx - x) * (xx - x) + (yy - y) * (yy - y) + (zz - z) * (zz - z);
+//           if (temp < dist) {
+//             dist = temp;
+//              mark = index;
+//           }
+//         }
+//       }
+//     }
+// 	tvel = thisGrid->AveragedVelocityAtCell(mark ,data.DensNum,data.Vel1Num);
 	
-	float vvv;
-	vvv = max(tvel[0], max(tvel[1], tvel[2]));
-	
-	np->vel[0] = 100000 * vvv; tvel[0] * 1000;
-	np->vel[1] = 100000 * vvv; tvel[1] * 1000;
-	np->vel[2] = 100000 * vvv; tvel[2] * 1000;
+	np->vel[0] = vx;
+	np->vel[1] = vy;
+	np->vel[2] = vz;
 	
 	np->Radius = radius;
 	np->Metallicity = 0.0;
 	np->initialized = 0;
 	
 	// Clean up
-	delete [] tvel;
+	//delete [] tvel;
   } // end while fgets...
 
   return SUCCESS;
