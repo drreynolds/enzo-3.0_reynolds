@@ -186,8 +186,8 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 	if (NumberOfNewParticlesThisProcessor > 0) {
 	  ap_info->UnpackBuffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
                  count, SharedList, NumberOfNewParticlesThisProcessor);
-      }
-      count += MPI_RecvListCount[proc];
+	}
+	count += NumberOfNewParticlesThisProcessor;
       }
 
       NumberOfReceives = NumberOfNewParticles;
