@@ -963,7 +963,7 @@ gradient force to gravitational force for one-zone collapse test. */
 			 FLOAT EdgeOffset[MAX_DIMENSION]);
 
    int CopyActiveZonesFromGrid(grid *GridOnSameLevel, 
-			      FLOAT EdgeOffset[MAX_DIMENSION]);
+			      FLOAT EdgeOffset[MAX_DIMENSION], int SendField);
 
 /* gravity: copy coincident potential field zones from grid in the argument
             (gg #7).  Return SUCCESS or FAIL. */

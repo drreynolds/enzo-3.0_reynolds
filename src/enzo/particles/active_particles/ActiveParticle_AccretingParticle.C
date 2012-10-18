@@ -240,10 +240,11 @@ void ActiveParticleType_AccretingParticle::DescribeSupplementalData(ActivePartic
 
 
 grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+    int SendField);
 
 int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids);
+			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
@@ -281,7 +282,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   }
   
   grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-    FeedbackRadius, dx, Grids, NumberOfGrids);
+    FeedbackRadius, dx, Grids, NumberOfGrids, ALL_FIELDS);
 
   delete FeedbackRadius;
 
@@ -299,7 +300,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     }
   }
   
-  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
+  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids, ALL_FIELDS);
 
   for (i = 0; i < nParticles; i++) {
     delete FeedbackZones[i];    

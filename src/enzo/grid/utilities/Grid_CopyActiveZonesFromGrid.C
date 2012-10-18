@@ -50,7 +50,8 @@ int check_overlap(FLOAT a[MAX_DIMENSION], FLOAT b[MAX_DIMENSION],
                   int dims, FLOAT period[MAX_DIMENSION],
                   int *shift, int skipto);
 
-int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
+int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION],
+    int SendField)
 {
  
   /* Return if this doesn't involve us. */
@@ -172,8 +173,10 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
         CommunicationReceiveCallType[CommunicationReceiveIndex] = 21;
         for (dim = 0; dim < GridRank; dim++)
           CommunicationReceiveArgument[dim][CommunicationReceiveIndex] = 
-        EdgeOffset[dim];
-      }
+            EdgeOffset[dim];
+        }
+        CommunicationReceiveArgumentInt[0][CommunicationReceiveIndex] =
+            SendField;
     #endif /* USE_MPI */
       /* Copy data from other processor if needed (modify OtherDim and
          StartOther to reflect the fact that we are only copying part of
@@ -185,7 +188,7 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       
       if (ProcessorNumber != OtherGrid->ProcessorNumber) {
         OtherGrid->CommunicationSendRegion(OtherGrid, ProcessorNumber,
-                           ALL_FIELDS, NEW_ONLY, StartOther, Dim);
+                           SendField, NEW_ONLY, StartOther, Dim);
         
         if (CommunicationDirection == COMMUNICATION_POST_RECEIVE ||
         CommunicationDirection == COMMUNICATION_SEND)

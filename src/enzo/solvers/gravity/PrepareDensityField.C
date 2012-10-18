@@ -58,10 +58,11 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 
 // Next two are for galaxy particles.
 grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+    int SendField);
 
 int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids);
+			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
 
 int PrepareGravitatingMassField1(HierarchyEntry *Grid);
 #ifdef FAST_SIB

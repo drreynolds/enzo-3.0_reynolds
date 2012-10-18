@@ -38,7 +38,8 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 
 
 grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids)
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+    int SendField)
 {
   int i,j,dim,size;
   int FeedbackZoneRank;
@@ -126,7 +127,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) 
     for (j = 0; j < NumberOfGrids; j++) 
-      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector,SendField) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     
   /* Send data */
@@ -135,7 +136,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) {
     for (j = 0; j < NumberOfGrids; j++) {
-      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector,SendField) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     }
   }
