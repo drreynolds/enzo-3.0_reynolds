@@ -26,6 +26,7 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
 #include "ActiveParticle.h"
+#include "CommunicationUtilities.h"
 #include "SortCompareFunctions.h"
 
 void my_exit(int status);
@@ -40,10 +41,14 @@ int CommunicationShareActiveParticles(int *NumberToMove,
   int SizeOfSends, NumberOfNewParticles, NumberOfNewParticlesThisProcessor;
   ActiveParticleType_info *ap_info;
 
-  int TotalNumberToMove = 0;
+  int TotalNumberToMove = 0, GlobalNumberToMove;
   for (proc = 0; proc < NumberOfProcessors; proc++)
     TotalNumberToMove += NumberToMove[proc];
-  if (TotalNumberToMove == 0) return SUCCESS;
+  GlobalNumberToMove = TotalNumberToMove;
+#ifdef USE_MPI
+  CommunicationAllReduceValues(&GlobalNumberToMove, 1, MPI_SUM);
+#endif
+  if (GlobalNumberToMove == 0) return SUCCESS;
   //std::sort(SendList, SendList+TotalNumberToMove, cmp_ap_proc());
 
   SharedList = NULL;

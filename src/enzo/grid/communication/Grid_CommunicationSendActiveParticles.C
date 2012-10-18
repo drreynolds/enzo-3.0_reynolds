@@ -199,7 +199,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
   if (ProcessorNumber != ToProcessor) {
     MPI_Status status;
-    Count = NumberOfActiveParticles * max_element_size;
+    Count = type_count[type] * max_element_size;
 
 #ifdef MPI_INSTRUMENTATION
     starttime = MPI_Wtime();
