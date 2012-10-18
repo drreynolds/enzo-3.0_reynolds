@@ -542,8 +542,8 @@ public:
   ActiveParticleType* particle_instance;
   std::string particle_name;
 
-
-  int ReturnHeaderSize(void) { return sizeof(int); }
+  // At the moment the communication buffers don't contain a header.
+  int ReturnHeaderSize(void) { return 0; }
 
 private:
   /* This is distinct from the global as a redundant error-checking
