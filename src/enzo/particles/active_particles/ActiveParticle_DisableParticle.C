@@ -50,8 +50,7 @@ int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[], int N
       return FAIL;
   } // ENDFOR grids
 
-  if (foundAP)
-    Grids[changedGrid]->GridData->NumberOfActiveParticles--;
+  // RemoveActiveParticle decrements NumberOfActiveParticles
   
   if (foundP)
     Grids[changedGrid]->GridData->CleanUpMovedParticles();

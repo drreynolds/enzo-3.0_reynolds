@@ -84,7 +84,6 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
 	  foundP = OldGrid->RemoveParticle(ID);
 	  if ((foundP != TRUE) || (foundAP != TRUE))
 	    return FAIL;
-	  OldGrid->SetNumberOfActiveParticles(OldGrid->ReturnNumberOfActiveParticles()-1);
 	  OldGrid->CleanUpMovedParticles();
 	}
       }

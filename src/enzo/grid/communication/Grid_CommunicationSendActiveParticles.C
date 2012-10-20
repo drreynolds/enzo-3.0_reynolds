@@ -181,12 +181,9 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
       // Now we can fill the buffer because we have a list of only this type.
       ap_info->FillBuffer(SendParticles, position, buffer);
       // We can clean up immediately.
-      if (DeleteParticles == true) {
-	for (i = NumberOfActiveParticles-1; i > -1; i--) {
+      if (DeleteParticles == true)
+	for (i = NumberOfActiveParticles-1; i > -1; i--)
 	  this->RemoveActiveParticle(ActiveParticles[i]->ReturnID(),ToProcessor);
-	}
-	this->NumberOfActiveParticles = 0;
-      }
       delete[] SendParticles;
     } // myproc == proc
   } // if sending

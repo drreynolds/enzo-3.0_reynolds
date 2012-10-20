@@ -295,6 +295,11 @@ int CommunicationLoadBalanceGrids(HierarchyEntry *GridHierarchyPointer[],
       GridHierarchyPointer[i]->GridData->RemoveForcingFromBaryonFields();
   }
 
+  /* Check for out of sync active particle counts */
+  for (i = 0; i < NumberOfGrids; i++) {
+    GridHierarchyPointer[i]->GridData->CorrectActiveParticleCounts();
+  }
+
 #ifdef SYNC_TIMING
   CommunicationBarrier();
 #endif
