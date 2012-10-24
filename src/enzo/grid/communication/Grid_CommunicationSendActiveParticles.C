@@ -54,7 +54,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   char *buffer;
   Eint32 position = 0;
   int npart, i, j, NumberToSend, type, dim, index;
-  int element_size, header_size, ap_id, max_element_size = 0;
+  int element_size, header_size, ap_id;
   int *type_element_size, *type_count;
   int type_count_index;
   ActiveParticleType_info *ap_info;
@@ -94,8 +94,6 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
       header_size = ap_info->ReturnHeaderSize();
       element_size = ap_info->ReturnElementSize();
-      max_element_size = max(max_element_size, element_size);
-      
       type_element_size[type] = element_size;
 
       if (MyProcessorNumber == ProcessorNumber) {
@@ -157,7 +155,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 	  buffer = (char*) CommunicationReceiveBuffer[CommunicationReceiveIndex];
     else
 #endif
-	  buffer = new char[NumberOfActiveParticles * max_element_size];
+	  buffer = new char[NumberOfActiveParticles * type_element_size[type]];
       // Above we are making the largest buffer we'll ever need, which
       // eliminates the need for the receiving processor to know how many of
       // each type of particle to make more custom-tailored buffer(s).
@@ -196,7 +194,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
   if (ProcessorNumber != ToProcessor) {
     MPI_Status status;
-    Count = type_count[type] * max_element_size;
+    Count = type_count[type] * type_element_size[type];
 
 #ifdef MPI_INSTRUMENTATION
     starttime = MPI_Wtime();
