@@ -57,6 +57,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   int element_size, header_size, ap_id;
   int *type_element_size, *type_count;
   int type_count_index;
+  int SendNumberOfActiveParticles;
   ActiveParticleType_info *ap_info;
   ActiveParticleType **NewParticles;
   ActiveParticleType **SendParticles = NULL;
@@ -76,6 +77,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   } // ENDIF serial case
 
   type_element_size = new int[EnabledActiveParticlesCount];
+  SendNumberOfActiveParticles = NumberOfActiveParticles
 #ifdef USE_MPI
     if (CommunicationDirection == COMMUNICATION_RECEIVE)
 	  type_count = (int*) CommunicationReceiveBuffer[CommunicationReceiveIndex++];
@@ -194,7 +196,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
   if (ProcessorNumber != ToProcessor) {
     MPI_Status status;
-    Count = type_count[type] * type_element_size[type];
+    Count = SendNumberOfActiveParticles * type_element_size[type];
+    
 
 #ifdef MPI_INSTRUMENTATION
     starttime = MPI_Wtime();
