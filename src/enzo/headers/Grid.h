@@ -1138,6 +1138,12 @@ gradient force to gravitational force for one-zone collapse test. */
      GravitatingMassField = NULL;
    };
 
+/* Gravity: Init GravitatingMassField. */
+
+   void InitGravitatingMassField(int size) {
+     GravitatingMassField = new float[size];
+   }
+
 /* Gravity: Delete AccelerationField. */
 
    void DeleteAccelerationField() {

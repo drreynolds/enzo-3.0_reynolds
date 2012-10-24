@@ -412,17 +412,19 @@ int PrepareDensityField(LevelHierarchyEntry *LevelArray[],
             }
             // Make the temporary grids copying the GravitatingMassField
             // field, only.
-            //grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-            //    FeedbackRadius, dx, Grids, NumberOfGrids);
+            grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
+                FeedbackRadius, dx, Grids, NumberOfGrids, GRAVITATING_MASS_FIELD);
             
             // Copy results back to "real" grids.
-            //DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
+            DistributeFeedbackZones(FeedbackZones, nParticles, Grids,
+                NumberOfGrids, GRAVITATING_MASS_FIELD);
             
             // Clean up.
-            //for (j = 0; j < nParticles; j++) {
-            //    delete FeedbackZones[j];    
-            //}
-            //delete [] FeedbackZones;
+            for (j = 0; j < nParticles; j++) {
+                FeedbackZones[j]->DeleteGravitatingMassField();
+                delete FeedbackZones[j];
+            }
+            delete [] FeedbackZones;
             delete [] FeedbackRadius;
             delete ParticleList;
         } // for enabled particles.

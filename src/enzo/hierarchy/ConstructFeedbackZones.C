@@ -109,6 +109,12 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
     if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
       ENZO_FAIL("FeedbackZone BaryonField allocation failed\n");
 
+	if (SendField == GRAVITATING_MASS_FIELD) {
+	    // If we're doing gravity, we need to init that field.
+	    FeedbackZone->InitializeGravitatingMassField(RefineBy);
+	    FeedbackZone->InitGravitatingMassField(size);
+    }
+
     FeedbackZones[i] = FeedbackZone;
   }
 
