@@ -1407,6 +1407,17 @@ gradient force to gravitational force for one-zone collapse test. */
      }   
    };
 
+  void DeleteActiveParticles() {
+    NumberOfActiveParticles = 0;
+    if (ActiveParticles != NULL) delete [] ActiveParticles;
+    ActiveParticles = NULL;
+  }
+
+  void CorrectActiveParticleCounts() {
+    if (NumberOfActiveParticles > 0 && ActiveParticles == NULL)
+      NumberOfActiveParticles = 0;
+  }
+
 /* Particles: allocate new particle fields. */
 
    void AllocateNewParticles(int NumberOfNewParticles) {

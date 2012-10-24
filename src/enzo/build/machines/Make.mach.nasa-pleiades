@@ -74,11 +74,11 @@ MACH_DEFINES = -DLINUX -DH5_USE_16_API
 # Compiler flag settings
 #-----------------------------------------------------------------------
 
-MACH_CPPFLAGS = -P -traditional
-MACH_CFLAGS   = 
-MACH_CXXFLAGS = 
-MACH_FFLAGS   = 
-MACH_F90FLAGS = 
+MACH_CPPFLAGS = -fstack-security-check -P -traditional
+MACH_CFLAGS   = -fstack-security-check
+MACH_CXXFLAGS = -fstack-security-check
+MACH_FFLAGS   = -fstack-security-check
+MACH_F90FLAGS = -fstack-security-check
 MACH_LDFLAGS  = 
 #,-static 
 

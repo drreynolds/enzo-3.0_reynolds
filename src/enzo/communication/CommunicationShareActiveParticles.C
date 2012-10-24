@@ -38,7 +38,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 {
 
   int i, type, proc, ap_id;
-  int SizeOfSends, NumberOfNewParticles, NumberOfNewParticlesThisProcessor;
+  int SizeOfSends, NumberOfNewParticles;
   ActiveParticleType_info *ap_info;
 
   int TotalNumberToMove = 0, GlobalNumberToMove;
@@ -73,122 +73,91 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       ap_info = EnabledActiveParticles[type];
       ap_id = ap_info->GetEnabledParticleID();
 
-      /* Create a MPI packed buffer from the active particles */
-      
-      Eint32 position = 0, position_on_proc = 0;
-      int count, pad_size, element_size, NumberToSend, instance_size;
-      Eint32 total_buffer_size;
-      int *mpi_buffer_size, *mpi_recv_buffer_size;
-      char *mpi_buffer, *mpi_recv_buffer, *temp_buffer;
-      mpi_buffer_size = new int[NumberOfProcessors];
-      mpi_recv_buffer_size = new int[NumberOfProcessors];
+      /* Get counts from each processor to allocate buffers. */
 
-      // First determine the buffer size, then we can fill it.
+      int NumberToSend, local_buffer_size, instance_size;
+
       NumberToSend = 0;
       for (i = 0; i < TotalNumberToMove; i++)
 	if (SendList[i]->ReturnType() == type) NumberToSend++;
 
-      /* NJG: need to pad the send buffer with at least one byte otherwise 
-	 AllToallv won't be able to figure out which data goes to which 
-         processor */
+      int *nCount = new int[NumberOfProcessors];
+
+      MPI_Datatype DataTypeInt = (sizeof(int) == 4) ? MPI_INT : MPI_LONG_LONG_INT;
+
+      MPI_Allgather(&NumberToSend, 1, DataTypeInt,
+		    nCount, 1, DataTypeInt, EnzoTopComm);
+
+      NumberOfNewParticles = 0;
+      for (i = 0; i < NumberOfProcessors; i++) {
+	NumberOfNewParticles += nCount[i];
+      }
+
+      /* Create a MPI packed buffer from the SendList */
       
       instance_size = ap_info->ReturnElementSize();
 
       if (NumberToSend != 0)
-	element_size = NumberToSend*instance_size;
+	local_buffer_size = NumberToSend*instance_size;
       else
-	element_size = 1;
+	local_buffer_size = 0;
 
-      total_buffer_size = NumberOfProcessors*element_size;
+      int send_buffer_size;
+      char *send_buffer = new char[local_buffer_size];
+      // This will break if more than one AP type is in the simulation
+      send_buffer_size = ap_info->FillBuffer(SendList, NumberToSend, send_buffer);
 
-      mpi_buffer = new char[total_buffer_size];
-      // Pack the buffer, ordered by destination processor
-      position = 0;
-      int offset = 0;
-      for (proc = 0; proc < NumberOfProcessors; proc++) {
-	mpi_buffer_size[proc] = ap_info->FillBuffer(SendList, NumberToSend, mpi_buffer + offset);
-        offset += element_size;
-      }
+      /* generate displacement list. */
 
-      /* Get counts from each processor to allocate buffers. */
+      Eint32 *displace = new Eint32[NumberOfProcessors];
+      Eint32 *all_buffer_sizes = new Eint32[NumberOfProcessors];
+      Eint32 total_buffer_size = 0, position = 0;
 
-      MPI_Arg *MPI_SendListCount = new MPI_Arg[NumberOfProcessors];
-      MPI_Arg *MPI_SendListDisplacements = new MPI_Arg[NumberOfProcessors];
-
-      int *RecvListCount = new int[NumberOfProcessors];
-      MPI_Arg *MPI_RecvListCount = new MPI_Arg[NumberOfProcessors];
-      MPI_Arg *MPI_RecvListDisplacements = new MPI_Arg[NumberOfProcessors];
-
-      int jjj;
-
-      for (jjj = 0; jjj < NumberOfProcessors; jjj++) {
-	RecvListCount[jjj] = 0;
-	MPI_RecvListCount[jjj] = 0;
-	MPI_RecvListDisplacements[jjj] = 0;
-      }
-
-      SizeOfSends = 0;
-      for (jjj = 0; jjj < NumberOfProcessors; jjj++) {
-	MPI_SendListDisplacements[jjj] = SizeOfSends;
-	SizeOfSends += mpi_buffer_size[jjj];
-	MPI_SendListCount[jjj] = mpi_buffer_size[jjj];
-      }
-
-      SendCount = 1;
-      RecvCount = 1;
-
-#ifdef MPI_INSTRUMENTATION
-      starttime = MPI_Wtime();
-#endif /* MPI_INSTRUMENTATION */
-
-      /*****************************************
-         Share the active particle type counts
-      ******************************************/
-    
-      stat = MPI_Alltoall(mpi_buffer_size, SendCount, IntDataType,
-			  mpi_recv_buffer_size, RecvCount, IntDataType, EnzoTopComm);
-      if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
-
-      /* Allocate buffers and generate displacement list. */
-
-      NumberOfReceives = 0;  
       for (i = 0; i < NumberOfProcessors; i++) {
-	MPI_RecvListDisplacements[i] = NumberOfReceives;
-	NumberOfReceives += mpi_recv_buffer_size[i];
-	MPI_RecvListCount[i] = mpi_recv_buffer_size[i];
+	all_buffer_sizes[i] = nCount[i]*instance_size;
+	total_buffer_size += all_buffer_sizes[i];
       }
 
-      mpi_recv_buffer = new char[NumberOfReceives];
+      displace[0] = position;
+      for (i = 1; i < NumberOfProcessors; i++) {
+	if (all_buffer_sizes[i-1] > 0)
+	  position += all_buffer_sizes[i-1];
+	displace[i] = position;
+      }
 
-      /********************************
-          Share the active particles
-      *********************************/
+      position = 0;
 
-      // 'counts' here are in bytes.
-      stat = MPI_Alltoallv(mpi_buffer, MPI_SendListCount, MPI_SendListDisplacements,
-			   MPI_PACKED,
-			   mpi_recv_buffer, MPI_RecvListCount, MPI_RecvListDisplacements,
-			   MPI_PACKED,
-			   EnzoTopComm);
-      if (stat != MPI_SUCCESS) my_exit(EXIT_FAILURE);
+      /* Allocate the receive buffer and gather the particle buffers */
 
-      /* Unpack the MPI buffers into an array of active particles */
+      char* recv_buffer = new char[total_buffer_size];
 
-      // Determine how many particles we have received from the buffer
-      // size (NumberOfReceives is in bytes)
-      NumberOfNewParticles = (NumberOfReceives) / instance_size;
+      MPI_Allgatherv(send_buffer, local_buffer_size, MPI_PACKED,
+		     recv_buffer, all_buffer_sizes, displace, MPI_PACKED, EnzoTopComm);
+
+      /* Unpack the particle buffers, generate global shared active particle list */
+      
       SharedList = new ActiveParticleType*[NumberOfNewParticles];
 
-      // Now convert the MPI buffer
-      count = 0;
+      int count = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {
-        NumberOfNewParticlesThisProcessor = (MPI_RecvListCount[proc])/ instance_size;
-	if (NumberOfNewParticlesThisProcessor > 0) {
-	  ap_info->UnpackBuffer(mpi_recv_buffer + MPI_RecvListDisplacements[proc], 
-                 count, SharedList, NumberOfNewParticlesThisProcessor);
+	if (nCount[proc] > 0) {
+	  ap_info->UnpackBuffer(recv_buffer+displace[proc], count, 
+				SharedList, nCount[proc]);
+	  count += nCount[proc];
+	}
       }
-      count += MPI_RecvListCount[proc];
-      }
+
+      /* clean up */
+
+      delete [] nCount;
+      delete [] displace;
+      delete [] send_buffer;
+      delete [] recv_buffer;
+      delete [] all_buffer_sizes;
+      nCount = NULL;
+      displace = NULL;
+      send_buffer = NULL;
+      recv_buffer = NULL;
 
       NumberOfReceives = NumberOfNewParticles;
 
@@ -201,18 +170,6 @@ int CommunicationShareActiveParticles(int *NumberToMove,
       CommunicationTime += endtime-starttime;
 #endif /* MPI_INSTRUMENTATION */
  
-      delete [] MPI_SendListCount;
-      delete [] MPI_SendListDisplacements;
-
-      delete [] RecvListCount;
-      delete [] MPI_RecvListCount;
-      delete [] MPI_RecvListDisplacements;
-
-      delete [] mpi_buffer_size;
-      delete [] mpi_recv_buffer_size;
-      delete [] mpi_recv_buffer;
-      delete [] mpi_buffer;
-
     } // ENDFOR types
 
 #endif /* USE_MPI */    

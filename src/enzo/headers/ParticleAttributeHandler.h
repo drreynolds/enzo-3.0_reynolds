@@ -88,7 +88,7 @@ class Handler : public ParticleAttributeHandler
 
     void PrintAttribute(ActiveParticleType *pp_) {
         APClass *pp = static_cast<APClass*>(pp_);
-        std::cout << this->name << ": " << pp->*var;
+        std::cout << std::setprecision(15) << this->name << ": " << pp->*var;
     }
 
 };
