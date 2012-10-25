@@ -35,10 +35,12 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 					 int NumberOfGrids,
 					 int TotalActiveParticleCountPrevious[]);
 
+ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles, 
+					   int ActiveParticleIDToFind);
 
 int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int level, int TotalActiveParticleCountPrevious[])
+			   int level, int NumberOfNewActiveParticles[])
 {
   int i;
 
@@ -49,17 +51,33 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
   /* Update the star particle counters. */
 
   CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
-					 TotalActiveParticleCountPrevious);
-  /* Update position and velocity of star particles from the actual
-     particles.  Moved to after RebuildHierarchy in EvolveLevel. */
+					 NumberOfNewActiveParticles);
 
-#ifdef UNUSED
-  int grid_num;
-  for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
-    Grids[grid_num]->GridData->DetachActiveParticles();
-  } // ENDFOR grids
-#endif
+#ifdef DEBUG
   
+  int nParticles;
+  ActiveParticleType** ParticleList = NULL;
+
+  ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, 0);
+
+  if (nParticles > 0) {
+    PINT IDList[nParticles];
+    for (i = 0; i < nParticles; i++)
+      IDList[i] = ParticleList[i]->ReturnID();
+    std::sort(IDList, IDList + sizeof(IDList)/sizeof(IDList[0]));
+    for (i = 0; i < nParticles-1; i++)
+      if (IDList[i] == IDList[i+1]) {
+	ENZO_FAIL("Two active particles have identical IDs"); }
+  }
+
+  if (NumberOfProcessors > 1)
+    for (i = 0; i < nParticles; i++)
+      delete ParticleList[i];
+
+  delete [] ParticleList;
+
+#endif
+
   /* Call finalization routines for each active particle type  */
 
   int ActiveParticleID;
@@ -72,8 +90,7 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
     ActiveParticleTypeToEvaluate->
       AfterEvolveLevel(Grids,MetaData,NumberOfGrids,LevelArray, 
-				 level,TotalActiveParticleCountPrevious,
-				 ActiveParticleID);
+		       level, NumberOfNewActiveParticles, ActiveParticleID);
 
   }
 

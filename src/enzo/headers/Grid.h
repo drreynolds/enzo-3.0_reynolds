@@ -2301,7 +2301,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			  float dtLevelAbove, float TopGridTimeStep);
 
   int ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
-			    float dtLevelAbove);
+			    float dtLevelAbove, int &NumberOfNewActiveParticles);
 
   /* Append and detach active particles data to 'normal' particle
      arrays */

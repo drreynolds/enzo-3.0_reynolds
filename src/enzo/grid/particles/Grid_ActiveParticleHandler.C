@@ -38,7 +38,7 @@ int GetUnits(float *DensityUnits, float *LengthUnits,
 int FindField(int field, int farray[], int numfields);
  
 int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
-                                float dtLevelAbove)
+                                float dtLevelAbove, int &NumberOfNewParticles)
 {
 
   if (EnabledActiveParticlesCount == 0) return SUCCESS;
@@ -85,7 +85,7 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
 
   /******************** FORMATION ********************/
 
-  int NumberOfNewParticles = 0;
+  NumberOfNewParticles = 0;
   /* Now we iterate */
   for (i = 0; i < EnabledActiveParticlesCount; i++)
   {

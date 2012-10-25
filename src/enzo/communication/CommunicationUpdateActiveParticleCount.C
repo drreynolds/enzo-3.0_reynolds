@@ -45,31 +45,30 @@
 int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 					 TopGridData *MetaData,
 					 int NumberOfGrids, 
-					 int TotalActiveParticleCountPrevious[])
+					 int NumberOfNewActiveParticles[])
 {
 
   LCAPERF_START("UpdateActiveParticleCount");
 
   int grid, *TotalParticleCount = new int[NumberOfGrids],
           *PartialParticleCount = new int[NumberOfGrids],
-        *TotalActiveParticleCount = new int[NumberOfGrids],
-      *PartialActiveParticleCount = new int[NumberOfGrids];
+        *TotalNewActiveParticleCount = new int[NumberOfGrids],
+      *PartialNewActiveParticleCount = new int[NumberOfGrids];
  
   /* Set ParticleCount to zero and record number of particles for grids
      on this processor. */
  
   for (grid = 0; grid < NumberOfGrids; grid++) {
     TotalParticleCount[grid] = 0;
-    TotalActiveParticleCount[grid] = 0;
+    TotalNewActiveParticleCount[grid] = 0;
     if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber) {
       PartialParticleCount[grid] =
 	Grids[grid]->GridData->ReturnNumberOfParticles();
-      PartialActiveParticleCount[grid] =
-	Grids[grid]->GridData->ReturnNumberOfActiveParticles();
+      PartialNewActiveParticleCount[grid] = NumberOfNewActiveParticles[grid];	
     }
     else {
       PartialParticleCount[grid] = 0;
-      PartialActiveParticleCount[grid] = 0;
+      PartialNewActiveParticleCount[grid] = 0;
     }
 }
  
@@ -87,7 +86,7 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
    
   MPI_Allreduce(PartialParticleCount, TotalParticleCount, GridCount,
 		DataTypeInt, MPI_SUM, EnzoTopComm);
-  MPI_Allreduce(PartialActiveParticleCount, TotalActiveParticleCount, GridCount,
+  MPI_Allreduce(PartialNewActiveParticleCount, TotalNewActiveParticleCount, GridCount,
 		DataTypeInt, MPI_SUM, EnzoTopComm);
 
 #ifdef UNUSED
@@ -95,10 +94,8 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
     for (grid = 0; grid < NumberOfGrids; grid++) {
       fprintf(stdout, "PartialParticleCount[%d] = %d\n", grid, PartialParticleCount[grid]); 
       fprintf(stdout, "TotalParticleCount[%d]   = %d\n", grid, TotalParticleCount[grid]);
-      fprintf(stdout, "PartialActiveParticleCount[%d] = %d\n", grid, PartialActiveParticleCount[grid]); 
-      fprintf(stdout, "TotalActiveParticleCount[%d]   = %d\n", grid, TotalActiveParticleCount[grid]);
-      //fprintf(stdout, "TotalParticleCountPrevious[%d]   = %d\n", grid, TotalParticleCountPrevious[grid]);
-      fprintf(stdout, "TotalActiveParticleCountPrevious[%d]   = %d\n\n", grid, TotalActiveParticleCountPrevious[grid]);
+      fprintf(stdout, "PartialNewActiveParticleCount[%d] = %d\n", grid, PartialNewActiveParticleCount[grid]); 
+      fprintf(stdout, "TotalNewActiveParticleCount[%d]   = %d\n", grid, TotalNewActiveParticleCount[grid]);
     }
 #endif
 
@@ -131,12 +128,7 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 	 got from the communication and what is currently stored).
 	 Finally, correct the number of particles in our record. */
 
-      NumberOfActiveParticles += TotalActiveParticleCount[grid] - 
-	TotalActiveParticleCountPrevious[grid];
-      NumberOfOtherParticles += 
-	(TotalParticleCount[grid] - TotalActiveParticleCount[grid]) - 
-	(Grids[grid]->GridData->ReturnNumberOfParticles()
-	 - TotalActiveParticleCountPrevious[grid]);
+      NumberOfActiveParticles += TotalNewActiveParticleCount[grid];
       Grids[grid]->GridData->SetNumberOfParticles(TotalParticleCount[grid]);
 
     }
@@ -156,8 +148,8 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
  
   delete [] TotalParticleCount;
   delete [] PartialParticleCount;
-  delete [] TotalActiveParticleCount;
-  delete [] PartialActiveParticleCount;
+  delete [] TotalNewActiveParticleCount;
+  delete [] PartialNewActiveParticleCount;
  
   LCAPERF_STOP("UpdateActiveParticleCount");
  

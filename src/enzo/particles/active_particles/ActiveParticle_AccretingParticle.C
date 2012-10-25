@@ -343,7 +343,7 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
     for (i = 0; i < nParticles; i++)
       delete AccretingParticleList[i];
 
-  delete AccretingParticleList;
+  delete [] AccretingParticleList;
 
   return SUCCESS;
 }

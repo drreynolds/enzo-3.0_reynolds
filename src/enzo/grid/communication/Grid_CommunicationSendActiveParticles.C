@@ -77,7 +77,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   } // ENDIF serial case
 
   type_element_size = new int[EnabledActiveParticlesCount];
-  SendNumberOfActiveParticles = NumberOfActiveParticles
+  SendNumberOfActiveParticles = NumberOfActiveParticles;
 #ifdef USE_MPI
     if (CommunicationDirection == COMMUNICATION_RECEIVE)
 	  type_count = (int*) CommunicationReceiveBuffer[CommunicationReceiveIndex++];
