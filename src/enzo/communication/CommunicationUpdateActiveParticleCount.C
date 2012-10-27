@@ -42,6 +42,8 @@
 #include "Hierarchy.h"
 #include "LevelHierarchy.h"
 
+#define DEBUG
+
 int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 					 TopGridData *MetaData,
 					 int NumberOfGrids, 
@@ -113,13 +115,14 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
  
   for (grid = 0; grid < NumberOfGrids; grid++) {
 
+    NumberOfActiveParticles += TotalNewActiveParticleCount[grid];
+    
     if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber) 
 
       /* If this grid is on this processor, then call routine to set the
 	 particle index numbers.  This also updates NumberOfActiveParticles. */
 
-      Grids[grid]->GridData->SetNewParticleIndex(NumberOfActiveParticles,
-						 NumberOfOtherParticles);
+      Grids[grid]->GridData->SetNewParticleIndex(NextActiveParticleID);
 
     else {
  
@@ -128,7 +131,7 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 	 got from the communication and what is currently stored).
 	 Finally, correct the number of particles in our record. */
 
-      NumberOfActiveParticles += TotalNewActiveParticleCount[grid];
+      NextActiveParticleID += TotalNewActiveParticleCount[grid];
       Grids[grid]->GridData->SetNumberOfParticles(TotalParticleCount[grid]);
 
     }
@@ -142,6 +145,39 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
   fprintf(stdout, "MetaData->NumberOfParticles = %d\n", MetaData->NumberOfParticles); 
   fprintf(stdout, "NumberOfActiveParticles now = %d\n", NumberOfActiveParticles);
   fprintf(stdout, "NumberOfOtherParticles now = %d\n", NumberOfOtherParticles);
+#endif
+
+#ifdef DEBUG
+
+  int *nCount = new int[NumberOfProcessors];
+  int i;
+
+  MPI_Allgather(&NumberOfActiveParticles, 1, DataTypeInt,
+		nCount, 1, DataTypeInt, EnzoTopComm);
+
+  for (i = 0; i < NumberOfProcessors-1; i++) {
+    if (nCount[i] != nCount[i+1]) {
+      ENZO_FAIL("Global active particle counts inconsistent!"); }
+  }
+
+  MPI_Allgather(&NumberOfOtherParticles, 1, DataTypeInt,
+		nCount, 1, DataTypeInt, EnzoTopComm);
+
+  for (i = 0; i < NumberOfProcessors-1; i++) {
+    if (nCount[i] != nCount[i+1]) {
+      ENZO_FAIL("Global particle counts inconsistent!"); }
+  }
+
+  MPI_Allgather(&NextActiveParticleID, 1, DataTypeInt,
+		nCount, 1, DataTypeInt, EnzoTopComm);
+
+  for (i = 0; i < NumberOfProcessors-1; i++) {
+    if (nCount[i] != nCount[i+1]) {
+      ENZO_FAIL("Global acitve particle IDs are inconsistent!"); }
+  }
+
+  delete [] nCount;
+  
 #endif
 
   /* Clean up. */

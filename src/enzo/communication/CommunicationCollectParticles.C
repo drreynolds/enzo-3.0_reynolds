@@ -18,7 +18,7 @@
 /         bit inefficient but reduced the number of if-statements.
 /
 ************************************************************************/
-#define NO_DEBUG_AP
+#define DEBUG_AP
  
 #ifdef USE_MPI
 #include "communicators.h"
@@ -90,6 +90,11 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
       Temp = Temp->NextGridThisLevel;
     }
   }
+
+  int grid1;
+  
+  for (grid1 = 0; grid1 < NumberOfGrids; grid1++)
+    GridHierarchyPointer[grid1]->GridData->DebugActiveParticles(level);
 
   /* 
      TWO MODES: 
@@ -203,7 +208,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
       APNumberToMove[j] = 0;
     }
     SendList = new particle_data[TotalNumber];
-    APSendList = new ActiveParticleType*[APTotalNumber];
+    APSendList = new ActiveParticleType*[APTotalNumber]();
 
     for (j = 0; j < NumberOfGrids; j++)
       if (GridHierarchyPointer[j]->NextGridNextLevel != NULL) {
@@ -370,6 +375,9 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
   if ((CollectMode == SIBLINGS_ONLY || CollectMode == ALLGRIDS) &&
       NumberOfProcessors > 1) {
 
+    for (i = 0; i < NumberOfGrids; i++)
+      GridHierarchyPointer[i]->GridData->DebugActiveParticles(level);
+
     int StartGrid, EndGrid, StartNum, TotalNumberToMove, AllMovedParticles;
     int TotalActiveParticlesToMove, AllMovedActiveParticles;
     StartGrid = 0;
@@ -442,7 +450,7 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
     /* Count the number of particles needed to move */
 
     SendList = new particle_data[TotalNumberToMove];
-    APSendList = new ActiveParticleType*[TotalActiveParticlesToMove];
+    APSendList = new ActiveParticleType*[TotalActiveParticlesToMove]();
 
     for (i = 0; i < NumberOfProcessors; i++) {
       NumberToMove[i] = 0;
@@ -461,19 +469,21 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 	  (j, APNumberToMove, StartNum, Zero, APSendList, COPY_OUT);
     } // ENDIF MoveActiveParticles
 
-    if (APNumberToMove[MyProcessorNumber] > 0)
-      printf("CCP: moving stars!\n");
-
     /* Share the particle move list */
 
     NumberOfReceives = 0;
     APNumberOfReceives = 0;
     CommunicationShareParticles(NumberToMove, SendList, NumberOfReceives,
 				SharedList);
-    if (MoveActiveParticles)
+
+    MPI_Barrier(EnzoTopComm);
+
+    if (MoveActiveParticles) {
       CommunicationShareActiveParticles
 	(APNumberToMove, APSendList, APNumberOfReceives, APSharedList);
-  
+      MPI_Barrier(EnzoTopComm);
+    }
+
     /*******************************************************************/
     /****************** Copy particles back to grids. ******************/
     /*******************************************************************/
@@ -494,6 +504,8 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
 	jstart = jend;
       } // ENDFOR grids
+
+    MPI_Barrier(EnzoTopComm);
 
 #ifdef DEBUG_CCP
     for (i = StartGrid; i < EndGrid; i++)
@@ -523,8 +535,12 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 	GridHierarchyPointer[j]->GridData->CollectActiveParticles
 	  (j, APNumberToMove, jstart, jend, APSharedList, COPY_IN);
 
+	GridHierarchyPointer[j]->GridData->DebugActiveParticles(level);
+
 	jstart = jend;
       } // ENDFOR grids
+
+    MPI_Barrier(EnzoTopComm);
 
     } // ENDIF MoveActiveParticles
 

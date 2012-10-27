@@ -25,6 +25,8 @@
 #include "LevelHierarchy.h"
 #include "ActiveParticle.h"
 
+#define DEBUG
+
 int FindTotalNumberOfParticles(LevelHierarchyEntry *LevelArray[]);
 void RecordTotalActiveParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
 				    int TotalActiveParticleCountPrevious[]);
@@ -41,17 +43,13 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   LCAPERF_START("ActiveParticleInitialize");
 
-  /* Set MetaData->NumberOfParticles and prepare TotalActiveParticleCountPrevious
-     these are to be used in CommunicationUpdateActiveParticleCount 
-     in ActiveParticleFinalize */  
-
-  int *TotalActiveParticleCount = new int[NumberOfGrids];
+  int *TotalActiveParticleCount = new int[NumberOfGrids]();
 
   MetaData->NumberOfParticles = FindTotalNumberOfParticles(LevelArray);
   NumberOfOtherParticles = MetaData->NumberOfParticles;// - NumberOfActiveParticles;
-  RecordTotalActiveParticleCount(Grids, NumberOfGrids, 
-				 TotalActiveParticleCount);
 
+  if (NextActiveParticleID == INT_UNDEFINED)
+    NextActiveParticleID = NumberOfOtherParticles + NumberOfActiveParticles;
   
   /* Active particle initialization
      1. copy quantities from active to normal particles
@@ -101,6 +99,8 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
   delete [] ParticleList;
 
 #endif
+
+  delete [] TotalActiveParticleCount;
 
   LCAPERF_STOP("ActiveParticleInitialize");
   return SUCCESS;

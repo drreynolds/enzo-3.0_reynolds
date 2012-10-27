@@ -247,7 +247,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
       // Do merging twice to catch pathological cases where merging
       // leaves multiple sinks inside the same accretion zone.
 
-      ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
+      ParticleList = new ActiveParticleType*[NumberOfMergedParticles]();
 
       for (i = 0; i<NumberOfMergedParticles; i++)
 	ParticleList[i] = static_cast<ActiveParticleType*>(MergedParticles[i]);
@@ -265,7 +265,7 @@ int ActiveParticleType_AccretingParticle::AfterEvolveLevel(HierarchyEntry *Grids
 
       /* Assign local particles to grids */
  
-      ParticleList = new ActiveParticleType*[NumberOfMergedParticles];
+      ParticleList = new ActiveParticleType*[NumberOfMergedParticles]();
 
       // need to use a bit of redirection because C++ pointer arrays have
       // trouble with polymorphism

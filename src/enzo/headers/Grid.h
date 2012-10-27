@@ -1454,7 +1454,7 @@ gradient force to gravitational force for one-zone collapse test. */
 
 /* Particles: Set new star particle index. */
 
-   void SetNewParticleIndex(int &NumberCount1, PINT &NumberCount2);
+   void SetNewParticleIndex(PINT &next_id);
 
 /* Particles: Set new star particle index. - Old version */
 

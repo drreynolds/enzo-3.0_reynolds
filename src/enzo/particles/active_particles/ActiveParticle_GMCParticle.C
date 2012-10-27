@@ -445,7 +445,7 @@ int ActiveParticleType_GMCParticle::ReadFromOutput(ActiveParticleType **&particl
 
   readAttribute(AccretingParticleGroupID,HDF5_INT,"Number of GMC Particles",&n);
 
-  particles_to_read = new ActiveParticleType*[n];
+  particles_to_read = new ActiveParticleType*[n]();
 
   char *ParticlePositionLabel[] =
      {"position_x", "position_y", "position_z"};

@@ -145,9 +145,11 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
           Start[dim] = nint((Left[dim]  - GridLeft[dim]) / CellWidth[dim][0]);
           End[dim]   = nint((Right[dim] - GridLeft[dim]) / CellWidth[dim][0]) - 1;
     
-          if (End[dim] - Start[dim] < 0)
-        return SUCCESS;
-        
+          if (End[dim] - Start[dim] < 0) {
+	    delete [] shift;
+	    return SUCCESS;
+	  }
+
           Dim[dim] = End[dim] - Start[dim] + 1;  
     
           /* Compute index positions in the other grid */
@@ -188,9 +190,11 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
                            ALL_FIELDS, NEW_ONLY, StartOther, Dim);
         
         if (CommunicationDirection == COMMUNICATION_POST_RECEIVE ||
-        CommunicationDirection == COMMUNICATION_SEND)
-          return SUCCESS;
-        
+	    CommunicationDirection == COMMUNICATION_SEND) {
+          delete [] shift;
+	  return SUCCESS;
+	}
+
         for (dim = 0; dim < GridRank; dim++) {
           OtherDim[dim]=Dim[dim];
           StartOther[dim] = 0;
@@ -200,7 +204,8 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       /* Return if this is not our concern. */
      
       if (ProcessorNumber != MyProcessorNumber) {
-        return SUCCESS;
+        delete [] shift;
+	return SUCCESS;
         }
     
       for (int field = 0; field < NumberOfBaryonFields; field++) {

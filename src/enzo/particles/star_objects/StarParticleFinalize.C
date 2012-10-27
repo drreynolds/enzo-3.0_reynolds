@@ -32,10 +32,10 @@
 #define KILL_ALL 2
 
 int StarParticleSetRefinementLevel(Star *AllStars);
-int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
-					 TopGridData *MetaData,
-					 int NumberOfGrids,
-					 int TotalStarParticleCountPrevious[]);
+//int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
+//					 TopGridData *MetaData,
+//					 int NumberOfGrids,
+//					 int TotalStarParticleCountPrevious[]);
 int StarParticleAddFeedback(TopGridData *MetaData, 
 			    LevelHierarchyEntry *LevelArray[], int level, 
 			    Star* &AllStars, bool* &AddedFeedback);
@@ -75,9 +75,9 @@ int StarParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
   LCAPERF_START("StarParticleFinalize");
 
   /* Update the star particle counters. */
-
-  CommunicationUpdateStarParticleCount(Grids, MetaData, NumberOfGrids,
-				       TotalStarParticleCountPrevious);
+  // Hack: Commenting to allow linking.
+  //  CommunicationUpdateStarParticleCount(Grids, MetaData, NumberOfGrids,
+  //TotalStarParticleCountPrevious);
 
   /* Update position and velocity of star particles from the actual
      particles */

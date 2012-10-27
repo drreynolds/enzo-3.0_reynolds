@@ -340,8 +340,10 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   }
 
   if (NumberOfProcessors > 1)
-    for (i = 0; i < nParticles; i++)
+    for (i = 0; i < nParticles; i++) {
       delete AccretingParticleList[i];
+      AccretingParticleList[i] = NULL;
+    }
 
   delete [] AccretingParticleList;
 

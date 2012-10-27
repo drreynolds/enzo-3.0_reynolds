@@ -145,7 +145,7 @@ int grid::TransferSubgridActiveParticles
       n1 = PreviousTotalToMove;
 
       ActiveParticleType **OldActiveParticles = ActiveParticles;
-      ActiveParticles = new ActiveParticleType*[ParticlesLeft];
+      ActiveParticles = new ActiveParticleType*[ParticlesLeft]();
 
       index = 0;
       for (i = 0; i < NumberOfActiveParticles; i++) {

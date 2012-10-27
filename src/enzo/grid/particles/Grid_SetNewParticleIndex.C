@@ -24,15 +24,19 @@
 #include "Grid.h"
 #include "ActiveParticle.h"
 
-void grid::SetNewParticleIndex(int &NumberCount1, PINT &NumberCount2)
+#define DEBUG
+
+void grid::SetNewParticleIndex(PINT &next_id)
 {
   int n, abstype;
-  int ori_count = NumberCount1 + NumberCount2;
+  int ori_count = next_id;
   
   for (n = 0; n < NumberOfActiveParticles; n++)
     if (ActiveParticles[n]->Identifier == INT_UNDEFINED) {
-      ActiveParticles[n]->Identifier = NumberCount1++ + NumberCount2;
+      ActiveParticles[n]->Identifier = next_id++;
 #ifdef DEBUG
+      if (ActiveParticles[n]->Identifier == 276422)
+	printf("Debug trap\n!");
       std::cout << "SNPI[" << MyProcessorNumber << "] " << "GridID: " 
 		<< this->ID << " APID: " << ActiveParticles[n]->Identifier
 		<< std::endl;

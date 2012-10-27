@@ -43,10 +43,10 @@ int RebuildHierarchy(TopGridData *MetaData,
 		     LevelHierarchyEntry *LevelArray[], int level);
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
-int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
-					 TopGridData *MetaData,
-					 int NumberOfGrids,
-					 int TotalStarParticleCountPrevious[]);
+//int CommunicationUpdateStarParticleCount(HierarchyEntry *Grids[],
+//					 TopGridData *MetaData,
+//					 int NumberOfGrids,
+//					 int TotalStarParticleCountPrevious[]);
 int FindTotalNumberOfParticles(LevelHierarchyEntry *LevelArray[]);
 void RecordTotalStarParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
 				  int TotalStarParticleCountPrevious[]);
@@ -120,11 +120,12 @@ int ParticleSplitter(LevelHierarchyEntry *LevelArray[], int ThisLevel,
       /* Assign indices for star particles and update the star particle counters 
 	 using the same routine in StarParticleFinalize */
       
-      if (CommunicationUpdateStarParticleCount(Grids, MetaData,
-					       NumberOfGrids, 
-					       TotalStarParticleCountPrevious) == FAIL) {
-	ENZO_FAIL("Error in CommunicationUpdateStarParticleCount.\n");
-      }
+      // Hack: commenting to allow linking.
+      //      if (CommunicationUpdateStarParticleCount(Grids, MetaData,
+      //NumberOfGrids, 
+      //					       TotalStarParticleCountPrevious) == FAIL) {
+      //ENZO_FAIL("Error in CommunicationUpdateStarParticleCount.\n");
+      //}
 
     }  // loop for level
 

@@ -89,6 +89,8 @@ int grid::DetachActiveParticles(void)
   
   for (i = 0, index = NewNumberOfParticles; i < NumberOfActiveParticles; 
        i++, index++) {
+    if (ParticleNumber[index] != ActiveParticles[i]->Identifier)
+      ENZO_FAIL("Particle IDs are inconsistent!");
     for (dim = 0; dim < MAX_DIMENSION; dim++) {
       ActiveParticles[i]->pos[dim] = ParticlePosition[dim][index];
       ActiveParticles[i]->vel[dim] = ParticleVelocity[dim][index];

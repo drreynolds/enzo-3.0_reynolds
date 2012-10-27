@@ -28,6 +28,8 @@
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
 
+#define DEBUG
+
 /* prototypes */
 
 int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
