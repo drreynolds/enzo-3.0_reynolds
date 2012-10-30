@@ -388,7 +388,7 @@ int PrepareDensityField(LevelHierarchyEntry *LevelArray[],
      GravitatingMassField is copied to it, updated, and then copied back to
      the "real" grids.
    */
-    int i, j, match, ActiveParticleID, nParticles;
+    int i, j, k, match, ActiveParticleID, nParticles;
     ActiveParticleType** ParticleList = NULL;
     int *FeedbackRadius = NULL;
     std::string GPname ("GalaxyParticle");
@@ -415,13 +415,21 @@ int PrepareDensityField(LevelHierarchyEntry *LevelArray[],
             grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
                 FeedbackRadius, dx, Grids, NumberOfGrids, GRAVITATING_MASS_FIELD);
             
+            for (k = 0; k < nParticles; k++) {
+            grid* FeedbackZone = FeedbackZones[k];
+            if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
+                if (FeedbackZone->ApplyGalaxyParticleGravity(&ParticleList[k]) == FAIL)
+	                return FAIL;
+                }
+            }
+            
             // Copy results back to "real" grids.
             DistributeFeedbackZones(FeedbackZones, nParticles, Grids,
                 NumberOfGrids, GRAVITATING_MASS_FIELD);
             
             // Clean up.
             for (j = 0; j < nParticles; j++) {
-                FeedbackZones[j]->DeleteGravitatingMassField();
+                //FeedbackZones[j]->DeleteGravitatingMassField();
                 delete FeedbackZones[j];
             }
             delete [] FeedbackZones;

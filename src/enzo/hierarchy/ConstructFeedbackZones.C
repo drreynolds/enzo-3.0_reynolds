@@ -80,11 +80,8 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
       FeedbackZoneRightEdge[FeedbackZoneRank];
     FLOAT CellSize, GridGZLeftEdge, ncells[FeedbackZoneRank];
 
-    size = 1;
-
-    for (int dim = 0; dim < FeedbackZoneRank; dim++) {
+    for (dim = 0; dim < FeedbackZoneRank; dim++) {
       FeedbackZoneDimension[dim] = (2*(FeedbackRadius[i]+DEFAULT_GHOST_ZONES)+1);
-      size *= FeedbackZoneDimension[dim];
       CellSize = APGrids[i]->GetCellWidth(dim,0);
       GridGZLeftEdge = APGrids[i]->GetCellLeftEdge(dim,0);
       
@@ -110,8 +107,12 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
       ENZO_FAIL("FeedbackZone BaryonField allocation failed\n");
 
 	if (SendField == GRAVITATING_MASS_FIELD) {
+	    size = 1;
 	    // If we're doing gravity, we need to init that field.
 	    FeedbackZone->InitializeGravitatingMassField(RefineBy);
+	    for (dim = 0; dim < FeedbackZoneRank; dim++) {
+	      size *= FeedbackZone->ReturnGravitatingMassFieldDimension(dim);
+	    }
 	    FeedbackZone->InitGravitatingMassField(size);
     }
 

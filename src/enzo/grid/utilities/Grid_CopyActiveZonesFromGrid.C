@@ -73,6 +73,8 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
   FLOAT period[MAX_DIMENSION];
   int *shift;
 
+  int adjust;
+
   shift = new int[MAX_DIMENSION];
 
   int dim;
@@ -92,16 +94,10 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       for (dim = 0; dim < GridRank; dim++) {
         ActiveLeft[dim]  = GridLeftEdge[dim]  + EdgeOffset[dim];
         ActiveRight[dim] = GridRightEdge[dim] + EdgeOffset[dim];
-        if (SendField == ALL_FIELDS) {
-          GridLeft[dim]  = CellLeftEdge[dim][0] + EdgeOffset[dim];
-          GridRight[dim] = CellLeftEdge[dim][GridDimension[dim]-1] +
-            CellWidth[dim][GridDimension[dim]-1]    +
-            EdgeOffset[dim];
-        } else if (SendField == GRAVITATING_MASS_FIELD) {
-          GridLeft[dim] = GravitatingMassFieldLeftEdge[dim] + EdgeOffset[dim];
-          GridRight[dim] = GridLeft[dim] + GravitatingMassFieldDimension[dim]*
-                                     GravitatingMassFieldCellSize;
-        }
+        GridLeft[dim]  = CellLeftEdge[dim][0] + EdgeOffset[dim];
+        GridRight[dim] = CellLeftEdge[dim][GridDimension[dim]-1] +
+          CellWidth[dim][GridDimension[dim]-1]    +
+          EdgeOffset[dim];
       }
 
       overlap = check_overlap(ActiveLeft, ActiveRight,
@@ -117,15 +113,9 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
         shift_temp = period[dim] * FLOAT(shift[dim]);
         ActiveLeft[dim]  = GridLeftEdge[dim]  + shift_temp;
         ActiveRight[dim] = GridRightEdge[dim] + shift_temp;
-        if (SendField == ALL_FIELDS) {
-          GridLeft[dim]  = CellLeftEdge[dim][0] + shift_temp;
-          GridRight[dim] = CellLeftEdge[dim][GridDimension[dim]-1] +
-            CellWidth[dim][GridDimension[dim]-1] + shift_temp;
-        } else if (SendField == GRAVITATING_MASS_FIELD) {
-          GridLeft[dim] = GravitatingMassFieldLeftEdge[dim] + shift_temp;
-          GridRight[dim] = GridLeft[dim] + GravitatingMassFieldDimension[dim]*
-                                     GravitatingMassFieldCellSize + shift_temp;
-        }
+        GridLeft[dim]  = CellLeftEdge[dim][0] + shift_temp;
+        GridRight[dim] = CellLeftEdge[dim][GridDimension[dim]-1] +
+          CellWidth[dim][GridDimension[dim]-1] + shift_temp;
       }
 
       /* There is some overlap, so copy overlapping region */
@@ -161,18 +151,25 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
           Start[dim] = nint((Left[dim]  - GridLeft[dim]) / CellWidth[dim][0]);
           End[dim]   = nint((Right[dim] - GridLeft[dim]) / CellWidth[dim][0]) - 1;
     
+          if (SendField == GRAVITATING_MASS_FIELD) {
+            adjust = (GravitatingMassFieldDimension[dim] - GridDimension[dim]) / 2;
+            Start[dim] += adjust;
+            End[dim] += adjust;
+          }
+    
           if (End[dim] - Start[dim] < 0)
         return SUCCESS;
         
           Dim[dim] = End[dim] - Start[dim] + 1;  
     
           /* Compute index positions in the other grid */
-          if (SendField == ALL_FIELDS) {
-            StartOther[dim] = nint((Left[dim] - OtherGrid->CellLeftEdge[dim][0])/
-                     CellWidth[dim][0]);
-          } else if (SendField == GRAVITATING_MASS_FIELD) {
-            StartOther[dim] = nint((Left[dim] - OtherGrid->GravitatingMassFieldLeftEdge[dim])/
-                    GravitatingMassFieldCellSize);
+          StartOther[dim] = nint((Left[dim] - OtherGrid->CellLeftEdge[dim][0])/
+                   CellWidth[dim][0]);
+          
+          if (SendField == GRAVITATING_MASS_FIELD) {
+            adjust = (OtherGrid->GravitatingMassFieldDimension[dim] - 
+              OtherGrid->GridDimension[dim]) / 2;
+            StartOther[dim] += adjust;
           }
      
           /* Copy dimensions into temporary space */
@@ -240,10 +237,12 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
            }
       } else if (SendField == GRAVITATING_MASS_FIELD) {
         FORTRAN_NAME(copy3drel)(OtherGrid->GravitatingMassField,
-                    this->GravitatingMassField,
+                    GravitatingMassField,
                     Dim, Dim+1, Dim+2,
                     OtherDim, OtherDim+1, OtherDim+2,
-                    GridDimension, GridDimension+1, GridDimension+2,
+                    GravitatingMassFieldDimension,
+                    GravitatingMassFieldDimension+1,
+                    GravitatingMassFieldDimension+2,
                     StartOther, StartOther+1, StartOther+2,
                     Start, Start+1, Start+2);
       }

@@ -1144,6 +1144,12 @@ gradient force to gravitational force for one-zone collapse test. */
      GravitatingMassField = new float[size];
    }
 
+/* Gravity */
+
+    int ReturnGravitatingMassFieldDimension(int dim) {
+      return GravitatingMassFieldDimension[dim];
+    }
+
 /* Gravity: Delete AccelerationField. */
 
    void DeleteAccelerationField() {
@@ -2540,6 +2546,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 					    ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]);
 
   int ApplyGalaxyParticleFeedback(ActiveParticleType** ThisParticle);
+  
+  int ApplyGalaxyParticleGravity(ActiveParticleType** ThisParticle);
 
 //------------------------------------------------------------------------
 // Radiative transfer methods that don't fit in the TRANSFER define
