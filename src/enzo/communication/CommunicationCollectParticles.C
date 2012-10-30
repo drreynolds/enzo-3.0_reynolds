@@ -91,11 +91,6 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
     }
   }
 
-  int grid1;
-  
-  for (grid1 = 0; grid1 < NumberOfGrids; grid1++)
-    GridHierarchyPointer[grid1]->GridData->DebugActiveParticles(level);
-
   /* 
      TWO MODES: 
      1) Move particles to subgrids by either keeping them local or sending 
@@ -375,9 +370,6 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
   if ((CollectMode == SIBLINGS_ONLY || CollectMode == ALLGRIDS) &&
       NumberOfProcessors > 1) {
 
-    for (i = 0; i < NumberOfGrids; i++)
-      GridHierarchyPointer[i]->GridData->DebugActiveParticles(level);
-
     int StartGrid, EndGrid, StartNum, TotalNumberToMove, AllMovedParticles;
     int TotalActiveParticlesToMove, AllMovedActiveParticles;
     StartGrid = 0;
@@ -535,8 +527,6 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
 	GridHierarchyPointer[j]->GridData->CollectActiveParticles
 	  (j, APNumberToMove, jstart, jend, APSharedList, COPY_IN);
-
-	GridHierarchyPointer[j]->GridData->DebugActiveParticles(level);
 
 	jstart = jend;
       } // ENDFOR grids

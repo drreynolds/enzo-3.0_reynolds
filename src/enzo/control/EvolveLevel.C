@@ -740,22 +740,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Rebuild the Grids on the next level down.
        Don't bother on the last cycle, as we'll rebuild this grid soon. */
 
-    /* Remove active particles from normal particle arrays on this and
-       finer levels.  This must be done after RebuildHierarchy because
-       their masses must be deposited into the MassFlaggingField. */
-
-    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
-      Grids[grid1]->GridData->DebugActiveParticles(level);
-    }
-
-//    if (dtThisLevelSoFar[level] < dtLevelAbove) {
-//      RebuildHierarchy(MetaData, LevelArray, level);
-//    }
-
-    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
-      Grids[grid1]->GridData->DebugActiveParticles(level);
-    }
-
     /* Count up number of grids on this level. */
 
     int GridMemory, NumberOfCells, CellsTotal, Particles;
@@ -773,10 +757,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Rebuild the Grids on the next level down.
        Don't bother on the last cycle, as we'll rebuild this grid soon. */
  
-    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
-      Grids[grid1]->GridData->DebugActiveParticles(level);
-    }
-    
     if (dtThisLevelSoFar[level] < dtLevelAbove) {
       RebuildHierarchy(MetaData, LevelArray, level);
       DetachActiveParticles(LevelArray, level);

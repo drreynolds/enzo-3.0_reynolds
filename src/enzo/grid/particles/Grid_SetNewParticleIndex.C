@@ -24,7 +24,7 @@
 #include "Grid.h"
 #include "ActiveParticle.h"
 
-#define DEBUG
+#define NO_DEBUG
 
 void grid::SetNewParticleIndex(PINT &next_id)
 {
@@ -35,8 +35,6 @@ void grid::SetNewParticleIndex(PINT &next_id)
     if (ActiveParticles[n]->Identifier == INT_UNDEFINED) {
       ActiveParticles[n]->Identifier = next_id++;
 #ifdef DEBUG
-      if (ActiveParticles[n]->Identifier == 276422)
-	printf("Debug trap\n!");
       std::cout << "SNPI[" << MyProcessorNumber << "] " << "GridID: " 
 		<< this->ID << " APID: " << ActiveParticles[n]->Identifier
 		<< std::endl;
