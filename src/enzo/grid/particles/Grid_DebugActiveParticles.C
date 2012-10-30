@@ -32,12 +32,48 @@ int grid::DebugActiveParticles(int level)
   if (ProcessorNumber != MyProcessorNumber || NumberOfActiveParticles == 0)
     return SUCCESS;
 
-  int i, inside;
+  int i, j, index, inside;
   FLOAT *pos;
 
-  if (NumberOfActiveParticles != NumberOfParticles)
-    ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
-	       NumberOfActiveParticles, NumberOfParticles);
+  //if (NumberOfActiveParticles != NumberOfParticles)
+  //  ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
+  //	       NumberOfActiveParticles, NumberOfParticles);
+
+  int NumberOfNormalParticles = NumberOfParticles - NumberOfActiveParticles;
+
+  PINT *IDList = new PINT[NumberOfParticles];
+  PINT *APIDList = new PINT[NumberOfActiveParticles];
+
+  for (i = 0; i < NumberOfParticles; i++)
+    IDList[i] = ParticleNumber[i];
+  std::sort(IDList, IDList + NumberOfParticles);
+
+  for (i = 0; i < NumberOfActiveParticles; i++)
+    APIDList[i] = ActiveParticles[i]->ReturnID();
+  std::sort(APIDList, APIDList + NumberOfActiveParticles);
+
+#ifdef UNUSED
+  bool found = false;
+  for (i = 0; i < NumberOfParticles; i++)
+    if (ParticleNumber[i] == 270458) {
+      printf("debug trip: level %d, grid %d, particle %d, NumberOfActiveParticles = %d\n",
+	     level, this->ID, ParticleNumber[i], NumberOfActiveParticles);
+      for (j = 0; j < NumberOfActiveParticles; j++) {
+	if (ActiveParticles[j]->ReturnID() == 270458) {
+	  printf("\t ActiveParticles[%d]\n", j);
+	  found = true;
+	}
+      }
+      if (!found) 
+	printf("\t corresponding particle not found!\n");
+    }
+#endif
+
+  for (i = 0, index = NumberOfNormalParticles; i < NumberOfActiveParticles;
+       i++, index++) {
+    if (IDList[index] != APIDList[i])
+      ENZO_FAIL("Particle IDs are inconsistent!");
+  }
 
   /* Check if the active particles are within the grid */
 
@@ -55,6 +91,9 @@ int grid::DebugActiveParticles(int level)
     }
 
   }
+
+  delete[] IDList;
+  delete[] APIDList;
 
   return SUCCESS;
 

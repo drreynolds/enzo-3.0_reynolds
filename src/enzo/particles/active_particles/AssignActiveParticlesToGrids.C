@@ -95,7 +95,7 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
     else {
 #ifdef USE_MPI
       /* Find the processor which has the maximum value of
-	 LevelMax and assign the accreting particle to the
+	 LevelMax and assign the particle to the
 	 SavedGrid on that processor.  */
       struct { Eint32 value; Eint32 rank; } sendbuf, recvbuf;
       MPI_Comm_rank(EnzoTopComm, &sendbuf.rank); 

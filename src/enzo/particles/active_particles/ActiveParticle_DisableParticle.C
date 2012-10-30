@@ -41,7 +41,7 @@ int ActiveParticleType::DisableParticle(LevelHierarchyEntry *LevelArray[], int N
   for (i = 0; i < NumberOfGrids; i++) {
     ID = this->ReturnID();
     foundAP = Grids[i]->GridData->RemoveActiveParticle(ID, NewProcessorNumber);
-    foundP = Grids[i]->GridData->RemoveParticle(ID, false);
+    foundP = Grids[i]->GridData->RemoveParticle(ID);
     if (foundP && foundAP) {
       changedGrid = i;
       break;

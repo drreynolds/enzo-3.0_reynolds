@@ -25,13 +25,15 @@
 #include "LevelHierarchy.h"
 #include "ActiveParticle.h"
 
+#define DEBUG
+
 int FindTotalNumberOfParticles(LevelHierarchyEntry *LevelArray[]);
 void RecordTotalActiveParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,
 				    int TotalActiveParticleCountPrevious[]);
 
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			     int ThisLevel, int TotalActiveParticleCountPrevious[])
+			     int ThisLevel)
 {
 
   int i;
@@ -41,15 +43,13 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   LCAPERF_START("ActiveParticleInitialize");
 
-  /* Set MetaData->NumberOfParticles and prepare TotalActiveParticleCountPrevious
-     these are to be used in CommunicationUpdateActiveParticleCount 
-     in ActiveParticleFinalize */  
+  int *TotalActiveParticleCount = new int[NumberOfGrids]();
 
   MetaData->NumberOfParticles = FindTotalNumberOfParticles(LevelArray);
   NumberOfOtherParticles = MetaData->NumberOfParticles;// - NumberOfActiveParticles;
-  RecordTotalActiveParticleCount(Grids, NumberOfGrids, 
-				 TotalActiveParticleCountPrevious);
 
+  if (NextActiveParticleID == INT_UNDEFINED)
+    NextActiveParticleID = NumberOfOtherParticles + NumberOfActiveParticles;
   
   /* Active particle initialization
      1. copy quantities from active to normal particles
@@ -70,10 +70,37 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
     ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
 
     ActiveParticleTypeToEvaluate->BeforeEvolveLevel(Grids,MetaData,NumberOfGrids,LevelArray, 
-							      ThisLevel,TotalActiveParticleCountPrevious,
+							      ThisLevel,TotalActiveParticleCount,
 							      ActiveParticleID);
 
   }
+
+#ifdef DEBUG
+
+  int nParticles;
+  ActiveParticleType** ParticleList = NULL;
+
+  ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, 0);
+
+  if (nParticles > 0) {
+    PINT IDList[nParticles];
+    for (i = 0; i < nParticles; i++)
+      IDList[i] = ParticleList[i]->ReturnID();
+    std::sort(IDList, IDList + sizeof(IDList)/sizeof(IDList[0]));
+    for (i = 0; i < nParticles-1; i++)
+      if (IDList[i] == IDList[i+1]) {
+	ENZO_FAIL("Two active particles have identical IDs"); }
+  }
+
+  if (NumberOfProcessors > 1)
+    for (i = 0; i < nParticles; i++)
+      delete ParticleList[i];
+
+  delete [] ParticleList;
+
+#endif
+
+  delete [] TotalActiveParticleCount;
 
   LCAPERF_STOP("ActiveParticleInitialize");
   return SUCCESS;

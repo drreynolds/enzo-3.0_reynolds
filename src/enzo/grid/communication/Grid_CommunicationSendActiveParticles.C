@@ -167,7 +167,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   if ((CommunicationDirection == COMMUNICATION_SEND) || 
       (CommunicationDirection == COMMUNICATION_SEND_RECEIVE)) {
     if (MyProcessorNumber == ProcessorNumber) {
-      SendParticles = new ActiveParticleType*[type_count[type]];
+      SendParticles = new ActiveParticleType*[type_count[type]]();
       position = 0;
       ap_id = ap_info->GetEnabledParticleID();
         for (i = 0; i < NumberOfActiveParticles; i++) {
@@ -259,7 +259,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     
     // Extract the number of particles in the buffer
     // type_count should have been received by now...
-    NewParticles = new ActiveParticleType*[type_count[type]];
+    NewParticles = new ActiveParticleType*[type_count[type]]();
     ap_info->UnpackBuffer(buffer, 0,
 			  NewParticles, type_count[type]);
     for (i = 0; i < type_count[type]; i++)
@@ -273,6 +273,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   
   } // ENDFOR particle types
   
+  delete [] type_element_size;
+
   return SUCCESS;
 }
 

@@ -38,7 +38,7 @@ int grid::AddActiveParticles(ActiveParticleType **NewParticles,
   ActiveParticleType **OldActiveParticles = this->ActiveParticles;
 
   this->NumberOfActiveParticles += NumberOfNewParticles;
-  this->ActiveParticles = new ActiveParticleType*[this->NumberOfActiveParticles];
+  this->ActiveParticles = new ActiveParticleType*[this->NumberOfActiveParticles]();
   for (i = 0; i < OldNumberOfActiveParticles; i++) {
     this->ActiveParticles[i] = OldActiveParticles[i];
   }

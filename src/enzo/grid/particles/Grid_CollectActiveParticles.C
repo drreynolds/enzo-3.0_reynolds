@@ -60,8 +60,6 @@ int grid::CollectActiveParticles(int GridNum, int* &NumberToMove,
       ENZO_FAIL("ActiveParticles pointer cannot be NULL here.  "
 		"NumberOfActiveParticles and pointer are mismatched.");
 
-    n1 = StartIndex;
-    
     for (i = 0, n1 = StartIndex; i < NumberOfActiveParticles; i++, n1++) {
       List[n1] = ActiveParticles[i];
       List[n1]->SetGridID(GridNum);
@@ -70,7 +68,7 @@ int grid::CollectActiveParticles(int GridNum, int* &NumberToMove,
 
     StartIndex = n1;
     NumberOfActiveParticles = 0;
-    delete[] ActiveParticles;
+    delete [] ActiveParticles;
     ActiveParticles = NULL;
 
   } // end: if (COPY_OUT)

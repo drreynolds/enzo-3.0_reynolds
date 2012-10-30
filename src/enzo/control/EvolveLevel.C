@@ -217,10 +217,10 @@ int DeleteSUBlingList(int NumberOfGrids,
 int DetachActiveParticles(LevelHierarchyEntry *LevelArray[], int level);
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			     int ThisLevel, int TotalActiveParticleCountPrevious[]);
+			     int ThisLevel);
 int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int level, int TotalActiveParticleCountPrevious[]);
+			   int level, int NumberOfNewActiveParticles[]);
 int AdjustRefineRegion(LevelHierarchyEntry *LevelArray[], 
 		       TopGridData *MetaData, int EL_level);
 int AdjustMustRefineParticlesRefineToLevel(TopGridData *MetaData, int EL_level);
@@ -302,9 +302,10 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   typedef HierarchyEntry* HierarchyEntryPointer;
   HierarchyEntry **Grids;
   int NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
+  int *NumberOfNewActiveParticles = new int[NumberOfGrids]();
   int *NumberOfSubgrids = new int[NumberOfGrids];
+  int *NumberOfNewParticles = new int[NumberOfGrids];
   fluxes ***SubgridFluxesEstimate = new fluxes **[NumberOfGrids];
-  int *TotalActiveParticleCountPrevious = new int[NumberOfGrids];
   /*RunEventHooks("EvolveLevelTop", Grids, *MetaData, LocalDataP);*/
 
 #ifdef FLUX_FIX
@@ -425,7 +426,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
     Star *AllStars = NULL;
     ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
-	                     level, TotalActiveParticleCountPrevious);
+	                     level);
     
 #ifdef TRANSFER
     /* Initialize the radiative transfer */
@@ -552,7 +553,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
       /* Include 'star' particle creation and feedback. */
 
       Grids[grid1]->GridData->ActiveParticleHandler
-	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove);
+	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove, 
+	 NumberOfNewActiveParticles[grid1]);      
 
       /* Include shock-finding */
 
@@ -590,7 +592,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Finalize (accretion, feedback, etc.) star particles */
 
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
-			   level, TotalActiveParticleCountPrevious);
+			   level, NumberOfNewActiveParticles);
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
@@ -742,8 +744,17 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
        finer levels.  This must be done after RebuildHierarchy because
        their masses must be deposited into the MassFlaggingField. */
 
-    if (dtThisLevelSoFar[level] < dtLevelAbove)
-      RebuildHierarchy(MetaData, LevelArray, level);
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      Grids[grid1]->GridData->DebugActiveParticles(level);
+    }
+
+//    if (dtThisLevelSoFar[level] < dtLevelAbove) {
+//      RebuildHierarchy(MetaData, LevelArray, level);
+//    }
+
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      Grids[grid1]->GridData->DebugActiveParticles(level);
+    }
 
     /* Count up number of grids on this level. */
 
@@ -762,6 +773,10 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     /* Rebuild the Grids on the next level down.
        Don't bother on the last cycle, as we'll rebuild this grid soon. */
  
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      Grids[grid1]->GridData->DebugActiveParticles(level);
+    }
+    
     if (dtThisLevelSoFar[level] < dtLevelAbove) {
       RebuildHierarchy(MetaData, LevelArray, level);
       DetachActiveParticles(LevelArray, level);
@@ -788,9 +803,9 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   /* Clean up. */
  
   delete [] NumberOfSubgrids;
+  delete [] NumberOfNewParticles;
   delete [] Grids;
   delete [] SubgridFluxesEstimate;
-  delete [] TotalActiveParticleCountPrevious;
 
   dtThisLevel[level] = dtThisLevelSoFar[level] = 0.0;
  

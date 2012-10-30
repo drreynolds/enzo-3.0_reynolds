@@ -38,7 +38,6 @@ ENZO_OBJS +=\
 	CommunicationTransferSubgridParticles.o \
 	CommunicationTranspose.o \
 	CommunicationUpdateActiveParticleCount.o \
-	CommunicationUpdateStarParticleCount.o \
 	CommunicationUtilities.o \
 	DetermineNumberOfNodes.o \
 	DetermineParallelism.o \

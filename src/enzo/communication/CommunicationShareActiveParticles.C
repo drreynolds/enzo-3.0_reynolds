@@ -6,6 +6,7 @@
 /  date:       May, 2009
 /  modified1   July, 2009 by John Wise: adapted for stars
 /  modified2:  December, 2011 by John Wise: adapted for active particles
+/  modified3:  November, 2012 by Nathan Goldbaum: Rewriting to use an Allgatherv
 /
 /  PURPOSE: Takes a list of active particles moves and sends/receives
 /           them to all processors
@@ -136,7 +137,7 @@ int CommunicationShareActiveParticles(int *NumberToMove,
 
       /* Unpack the particle buffers, generate global shared active particle list */
       
-      SharedList = new ActiveParticleType*[NumberOfNewParticles];
+      SharedList = new ActiveParticleType*[NumberOfNewParticles]();
 
       int count = 0;
       for (proc = 0; proc < NumberOfProcessors; proc++) {

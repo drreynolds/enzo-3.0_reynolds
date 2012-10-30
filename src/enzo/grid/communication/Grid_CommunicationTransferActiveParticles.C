@@ -135,7 +135,7 @@ int grid::CommunicationTransferActiveParticles(grid* Grids[], int NumberOfGrids,
       // Increase the size of the list to include the active particles
       // from this grid
 
-      ActiveParticleType **NewList = new ActiveParticleType*[TotalToMove];
+      ActiveParticleType **NewList = new ActiveParticleType*[TotalToMove]();
       for (i = 0; i < PreviousTotalToMove; i++)
 	NewList[i] = List[i];
       delete [] List;
@@ -146,7 +146,7 @@ int grid::CommunicationTransferActiveParticles(grid* Grids[], int NumberOfGrids,
       int n1 = PreviousTotalToMove;
       int index = 0;
       ActiveParticleType **OldActiveParticles = ActiveParticles;
-      ActiveParticles = new ActiveParticleType*[NumberLeft];
+      ActiveParticles = new ActiveParticleType*[NumberLeft]();
 
       for (i = 0; i < NumberOfActiveParticles; i++) {
 	grid = ToGrid[i];

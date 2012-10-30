@@ -69,7 +69,7 @@ int grid::AddActiveParticle(ActiveParticleType* ThisParticle)
   }
 
   ActiveParticleType **OldActiveParticles = ActiveParticles;
-  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1];
+  ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles+1]();
   
   j = 0;
   if (NumberOfActiveParticles > 0) {

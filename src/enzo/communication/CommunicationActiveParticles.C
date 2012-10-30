@@ -124,7 +124,7 @@ int CommunicationShareStars(int *NumberToMove, star_data* &SendList,
       MPI_RecvListCount[i] = RecvListCount[i];
     }
 
-    SharedList = new ActiveParticleType*[NumberOfReceives];
+    SharedList = new ActiveParticleType*[NumberOfReceives]();
  
     /******************************
           Share the stars
