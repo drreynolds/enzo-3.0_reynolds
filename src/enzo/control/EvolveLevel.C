@@ -748,9 +748,9 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
       Grids[grid1]->GridData->DebugActiveParticles(level);
     }
 
-    if (dtThisLevelSoFar[level] < dtLevelAbove) {
-      RebuildHierarchy(MetaData, LevelArray, level);
-    }
+//    if (dtThisLevelSoFar[level] < dtLevelAbove) {
+//      RebuildHierarchy(MetaData, LevelArray, level);
+//    }
 
     for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
       Grids[grid1]->GridData->DebugActiveParticles(level);

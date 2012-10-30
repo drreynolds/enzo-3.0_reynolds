@@ -57,7 +57,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
     igrid, isubgrid, dim, FromStart, FromNumber, ToStart, ToNumber;
   int GridDimension[MAX_DIMENSION];
   FLOAT EdgeOffset[MAX_DIMENSION];
-  grid *grid_one, *grid_two;
+  grid *grid_one, *grid_two, *temp_grid;
   TotalReceives = CommunicationReceiveIndex;
   int gCSAPs_count, gCSAPs_done;
 #ifdef TRANSFER
@@ -141,11 +141,13 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 	  CommunicationReceiveMPI_Request[index] == MPI_REQUEST_NULL) {
 
 // 	if(CommunicationReceiveCallType[index]==2)
-// 	  fprintf(stdout, "%d %d %d %d %d\n", index, 
-// 		CommunicationReceiveCallType[index],
-// 		CommunicationReceiveGridOne[index],
-// 		CommunicationReceiveMPI_Request[index],
-// 		CommunicationReceiveDependsOn[index]);
+// 	  fprintf(stdout, "%d %d %p %p %d %d\n", index, 
+//		  CommunicationReceiveCallType[index],
+//		  CommunicationReceiveGridOne[index],
+//		  CommunicationReceiveMPI_Request[index],
+//		  CommunicationReceiveDependsOn[index],
+//		  CommunicationReceiveArgumentInt[index][0]
+//		  );
 
 	/* If this depends on an un-processed receive, then skip it. */
 
@@ -323,8 +325,13 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 
     // if this is a g:CSAPs recv, mark ALL g:CSAPs done, including this one.
     if (CommunicationReceiveCallType[index] == 20) {
+      temp_grid = CommunicationReceiveGridOne[index];
       for (index2 = 0; index2 < TotalReceives; index2++) {
-        if (CommunicationReceiveCallType[index2] == 20) {
+        if (CommunicationReceiveCallType[index2] == 20 &&
+	    CommunicationReceiveGridOne[index2] == temp_grid) {
+//	  printf("Recv done: index %d, index2 = %d/%d, call type %d, grid ID %d\n",
+//		 index, index2, TotalReceives, CommunicationReceiveCallType[index2], 
+//		 CommunicationReceiveGridOne[index2]->GetGridID());
           CommunicationReceiveGridOne[index2] = NULL;
           ReceivesCompletedToDate++;
         }

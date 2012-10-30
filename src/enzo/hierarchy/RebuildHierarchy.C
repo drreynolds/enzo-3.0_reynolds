@@ -198,8 +198,8 @@ int RebuildHierarchy(TopGridData *MetaData,
     }    
 
     for (j = 0; j < grids; j++) {
-      GridParent[j]->GridData->DebugActiveParticles(level);
-      GridPointer[j]->DebugActiveParticles(level);
+      GridParent[j]->GridData->DebugActiveParticles(i);
+      GridPointer[j]->DebugActiveParticles(i);
     }
 
     /* Collect all the grids with the same parent and pass them all to
@@ -219,7 +219,7 @@ int RebuildHierarchy(TopGridData *MetaData,
 	GridParent[j]->GridData->MoveAllParticles(grids2, ContigiousGridList);
 
 	for (int jj = 0; jj < grids2; jj++)
-	  ContigiousGridList[jj]->DebugActiveParticles(level);
+	  ContigiousGridList[jj]->DebugActiveParticles(i);
 
 #ifdef TRANSFER   
 	/* Rescue all PhotonPackages before the subgrids are deleted. */

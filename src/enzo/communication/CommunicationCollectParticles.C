@@ -435,9 +435,9 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
 #ifdef DEBUG_CCP
       printf("CCP[%d]: Collecting a total of %"ISYM" (%"ISYM" local) "
-	     "particles over grids %"ISYM"->%"ISYM".\n", 
-	     MyProcessorNumber, AllMovedParticles, TotalNumberToMove,
-	     StartGrid, EndGrid-1);  
+	     "particles and %"ISYM" active particles over grids %"ISYM"->%"ISYM".\n", 
+	     MyProcessorNumber, AllMovedParticles, TotalNumberToMove, 
+	     TotalActiveParticlesToMove, StartGrid, EndGrid-1);  
 
     for (i = StartGrid; i < EndGrid; i++)
       printf("CCP[P%"ISYM"BB]: grid %"ISYM", %"ISYM" proc, %"ISYM" (%"ISYM") particles\n",
@@ -509,10 +509,11 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
 #ifdef DEBUG_CCP
     for (i = StartGrid; i < EndGrid; i++)
-      printf("CCP[P%"ISYM"CC]: grid %"ISYM", %"ISYM" proc, %"ISYM" particles\n",
+      printf("CCP[P%"ISYM"CC]: grid %"ISYM", %"ISYM" proc, %"ISYM" (%"ISYM") particles\n",
 	     MyProcessorNumber, i,
 	     GridHierarchyPointer[i]->GridData->ReturnProcessorNumber(),
-	     GridHierarchyPointer[i]->GridData->ReturnNumberOfParticles());
+	     GridHierarchyPointer[i]->GridData->ReturnNumberOfParticles(),
+	     GridHierarchyPointer[i]->GridData->ReturnNumberOfActiveParticles());
 #endif /* DEBUG_CCP */
 
     /*******************************************************************/
