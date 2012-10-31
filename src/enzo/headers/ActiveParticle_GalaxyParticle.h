@@ -133,7 +133,7 @@ int ActiveParticleType_GalaxyParticle::AfterEvolveLevel(HierarchyEntry *Grids[],
 	  // meant to be run in 3D.
 	  FLOAT period[3];
 	  for (int dim = 0; dim < 3; dim++) {
-	    period[dim] = DomainRightEdge[0] - DomainLeftEdge[0];
+	    period[dim] = DomainRightEdge[dim] - DomainLeftEdge[dim];
 	  }
 
      /* Apply feedback */

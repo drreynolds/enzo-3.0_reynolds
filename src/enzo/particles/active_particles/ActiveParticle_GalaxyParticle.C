@@ -365,12 +365,6 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
 
   delete [] FeedbackZones;
 
-  // Fix particles that have moved "outside" the box right before we re-assign
-  // them to grids.
-  for (i = 0; i < nParticles; i++) {
-    ParticleList[i]->SetPositionPeriod(period);
-  }
-
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
 
