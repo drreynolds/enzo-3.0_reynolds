@@ -27,6 +27,9 @@ int grid::UpdateParticleWithActiveParticle(PINT ID)
 {
   int i,n,nFound,dim;
 
+  if (MyProcessorNumber != ProcessorNumber)
+    return SUCCESS;
+
   nFound = -1;
   for (i = 0; i < NumberOfActiveParticles; i++) {
     for (n = 0; n < NumberOfParticles; n++) {
