@@ -54,6 +54,10 @@ public:
 				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				int ThisLevel, int TotalStarParticleCountPrevious[],
 				int GalaxyParticleID);
+  template <class active_particle_class>
+    static int DepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int GalaxyParticleID);
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   // Galaxy Particle helper routines.
   static int SubtractMassFromGrid(int nParticles,
@@ -61,6 +65,10 @@ public:
     FLOAT dx, int ThisLevel);
   static int InitializeParticleType(void);
   static int GalaxyParticleFeedback(int nParticles, ActiveParticleType** ParticleList,
+		     FLOAT dx, LevelHierarchyEntry *LevelArray[], int ThisLevel,
+		     FLOAT period[3]);
+  
+  static int GalaxyParticleGravity(int nParticles, ActiveParticleType** ParticleList,
 		     FLOAT dx, LevelHierarchyEntry *LevelArray[], int ThisLevel,
 		     FLOAT period[3]);
   
@@ -117,7 +125,7 @@ int ActiveParticleType_GalaxyParticle::AfterEvolveLevel(HierarchyEntry *Grids[],
 
       ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GalaxyParticleID);
 
-      /* Return if there are no accreting particles */
+      /* Return if there are no galaxy particles */
       
       if (nParticles == 0)
 	return SUCCESS;
@@ -140,6 +148,53 @@ int ActiveParticleType_GalaxyParticle::AfterEvolveLevel(HierarchyEntry *Grids[],
       if (GalaxyParticleFeedback(nParticles, ParticleList,
         dx, LevelArray, ThisLevel, period) == FAIL)
 	ENZO_FAIL("Galaxy Particle Feedback failed. \n");
+
+    delete [] ParticleList;
+
+    }
+
+  return SUCCESS;
+
+}
+
+template <class active_particle_class>
+int ActiveParticleType_GalaxyParticle::DepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
+							   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							   int ThisLevel, int GalaxyParticleID)
+{
+
+  if (ThisLevel == MaximumRefinementLevel)
+    {
+
+      /* Generate a list of all galaxy particles in the simulation box */
+      int i,nParticles;
+      ActiveParticleType** ParticleList = NULL;
+
+      ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, GalaxyParticleID);
+
+      /* Return if there are no galaxy particles */
+      
+      if (nParticles == 0)
+	   return SUCCESS;
+
+      /* Calculate CellWidth on maximum refinement level */
+
+      // This assumes a cubic box and may not work for simulations with
+      // MinimumMassForRefinementLevelExponent
+      FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
+	(MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+	  // Find the period of the box.
+	  // I'm going to be cheap here because galaxy particles are only ever
+	  // meant to be run in 3D.
+	  FLOAT period[3];
+	  for (int dim = 0; dim < 3; dim++) {
+	    period[dim] = DomainRightEdge[dim] - DomainLeftEdge[dim];
+	  }
+
+     /* Apply feedback */
+      if (GalaxyParticleGravity(nParticles, ParticleList,
+        dx, LevelArray, ThisLevel, period) == FAIL)
+	ENZO_FAIL("Galaxy Particle Gravity failed. \n");
 
     delete [] ParticleList;
 

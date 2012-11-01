@@ -474,6 +474,9 @@ public:
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
+   int (*deposit_mass)(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int GalaxyParticleID),
    int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    void (*allocate_buffer)(int Count, char **buffer),
    int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
@@ -493,6 +496,7 @@ public:
     this->EvaluateFeedback = feedback;
     this->BeforeEvolveLevel = before_evolvelevel;
     this->AfterEvolveLevel = after_evolvelevel;
+    this->DepositMass = deposit_mass;
     this->SetFlaggingField = flagfield;
     this->DescribeSupplementalData = describe_data;
     this->FillBuffer = fill_buffer;
@@ -528,6 +532,9 @@ public:
 				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
+  int (*DepositMass)(HierarchyEntry *Grids[], TopGridData *MetaData,
+                    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+                    int ThisLevel, int ActiveParticleID);
   int (*SetFlaggingField)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
   void (*AllocateBuffer)(int Count, char **buffer);
@@ -568,6 +575,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&APClass::EvaluateFeedback),
      (&APClass::template BeforeEvolveLevel<APClass>),
      (&APClass::template AfterEvolveLevel<APClass>),
+     (&APClass::template DepositMass<APClass>),
      (&APClass::SetFlaggingField),
      (&ActiveParticleHelpers::Allocate<APClass>),
      (&ActiveParticleHelpers::FillBuffer<APClass>),

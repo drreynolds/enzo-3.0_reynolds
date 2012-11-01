@@ -53,6 +53,10 @@ public:
 				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				int ThisLevel, int TotalStarParticleCountPrevious[],
 				int AccretingParticleID);
+  template <class active_particle_class>
+    static int DepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int GalaxyParticleID) {return SUCCESS; };
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
   

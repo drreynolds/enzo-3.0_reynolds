@@ -37,7 +37,10 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
 				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				int ThisLevel, int TotalStarParticleCountPrevious[],
 				int GMCParticleID);
-
+  template <class active_particle_class>
+    static int DepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int GalaxyParticleID) {return SUCCESS; };
 
   // instance member functions
   int CalculateDerivedParameters();

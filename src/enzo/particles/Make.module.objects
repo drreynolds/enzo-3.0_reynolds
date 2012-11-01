@@ -11,6 +11,7 @@ vpath %.F90 particles/active_particles/
 ENZO_OBJS +=\
         ActiveParticle.o \
         ActiveParticleFinalize.o \
+        ActiveParticleDepositMass.o \
         ActiveParticleFindAll.o \
         ActiveParticleInitialize.o \
         ActiveParticleRoutines.o \
