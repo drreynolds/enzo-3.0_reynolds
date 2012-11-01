@@ -393,9 +393,8 @@ int PrepareDensityField(LevelHierarchyEntry *LevelArray[],
     int *FeedbackRadius = NULL;
     std::string GPname ("GalaxyParticle");
     FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
-	(MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
-	
-    if (EnabledActiveParticlesCount > 0) {
+	  (MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
+    if ((EnabledActiveParticlesCount > 0) && (level >= MaximumRefinementLevel)) {
         for (i = 0 ; i < EnabledActiveParticlesCount; i++) {
             // Figure out what we're looking at.
             ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
