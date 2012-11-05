@@ -963,7 +963,7 @@ gradient force to gravitational force for one-zone collapse test. */
 			 FLOAT EdgeOffset[MAX_DIMENSION]);
 
    int CopyActiveZonesFromGrid(grid *GridOnSameLevel, 
-			      FLOAT EdgeOffset[MAX_DIMENSION]);
+			      FLOAT EdgeOffset[MAX_DIMENSION], int SendField);
 
 /* gravity: copy coincident potential field zones from grid in the argument
             (gg #7).  Return SUCCESS or FAIL. */
@@ -1137,6 +1137,18 @@ gradient force to gravitational force for one-zone collapse test. */
      delete [] GravitatingMassField; 
      GravitatingMassField = NULL;
    };
+
+/* Gravity: Init GravitatingMassField. */
+
+   void InitGravitatingMassField(int size) {
+     GravitatingMassField = new float[size];
+   }
+
+/* Gravity */
+
+    int ReturnGravitatingMassFieldDimension(int dim) {
+      return GravitatingMassFieldDimension[dim];
+    }
 
 /* Gravity: Delete AccelerationField. */
 
@@ -2534,6 +2546,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 					    ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]);
 
   int ApplyGalaxyParticleFeedback(ActiveParticleType** ThisParticle);
+  
+  int ApplyGalaxyParticleGravity(ActiveParticleType** ThisParticle);
 
 //------------------------------------------------------------------------
 // Radiative transfer methods that don't fit in the TRANSFER define

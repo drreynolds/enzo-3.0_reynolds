@@ -4,7 +4,7 @@
 /
 /  written by: Nathan Goldbaum
 /  date:       July 2012 (adapted from Grid_CopyZonesFromGrid.C)
-/  modified1:
+/  modified1:  Stephen Skory, Sept 2012
 /
 /  PURPOSE:
 /
@@ -50,7 +50,8 @@ int check_overlap(FLOAT a[MAX_DIMENSION], FLOAT b[MAX_DIMENSION],
                   int dims, FLOAT period[MAX_DIMENSION],
                   int *shift, int skipto);
 
-int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION])
+int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSION],
+    int SendField)
 {
  
   /* Return if this doesn't involve us. */
@@ -62,12 +63,17 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
   if (NumberOfBaryonFields == 0)
     return SUCCESS;
 
+  if (this->GetCellWidth(0,0) != OtherGrid->GetCellWidth(0,0))
+    return SUCCESS;
+
   /* Compute the left and right edges of this grid (including ghost zones). */
  
   FLOAT GridLeft[MAX_DIMENSION]; FLOAT GridRight[MAX_DIMENSION];
   FLOAT ActiveLeft[MAX_DIMENSION]; FLOAT ActiveRight[MAX_DIMENSION];
   FLOAT period[MAX_DIMENSION];
   int *shift;
+
+  int adjust;
 
   shift = new int[MAX_DIMENSION];
 
@@ -145,21 +151,36 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
           Start[dim] = nint((Left[dim]  - GridLeft[dim]) / CellWidth[dim][0]);
           End[dim]   = nint((Right[dim] - GridLeft[dim]) / CellWidth[dim][0]) - 1;
     
+          if (SendField == GRAVITATING_MASS_FIELD) {
+            adjust = (GravitatingMassFieldDimension[dim] - GridDimension[dim]) / 2;
+            Start[dim] += adjust;
+            End[dim] += adjust;
+          }
+    
           if (End[dim] - Start[dim] < 0) {
-	    delete [] shift;
-	    return SUCCESS;
-	  }
+            delete [] shift;
+            return SUCCESS;
+          }
 
           Dim[dim] = End[dim] - Start[dim] + 1;  
     
           /* Compute index positions in the other grid */
-     
           StartOther[dim] = nint((Left[dim] - OtherGrid->CellLeftEdge[dim][0])/
-                     CellWidth[dim][0]);
+                   CellWidth[dim][0]);
+          
+          if (SendField == GRAVITATING_MASS_FIELD) {
+            adjust = (OtherGrid->GravitatingMassFieldDimension[dim] - 
+              OtherGrid->GridDimension[dim]) / 2;
+            StartOther[dim] += adjust;
+          }
      
           /* Copy dimensions into temporary space */
-     
-          OtherDim[dim] = OtherGrid->GridDimension[dim];
+          
+          if (SendField == ALL_FIELDS) {
+            OtherDim[dim] = OtherGrid->GridDimension[dim];
+          } else if (SendField == GRAVITATING_MASS_FIELD) {
+            OtherDim[dim] = OtherGrid->GravitatingMassFieldDimension[dim];
+          }
         } // if GD > 1
       } // dim
       /* Calculate dimensions */
@@ -174,8 +195,10 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
         CommunicationReceiveCallType[CommunicationReceiveIndex] = 21;
         for (dim = 0; dim < GridRank; dim++)
           CommunicationReceiveArgument[dim][CommunicationReceiveIndex] = 
-        EdgeOffset[dim];
-      }
+            EdgeOffset[dim];
+        }
+        CommunicationReceiveArgumentInt[0][CommunicationReceiveIndex] =
+            SendField;
     #endif /* USE_MPI */
       /* Copy data from other processor if needed (modify OtherDim and
          StartOther to reflect the fact that we are only copying part of
@@ -187,7 +210,7 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
       
       if (ProcessorNumber != OtherGrid->ProcessorNumber) {
         OtherGrid->CommunicationSendRegion(OtherGrid, ProcessorNumber,
-                           ALL_FIELDS, NEW_ONLY, StartOther, Dim);
+                           SendField, NEW_ONLY, StartOther, Dim);
         
         if (CommunicationDirection == COMMUNICATION_POST_RECEIVE ||
 	    CommunicationDirection == COMMUNICATION_SEND) {
@@ -208,14 +231,27 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
 	return SUCCESS;
         }
     
-      for (int field = 0; field < NumberOfBaryonFields; field++) {
-        FORTRAN_NAME(copy3drel)(OtherGrid->BaryonField[field], BaryonField[field],
+      if (SendField == ALL_FIELDS) {
+          for (int field = 0; field < NumberOfBaryonFields; field++) {
+            FORTRAN_NAME(copy3drel)(OtherGrid->BaryonField[field], BaryonField[field],
+                        Dim, Dim+1, Dim+2,
+                        OtherDim, OtherDim+1, OtherDim+2,
+                        GridDimension, GridDimension+1, GridDimension+2,
+                        StartOther, StartOther+1, StartOther+2,
+                        Start, Start+1, Start+2);
+           }
+      } else if (SendField == GRAVITATING_MASS_FIELD) {
+        FORTRAN_NAME(copy3drel)(OtherGrid->GravitatingMassField,
+                    GravitatingMassField,
                     Dim, Dim+1, Dim+2,
                     OtherDim, OtherDim+1, OtherDim+2,
-                    GridDimension, GridDimension+1, GridDimension+2,
+                    GravitatingMassFieldDimension,
+                    GravitatingMassFieldDimension+1,
+                    GravitatingMassFieldDimension+2,
                     StartOther, StartOther+1, StartOther+2,
                     Start, Start+1, Start+2);
-       }
+      }
+      
       /* Clean up if we have transfered data. */
 
   } // end while(true)

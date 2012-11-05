@@ -239,10 +239,11 @@ int ActiveParticleType_GalaxyParticle::SetFlaggingField
 }
 
 grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+    int SendField);
 
 int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids);
+			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
 
 int ActiveParticleType_GalaxyParticle::SubtractMassFromGrid(int nParticles,
     ActiveParticleType** ParticleList, LevelHierarchyEntry *LevelArray[],
@@ -342,7 +343,7 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
   }
   
   grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-    FeedbackRadius, dx, Grids, NumberOfGrids);
+    FeedbackRadius, dx, Grids, NumberOfGrids, ALL_FIELDS);
 
   delete [] FeedbackRadius;
 
@@ -356,26 +357,74 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
     }
   }
   
-  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
+  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids, ALL_FIELDS);
 
   for (i = 0; i < nParticles; i++) {
     delete FeedbackZones[i];    
   }
 
   delete [] FeedbackZones;
-
-  // Fix particles that have moved "outside" the box right before we re-assign
-  // them to grids.
-  for (i = 0; i < nParticles; i++) {
-    ParticleList[i]->SetPositionPeriod(period);
-  }
-
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
 
   delete [] Grids;
   return SUCCESS;
 }
+
+int ActiveParticleType_GalaxyParticle::GalaxyParticleGravity(int nParticles,
+    ActiveParticleType** ParticleList, FLOAT dx, 
+	LevelHierarchyEntry *LevelArray[], int ThisLevel, FLOAT period[MAX_DIMENSION])
+{
+  
+  /* Skip if we're not on the maximum refinement level. 
+     This should only ever happen right after creation and then
+     only in pathological cases where creation is happening at 
+     the edges of two regions at the maximum refinement level */
+
+  if (ThisLevel < MaximumRefinementLevel)
+    return SUCCESS;
+
+  /* For each particle, loop over all of the grids and do gravity 
+     if the grid overlaps with the feedback zone                   */
+  
+  int i, NumberOfGrids;
+  int *FeedbackRadius = NULL;
+  HierarchyEntry **Grids = NULL;
+  
+  NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
+  
+  FeedbackRadius = new int[nParticles];
+  for (i = 0; i < nParticles; i++) {
+    FeedbackRadius[i] = nint(static_cast<ActiveParticleType_GalaxyParticle*>(ParticleList[i])->Radius / dx);
+  }
+  
+  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
+    FeedbackRadius, dx, Grids, NumberOfGrids, GRAVITATING_MASS_FIELD);
+
+  delete [] FeedbackRadius;
+
+  for (i = 0; i < nParticles; i++) {
+    grid* FeedbackZone = FeedbackZones[i];
+    if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
+        
+      if (FeedbackZone->ApplyGalaxyParticleGravity(&ParticleList[i]) == FAIL)
+	return FAIL;
+  
+    }
+  }
+  
+  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids,
+    GRAVITATING_MASS_FIELD);
+
+  for (i = 0; i < nParticles; i++) {
+    delete FeedbackZones[i];    
+  }
+
+  delete [] FeedbackZones;
+  delete [] Grids;
+  return SUCCESS;
+}
+
 
 namespace {
   ActiveParticleType_info *GalaxyParticleInfo = 

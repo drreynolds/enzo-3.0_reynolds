@@ -38,7 +38,8 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 
 
 grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids)
+    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+    int SendField)
 {
   int i,j,dim,size;
   int FeedbackZoneRank;
@@ -79,11 +80,8 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
       FeedbackZoneRightEdge[FeedbackZoneRank];
     FLOAT CellSize, GridGZLeftEdge, ncells[FeedbackZoneRank];
 
-    size = 1;
-
-    for (int dim = 0; dim < FeedbackZoneRank; dim++) {
+    for (dim = 0; dim < FeedbackZoneRank; dim++) {
       FeedbackZoneDimension[dim] = (2*(FeedbackRadius[i]+DEFAULT_GHOST_ZONES)+1);
-      size *= FeedbackZoneDimension[dim];
       CellSize = APGrids[i]->GetCellWidth(dim,0);
       GridGZLeftEdge = APGrids[i]->GetCellLeftEdge(dim,0);
       
@@ -108,6 +106,16 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
     if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
       ENZO_FAIL("FeedbackZone BaryonField allocation failed\n");
 
+	if (SendField == GRAVITATING_MASS_FIELD) {
+	    size = 1;
+	    // If we're doing gravity, we need to init that field.
+	    FeedbackZone->InitializeGravitatingMassField(RefineBy);
+	    for (dim = 0; dim < FeedbackZoneRank; dim++) {
+	      size *= FeedbackZone->ReturnGravitatingMassFieldDimension(dim);
+	    }
+	    FeedbackZone->InitGravitatingMassField(size);
+    }
+
     FeedbackZones[i] = FeedbackZone;
   }
 
@@ -126,7 +134,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) 
     for (j = 0; j < NumberOfGrids; j++) 
-      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector,SendField) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     
   /* Send data */
@@ -135,7 +143,7 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 
   for (i = 0; i < nParticles; i++) {
     for (j = 0; j < NumberOfGrids; j++) {
-      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector) == FAIL)
+      if (FeedbackZones[i]->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector,SendField) == FAIL)
 	ENZO_FAIL("FeedbackZone copy failed!\n");
     }
   }

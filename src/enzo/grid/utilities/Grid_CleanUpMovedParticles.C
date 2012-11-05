@@ -25,6 +25,9 @@
 int grid::CleanUpMovedParticles()
 {
  
+   if (MyProcessorNumber != ProcessorNumber)
+    return SUCCESS;
+ 
   /* If there are no particles to clean up, we're done. */
  
   if (NumberOfParticles == 0)

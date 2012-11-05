@@ -60,6 +60,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
   grid *grid_one, *grid_two, *temp_grid;
   TotalReceives = CommunicationReceiveIndex;
   int gCSAPs_count, gCSAPs_done;
+  int SendField;
 #ifdef TRANSFER
   PhotonPackageEntry *PP;
 #endif
@@ -300,7 +301,8 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 #endif
 
 	case 21:
-	  errcode = grid_one->CopyActiveZonesFromGrid(grid_two, EdgeOffset);
+	  SendField = CommunicationReceiveArgumentInt[0][index];
+	  errcode = grid_one->CopyActiveZonesFromGrid(grid_two, EdgeOffset, SendField);
 
 	case 20:
 	  errcode = grid_one->CommunicationSendActiveParticles

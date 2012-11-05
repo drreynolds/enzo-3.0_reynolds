@@ -7,7 +7,7 @@
 /  modifiedN:  Robert Harkness
 /  date:       February, 2008
 /  modified:   Stephen Skory
-/  date:       October, 2012 - adding galaxy particle stuff.
+/  date:       October, 2012 - adding active particle gravity hook.
 /
 / ======================================================================= 
 / This routine prepares the density field for all the grids on this level,
@@ -56,12 +56,9 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 				int FluxFlag = FALSE,
 				TopGridData* MetaData = NULL);
 
-// Next two are for galaxy particles.
-grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids);
-
-int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids);
+int ActiveParticleDepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
+			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			   int level);
 
 int PrepareGravitatingMassField1(HierarchyEntry *Grid);
 #ifdef FAST_SIB
@@ -382,50 +379,11 @@ int PrepareDensityField(LevelHierarchyEntry *LevelArray[],
   CommunicationDirection = COMMUNICATION_SEND_RECEIVE;
  
   /************************************************************************/
-  /* If we have Galaxy Particles we need to insert their gravitational
-     effects here. We will make temporary AP grids where the 
-     GravitatingMassField is copied to it, updated, and then copied back to
-     the "real" grids.
+  /* Here Active particles have the opportunity to deposit mass into the
+     temporary mass buffers.
    */
-    int i, j, match, ActiveParticleID, nParticles;
-    ActiveParticleType** ParticleList = NULL;
-    int *FeedbackRadius = NULL;
-    std::string GPname ("GalaxyParticle");
-    FLOAT dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
-	(MetaData->TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
-	
-    if (EnabledActiveParticlesCount > 0) {
-        for (i = 0 ; i < EnabledActiveParticlesCount; i++) {
-            // Figure out what we're looking at.
-            ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
-            ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
-            match = GPname.compare(ActiveParticleTypeToEvaluate->GetEnabledParticleName());
-            if (match != 0) continue;
-            // If here, we are looking at Galaxy Particles. Make a list of them.
-            ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, ActiveParticleID);
-            printf("APID %d match %d nP %d\n", ActiveParticleID, match, nParticles);
-            // Find the radius of each.
-            FeedbackRadius = new int[nParticles];
-            for (j = 0; j < nParticles; j++) {
-                FeedbackRadius[j] = nint(static_cast<ActiveParticleType_GalaxyParticle*>(ParticleList[j])->Radius / dx);
-            }
-            // Make the temporary grids copying the GravitatingMassField
-            // field, only.
-            //grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-            //    FeedbackRadius, dx, Grids, NumberOfGrids);
-            
-            // Copy results back to "real" grids.
-            //DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids);
-            
-            // Clean up.
-            //for (j = 0; j < nParticles; j++) {
-            //    delete FeedbackZones[j];    
-            //}
-            //delete [] FeedbackZones;
-            delete [] FeedbackRadius;
-            delete ParticleList;
-        } // for enabled particles.
-   } // if AP particle enabled.
+    ActiveParticleDepositMass(Grids, MetaData, NumberOfGrids, LevelArray, 
+			   level);
  
   /************************************************************************/
   /* Compute the potential for the top grid. */
