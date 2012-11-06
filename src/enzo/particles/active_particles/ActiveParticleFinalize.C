@@ -28,7 +28,7 @@
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
 
-#define DEBUG
+#define NO_DEBUG
 
 /* prototypes */
 

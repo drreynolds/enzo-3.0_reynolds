@@ -25,7 +25,7 @@
 #include "LevelHierarchy.h"
 #include "ActiveParticle.h"
 
-#define DEBUG
+#define NO_DEBUG
 
 int FindTotalNumberOfParticles(LevelHierarchyEntry *LevelArray[]);
 void RecordTotalActiveParticleCount(HierarchyEntry *Grids[], int NumberOfGrids,

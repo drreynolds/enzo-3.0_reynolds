@@ -42,7 +42,7 @@
 #include "Hierarchy.h"
 #include "LevelHierarchy.h"
 
-#define DEBUG
+#define NO_DEBUG
 
 int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 					 TopGridData *MetaData,

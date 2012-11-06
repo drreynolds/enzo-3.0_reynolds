@@ -468,12 +468,9 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
     CommunicationShareParticles(NumberToMove, SendList, NumberOfReceives,
 				SharedList);
 
-    MPI_Barrier(EnzoTopComm);
-
     if (MoveActiveParticles) {
       CommunicationShareActiveParticles
 	(APNumberToMove, APSendList, APNumberOfReceives, APSharedList);
-      MPI_Barrier(EnzoTopComm);
     }
 
     /*******************************************************************/
@@ -497,7 +494,6 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 	jstart = jend;
       } // ENDFOR grids
 
-    MPI_Barrier(EnzoTopComm);
 
 #ifdef DEBUG_CCP
     for (i = StartGrid; i < EndGrid; i++)
@@ -530,8 +526,6 @@ int CommunicationCollectParticles(LevelHierarchyEntry *LevelArray[],
 
 	jstart = jend;
       } // ENDFOR grids
-
-    MPI_Barrier(EnzoTopComm);
 
     } // ENDIF MoveActiveParticles
 
