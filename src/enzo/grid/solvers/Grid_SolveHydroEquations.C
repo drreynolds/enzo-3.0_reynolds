@@ -459,10 +459,8 @@ int grid::SolveHydroEquations(int CycleNumber, int NumberOfSubgrids,
 
 
     /* Clean up allocated fields. */
-    if (HydroMethod == Zeus_Hydro && MultiSpecies > 1) 
-      delete [] GammaField;
-    else 
-      delete [] GammaField;
+
+    delete [] GammaField;   
 
     for (dim = 0; dim < MAX_DIMENSION; dim++)
       delete [] CellWidthTemp[dim];

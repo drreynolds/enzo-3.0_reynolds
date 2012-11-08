@@ -212,6 +212,11 @@ int HDF5_ReadAttribute(hid_t group_id, const char *AttributeName, Eflt32 &Attrib
 #ifdef IO_LOG
   io_log = 1;
 #endif
+  attr_id = H5Aopen_name(group_id, AttributeName);
+  if (io_log) fprintf(log_fptr, "H5Aopen_name: attr_id = %"ISYM"\n", (int) attr_id);
+
+  h5_status = H5Aread(attr_id, HDF5_R4, &Attribute);
+  if (io_log) fprintf(log_fptr, "H5Aread: status = %"ISYM"\n", (int) h5_status);
 
   attr_id = H5Aopen_name(group_id, AttributeName);
   if (io_log) fprintf(log_fptr, "H5Aopen_name: attr_id = %"ISYM"\n", (int) attr_id);
