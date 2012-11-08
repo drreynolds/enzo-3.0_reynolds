@@ -35,7 +35,7 @@ cdef class MessageCoordinator:
         cdef TestEventDataContainer *pedc = new TestEventDataContainer()
         pedc.SomethingToPrint = value_to_print
         cdef EventDataContainer *data = <EventDataContainer *> pedc
-        RunEventHooks(string("Python Event"), self.Grids, self.MetaData, data)
+        RunEventHooks("Python Event".encode("UTF-8"), self.Grids, self.MetaData, data)
         del pedc
 
 cdef MessageCoordinator mc = MessageCoordinator()

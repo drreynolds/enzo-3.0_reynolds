@@ -41,14 +41,7 @@ class PythonGrid : private grid {
 This next bit of sanitization is required because of Cython's difficulty
 with C++ code mixed with public APIs.  It may some day become obsolete.
 */
-#ifdef __cplusplus
-#undef __cplusplus
-#define __reset_cplusplus
-#endif
 #include "problemtype_handler.h"
-#ifdef __reset_cplusplus
-#define __cplusplus
-#endif
 
 #define PyArray_NOOWNDATA(obj) (((PyArrayObject *)(obj))->flags &= ~NPY_OWNDATA)
 

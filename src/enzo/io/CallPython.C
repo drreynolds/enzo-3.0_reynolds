@@ -30,15 +30,8 @@
 #include "CosmologyParameters.h"
 #include "TopGridData.h"
 #include "ProblemType.h"
-#ifdef __cplusplus
-#undef __cplusplus
-#define __reset_cplusplus
-#endif
 #ifdef NEW_PROBLEM_TYPES
 #include "message_passing.h"
-#endif
-#ifdef __reset_cplusplus
-#define __cplusplus
 #endif
 
 int ExposeDataHierarchy(TopGridData *MetaData, HierarchyEntry *Grid, 
