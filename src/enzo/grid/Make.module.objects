@@ -45,6 +45,8 @@ ENZO_OBJS +=\
 	Grid_AppendActiveParticles.o \
 	Grid_AppendActiveParticlesToList.o \
 	Grid_AppendNewActiveParticles.o \
+	Grid_ApplyGalaxyParticleFeedback.o \
+	Grid_ApplyGalaxyParticleGravity.o \
 	Grid_ChangeParticleTypeBeforeSN.o \
 	Grid_CollectActiveParticles.o \
 	Grid_CollectParticles.o \
@@ -306,7 +308,7 @@ ENZO_OBJS +=\
 	Grid_DeleteFlaggingField.o \
 	Grid_DeleteObsoleteFields.o \
 	Grid_DeletePhotonPackages.o \
-	Grid_DepositAccretionZone.o \
+	Grid_DepositRefinementZone.o \
 	Grid_DepositBaryons.o \
 	Grid_DepositParticlePositions.o \
 	Grid_DepositParticlePositionsLocal.o \

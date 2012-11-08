@@ -32,12 +32,31 @@ int grid::DebugActiveParticles(int level)
   if (ProcessorNumber != MyProcessorNumber || NumberOfActiveParticles == 0)
     return SUCCESS;
 
-  int i, inside;
+  int i, j, index, inside;
   FLOAT *pos;
 
-  if (NumberOfActiveParticles != NumberOfParticles)
-    ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
-	       NumberOfActiveParticles, NumberOfParticles);
+  //if (NumberOfActiveParticles != NumberOfParticles)
+  //  ENZO_VFAIL("Number of active particles (%d) != Number of particles (%d)",
+  //	       NumberOfActiveParticles, NumberOfParticles);
+
+  int NumberOfNormalParticles = NumberOfParticles - NumberOfActiveParticles;
+
+  PINT *IDList = new PINT[NumberOfParticles];
+  PINT *APIDList = new PINT[NumberOfActiveParticles];
+
+  for (i = 0; i < NumberOfParticles; i++)
+    IDList[i] = ParticleNumber[i];
+  std::sort(IDList, IDList + NumberOfParticles);
+
+  for (i = 0; i < NumberOfActiveParticles; i++)
+    APIDList[i] = ActiveParticles[i]->ReturnID();
+  std::sort(APIDList, APIDList + NumberOfActiveParticles);
+
+  for (i = 0, index = NumberOfNormalParticles; i < NumberOfActiveParticles;
+       i++, index++) {
+    if (IDList[index] != APIDList[i])
+      ENZO_FAIL("Particle IDs are inconsistent!");
+  }
 
   /* Check if the active particles are within the grid */
 
@@ -55,6 +74,9 @@ int grid::DebugActiveParticles(int level)
     }
 
   }
+
+  delete[] IDList;
+  delete[] APIDList;
 
   return SUCCESS;
 

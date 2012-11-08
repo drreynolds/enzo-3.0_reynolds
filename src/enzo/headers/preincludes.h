@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <iostream>
+#include <iomanip>
 #include <limits.h>
 #include <map>
 #include <math.h>

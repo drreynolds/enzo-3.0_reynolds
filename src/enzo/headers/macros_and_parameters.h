@@ -455,7 +455,14 @@ typedef int            HDF5_hid_t;
 #define MPI_SENDPART_TAG 23
 #define MPI_SENDMARKER_TAG 24
 #define MPI_SGMARKER_TAG 25
-#define MPI_SENDAP_TAG 26
+/* The Active Particle tag is this big to ensure that the sends and
+   recvs in grid::CommunicationSendActiveParticles match up and that the AP
+   type index can be added to the tag value without stepping on any other tags.
+   There are N tags related to this, where N is the number of active particle
+   types enabled.
+   This would not be necessary if all APs were sent/received in one go.
+*/
+#define MPI_SENDAP_TAG 2000
 
 // There are 5 tags related to this (1000-1004)
 #define MPI_SENDPARTFIELD_TAG 1000

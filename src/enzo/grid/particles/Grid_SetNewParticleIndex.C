@@ -24,16 +24,21 @@
 #include "Grid.h"
 #include "ActiveParticle.h"
 
-void grid::SetNewParticleIndex(int &NumberCount1, PINT &NumberCount2)
+#define NO_DEBUG
+
+void grid::SetNewParticleIndex(PINT &next_id)
 {
   int n, abstype;
-  int ori_count = NumberCount1 + NumberCount2;
+  int ori_count = next_id;
   
   for (n = 0; n < NumberOfActiveParticles; n++)
     if (ActiveParticles[n]->Identifier == INT_UNDEFINED) {
-      ActiveParticles[n]->Identifier = NumberCount1++ + NumberCount2;
-//      printf("New star particle index = %d (%d %d)\n",
-//	     ActiveParticles[n]->Identifier, NumberCount1, NumberCount2);
+      ActiveParticles[n]->Identifier = next_id++;
+#ifdef DEBUG
+      std::cout << "SNPI[" << MyProcessorNumber << "] " << "GridID: " 
+		<< this->ID << " APID: " << ActiveParticles[n]->Identifier
+		<< std::endl;
+#endif
     }
   // Do the same for mirrored particles.  The normal and active new
   // particles are still in the same order as they were created.

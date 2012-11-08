@@ -34,10 +34,10 @@ int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
 ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], 
-			  int *GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
+	        int *GlobalNumberOfActiveParticles, int ActiveParticleIDToFind)
 {
   int i, level, type, ap_id, GridNum, LocalNumberOfActiveParticles, proc, buffer_size, 
-    LocalNumberOfActiveParticlesOnThisLevel, header_size, element_size, count, offset;
+    LocalNumberOfActiveParticlesOnThisLevel, element_size, count, offset;
   ActiveParticleType **LocalActiveParticlesOfThisType= NULL, **LocalActiveParticlesOnThisLevel = NULL;
   ActiveParticleType **ParticlesOnThisProc = NULL;
   ActiveParticleType **GlobalList = NULL;
@@ -171,16 +171,11 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 #ifdef USE_MPI
 	/* Construct the MPI packed  buffer from the list of local particles*/
 	Eint32 total_buffer_size=0, local_buffer_size, position = 0;
-	int mpi_buffer_size;
 	char *send_buffer = NULL, *recv_buffer = NULL;
-	header_size = ap_info->ReturnHeaderSize();
 	element_size = ap_info->ReturnElementSize();
 	
 	for (i = 0; i < NumberOfProcessors; i++) {
-	  if (nCount[i] > 0)
-	    all_buffer_sizes[i] = header_size + nCount[i]*element_size;
-	  else
-	    all_buffer_sizes[i] = 0;
+	  all_buffer_sizes[i] = nCount[i]*element_size;
 	  total_buffer_size += all_buffer_sizes[i];
 	}
 
@@ -194,9 +189,9 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	position = 0;
 
 	if (LocalNumberOfActiveParticles > 0)
-	  local_buffer_size = header_size + LocalNumberOfActiveParticles*element_size;
+	  local_buffer_size = LocalNumberOfActiveParticles*element_size;
 	else
-	  local_buffer_size = header_size;
+	  local_buffer_size = 0;
 
 	send_buffer = new char[local_buffer_size];
 	recv_buffer = new char[total_buffer_size];
@@ -207,9 +202,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 
 	/* Share all data with all processors */
 
-	int sendcount = (local_buffer_size == header_size ? 0 : local_buffer_size);
-
-	MPI_Allgatherv(send_buffer, sendcount, MPI_PACKED,
+	MPI_Allgatherv(send_buffer, local_buffer_size, MPI_PACKED,
 		       recv_buffer, all_buffer_sizes, displace, MPI_PACKED, EnzoTopComm);
 
 	/* Unpack MPI buffers, generate global active particles list */
@@ -218,8 +211,8 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	for (proc = 0; proc < NumberOfProcessors; proc++) {
 	  if (nCount[proc] > 0) {
 	    ap_info->UnpackBuffer(recv_buffer+displace[proc], count,
-                              GlobalList, nCount[proc]);
-        count += nCount[proc];
+				  GlobalList, nCount[proc]);
+	    count += nCount[proc];
 	  }
 	}
 

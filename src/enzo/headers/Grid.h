@@ -792,9 +792,9 @@ gradient force to gravitational force for one-zone collapse test. */
 
    int DepositMustRefineParticles(int pmethod, int level);
 
-/* Particles: deposit regions in the accretion zone to ensure flagging */
+/* Particles: deposit regions in the feedback zone to ensure flagging */
 
-   int DepositAccretionZone(int level, FLOAT* ParticlePosition, FLOAT AccretionRadius); 
+   int DepositRefinementZone(int level, FLOAT* ParticlePosition, FLOAT RefinementRadius); 
 
 /* Particles: calculate the mass density field from particles. */
 
@@ -963,7 +963,7 @@ gradient force to gravitational force for one-zone collapse test. */
 			 FLOAT EdgeOffset[MAX_DIMENSION]);
 
    int CopyActiveZonesFromGrid(grid *GridOnSameLevel, 
-			      FLOAT EdgeOffset[MAX_DIMENSION]);
+			      FLOAT EdgeOffset[MAX_DIMENSION], int SendField);
 
 /* gravity: copy coincident potential field zones from grid in the argument
             (gg #7).  Return SUCCESS or FAIL. */
@@ -1137,6 +1137,18 @@ gradient force to gravitational force for one-zone collapse test. */
      delete [] GravitatingMassField; 
      GravitatingMassField = NULL;
    };
+
+/* Gravity: Init GravitatingMassField. */
+
+   void InitGravitatingMassField(int size) {
+     GravitatingMassField = new float[size];
+   }
+
+/* Gravity */
+
+    int ReturnGravitatingMassFieldDimension(int dim) {
+      return GravitatingMassFieldDimension[dim];
+    }
 
 /* Gravity: Delete AccelerationField. */
 
@@ -1401,6 +1413,17 @@ gradient force to gravitational force for one-zone collapse test. */
      }   
    };
 
+  void DeleteActiveParticles() {
+    NumberOfActiveParticles = 0;
+    if (ActiveParticles != NULL) delete [] ActiveParticles;
+    ActiveParticles = NULL;
+  }
+
+  void CorrectActiveParticleCounts() {
+    if (NumberOfActiveParticles > 0 && ActiveParticles == NULL)
+      NumberOfActiveParticles = 0;
+  }
+
 /* Particles: allocate new particle fields. */
 
    void AllocateNewParticles(int NumberOfNewParticles) {
@@ -1443,7 +1466,7 @@ gradient force to gravitational force for one-zone collapse test. */
 
 /* Particles: Set new star particle index. */
 
-   void SetNewParticleIndex(int &NumberCount1, PINT &NumberCount2);
+   void SetNewParticleIndex(PINT &next_id);
 
 /* Particles: Set new star particle index. - Old version */
 
@@ -2290,7 +2313,7 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			  float dtLevelAbove, float TopGridTimeStep);
 
   int ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
-			    float dtLevelAbove);
+			    float dtLevelAbove, int &NumberOfNewActiveParticles);
 
   /* Append and detach active particles data to 'normal' particle
      arrays */
@@ -2521,6 +2544,10 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   int AddMassAndMomentumToAccretingParticle(float GlobalSubtractedMass, float GlobalSubtractedMomentum[], 
 					    ActiveParticleType* ThisParticle, LevelHierarchyEntry *LevelArray[]);
+
+  int ApplyGalaxyParticleFeedback(ActiveParticleType** ThisParticle);
+  
+  int ApplyGalaxyParticleGravity(ActiveParticleType** ThisParticle);
 
 //------------------------------------------------------------------------
 // Radiative transfer methods that don't fit in the TRANSFER define

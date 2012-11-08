@@ -88,7 +88,7 @@ class Handler : public ParticleAttributeHandler
 
     void PrintAttribute(ActiveParticleType *pp_) {
         APClass *pp = static_cast<APClass*>(pp_);
-        std::cout << this->name << ": " << pp->*var;
+        std::cout << std::setprecision(15) << this->name << ": " << pp->*var;
     }
 
 };
@@ -119,15 +119,6 @@ class ArrayHandler : public ParticleAttributeHandler
             ENZO_FAIL("Unrecognized data type");
         }
         this->element_size = sizeof(Type);
-    }
-
-    void UnpackBuffer(char *mpi_buffer, int mpi_buffer_size,
-                      int NumberOParticles, int *position,
-                      int n, APClass **pp) {
-
-        MPI_Unpack(mpi_buffer, mpi_buffer_size, &position,
-                   pp[n]->*var[this->offset],
-                   mpitype, MPI_COMM_WORLD);
     }
 
     void SetAttribute(char **buffer, ActiveParticleType *pp_) {

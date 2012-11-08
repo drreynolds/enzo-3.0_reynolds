@@ -53,12 +53,14 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 //  	 CommunicationReceiveIndex);
 
   MPI_Arg NumberOfCompleteRequests, TotalReceives;
-  int ReceivesCompletedToDate = 0, index, errcode, SUBling, level,
+  int ReceivesCompletedToDate = 0, index, index2, errcode, SUBling, level,
     igrid, isubgrid, dim, FromStart, FromNumber, ToStart, ToNumber;
   int GridDimension[MAX_DIMENSION];
   FLOAT EdgeOffset[MAX_DIMENSION];
-  grid *grid_one, *grid_two;
+  grid *grid_one, *grid_two, *temp_grid;
   TotalReceives = CommunicationReceiveIndex;
+  int gCSAPs_count, gCSAPs_done;
+  int SendField;
 #ifdef TRANSFER
   PhotonPackageEntry *PP;
 #endif
@@ -107,6 +109,22 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 		CommunicationReceiveDependsOn[index]);
       }
 
+    /* Here we loop over the handles looking only for the ones for
+       grid::CommunicationSendActiveParticles, and count how many there are,
+       and how many are finished receiving. If all are, we can go ahead
+       and call g:CSAP below. */
+    gCSAPs_count = 0;
+    gCSAPs_done = 0;
+    for (index = 0; index < TotalReceives; index++) {
+      if (CommunicationReceiveCallType[index] == 20) {
+        gCSAPs_count++;
+        if (CommunicationReceiveGridOne[index] != NULL &&
+	    CommunicationReceiveMPI_Request[index] == MPI_REQUEST_NULL) {
+	      gCSAPs_done++;
+	    }
+	  }
+	}
+
     /* Loop over the receive handles, looking for completed (i.e. null)
        requests associated with unprocessed (i.e. non-null) grids. 
        It's insufficient to just loop over newly completed receives because
@@ -114,15 +132,23 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
        to dependence issues. */
 
     for (index = 0; index < TotalReceives; index++) {
+      // if we are looking at a g:CSAP recv, only go forth if ALL
+      // g:CSAP recvs are done.
+      if ((CommunicationReceiveCallType[index] == 20) &&
+          (gCSAPs_count != gCSAPs_done)) {
+        continue;
+      }
       if (CommunicationReceiveGridOne[index] != NULL &&
 	  CommunicationReceiveMPI_Request[index] == MPI_REQUEST_NULL) {
 
 // 	if(CommunicationReceiveCallType[index]==2)
-// 	  fprintf(stdout, "%d %d %d %d %d\n", index, 
-// 		CommunicationReceiveCallType[index],
-// 		CommunicationReceiveGridOne[index],
-// 		CommunicationReceiveMPI_Request[index],
-// 		CommunicationReceiveDependsOn[index]);
+// 	  fprintf(stdout, "%d %d %p %p %d %d\n", index, 
+//		  CommunicationReceiveCallType[index],
+//		  CommunicationReceiveGridOne[index],
+//		  CommunicationReceiveMPI_Request[index],
+//		  CommunicationReceiveDependsOn[index],
+//		  CommunicationReceiveArgumentInt[index][0]
+//		  );
 
 	/* If this depends on an un-processed receive, then skip it. */
 
@@ -275,7 +301,8 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 #endif
 
 	case 21:
-	  errcode = grid_one->CopyActiveZonesFromGrid(grid_two, EdgeOffset);
+	  SendField = CommunicationReceiveArgumentInt[0][index];
+	  errcode = grid_one->CopyActiveZonesFromGrid(grid_two, EdgeOffset, SendField);
 
 	case 20:
 	  errcode = grid_one->CommunicationSendActiveParticles
@@ -298,9 +325,24 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 
 	/* Mark this receive complete. */
 
-	CommunicationReceiveGridOne[index] = NULL;
-	//	MPI_Request_free(CommunicationReceiveMPI_Request+index);
-	ReceivesCompletedToDate++;
+    // if this is a g:CSAPs recv, mark ALL g:CSAPs done, including this one.
+    if (CommunicationReceiveCallType[index] == 20) {
+      temp_grid = CommunicationReceiveGridOne[index];
+      for (index2 = 0; index2 < TotalReceives; index2++) {
+        if (CommunicationReceiveCallType[index2] == 20 &&
+	    CommunicationReceiveGridOne[index2] == temp_grid) {
+//	  printf("Recv done: index %d, index2 = %d/%d, call type %d, grid ID %d\n",
+//		 index, index2, TotalReceives, CommunicationReceiveCallType[index2], 
+//		 CommunicationReceiveGridOne[index2]->GetGridID());
+          CommunicationReceiveGridOne[index2] = NULL;
+          ReceivesCompletedToDate++;
+        }
+      }
+    } else { 
+      CommunicationReceiveGridOne[index] = NULL;
+      //MPI_Request_free(CommunicationReceiveMPI_Request+index);
+      ReceivesCompletedToDate++;
+    }
 
       } // end: if statement to check if receive should be processed
 

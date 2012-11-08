@@ -38,6 +38,7 @@ SPEXTERN int NumberOfStarParticles;
 SPEXTERN int NumberOfActiveParticles;
 SPEXTERN int NumberOfDeletedParticles;
 SPEXTERN PINT NumberOfOtherParticles; //all the particles other than type=2
+SPEXTERN PINT NextActiveParticleID;
 SPEXTERN int G_TotalNumberOfStars;
 
 /* Star particle parameters. */

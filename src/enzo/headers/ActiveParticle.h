@@ -82,6 +82,7 @@ public:
   void  AdjustMassByFactor(double factor) { Mass *= factor; };
   void  AdjustVelocity(float VelocityIncrement[]);
   void  SetVelocity(float NewVelocity[]);
+  void  SetPositionPeriod(FLOAT period[]);
 
   FLOAT *ReturnPosition(void) { return pos; };
   float *ReturnVelocity(void) { return vel; };
@@ -407,10 +408,10 @@ namespace ActiveParticleHelpers {
               it != handlers.end(); ++it) {
               size += (*it)->GetAttribute(buffer, In);
           }
-          /*
-          std::cout << "APF[" << MyProcessorNumber << "] " << i << " ";
+          /* 
+          std::cout << "APF[" << MyProcessorNumber << "] " << i << " " << size << " ";
           PrintActiveParticle<APClass>(In);
-          */
+           */
       }
       return size;
   }
@@ -473,6 +474,9 @@ public:
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
+   int (*deposit_mass)(HierarchyEntry *Grids[], TopGridData *MetaData,
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int ThisLevel, int GalaxyParticleID),
    int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    void (*allocate_buffer)(int Count, char **buffer),
    int (*fill_buffer)(ActiveParticleType **InList_, int InCount, char *buffer),
@@ -492,6 +496,7 @@ public:
     this->EvaluateFeedback = feedback;
     this->BeforeEvolveLevel = before_evolvelevel;
     this->AfterEvolveLevel = after_evolvelevel;
+    this->DepositMass = deposit_mass;
     this->SetFlaggingField = flagfield;
     this->DescribeSupplementalData = describe_data;
     this->FillBuffer = fill_buffer;
@@ -507,6 +512,7 @@ public:
 
   static int count(){return get_active_particle_types().size();}
   int GetEnabledParticleID(){return this->MyEnabledParticleID;}
+  std::string GetEnabledParticleName(){return this->particle_name;}
 
   int Enable(){
     /* 0-indexed */
@@ -526,6 +532,9 @@ public:
 				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
+  int (*DepositMass)(HierarchyEntry *Grids[], TopGridData *MetaData,
+                    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+                    int ThisLevel, int ActiveParticleID);
   int (*SetFlaggingField)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
   void (*AllocateBuffer)(int Count, char **buffer);
@@ -541,8 +550,8 @@ public:
   ActiveParticleType* particle_instance;
   std::string particle_name;
 
-
-  int ReturnHeaderSize(void) { return sizeof(int); }
+  // At the moment the communication buffers don't contain a header.
+  int ReturnHeaderSize(void) { return 0; }
 
 private:
   /* This is distinct from the global as a redundant error-checking
@@ -566,6 +575,7 @@ ActiveParticleType_info *register_ptype(std::string name)
      (&APClass::EvaluateFeedback),
      (&APClass::template BeforeEvolveLevel<APClass>),
      (&APClass::template AfterEvolveLevel<APClass>),
+     (&APClass::template DepositMass<APClass>),
      (&APClass::SetFlaggingField),
      (&ActiveParticleHelpers::Allocate<APClass>),
      (&ActiveParticleHelpers::FillBuffer<APClass>),

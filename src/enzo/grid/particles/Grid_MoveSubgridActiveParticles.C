@@ -99,9 +99,9 @@ int grid::MoveSubgridActiveParticles(int NumberOfSubgrids, grid* ToGrids[],
       MassIncrease *= RefinementFactors[dim];
 
     OldParticles = this->ActiveParticles;
-    delete[] this->ActiveParticles;
+    delete [] this->ActiveParticles;
     this->ActiveParticles = 
-      new ActiveParticleType*[NumberOfActiveParticles-NumberToMoveLocal];
+      new ActiveParticleType*[NumberOfActiveParticles-NumberToMoveLocal]();
     
     index = 0;
     for (i = 0; i < NumberOfActiveParticles; i++) {
@@ -111,6 +111,7 @@ int grid::MoveSubgridActiveParticles(int NumberOfSubgrids, grid* ToGrids[],
 	np->IncreaseLevel();
 	np->AdjustMassByFactor(MassIncrease);
 	np->GridID = ToGrids[subgrid[i]]->ID;
+	int Actual;
 	ToGrids[subgrid[i]]->AddActiveParticles(&np, 1);
 
 	this->NumberOfActiveParticles--;

@@ -155,7 +155,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
   /******************** ACTIVE PARTICLES ********************/
 
   ActiveParticleType **MoveParticles = 
-    new ActiveParticleType*[NumberOfSubgridActiveParticles];
+    new ActiveParticleType*[NumberOfSubgridActiveParticles]();
 
   int dlevel = logf(RefinementFactors[0]) / logf(RefineBy);
 
@@ -173,8 +173,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
   }
 
   this->AddActiveParticles(MoveParticles, NumberOfSubgridActiveParticles);
-  //this->NumberOfActiveParticles = TotalNumberOfActiveParticles;
- 
+
   delete [] MoveParticles;
 
   return SUCCESS;

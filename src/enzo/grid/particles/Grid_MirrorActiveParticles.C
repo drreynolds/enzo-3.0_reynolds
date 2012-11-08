@@ -27,12 +27,27 @@
 int grid::MirrorActiveParticles(void)
 {
 
-  int i, n, dim;
+  if ((NumberOfActiveParticles == 0) || (NumberOfParticles == 0))
+    return SUCCESS;
+
+  int i, n, dim, lastID;
 
   LCAPERF_START("grid_MirrorActiveParticles");
 
   this->SortParticlesByNumber();
   this->SortActiveParticlesByNumber();
+  
+  // Now sorted, mark duplicates.
+  lastID = ParticleNumber[0];
+  for (i = 1; i < NumberOfParticles; i++) {
+    if (ParticleNumber[i] == lastID) {
+      ParticleMass[i] = FLOAT_UNDEFINED;
+    }
+    lastID = ParticleNumber[i];
+  }
+  
+  // Clear them.
+  this->CleanUpMovedParticles();
 
   // Normal -> active particles (position, velocity only!)  Should be
   // used before ActiveParticleHandler to get the correct position and

@@ -6,6 +6,8 @@
 /  date:       June, 1999
 /  modifiedN:  Robert Harkness
 /  date:       February, 2008
+/  modified:   Stephen Skory
+/  date:       October, 2012 - adding active particle gravity hook.
 /
 / ======================================================================= 
 / This routine prepares the density field for all the grids on this level,
@@ -41,6 +43,8 @@
 #include "LevelHierarchy.h"
 #include "communication.h"
 #include "CommunicationUtilities.h"
+#include "ActiveParticle.h"
+#include "ActiveParticle_GalaxyParticle.h"
 
 /* function prototypes */
  
@@ -51,7 +55,11 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 				int NumberOfSubgrids[] = NULL,
 				int FluxFlag = FALSE,
 				TopGridData* MetaData = NULL);
- 
+
+int ActiveParticleDepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
+			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			   int level);
+
 int PrepareGravitatingMassField1(HierarchyEntry *Grid);
 #ifdef FAST_SIB
 int PrepareGravitatingMassField2a(HierarchyEntry *Grid, int grid1,
@@ -369,6 +377,13 @@ int PrepareDensityField(LevelHierarchyEntry *LevelArray[],
 #endif
 
   CommunicationDirection = COMMUNICATION_SEND_RECEIVE;
+ 
+  /************************************************************************/
+  /* Here Active particles have the opportunity to deposit mass into the
+     temporary mass buffers.
+   */
+    ActiveParticleDepositMass(Grids, MetaData, NumberOfGrids, LevelArray, 
+			   level);
  
   /************************************************************************/
   /* Compute the potential for the top grid. */

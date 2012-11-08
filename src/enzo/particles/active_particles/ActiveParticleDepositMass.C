@@ -1,12 +1,13 @@
 /***********************************************************************
 /
-/  ACTIVE PARTICLE INITIALIZATION
+/  ACTIVE PARTICLE DEPOSIT MASS
 /
-/  written by: John Wise
-/  date:       March, 2009
-/  modified1:  November, 2011 (JHW) -- converting to active particles
+/  written by: Stephen Skory
+/  date:       October, 2012
+/  modified1:  
 /
-/  PURPOSE: Contains all routines to finalize the star particles.
+/  PURPOSE: This allows active particles to deposit mass into the temporary
+/           buffers for computing the gravitational potential.
 /
 ************************************************************************/
 #ifdef USE_MPI
@@ -28,32 +29,22 @@
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
 
-#define NO_DEBUG
+#define NODEBUG
 
 /* prototypes */
-
-int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
-					 TopGridData *MetaData,
-					 int NumberOfGrids,
-					 int TotalActiveParticleCountPrevious[]);
 
 ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles, 
 					   int ActiveParticleIDToFind);
 
-int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
+int ActiveParticleDepositMass(HierarchyEntry *Grids[], TopGridData *MetaData,
 			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-			   int level, int NumberOfNewActiveParticles[])
+			   int level)
 {
   int i;
 
   if (EnabledActiveParticlesCount == 0) return SUCCESS;
 
   LCAPERF_START("ActiveParticleFinalize");
-
-  /* Update the star particle counters. */
-
-  CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
-					 NumberOfNewActiveParticles);
 
 #ifdef DEBUG
   
@@ -80,7 +71,7 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
 #endif
 
-  /* Call finalization routines for each active particle type  */
+  /* Call mass deposit routines for each active particle type  */
 
   int ActiveParticleID;
 
@@ -91,8 +82,8 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
     
 
     ActiveParticleTypeToEvaluate->
-      AfterEvolveLevel(Grids,MetaData,NumberOfGrids,LevelArray, 
-		       level, NumberOfNewActiveParticles, ActiveParticleID);
+      DepositMass(Grids,MetaData,NumberOfGrids,LevelArray, 
+		       level, ActiveParticleID);
 
   }
 

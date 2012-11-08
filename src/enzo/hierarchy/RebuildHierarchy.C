@@ -209,8 +209,6 @@ int RebuildHierarchy(TopGridData *MetaData,
 	    GridPointer[k] = NULL;
 	  }
 
-//	GridParent[j]->GridData->MoveAllStars(grids2, ContigiousGridList, 
-//					      MetaData->TopGridDims[0]);
 	GridParent[j]->GridData->MoveAllParticles(grids2, ContigiousGridList);
 
 #ifdef TRANSFER   
@@ -223,7 +221,6 @@ int RebuildHierarchy(TopGridData *MetaData,
   } // end: loop over levels
   tt1 = ReturnWallTime();
   RHperf[0] += tt1-tt0;
-
 
   /* If the initial level is finer than the finest level with static
      subgrids, we must collect all of the particles on the grids' host
@@ -241,7 +238,7 @@ int RebuildHierarchy(TopGridData *MetaData,
     SyncNumberOfParticles = true;
   }
   tt1 = ReturnWallTime();
-  RHperf[2] += tt1-tt0;
+  RHperf[2] += tt1-tt0;  
  
   /* --------------------------------------------------------------------- */
   /* if this is level 0 then transfer particles between grids. */
@@ -289,11 +286,20 @@ int RebuildHierarchy(TopGridData *MetaData,
      transfered).  This must be done after CommunicationCollectParticles.
   */
 
+
+  Temp = LevelArray[level];
+  grids = 0;
+  while (Temp != NULL) {
+    GridPointer[grids++] = Temp->GridData;
+    Temp = Temp->NextGridThisLevel;
+  }
+   
   if (MoveParticlesBetweenSiblings && 
       level > max(MaximumStaticSubgridLevel,0))
     CommunicationTransferSubgridParticles(LevelArray, MetaData, level);
 
-
+  for (i = 0; i < grids; i++)
+    GridPointer[i] = NULL;
 
   /* --------------------------------------------------------------------- */
   /* For dynamic hierarchies, rebuild the grid structure. */

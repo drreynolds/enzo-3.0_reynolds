@@ -172,7 +172,7 @@ int CommunicationTransferSubgridParticles(LevelHierarchyEntry *LevelArray[],
   }
 
   SendList = new particle_data[TotalNumber];
-  APSendList = new ActiveParticleType*[APTotalNumber];
+  APSendList = new ActiveParticleType*[APTotalNumber]();
 
   for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
 

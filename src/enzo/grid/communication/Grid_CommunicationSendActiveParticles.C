@@ -7,6 +7,8 @@
 /  date:       March, 2009
 /  modified1:  John Wise -- re-purposed for active particles
 /  date:       December, 2011
+/  modified2:  Stephen Skory -- fixed several big errors
+/  date:       Sept, 2012
 /
 /  NOTES:  Adapted from grid::CommunicationSendParticles().
 /
@@ -38,8 +40,7 @@ int CommunicationBufferedSend(void *buffer, int size, MPI_Datatype Type,
 
 /* Send active particle from this grid to ToGrid on processor
    ToProcessor, using FromNumber particles counting from FromStart.
-   Place into ToGrid at particle number ToStart. If ToStart = -1, then
-   add to end. */
+*/
 
 int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool DeleteParticles)
 {
@@ -52,12 +53,17 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
   char *buffer;
   Eint32 position = 0;
-  Eint32 TransferSize;
-  int npart, i, j, size, type, dim, index,
-    NumberOfNewParticles;
-  int header_size, element_size, buffer_size, ap_id;
+  int npart, i, j, NumberToSend, type, dim, index;
+  int element_size, header_size, ap_id;
+  int *type_element_size, *type_count;
+  int type_count_index;
+  int SendNumberOfActiveParticles;
   ActiveParticleType_info *ap_info;
   ActiveParticleType **NewParticles;
+  ActiveParticleType **SendParticles = NULL;
+
+  MPI_Status status;
+  MPI_Arg Count, Source, Dest;
 
   /* Serial case */
 
@@ -70,52 +76,117 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     return SUCCESS;
   } // ENDIF serial case
 
+  type_element_size = new int[EnabledActiveParticlesCount];
+  SendNumberOfActiveParticles = NumberOfActiveParticles;
+#ifdef USE_MPI
+    if (CommunicationDirection == COMMUNICATION_RECEIVE)
+	  type_count = (int*) CommunicationReceiveBuffer[CommunicationReceiveIndex++];
+    else
+#endif
+      type_count = new int[EnabledActiveParticlesCount];
+
   for (type = 0; type < EnabledActiveParticlesCount; type++) {
+
+      // Here we find out how many of which type of particle we have,
+      // and also record how big they are. Each processor knows the
+      // type element_size, but only the from processor knows how much
+      // of each type is in this grid.
 
       ap_info = EnabledActiveParticles[type];
 
-      /* Allocate buffer in ToProcessor.  This is automatically done
-	 in StarListToBuffer in the local processor. */
-
-      // Determine the buffer size (we know the particle types only on
-      // the host processor.  For the destination processor, we need
-      // to allocate a buffer, so make it the maximum size it can be
-      // (NumberOfActiveParticles).  This can be improved if we can
-      // determine the number of active particles with this type on
-      // the other processor.
+      header_size = ap_info->ReturnHeaderSize();
+      element_size = ap_info->ReturnElementSize();
+      type_element_size[type] = element_size;
 
       if (MyProcessorNumber == ProcessorNumber) {
-	size = 0;
-	for (i = 0; i < NumberOfActiveParticles; i++)
-	  if (ActiveParticles[i]->ReturnType() == type) size++;
-      } else {
-	size = NumberOfActiveParticles;
+	    NumberToSend = 0;
+	    for (i = 0; i < NumberOfActiveParticles; i++) {
+	      if (ActiveParticles[i]->ReturnType() == type) {
+	        NumberToSend++;
+	      }
+        type_count[type] = NumberToSend;
+        }
+      } // myproc = proc
+
+  } // end for particle type
+
+  // Just once we set up a non-blocking send/recv for the
+  // numbers of each type of AP
+  if (ProcessorNumber != ToProcessor) {
+    Count = EnabledActiveParticlesCount;
+    Source = ProcessorNumber;
+    Dest = ToProcessor;
+    
+    // send 
+    if ((MyProcessorNumber == ProcessorNumber) && 
+       ((CommunicationDirection == COMMUNICATION_SEND_RECEIVE) || 
+        (CommunicationDirection == COMMUNICATION_SEND))) {
+      CommunicationBufferedSend(type_count, Count, IntDataType, 
+        Dest, MPI_SENDAP_TAG, EnzoTopComm, BUFFER_IN_PLACE);
+    }
+    
+    // recv
+    if (MyProcessorNumber == ToProcessor) { 
+      if (CommunicationDirection == COMMUNICATION_POST_RECEIVE) {
+        MPI_Irecv(type_count, Count, IntDataType, Source, MPI_SENDAP_TAG,
+          EnzoTopComm, CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
+      
+	    CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
+	    CommunicationReceiveGridTwo[CommunicationReceiveIndex] = ToGrid;
+	    CommunicationReceiveCallType[CommunicationReceiveIndex] = 20;
+
+	    CommunicationReceiveBuffer[CommunicationReceiveIndex] = (float *) type_count;
+	    CommunicationReceiveDependsOn[CommunicationReceiveIndex] = 
+	      CommunicationReceiveCurrentDependsOn;
+	    CommunicationReceiveIndex++;
+	  }
+	  if (CommunicationDirection == COMMUNICATION_SEND_RECEIVE) {
+	    MPI_Recv(type_count, Count, IntDataType, Source, MPI_SENDAP_TAG,
+          EnzoTopComm, &status);
       }
+    } // myproc == toproc
+  } // procnum != toproc
+
+  // now we loop over all the types again.
+  for (type = 0; type < EnabledActiveParticlesCount; type++) {
+
+    ap_info = EnabledActiveParticles[type];
 
 #ifdef USE_MPI
-      if (CommunicationDirection == COMMUNICATION_RECEIVE)
-	buffer = (char*) CommunicationReceiveBuffer[CommunicationReceiveIndex];
-      else
+    if (CommunicationDirection == COMMUNICATION_RECEIVE)
+	  buffer = (char*) CommunicationReceiveBuffer[CommunicationReceiveIndex];
+    else
 #endif
-	buffer = new char[TransferSize];
+	  buffer = new char[NumberOfActiveParticles * type_element_size[type]];
+      // Above we are making the largest buffer we'll ever need, which
+      // eliminates the need for the receiving processor to know how many of
+      // each type of particle to make more custom-tailored buffer(s).
 
-  /* If this is the from processor, pack fields and delete stars. */
-
-  if (MyProcessorNumber == ProcessorNumber) {
-    position = 0;
-    ap_id = ap_info->GetEnabledParticleID();
-    ap_info->FillBuffer(ActiveParticles, NumberOfActiveParticles, buffer);
-    if (DeleteParticles == true) {
-      for (i = 0; i < NumberOfActiveParticles; i++)
-	if (ActiveParticles[i]->ReturnType() == type) {
-	  // Since we're packing a buffer there is no need to keep the
-	  // particle data if the transfer is local
+    /* If this is the from processor, pack fields and then delete the 
+       sent active particles. */
+  if ((CommunicationDirection == COMMUNICATION_SEND) || 
+      (CommunicationDirection == COMMUNICATION_SEND_RECEIVE)) {
+    if (MyProcessorNumber == ProcessorNumber) {
+      SendParticles = new ActiveParticleType*[type_count[type]]();
+      position = 0;
+      ap_id = ap_info->GetEnabledParticleID();
+        for (i = 0; i < NumberOfActiveParticles; i++) {
+          if (ActiveParticles[i]->ReturnType() == type) {
+	        SendParticles[position] = ActiveParticles[i];
+	        SendParticles[position]->SetDestProcessor(ToProcessor);
+	        SendParticles[position]->SetGridID(ToGrid->GetGridID());
+	        position++;
+	  } // for type
+        } // for NumberOfAPs
+      // Now we can fill the buffer because we have a list of only this type.
+      ap_info->FillBuffer(SendParticles, position, buffer);
+      // We can clean up immediately.
+      if (DeleteParticles == true)
+	for (i = NumberOfActiveParticles-1; i > -1; i--)
 	  this->RemoveActiveParticle(ActiveParticles[i]->ReturnID(),ToProcessor);
-	  i--;
-	  NumberOfActiveParticles -= 1;
-	}
-    }
-  }
+      delete[] SendParticles;
+    } // myproc == proc
+  } // if sending
     
   /* Send buffer. */
 
@@ -124,26 +195,26 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   /* only send if processor numbers are not identical */
 
   if (ProcessorNumber != ToProcessor) {
-
     MPI_Status status;
-    MPI_Arg PCount, Count = TransferSize;
-    MPI_Arg Source = ProcessorNumber;
-    MPI_Arg Dest = ToProcessor;
-    MPI_Arg stat;
+    Count = SendNumberOfActiveParticles * type_element_size[type];
+    
 
 #ifdef MPI_INSTRUMENTATION
     starttime = MPI_Wtime();
 #endif
-    if (MyProcessorNumber == ProcessorNumber)
+    if (MyProcessorNumber == ProcessorNumber && 
+      ((CommunicationDirection == COMMUNICATION_SEND_RECEIVE) ||
+       (CommunicationDirection == COMMUNICATION_SEND))) {
+      // send the actual particle data.
       CommunicationBufferedSend(buffer, Count, MPI_PACKED, 
-				Dest, MPI_SENDAP_TAG, EnzoTopComm, 
+				Dest, MPI_SENDAP_TAG + 1 + type, EnzoTopComm, 
 				BUFFER_IN_PLACE);
+	}
 
     if (MyProcessorNumber == ToProcessor) {
-
       if (CommunicationDirection == COMMUNICATION_POST_RECEIVE) {
-	MPI_Irecv(buffer, Count, MPI_PACKED, Source,
-		  MPI_SENDAP_TAG, EnzoTopComm,
+      	MPI_Irecv(buffer, Count, MPI_PACKED, Source,
+		  MPI_SENDAP_TAG + 1 + type, EnzoTopComm,
 		  CommunicationReceiveMPI_Request+CommunicationReceiveIndex);
 
 	CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
@@ -156,9 +227,9 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 	CommunicationReceiveIndex++;
       }
 
-      if (CommunicationDirection == COMMUNICATION_SEND_RECEIVE)
+      if (CommunicationDirection == COMMUNICATION_SEND_RECEIVE) 
 	MPI_Recv(buffer, Count, MPI_PACKED, Source,
-		 MPI_SENDAP_TAG, EnzoTopComm, &status);
+		 MPI_SENDAP_TAG + 1 + type, EnzoTopComm, &status);
 
     } // ENDIF MyProcessorNumber == ToProcessor
 
@@ -167,8 +238,8 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
     endtime = MPI_Wtime();
     timer[7] += endtime-starttime;
     counter[7] ++;
-    timer[8] += double(TransferSize);
-    timer[28] += double(TransferSize*TransferSize);
+    timer[8] += double(Count);
+    timer[28] += double(Count*Count);
     timer[27] += (endtime-starttime)*(endtime-starttime);
 #endif /* MPI_INSTRUMENTATION */
   
@@ -181,33 +252,28 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   if (MyProcessorNumber == ToProcessor &&
       (CommunicationDirection == COMMUNICATION_SEND_RECEIVE ||
        CommunicationDirection == COMMUNICATION_RECEIVE)) {
-
+    
     // Zero out NumberOfActiveParticles in the first pass, so we can
     // use grid::AddActiveParticles.
     if (type == 0) ToGrid->NumberOfActiveParticles = 0;
-
+    
     // Extract the number of particles in the buffer
-#ifdef USE_MPI
-    position = 0;
-    MPI_Unpack(buffer, TransferSize, &position, &NumberOfNewParticles,
-	       1, IntDataType, EnzoTopComm);
-#endif /* USE_MPI */    
-    NewParticles = new ActiveParticleType*[NumberOfNewParticles];
-    buffer_size = header_size + NumberOfNewParticles*element_size;
-    npart = 0;
-    ap_info->UnpackBuffer(buffer, NumberOfNewParticles,
-			   NewParticles, npart);
-
-    for (i = 0; i < NumberOfNewParticles; i++)
+    // type_count should have been received by now...
+    NewParticles = new ActiveParticleType*[type_count[type]]();
+    ap_info->UnpackBuffer(buffer, 0,
+			  NewParticles, type_count[type]);
+    for (i = 0; i < type_count[type]; i++)
       NewParticles[i]->AssignCurrentGrid(ToGrid);
-    ToGrid->AddActiveParticles(NewParticles, NumberOfNewParticles);
-
+    ToGrid->AddActiveParticles(NewParticles, type_count[type]);
+    
     delete[] NewParticles;
     delete[] buffer;
-
-  } // end: if (MyProcessorNumber...)
-
+    
+  } // end: if (MyProcessorNumber == ToProcessor && ...)
+  
   } // ENDFOR particle types
+  
+  delete [] type_element_size;
 
   return SUCCESS;
 }

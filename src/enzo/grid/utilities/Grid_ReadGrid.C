@@ -510,7 +510,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
 
     /* Loop over enabled active particle types */
 
-    this->ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles];
+    this->ActiveParticles = new ActiveParticleType*[NumberOfActiveParticles]();
 
     int offset = 0;
 
