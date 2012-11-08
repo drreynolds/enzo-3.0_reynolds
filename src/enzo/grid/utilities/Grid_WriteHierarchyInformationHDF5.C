@@ -358,8 +358,17 @@ int HDF5_WriteAttribute(hid_t group_id, const char *AttributeName, Eflt32 Attrib
   io_log = 1;
 #endif
 
+<<<<<<< variant A
   dspace_id = H5Screate(H5S_SCALAR);
   if (io_log) fprintf(log_fptr, "H5Screate: dspace_id = %"ISYM"\n", (int) dspace_id);
+>>>>>>> variant B
+  dspace_id = H5Screate(H5S_SCALAR);
+  if (io_log) fprintf(log_fptr, "H5Screate: dspace_id = %"ISYM"\n", (int) dspace_id);
+
+  attr_id = H5Acreate(group_id, AttributeName, HDF5_R4, dspace_id, H5P_DEFAULT);
+  if (io_log) fprintf(log_fptr, "H5Acreate: attr_id = %"ISYM"\n", (int) attr_id);
+####### Ancestor
+======= end
 
   attr_id = H5Acreate(group_id, AttributeName, HDF5_R4, dspace_id, H5P_DEFAULT);
   if (io_log) fprintf(log_fptr, "H5Acreate: attr_id = %"ISYM"\n", (int) attr_id);
