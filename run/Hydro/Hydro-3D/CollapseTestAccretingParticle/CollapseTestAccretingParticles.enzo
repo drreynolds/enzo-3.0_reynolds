@@ -6,7 +6,7 @@
 #
 ProblemType                = 27           // Collapse test
 TopGridRank                = 3
-TopGridDimensions          = 128 128 128
+TopGridDimensions          = 64 64 64
 SelfGravity                = 1            // gravity on
 TopGridGravityBoundary     = 0            // periodic
 LeftFaceBoundaryCondition  = 3 3 3        // periodic
@@ -22,7 +22,7 @@ CollapseTestUseParticles    = 0
 CollapseTestInitialTemperature = 5e3    // temperature of the background gas
 CollapseTestSpherePosition[0]   = 0.49 0.49 0.49
 CollapseTestSphereVelocity[0]   = 0.0 0.0 0.0
-CollapseTestSphereRadius[0]     = 0.15
+CollapseTestSphereRadius[0]     = 0.30
 CollapseTestSphereCoreRadius[0] = 0.05  // only used with sphere type 5
 CollapseTestSphereDensity[0]    = 100   // sphere density, the background density is 1
 CollapseTestSphereTemperature[0] = 50    // put sphere in pressure equilibrium (rho * T is constant)
