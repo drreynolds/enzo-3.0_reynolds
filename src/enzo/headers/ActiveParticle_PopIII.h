@@ -63,6 +63,7 @@ public:
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, 
 			      int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
+  bool IsARadiationSource(FLOAT Time);
   ENABLED_PARTICLE_ID_ACCESSOR
 
   // Pop III specific active particle parameters

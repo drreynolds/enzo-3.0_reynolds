@@ -105,7 +105,7 @@ public:
 
   /* Virtual and pure virtual functions in this base class */
 
-  virtual bool IsARadiationSource(FLOAT Time) { return FALSE; };
+  virtual bool IsARadiationSource(FLOAT Time) { return false; };
   virtual bool Mergable(ActiveParticleType *a);
   virtual int GetEnabledParticleID(int id = -1) {
     ENZO_FAIL("Not implemented.");

@@ -243,6 +243,11 @@ int ActiveParticleType_PopIII::SetFlaggingField(LevelHierarchyEntry *LevelArray[
   return SUCCESS;
 }
 
+bool ActiveParticleType_PopIII::IsARadiationSource(FLOAT Time)
+{
+  return true;
+}
+
 namespace {
   ActiveParticleType_info *PopIIIInfo = 
     register_ptype <ActiveParticleType_PopIII> ("PopIII");
