@@ -78,11 +78,6 @@ int grid::DepositRefinementZone(int level, FLOAT* ParticlePosition,
     }
   } // dim
 
-  //if ((LeftCorner[0] > ParticlePosition[0]+RefinementRadius) || (RightCorner[0] < ParticlePosition[0]-RefinementRadius) ||
-  //    (LeftCorner[1] > ParticlePosition[1]+RefinementRadius) || (RightCorner[1] < ParticlePosition[1]-RefinementRadius) ||
-  //   (LeftCorner[2] > ParticlePosition[2]+RefinementRadius) || (RightCorner[2] < ParticlePosition[2]-RefinementRadius))
-  //  return SUCCESS;
-
   for (dim = 0; dim < GridRank; dim++) {
     if (overlaps[dim] == false) return SUCCESS;
   }
@@ -117,49 +112,15 @@ int grid::DepositRefinementZone(int level, FLOAT* ParticlePosition,
     for (j = 0; j < GridDimension[1]; j++) {
       for (k = 0; k < GridDimension[2]; k++) {
 	index = (k*GridDimension[1]+j)*GridDimension[0]+i;
-    dist2 = calc_dist2(CellLeftEdge[0][i] + CellSize/2.,
-      CellLeftEdge[1][j] + CellSize/2.,
-      CellLeftEdge[2][k] + CellSize/2.,
-      ParticlePosition[0], ParticlePosition[1], ParticlePosition[2],
-      period);
-    if (dist2 <= rad2) {
-      FlaggingField[index] = 1;
-      NumberOfFlaggedCells++;
-    }
-    
-
-// 	for (dim = 0; dim < GridRank; dim++) overlaps[dim] = false;
-// 	// Need to do this sort of expensive check since a derefined
-// 	// cell could enclose the accretion zone yet still be centered
-// 	// outside the accretion radius
-// 	for (dim = 0; dim < GridRank; dim++) {
-// 	  left = ParticlePosition[dim]-RefinementRadius;
-// 	  right = ParticlePosition[dim]+RefinementRadius;
-// 	  if (dim == 0) {a = i;}
-// 	  else if (dim == 1) {a = j;}
-// 	  else {a = k;}
-// 	  if (!((CellLeftEdge[dim][a] > right) ||
-// 	        (CellLeftEdge[dim][a] + CellSize < left))) {
-// 	    overlaps[dim] = true;
-// 	  }
-// 	  // Periodicity.
-// 	  if (overlaps[dim] == false) {
-//         pleft = max(period[dim] - fabs(left), left);
-//         pright = min(fabs(right - period[dim]), right);
-//         if ((pleft != left) && (CellLeftEdge[dim][a] + CellSize > pleft)) {
-//           overlaps[dim] = true;
-//         }
-//         if ((pright != right) && (CellLeftEdge[dim][a] < pright)) {
-//           overlaps[dim] = true;
-//         }
-// 	  } // overlaps
-// 	} // dim
-//     
-//     if ((overlaps[0] == true) && (overlaps[1] == true) && (overlaps[2])) {
-//       //printf("%f %f %f\n", CellLeftEdge[0][i], CellLeftEdge[1][j], CellLeftEdge[2][k]);
-//       FlaggingField[index] = 1;
-//       NumberOfFlaggedCells++;
-//     }
+	dist2 = calc_dist2(CellLeftEdge[0][i] + CellSize/2.,
+		  CellLeftEdge[1][j] + CellSize/2.,
+		  CellLeftEdge[2][k] + CellSize/2.,
+		  ParticlePosition[0], ParticlePosition[1], ParticlePosition[2],
+		  period);
+	if (dist2 <= rad2) {
+	  FlaggingField[index] = 1;
+	  NumberOfFlaggedCells++;
+	}
       } // k
     } // j
   } // i

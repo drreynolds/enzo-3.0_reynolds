@@ -1384,6 +1384,7 @@ gradient force to gravitational force for one-zone collapse test. */
    int ReturnNumberOfParticles() {return NumberOfParticles;};
    int ReturnNumberOfActiveParticles() {return NumberOfActiveParticles;};
    int ReturnNumberOfActiveParticlesOfThisType(int ActiveParticleIDToFind);
+   ActiveParticleType** ReturnActiveParticles() {return ActiveParticles;};
 
    int ReturnNumberOfStarParticles(void);
 

@@ -246,6 +246,25 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
 int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
 			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
 
+void CheckFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones) {
+  for (int i = 0; i < NumberOfFeedbackZones; i++)
+    for (int j = 0; j < NumberOfFeedbackZones; j++) {
+      if (i == j)
+	continue;
+      grid* ThisFeedbackZone = FeedbackZones[i];
+      grid* OtherFeedbackZone = FeedbackZones[j];
+      if (!(ThisFeedbackZone->GridLeftEdge[0] > OtherFeedbackZone->GridRightEdge[0] ||
+	    ThisFeedbackZone->GridLeftEdge[0] > OtherFeedbackZone->GridRightEdge[1] ||
+	    ThisFeedbackZone->GridLeftEdge[0] > OtherFeedbackZone->GridRightEdge[2] ||
+	    ThisFeedbackZone->GridRightEdge[0] < OtherFeedbackZone->GridLeftEdge[0] ||
+	    ThisFeedbackZone->GridRightEdge[1] < OtherFeedbackZone->GridLeftEdge[1] ||
+	    ThisFeedbackZone->GridRightEdge[2] < OtherFeedbackZone->GridLeftEdge[2]))
+	ENZO_FAIL("Overlapping feedback zones!");
+    }
+}
+
+#define DEBUG_AP
+
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
 						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
@@ -281,8 +300,13 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     FeedbackRadius[i] = AccretionRadius;
   }
   
+  for (i = 0; i < nParticles; i++)
+    printf("ActiveParticles[%"ISYM"]->mass = %"FSYM" \n", i, Grids[0]->GridData->ReturnActiveParticles()[i]->ReturnMass());
+
   grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
     FeedbackRadius, dx, Grids, NumberOfGrids, ALL_FIELDS);
+
+  CheckFeedbackZones(FeedbackZones, nParticles);
 
   delete FeedbackRadius;
 
@@ -291,10 +315,21 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
     
       float AccretionRate = 0;
-        
-      if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],AccretionRadius*dx,&AccretionRate) == FAIL)
+
+      float mass = 0;
+      FeedbackZone->SumGasMass(&mass);
+      printf("Feedbackzone %"ISYM" init mass = %"FSYM" \n", i, mass);
+
+      float initmass = ParticleList[i]->ReturnMass();
+
+      if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],
+				    AccretionRadius*dx,&AccretionRate) == FAIL)
 	return FAIL;
-  
+      
+      mass = 0;
+      FeedbackZone->SumGasMass(&mass);
+      printf("Feedbackzone %"ISYM" final mass = %"FSYM" \n", i, mass+(ParticleList[i]->ReturnMass() - initmass));
+
       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }
@@ -310,6 +345,9 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
 
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
+
+  for (i = 0; i < nParticles; i++)
+    printf("ActiveParticles[%"ISYM"]->mass = %"FSYM" \n", i, Grids[0]->GridData->ReturnActiveParticles()[i]->ReturnMass());
 
   delete [] Grids;
   return SUCCESS;

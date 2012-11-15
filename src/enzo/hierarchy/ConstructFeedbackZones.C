@@ -75,10 +75,10 @@ grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
   for (i = 0; i < nParticles; i++) {
     FeedbackZoneRank = APGrids[i]->GetGridRank();
 
-    int FeedbackZoneDimension[FeedbackZoneRank];
-    FLOAT LeftCellOffset[FeedbackZoneRank],FeedbackZoneLeftEdge[FeedbackZoneRank], 
-      FeedbackZoneRightEdge[FeedbackZoneRank];
-    FLOAT CellSize, GridGZLeftEdge, ncells[FeedbackZoneRank];
+    int FeedbackZoneDimension[MAX_DIMENSION];
+    FLOAT LeftCellOffset[MAX_DIMENSION],FeedbackZoneLeftEdge[MAX_DIMENSION], 
+      FeedbackZoneRightEdge[MAX_DIMENSION], ncells[MAX_DIMENSION];
+    FLOAT CellSize, GridGZLeftEdge;
 
     for (dim = 0; dim < FeedbackZoneRank; dim++) {
       FeedbackZoneDimension[dim] = (2*(FeedbackRadius[i]+DEFAULT_GHOST_ZONES)+1);

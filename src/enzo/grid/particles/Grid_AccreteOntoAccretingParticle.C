@@ -36,7 +36,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
-  
+
+  printf("InitialMass    = %"FSYM" \n", (*ThisParticle)->ReturnMass());
+
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
   FLOAT *ParticlePosition = (*ThisParticle)->ReturnPosition();
@@ -419,6 +421,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
   (*ThisParticle)->AddMass(AccretedMass);
   (*ThisParticle)->SetVelocity(NewVelocity);
+
+  printf("AccretedMass = %"FSYM" \n", AccretedMass);
+  printf("FinalMass    = %"FSYM" \n", (*ThisParticle)->ReturnMass());
 
   delete [] nexcluded;
 

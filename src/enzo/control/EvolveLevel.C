@@ -591,8 +591,31 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
+    float mass1 = 0;
+
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      Grids[grid1]->GridData->SumGasMass(&mass1);
+      printf("mass = %"FSYM" \n", mass1);
+    }
+
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, NumberOfNewActiveParticles);
+
+    float mass2 = 0;
+
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      Grids[grid1]->GridData->SumGasMass(&mass2);
+      printf("mass = %"FSYM" \n", mass2);
+    }
+
+    printf("mass1 - mass2 = %"FSYM" \n", mass1 - mass2);
+
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      for (int pn = 0; pn < Grids[grid1]->GridData->ReturnNumberOfActiveParticles(); pn++) {
+	float mass = Grids[grid1]->GridData->ReturnActiveParticles()[pn]->ReturnMass();
+	printf("ActiveParticles[%"ISYM"]->mass = %"FSYM" \n", pn, mass);
+      }
+    }
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
