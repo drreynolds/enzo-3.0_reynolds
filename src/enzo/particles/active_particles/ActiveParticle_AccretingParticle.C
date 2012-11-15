@@ -253,12 +253,12 @@ void CheckFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones) {
 	continue;
       grid* ThisFeedbackZone = FeedbackZones[i];
       grid* OtherFeedbackZone = FeedbackZones[j];
-      if (!(ThisFeedbackZone->GridLeftEdge[0] > OtherFeedbackZone->GridRightEdge[0] ||
-	    ThisFeedbackZone->GridLeftEdge[0] > OtherFeedbackZone->GridRightEdge[1] ||
-	    ThisFeedbackZone->GridLeftEdge[0] > OtherFeedbackZone->GridRightEdge[2] ||
-	    ThisFeedbackZone->GridRightEdge[0] < OtherFeedbackZone->GridLeftEdge[0] ||
-	    ThisFeedbackZone->GridRightEdge[1] < OtherFeedbackZone->GridLeftEdge[1] ||
-	    ThisFeedbackZone->GridRightEdge[2] < OtherFeedbackZone->GridLeftEdge[2]))
+      if (!(ThisFeedbackZone->GetGridLeftEdge(0) > OtherFeedbackZone->GetGridRightEdge(0) ||
+	    ThisFeedbackZone->GetGridLeftEdge(0) > OtherFeedbackZone->GetGridRightEdge(1) ||
+	    ThisFeedbackZone->GetGridLeftEdge(0) > OtherFeedbackZone->GetGridRightEdge(2) ||
+	    ThisFeedbackZone->GetGridRightEdge(0) < OtherFeedbackZone->GetGridLeftEdge(0) ||
+	    ThisFeedbackZone->GetGridRightEdge(1) < OtherFeedbackZone->GetGridLeftEdge(1) ||
+	    ThisFeedbackZone->GetGridRightEdge(2) < OtherFeedbackZone->GetGridLeftEdge(2)))
 	ENZO_FAIL("Overlapping feedback zones!");
     }
 }
