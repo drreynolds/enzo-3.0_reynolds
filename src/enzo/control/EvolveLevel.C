@@ -591,31 +591,33 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
-    float mass1 = 0;
+    float mymass1 = 0, mass1 = 0;
 
     for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
-      Grids[grid1]->GridData->SumGasMass(&mass1);
-      printf("mass = %"FSYM" \n", mass1);
+      if (Grids[grid1]->GridData->ReturnProcessorNumber() == MyProcessorNumber) { 
+	Grids[grid1]->GridData->SumGasMass(&mymass1);
+	printf("init  mass on grid %"ISYM" = %"FSYM" \n", grid1, mymass1);
+      }
     }
+
+    MPI_Allreduce(&mymass1, &mass1, 1, MPI_DOUBLE, MPI_SUM, EnzoTopComm);
 
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, NumberOfNewActiveParticles);
 
-    float mass2 = 0;
+    float mymass2 = 0, mass2 = 0;
 
     for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
-      Grids[grid1]->GridData->SumGasMass(&mass2);
-      printf("mass = %"FSYM" \n", mass2);
-    }
-
-    printf("mass1 - mass2 = %"FSYM" \n", mass1 - mass2);
-
-    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
-      for (int pn = 0; pn < Grids[grid1]->GridData->ReturnNumberOfActiveParticles(); pn++) {
-	float mass = Grids[grid1]->GridData->ReturnActiveParticles()[pn]->ReturnMass();
-	printf("ActiveParticles[%"ISYM"]->mass = %"FSYM" \n", pn, mass);
+      if (Grids[grid1]->GridData->ReturnProcessorNumber() == MyProcessorNumber) {
+	Grids[grid1]->GridData->SumGasMass(&mymass2);
+	printf("final mass on grid %"ISYM" = %"FSYM" \n", grid1, mymass2);
       }
     }
+
+    MPI_Allreduce(&mymass2, &mass2, 1, MPI_DOUBLE, MPI_SUM, EnzoTopComm);
+
+    if (MyProcessorNumber == ROOT_PROCESSOR)
+      printf("mass1 - mass2 = %"FSYM" \n", mass1 - mass2);
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */

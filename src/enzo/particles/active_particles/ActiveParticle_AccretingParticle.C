@@ -300,22 +300,16 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     FeedbackRadius[i] = AccretionRadius;
   }
   
-  for (i = 0; i < nParticles; i++)
-    printf("ActiveParticles[%"ISYM"]->mass = %"FSYM" \n", i, Grids[0]->GridData->ReturnActiveParticles()[i]->ReturnMass());
-
-  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-    FeedbackRadius, dx, Grids, NumberOfGrids, ALL_FIELDS);
-
-  CheckFeedbackZones(FeedbackZones, nParticles);
-
-  delete FeedbackRadius;
-
   for (i = 0; i < nParticles; i++) {
-    grid* FeedbackZone = FeedbackZones[i];
+    grid** FeedbackZones = ConstructFeedbackZones(ParticleList+i, 1,
+		            FeedbackRadius+i, dx, Grids, NumberOfGrids, ALL_FIELDS);
+
+    grid* FeedbackZone = FeedbackZones[0];
+
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
     
       float AccretionRate = 0;
-
+      
       float mass = 0;
       FeedbackZone->SumGasMass(&mass);
       printf("Feedbackzone %"ISYM" init mass = %"FSYM" \n", i, mass);
@@ -333,21 +327,17 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }
+  
+    DistributeFeedbackZones(FeedbackZones, 1, Grids, NumberOfGrids, ALL_FIELDS);
+
+    delete FeedbackZone;
+    delete [] FeedbackZones;
   }
   
-  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids, ALL_FIELDS);
-
-  for (i = 0; i < nParticles; i++) {
-    delete FeedbackZones[i];    
-  }
-
-  delete [] FeedbackZones;
+  delete [] FeedbackRadius;
 
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
-
-  for (i = 0; i < nParticles; i++)
-    printf("ActiveParticles[%"ISYM"]->mass = %"FSYM" \n", i, Grids[0]->GridData->ReturnActiveParticles()[i]->ReturnMass());
 
   delete [] Grids;
   return SUCCESS;
