@@ -113,9 +113,11 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
   int i,j,k,index,method,MassRefinementMethod;
 
   float *density = thisGrid->BaryonField[data.DensNum];
-  float *velx = thisGrid->BaryonField[data.Vel1Num];
-  float *vely = thisGrid->BaryonField[data.Vel2Num];
-  float *velz = thisGrid->BaryonField[data.Vel3Num];
+  
+  float* velx = thisGrid->BaryonField[data.Vel1Num]; 
+  float* vely = thisGrid->BaryonField[data.Vel2Num];
+  float* velz = thisGrid->BaryonField[data.Vel3Num];
+  
   float JeansDensityUnitConversion = (Gamma*pi*kboltz) / (Mu*mh*GravConst);
   float CellTemperature = 0;
   float JeansDensity = 0;
@@ -185,11 +187,9 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
 	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
-	tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
-	  
-	np->vel[0] = tvel[0];
-	np->vel[1] = tvel[1];
-	np->vel[2] = tvel[2];
+	np->vel[0] = velx[index];
+	np->vel[1] = vely[index];
+	np->vel[2] = velz[index];
 	
 	if (HasMetalField)
 	  np->Metallicity = data.TotalMetals[index];
@@ -201,9 +201,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	// Remove mass from grid
 
 	density[index] = DensityThreshold;
-
-	// Clean up
-	delete [] tvel;
 
       } // i
     } // j
@@ -310,20 +307,10 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
     
       float AccretionRate = 0;
       
-      float mass = 0;
-      FeedbackZone->SumGasMass(&mass);
-      printf("Feedbackzone %"ISYM" init mass = %"FSYM" \n", i, mass);
-
-      float initmass = ParticleList[i]->ReturnMass();
-
       if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],
 				    AccretionRadius*dx,&AccretionRate) == FAIL)
 	return FAIL;
       
-      mass = 0;
-      FeedbackZone->SumGasMass(&mass);
-      printf("Feedbackzone %"ISYM" final mass = %"FSYM" \n", i, mass+(ParticleList[i]->ReturnMass() - initmass));
-
       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }

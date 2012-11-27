@@ -26,7 +26,7 @@
 #include "phys_constants.h"
 
 
-#define NO_DEBUG
+#define NO_DEBUG_AP
 
 float bondi_alpha(float x);
 
@@ -36,8 +36,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber) 
     return SUCCESS;
-
-  printf("InitialMass    = %"FSYM" \n", (*ThisParticle)->ReturnMass());
 
   /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
 
@@ -105,7 +103,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   float velz = BaryonField[Vel3Num][cgindex];
   FLOAT BondiHoyleRadius;
   float *Temperature = new float[size]();
-  float msink = (*ThisParticle)->ReturnMass()*POW(CellSize,3);
+  float msink = (*ThisParticle)->ReturnMass()*CellVolume;
 
   this->ComputeTemperatureField(Temperature);
 
@@ -133,81 +131,81 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
     KernelRadius = AccretionRadius/2.0;
 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
-    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
-      index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
-      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
-	radius2 = 
-	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
-	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
-	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
-	if ((AccretionRadius*AccretionRadius) > radius2) {
-	  WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius)); 
-	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
-	  NumberOfCells++;
-	  vgas[0] = BaryonField[Vel1Num][index];
-	  vgas[1] = BaryonField[Vel2Num][index];
-	  vgas[2] = BaryonField[Vel3Num][index];
-	  
-	  /* The true accretion rate is somewhat less than this due to
-	     angular momentum conservation.  Subdivide the cell into
-	     NDIV^2 subcells and estimate the reduction assuming
-	     ballistic orbits. See the discussion near Eqn 15. */	  
-	  for (ksub = 0; ksub < NDIV-1; ksub++) {
-	    zdist = CellLeftEdge[2][k] + CellWidth[2][k]*(float(ksub)+0.5)/NDIV - ParticlePosition[2];
-	    for (jsub = 0; jsub < NDIV-1; jsub++) {
-	      ydist = CellLeftEdge[1][j] + CellWidth[1][j]*(float(jsub)+0.5)/NDIV - ParticlePosition[1];
-	      for (isub = 0; isub < NDIV-1; isub++) {
-		xdist = CellLeftEdge[0][i] + CellWidth[0][i]*(float(jsub)+0.5)/NDIV - ParticlePosition[1];
-
-		dist = sqrt(xdist*xdist+ydist*ydist+zdist*zdist);
-		if (dist == 0.0)
-		  dist = CellWidth[0][0]/huge;
-
-		// Compute specific angular momentum
-		jsp[0] = ydist*(vgas[2] - vsink[2]) -
-		  zdist*(vgas[1] - vsink[1]);
-		jsp[1] = zdist*(vgas[0] - vsink[0]) - 
-		  xdist*(vgas[2] - vsink[2]);
-		jsp[2] = xdist*(vgas[1] - vsink[1]) -
-		  ydist*(vgas[0] - vsink[0]);
-		
-		jspsqr = jsp[0]*jsp[0]+jsp[1]*jsp[1]+jsp[2]*jsp[2];
-
-		// Compute specific kinetic + gravitational energy
-		esp = (POW((vgas[0] - vsink[0]),2) + 
-		       POW((vgas[1] - vsink[1]),2) +
-		       POW((vgas[2] - vsink[2]),2)) / 2.0 - GravitationalConstant * msink/dist;
-		
-		// Compute distance of closest approach
-		if (esp > 0.0)
-		  rmin = huge*CellWidth[0][0];
-		else
-		  rmin = -GravitationalConstant*msink/(2.0*esp) *
-		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2)));
-
-		dxmin = rmin / CellWidth[0][0];
-		if (dxmin >= 0.25)
-		  nexcluded[index]+=1;
-
-	      } // ksub
-	    } // jsub
-	  } // ksub
-	  
-	  if (abs(i-cindex) <= 1 && abs(j-cindex) <= 1 && abs(k-cindex) <= 1)
-	    maxexcluded = max(nexcluded[index],maxexcluded);
-
-	}
-      }
-    }
+     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
+       index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
+       for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
+	 radius2 = 
+	   POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
+	   POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
+	   POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);   
+	 if ((AccretionRadius*AccretionRadius) > radius2) {
+	   WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius)); 
+	   SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
+	   NumberOfCells++;
+	   vgas[0] = BaryonField[Vel1Num][index];
+	   vgas[1] = BaryonField[Vel2Num][index];
+	   vgas[2] = BaryonField[Vel3Num][index];
+	   
+	   /* The true accretion rate is somewhat less than this due to
+	      angular momentum conservation.  Subdivide the cell into
+	      NDIV^2 subcells and estimate the reduction assuming
+	      ballistic orbits. See the discussion near Eqn 15. */	  
+	   for (ksub = 0; ksub < NDIV-1; ksub++) {
+	     zdist = CellLeftEdge[2][k] + CellWidth[2][k]*(float(ksub)+0.5)/NDIV - ParticlePosition[2];
+	     for (jsub = 0; jsub < NDIV-1; jsub++) {
+	       ydist = CellLeftEdge[1][j] + CellWidth[1][j]*(float(jsub)+0.5)/NDIV - ParticlePosition[1];
+	       for (isub = 0; isub < NDIV-1; isub++) {
+		 xdist = CellLeftEdge[0][i] + CellWidth[0][i]*(float(jsub)+0.5)/NDIV - ParticlePosition[0];
+		 
+		 dist = sqrt(xdist*xdist+ydist*ydist+zdist*zdist);
+		 if (dist == 0.0)
+		   dist = CellWidth[0][0]/huge;
+		 
+		 // Compute specific angular momentum
+		 jsp[0] = ydist*(vgas[2] - vsink[2]) -
+		   zdist*(vgas[1] - vsink[1]);
+		 jsp[1] = zdist*(vgas[0] - vsink[0]) - 
+		   xdist*(vgas[2] - vsink[2]);
+		 jsp[2] = xdist*(vgas[1] - vsink[1]) -
+		   ydist*(vgas[0] - vsink[0]);
+		 
+		 jspsqr = jsp[0]*jsp[0]+jsp[1]*jsp[1]+jsp[2]*jsp[2];
+		 
+		 // Compute specific kinetic + gravitational energy
+		 esp = (POW((vgas[0] - vsink[0]),2) + 
+			POW((vgas[1] - vsink[1]),2) +
+			POW((vgas[2] - vsink[2]),2)) / 2.0 - GravitationalConstant * msink/dist;
+		 
+		 // Compute distance of closest approach
+		 if (esp > 0.0)
+		   rmin = huge*CellWidth[0][0];
+		 else
+		   rmin = -GravitationalConstant*msink/(2.0*esp) *
+		     (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2)));
+		 
+		 dxmin = rmin / CellWidth[0][0];
+		 if (dxmin >= 0.25)
+		   nexcluded[index]+=1;
+		 
+	       } // ksub
+	     } // jsub
+	   } // ksub
+	   
+	   if (abs(i-cindex) <= 1 && abs(j-cindex) <= 1 && abs(k-cindex) <= 1)
+	     maxexcluded = max(nexcluded[index],maxexcluded);
+	   
+	 }
+       }
+     }
   }
-
+  
   // Correct the central cell
   if (nexcluded[cgindex] > 0)
     if (KernelRadius / CellWidth[0][0] >= 0.25)
       nexcluded[cgindex] = maxexcluded;
     else
       nexcluded[cgindex] = 0;
-  
+    
   AverageDensity = WeightedSum/SumOfWeights;
   
   // Eqn 12
@@ -257,7 +255,7 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  if (maccreted > 0.25*mcell) 
 	    maccreted = 0.25*mcell;
 	  
-	  // Scale down maccrete
+	  // Scale down maccreted
 	  maccreted = maccreted/POW(NDIV,3) *
 	    (POW(NDIV,3)-nexcluded[index]);
 
@@ -358,9 +356,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    AccretedMomentum[1] += paccrete[1];
 	    AccretedMomentum[2] += paccrete[2];
 
-#ifdef DEBUG
+#ifdef DEBUG_AP
 	    if (index == cgindex)
-	      printf("Sink Density: %"FSYM", Cell Density: %"FSYM", New Density: %"FSYM"\n",
+	      printf("Sink Density: %"GOUTSYM", Cell Density: %"GOUTSYM", New Density: %"GOUTSYM"\n",
 		     maccreted/CellVolume,
 		     BaryonField[DensNum][index],
 		     BaryonField[DensNum][index]-maccreted/CellVolume);
@@ -376,9 +374,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    } else // Zeus
 	      BaryonField[TENum][index] = eintnew/mnew;
 
-	    BaryonField[Vel1Num][index] = pnew[0]/mcell;
-	    BaryonField[Vel2Num][index] = pnew[1]/mcell;
-	    BaryonField[Vel3Num][index] = pnew[2]/mcell;
+	    BaryonField[Vel1Num][index] = pnew[0]/mnew;
+	    BaryonField[Vel2Num][index] = pnew[1]/mnew;
+	    BaryonField[Vel3Num][index] = pnew[2]/mnew;
 
 	    // Check if mass or energy is too small, correct if necessary
 	    if (BaryonField[DensNum][index] < SmallRhoFac*SmallRho) {
@@ -422,12 +420,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   (*ThisParticle)->AddMass(AccretedMass);
   (*ThisParticle)->SetVelocity(NewVelocity);
 
-  printf("AccretedMass = %"FSYM" \n", AccretedMass);
-  printf("FinalMass    = %"FSYM" \n", (*ThisParticle)->ReturnMass());
-
   delete [] nexcluded;
 
   return SUCCESS;
 }
 
-#undef DEBUG
+#undef DEBUG_AP
