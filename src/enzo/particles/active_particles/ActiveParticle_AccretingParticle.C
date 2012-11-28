@@ -236,29 +236,12 @@ void ActiveParticleType_AccretingParticle::DescribeSupplementalData(ActivePartic
 }
 
 
-grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
-    int SendField);
+grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, 
+			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+			     int SendField);
 
-int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
-
-void CheckFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones) {
-  for (int i = 0; i < NumberOfFeedbackZones; i++)
-    for (int j = 0; j < NumberOfFeedbackZones; j++) {
-      if (i == j)
-	continue;
-      grid* ThisFeedbackZone = FeedbackZones[i];
-      grid* OtherFeedbackZone = FeedbackZones[j];
-      if (!(ThisFeedbackZone->GetGridLeftEdge(0) > OtherFeedbackZone->GetGridRightEdge(0) ||
-	    ThisFeedbackZone->GetGridLeftEdge(0) > OtherFeedbackZone->GetGridRightEdge(1) ||
-	    ThisFeedbackZone->GetGridLeftEdge(0) > OtherFeedbackZone->GetGridRightEdge(2) ||
-	    ThisFeedbackZone->GetGridRightEdge(0) < OtherFeedbackZone->GetGridLeftEdge(0) ||
-	    ThisFeedbackZone->GetGridRightEdge(1) < OtherFeedbackZone->GetGridLeftEdge(1) ||
-	    ThisFeedbackZone->GetGridRightEdge(2) < OtherFeedbackZone->GetGridLeftEdge(2)))
-	ENZO_FAIL("Overlapping feedback zones!");
-    }
-}
+int DistributeFeedbackZone(grid* FeedbackZone, HierarchyEntry** Grids, 
+			   int NumberOfGrids, int SendField);
 
 #define DEBUG_AP
 
@@ -289,40 +272,27 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  // Some active particles have different feedback radii for each particle,
-  // so we need to set that up here, despite the fact that these accreting
-  // particles don't (right now).
-  FeedbackRadius = new int[nParticles];
   for (i = 0; i < nParticles; i++) {
-    FeedbackRadius[i] = AccretionRadius;
-  }
-  
-  for (i = 0; i < nParticles; i++) {
-    grid** FeedbackZones = ConstructFeedbackZones(ParticleList+i, 1,
-		            FeedbackRadius+i, dx, Grids, NumberOfGrids, ALL_FIELDS);
-
-    grid* FeedbackZone = FeedbackZones[0];
+    grid* FeedbackZone = ConstructFeedbackZone(ParticleList[i], AccretionRadius, 
+					       dx, Grids, NumberOfGrids, ALL_FIELDS);
 
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
     
       float AccretionRate = 0;
       
       if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],
-				    AccretionRadius*dx,&AccretionRate) == FAIL)
+			      AccretionRadius*dx,&AccretionRate) == FAIL)
 	return FAIL;
       
       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }
   
-    DistributeFeedbackZones(FeedbackZones, 1, Grids, NumberOfGrids, ALL_FIELDS);
+    DistributeFeedbackZone(FeedbackZone, Grids, NumberOfGrids, ALL_FIELDS);
 
     delete FeedbackZone;
-    delete [] FeedbackZones;
   }
   
-  delete [] FeedbackRadius;
-
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
 

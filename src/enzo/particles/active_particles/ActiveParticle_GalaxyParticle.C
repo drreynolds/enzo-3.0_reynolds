@@ -238,12 +238,12 @@ int ActiveParticleType_GalaxyParticle::SetFlaggingField
   return SUCCESS;
 }
 
-grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
-    int SendField);
+grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, 
+			    FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+			    int SendField);
 
-int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
+int DistributeFeedbackZone(grid* FeedbackZones, HierarchyEntry** Grids, 
+			   int NumberOfGrids, int SendField);
 
 int ActiveParticleType_GalaxyParticle::SubtractMassFromGrid(int nParticles,
     ActiveParticleType** ParticleList, LevelHierarchyEntry *LevelArray[],
@@ -342,28 +342,24 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleFeedback(int nParticles,
     FeedbackRadius[i] = nint(static_cast<ActiveParticleType_GalaxyParticle*>(ParticleList[i])->Radius / dx);
   }
   
-  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-    FeedbackRadius, dx, Grids, NumberOfGrids, ALL_FIELDS);
-
-  delete [] FeedbackRadius;
-
   for (i = 0; i < nParticles; i++) {
-    grid* FeedbackZone = FeedbackZones[i];
+    grid* FeedbackZone = ConstructFeedbackZone(ParticleList[i], FeedbackRadius[i], dx, 
+					       Grids, NumberOfGrids, ALL_FIELDS);
+
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
         
       if (FeedbackZone->ApplyGalaxyParticleFeedback(&ParticleList[i]) == FAIL)
 	return FAIL;
-  
+
     }
+
+    DistributeFeedbackZone(FeedbackZone, Grids, NumberOfGrids, ALL_FIELDS);
+
+    delete FeedbackZone;
   }
+
+  delete [] FeedbackRadius;
   
-  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids, ALL_FIELDS);
-
-  for (i = 0; i < nParticles; i++) {
-    delete FeedbackZones[i];    
-  }
-
-  delete [] FeedbackZones;
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
 
@@ -398,29 +394,24 @@ int ActiveParticleType_GalaxyParticle::GalaxyParticleGravity(int nParticles,
     FeedbackRadius[i] = nint(static_cast<ActiveParticleType_GalaxyParticle*>(ParticleList[i])->Radius / dx);
   }
   
-  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-    FeedbackRadius, dx, Grids, NumberOfGrids, GRAVITATING_MASS_FIELD);
-
-  delete [] FeedbackRadius;
-
   for (i = 0; i < nParticles; i++) {
-    grid* FeedbackZone = FeedbackZones[i];
+    grid* FeedbackZone = ConstructFeedbackZone(ParticleList[i], FeedbackRadius[i], 
+				     dx, Grids, NumberOfGrids, GRAVITATING_MASS_FIELD);
+
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
         
       if (FeedbackZone->ApplyGalaxyParticleGravity(&ParticleList[i]) == FAIL)
 	return FAIL;
-  
+
     }
+
+    DistributeFeedbackZone(FeedbackZone, Grids, NumberOfGrids, GRAVITATING_MASS_FIELD);
+    
+    delete FeedbackZone;
   }
+
+  delete [] FeedbackRadius;
   
-  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids,
-    GRAVITATING_MASS_FIELD);
-
-  for (i = 0; i < nParticles; i++) {
-    delete FeedbackZones[i];    
-  }
-
-  delete [] FeedbackZones;
   delete [] Grids;
   return SUCCESS;
 }

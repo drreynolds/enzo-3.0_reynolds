@@ -37,8 +37,8 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 				int FluxFlag = FALSE,
 				TopGridData* MetaData = NULL);
 
-int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids, int SendField)
+int DistributeFeedbackZone(grid* FeedbackZone, HierarchyEntry** Grids, 
+			   int NumberOfGrids, int SendField)
 {
   int i,j;
 
@@ -50,19 +50,17 @@ int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
   CommunicationDirection = COMMUNICATION_POST_RECEIVE;
 
   for (i = 0; i < NumberOfGrids; i++) 
-    for (j = 0; j < NumberOfFeedbackZones; j++) 
-      if (Grids[i]->GridData->CopyActiveZonesFromGrid(FeedbackZones[j],ZeroVector,SendField) == FAIL)
-	ENZO_FAIL("FeedbackZone copy failed!\n");
+    if (Grids[i]->GridData->CopyActiveZonesFromGrid(FeedbackZone,ZeroVector,SendField) == FAIL)
+      ENZO_FAIL("FeedbackZone copy failed!\n");
     
   /* Send data */
     
   CommunicationDirection = COMMUNICATION_SEND;
 
   for (i = 0; i < NumberOfGrids; i++) 
-    for (j = 0; j < NumberOfFeedbackZones; j++) 
-      if (Grids[i]->GridData->CopyActiveZonesFromGrid(FeedbackZones[j],ZeroVector,SendField) == FAIL)
-	ENZO_FAIL("FeedbackZone copy failed!\n");
-
+    if (Grids[i]->GridData->CopyActiveZonesFromGrid(FeedbackZone,ZeroVector,SendField) == FAIL)
+      ENZO_FAIL("FeedbackZone copy failed!\n");
+  
   /* Receive data */
   
   if (CommunicationReceiveHandler() == FAIL)
