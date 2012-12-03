@@ -57,6 +57,7 @@ grid::grid()
     ParticlePosition[i]              = NULL;
     ParticleVelocity[i]              = NULL;
     ParticleAcceleration[i]          = NULL;
+    ActiveParticleAcceleration[i]    = NULL;
     AccelerationField[i]             = NULL;
     GravitatingMassFieldDimension[i] = 0;
     RandomForcingField[i]            = NULL;

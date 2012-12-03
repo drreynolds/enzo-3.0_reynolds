@@ -11,7 +11,9 @@
 /              before being interpolated into the Parent grid's
 /              GravitatingMassFieldParticles, and the Parent may
 /              be on a different process.
-/           
+/  modified2:  Nathan Goldbaum
+/  date:       November 2012  
+/              Active Particle Support
 /
 /  PURPOSE:
 /
@@ -42,7 +44,7 @@ int grid::UpdateParticlePosition(float TimeStep, int OffProcessorUpdate)
   if (ProcessorNumber != MyProcessorNumber && OffProcessorUpdate == FALSE)
     return SUCCESS;
  
-  if (NumberOfParticles == 0) return SUCCESS;
+  if (NumberOfParticles == 0 && NumberOfActiveParticles == 0) return SUCCESS;
  
   FLOAT a = 1.0, dadt;
   int i, dim;
@@ -61,37 +63,42 @@ int grid::UpdateParticlePosition(float TimeStep, int OffProcessorUpdate)
 	== FAIL) {
             ENZO_FAIL("Error in CsomologyComputeExpansionFactors.");
     }
+
+  float Coefficient = TimeStep/a;
  
   /* Loop over dimensions. */
- 
-  for (dim = 0; dim < GridRank; dim++) {
- 
-    /* Error check. */
- 
-    if (ParticleVelocity[dim] == NULL) {
+  
+  if (NumberOfParticles > 0) 
+    for (dim = 0; dim < GridRank; dim++) {
+      
+      /* Error check. */
+      
+      if (ParticleVelocity[dim] == NULL) {
             ENZO_FAIL("No ParticleVelocity present.");
+      }
+      
+      /* update positions. */
+      
+      for (i = 0; i < NumberOfParticles; i++)
+	ParticlePosition[dim][i] += Coefficient*ParticleVelocity[dim][i];
+      
     }
- 
-    /* update velocities. */
- 
-    float Coefficient = TimeStep/a;
-    for (i = 0; i < NumberOfParticles; i++)
-      ParticlePosition[dim][i] += Coefficient*ParticleVelocity[dim][i];
- 
-    /* wrap particle positions for periodic case.
-       (now done in CommunicationTransferParticles) */
- 
-#ifdef UNUSED
-    FLOAT Width = DomainRightEdge[dim] - DomainLeftEdge[dim];
-    for (i = 0; i < NumberOfParticles; i++) {
-      if (ParticlePosition[dim][i] > DomainRightEdge[dim])
-	ParticlePosition[dim][i] -= Width;
-      if (ParticlePosition[dim][i] < DomainLeftEdge[dim])
-	ParticlePosition[dim][i] += Width;
+  
+  if (NumberOfActiveParticles > 0)
+    for (i = 0; i < NumberOfActiveParticles; i++) {
+      float* apvel;
+      FLOAT* appos;
+      apvel = ActiveParticles[i]->ReturnVelocity();
+      appos = ActiveParticles[i]->ReturnPosition();
+      for (dim = 0; dim < GridRank; dim++) {
+	
+	/* update positions. */
+
+	appos[dim] += Coefficient*apvel[dim];
+
+      }
+      ActiveParticles[i]->SetPosition(appos);
     }
-#endif /* UNUSED */
- 
-  }
- 
+
   return SUCCESS;
 }

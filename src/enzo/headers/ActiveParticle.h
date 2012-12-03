@@ -82,6 +82,7 @@ public:
   void  AdjustMassByFactor(double factor) { Mass *= factor; };
   void  AdjustVelocity(float VelocityIncrement[]);
   void  SetVelocity(float NewVelocity[]);
+  void  SetPosition(FLOAT NewPosition[]);
   void  SetPositionPeriod(FLOAT period[]);
 
   FLOAT *ReturnPosition(void) { return pos; };

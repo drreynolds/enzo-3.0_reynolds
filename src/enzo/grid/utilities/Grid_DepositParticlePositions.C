@@ -67,7 +67,7 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
   /* Return if this doesn't concern us. */
  
   if (TargetGrid->CommunicationMethodShouldExit(this) ||
-      NumberOfParticles == 0)
+      (NumberOfParticles == 0 && NumberOfActiveParticles == 0))
     return SUCCESS;
  
 //  fprintf(stderr, "----DPP: MyPN = %"ISYM", PN = %"ISYM", TGPN = %"ISYM", DIR (R=1,S=2) = %"ISYM", NP = %"ISYM"\n",
@@ -273,33 +273,30 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
     this->UpdateParticlePosition(TimeDifference, TRUE);
 
     /*
-       If using sink particles, then create a second field of
-       unsmoothed sink particles (since we don't want sink particles
-       smoothed -- they are stellar sized).
-       
-       The active particles will all be concentrated at the end of the
-       particle arrays.
-
-       Note that several types of particles may be appropriate for this,
-       but they will have to be added if needed.
+       If using active particles, then create a second field of
+       unsmoothed active particles (since we may not want active
+       particles smoothed).
     */
 
     if (NumberOfActiveParticles > 0 && SmoothField == TRUE) {
-      ParticleMassPointerSink = new float[NumberOfParticles];
-      for (i = NumberOfParticles-NumberOfActiveParticles; i < NumberOfParticles; i++) {
-	ParticleMassPointerSink[i] = ParticleMassPointer[i];
-	ParticleMassPointer[i] = 0;
+      FLOAT** ActiveParticlePosition = new FLOAT*[GridRank];
+      for (dim = 0; dim < GridRank; dim++)
+	ActiveParticlePosition[dim] = new FLOAT[NumberOfActiveParticles];
+      this->GetActiveParticlePosition(ActiveParticlePosition);
+
+      float ActiveParticleMassPointer[NumberOfActiveParticles];
+      for (i = NumberOfActiveParticles; i < NumberOfParticles+NumberOfActiveParticles; i++) {
+	ActiveParticleMassPointer[i] = ActiveParticles[i]->ReturnMass()*MassFactor;
       }
 
-      /* Deposit sink particles (only) to field using CIC. */
-
       PFORTRAN_NAME(cic_deposit)(
-           ParticlePosition[0], ParticlePosition[1], ParticlePosition[2], 
-	   &GridRank, &NumberOfParticles, ParticleMassPointerSink, DepositFieldPointer, 
+           ActiveParticlePosition[0], ActiveParticlePosition[1], ActiveParticlePosition[2], 
+	   &GridRank, &NumberOfActiveParticles, ActiveParticleMassPointer, DepositFieldPointer, 
 	   LeftEdge, Dimension, Dimension+1, Dimension+2, &CellSize, &addaspoints);
 
-      delete [] ParticleMassPointerSink;
-
+      for (dim = 0; dim < GridRank; dim++)
+	delete [] ActiveParticlePosition[dim];
+      delete [] ActiveParticlePosition;
     }
  
     /* Deposit particles. */
@@ -330,14 +327,6 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
 	 &DepositPositionsParticleSmoothRadius);
     }
     
-    if (this->NumberOfActiveParticles > 0 && SmoothField == TRUE) {
-      for (i = NumberOfParticles-NumberOfActiveParticles; i < NumberOfParticles; i++) {
-	ParticleMassPointer[i] = ParticleMassPointerSink[i];
-      }
-      delete [] ParticleMassPointerSink;
-    }
-
-
   } // ENDIF this processor
  
   /* If on different processors, copy deposited field back to the

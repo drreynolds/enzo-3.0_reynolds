@@ -94,19 +94,15 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
       // If the particle moved we need to add it to the new grid and remove
       // it from the old grid.
       if (OldGrid != LevelGrids[SavedGrid]->GridData) {
-	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL)
+	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(
+			     static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL)
 	      ENZO_FAIL("Active particle grid assignment failed!\n");
 	    if (SavedGrid != -1) {
-	      foundAP = OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
-	      foundP = OldGrid->RemoveParticle(ID);
-	      if ((foundP != TRUE) || (foundAP != TRUE))
+	      foundAP = OldGrid->RemoveActiveParticle(ID,
+			       LevelGrids[SavedGrid]->GridData->ReturnProcessorNumber());
+	      if ((foundAP != TRUE))
 	        return FAIL;
-	      OldGrid->CleanUpMovedParticles();
 	    }
-      }
-      // If the particle didn't change grids, we still need to mirror the AP data to the particle list.
-      else {
-	LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(ParticleList[i]->ReturnID());
       }
     }
     else {
@@ -125,17 +121,11 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
       grid* OldGrid = ParticleList[i]->ReturnCurrentGrid();
       int ID = ParticleList[i]->ReturnID();
       OldGrid->RemoveActiveParticle(ID,LevelGrids[SavedGridOffProc]->GridData->ReturnProcessorNumber());
-      OldGrid->RemoveParticle(ID);
-	  OldGrid->CleanUpMovedParticles();
       // if this is the receiving proc, add it.
       if (LevelMax == recvbuf.value) {
 	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL) {
 	      ENZO_FAIL("Active particle grid assignment failed"); 
 	    } 
-	    // Still need to mirror the AP data to the particle list.
-	    else {
-	      LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(ParticleList[i]->ReturnID());
-	    }
       }
       LevelMax = recvbuf.value;
 #endif // endif parallel

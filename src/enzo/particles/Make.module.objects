@@ -17,7 +17,6 @@ ENZO_OBJS +=\
         ActiveParticleRoutines.o \
         ActiveParticle_AccretingParticle.o \
         AssignActiveParticlesToGrids.o \
-        DetachActiveParticles.o \
         RecordTotalActiveParticleCount.o \
         ActiveParticle_DisableParticle.o \
         ActiveParticle_CenOstriker.o \

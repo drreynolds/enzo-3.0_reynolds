@@ -217,6 +217,14 @@ void ActiveParticleType::SetVelocity(float NewVelocity[])
   return;
 }
 
+void ActiveParticleType::SetPosition(FLOAT NewPosition[])
+{
+  int i;
+  for (i = 0; i<3; i++)
+    pos[i] = NewPosition[i];
+  return;
+}
+
 void ActiveParticleType::SetPositionPeriod(FLOAT period[])
 {
   int i;
