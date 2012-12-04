@@ -1,12 +1,11 @@
 /***********************************************************************
 /
-/  GRID CLASS (APPEND ACTIVE PARTICLE DATA TO AN ACTIVE PARTICLE ARRAY)
+/  GRID CLASS (RETURN ACTIVE PARTICLE VELOCITIES AS A 2D POINTER ARRAY)
 /
 /  written by: Nathan Goldbaum
-/  date:       March, 2012
+/  date:       November, 2012
 /  modified1:  
 /
-/  PURPOSE:
 /
 ************************************************************************/
 #include "preincludes.h"
@@ -26,17 +25,14 @@
 
 #include "ActiveParticle.h"
 
-int grid::AppendActiveParticlesToList(ActiveParticleType** APArray, int offset, int search_id) {
-  
-  // Return if this does not concern us
-  if (MyProcessorNumber != ProcessorNumber)
-    return SUCCESS;
+void grid::GetActiveParticleVelocity(float *ActiveParticleVelocity[]) 
+{
+  int i, dim;
 
-  int PNum, count=0;
+  for (i = 0; i < NumberOfActiveParticles; i++) {
+    FLOAT* vel = ActiveParticles[i]->ReturnVelocity();
+    for (dim = 0; dim < GridRank; dim++)
+      ActiveParticleVelocity[dim][i] = vel[dim];
+  }
 
-  for (PNum = 0; PNum < NumberOfActiveParticles; PNum++) 
-    if (search_id == ActiveParticles[PNum]->ReturnType()) 
-      APArray[offset+count++] = ActiveParticles[PNum];
-      
-  return SUCCESS;
-} 
+}

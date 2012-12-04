@@ -53,12 +53,14 @@ grid::~grid()
     delete [] ParticlePosition[i];
     delete [] ParticleVelocity[i];
     delete [] ParticleAcceleration[i];
+    delete [] ActiveParticleAcceleration[i];
     delete [] AccelerationField[i];
     delete [] RandomForcingField[i];
   }
  
   delete ParticleAcceleration[MAX_DIMENSION];
- 
+  delete ActiveParticleAcceleration[MAX_DIMENSION];
+
   for (i = 0; i < MAX_NUMBER_OF_BARYON_FIELDS; i++) {
     delete [] BaryonField[i];
     delete [] OldBaryonField[i];

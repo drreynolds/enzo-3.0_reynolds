@@ -57,13 +57,15 @@ grid::grid()
     ParticlePosition[i]              = NULL;
     ParticleVelocity[i]              = NULL;
     ParticleAcceleration[i]          = NULL;
+    ActiveParticleAcceleration[i]    = NULL;
     AccelerationField[i]             = NULL;
     GravitatingMassFieldDimension[i] = 0;
     RandomForcingField[i]            = NULL;
   }
  
-  ParticleAcceleration[MAX_DIMENSION]      = NULL;
- 
+  ParticleAcceleration[MAX_DIMENSION]       = NULL;
+  ActiveParticleAcceleration[MAX_DIMENSION] = NULL; 
+
   /* clear MAX_NUMBER_OF_BARYON_FIELDS vectors & [][MAX_DIMENSION] matricies */
  
   for (i = 0; i < MAX_NUMBER_OF_BARYON_FIELDS; i++) {

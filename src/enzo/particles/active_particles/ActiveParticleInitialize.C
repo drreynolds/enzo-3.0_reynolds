@@ -51,16 +51,7 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
   if (NextActiveParticleID == INT_UNDEFINED)
     NextActiveParticleID = NumberOfOtherParticles + NumberOfActiveParticles;
   
-  /* Active particle initialization
-     1. copy quantities from active to normal particles
-  */
-
-  int grid_num;
-  for (grid_num = 0; grid_num < NumberOfGrids; grid_num++) {
-    Grids[grid_num]->GridData->AppendActiveParticles();
-  } // ENDFOR grids
-
-  /* 2. Call initialization routines for each active particle type */
+  /* Call initialization routines for each active particle type */
 
   int ActiveParticleID;
 
