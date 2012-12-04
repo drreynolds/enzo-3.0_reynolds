@@ -413,12 +413,10 @@ int grid::SolveHydroEquations(int CycleNumber, int NumberOfSubgrids,
        the right thing for < 3 dimensions. */
     /* note: Start/EndIndex are zero based */
 
-    printf("Before PPM: %"GOUTSYM" \n", this->SumGasMass());
     if (HydroMethod == PPM_DirectEuler)
       this->SolvePPM_DE(CycleNumber, NumberOfSubgrids, SubgridFluxes, 
 			CellWidthTemp, GridGlobalStart, GravityOn, 
 			NumberOfColours, colnum);
-    printf("After PPM:  %"GOUTSYM" \n", this->SumGasMass());
     /* PPM LR has been withdrawn. */
 
     if (HydroMethod == PPM_LagrangeRemap) {

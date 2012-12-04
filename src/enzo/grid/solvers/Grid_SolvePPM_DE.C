@@ -55,7 +55,6 @@ int grid::SolvePPM_DE(int CycleNumber, int NumberOfSubgrids,
   for (n = ixyz; n < ixyz+GridRank; n++) {
 
     // Update in x-direction
-    printf("Before x sweep: %"GOUTSYM" \n", this->SumGasMass());
     if ((n % GridRank == 0) && nxz > 1) {
       for (k = 0; k < GridDimension[2]; k++) {
 	if (this->xEulerSweep(k, NumberOfSubgrids, SubgridFluxes, 
@@ -67,7 +66,6 @@ int grid::SolvePPM_DE(int CycleNumber, int NumberOfSubgrids,
     } // ENDIF x-direction
 
     // Update in y-direction
-    printf("Before y sweep: %"GOUTSYM" \n", this->SumGasMass());
     if ((n % GridRank == 1) && nyz > 1) {
       for (i = 0; i < GridDimension[0]; i++) {
 	if (this->yEulerSweep(i, NumberOfSubgrids, SubgridFluxes, 
@@ -79,7 +77,6 @@ int grid::SolvePPM_DE(int CycleNumber, int NumberOfSubgrids,
     } // ENDIF y-direction
 
     // Update in z-direction
-    printf("Before z sweep: %"GOUTSYM" \n", this->SumGasMass());
     if ((n % GridRank == 2) && nzz > 1) {
       for (j = 0; j < GridDimension[1]; j++) {
 	if (this->zEulerSweep(j, NumberOfSubgrids, SubgridFluxes, 

@@ -553,7 +553,6 @@ gradient force to gravitational force for one-zone collapse test. */
 /* Debugging support. */
 
    int DebugCheck(const char *message = "Debug");
-   float SumGasMass(void);
 
 #ifdef EMISSIVITY
    /* define function prototype as a grid member function */

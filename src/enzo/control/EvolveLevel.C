@@ -301,7 +301,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   typedef HierarchyEntry* HierarchyEntryPointer;
   HierarchyEntry **Grids;
   int NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
-  printf("Before EvolveLevel: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
   int *NumberOfNewActiveParticles = new int[NumberOfGrids]();
   int *NumberOfSubgrids = new int[NumberOfGrids];
   int *NumberOfNewParticles = new int[NumberOfGrids];
@@ -424,14 +423,10 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
     /* Initialize the star particles */
 
-    printf("Before initialize: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
-
     Star *AllStars = NULL;
     ActiveParticleInitialize(Grids, MetaData, NumberOfGrids, LevelArray,
 	                     level);
     
-    printf("After initialize:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
-
 #ifdef TRANSFER
     /* Initialize the radiative transfer */
 
@@ -485,9 +480,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
 	  if (level > 0)
 	    Grids[grid1]->GridData->SolveForPotential(level);
-	  printf("Before compute accelerations: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
 	  Grids[grid1]->GridData->ComputeAccelerations(level);
-	  printf("After compute accelerations:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
 	  Grids[grid1]->GridData->CopyPotentialToBaryonField();
 	}
 	  /* otherwise, interpolate potential from coarser grid, which is
@@ -517,32 +510,24 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     } // End of loop over grids
     
     //Ensure the consistency of the AccelerationField
-    printf("Before SAB: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
     SetAccelerationBoundary(Grids, NumberOfGrids,SiblingList,level, MetaData,
 			    Exterior, LevelArray[level], LevelCycleCount[level]);
-    printf("After SAB:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
     for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
 #endif //SAB.
       /* Copy current fields (with their boundaries) to the old fields
 	  in preparation for the new step. */
-      printf("Before Copy: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
       Grids[grid1]->GridData->CopyBaryonFieldToOldBaryonField();
-      printf("After Copy:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
 
       /* Call hydro solver and save fluxes around subgrids. */
-      printf("Before Solve: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
       Grids[grid1]->GridData->SolveHydroEquations(LevelCycleCount[level],
 	    NumberOfSubgrids[grid1], SubgridFluxesEstimate[grid1], level);
-      printf("After Solve:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
       /* Solve the cooling and species rate equations. */
  
       Grids[grid1]->GridData->MultiSpeciesHandler();
 
       /* Update particle positions (if present). */
       
-      printf("Before UPP: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
       UpdateParticlePositions(Grids[grid1]->GridData);
-      printf("After UPP:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
 
     /*Trying after solving for radiative transfer */
 #ifdef EMISSIVITY
@@ -563,13 +548,9 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
       /* Include 'star' particle creation and feedback. */
 
-      printf("Before handler: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
-
       Grids[grid1]->GridData->ActiveParticleHandler
 	(Grids[grid1]->NextGridNextLevel, level ,dtLevelAbove, 
 	 NumberOfNewActiveParticles[grid1]);      
-
-      printf("After handler:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
 
       /* Include shock-finding */
 
@@ -606,12 +587,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     /* Finalize (accretion, feedback, etc.) star particles */
 
-    printf("Before finalize: %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
-
     ActiveParticleFinalize(Grids, MetaData, NumberOfGrids, LevelArray,
 			   level, NumberOfNewActiveParticles);
-
-    printf("After finalize:  %"GOUTSYM" \n", Grids[0]->GridData->SumGasMass());
 
     /* For each grid: a) interpolate boundaries from the parent grid.
                       b) copy any overlapping zones from siblings. */
