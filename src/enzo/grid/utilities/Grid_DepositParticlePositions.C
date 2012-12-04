@@ -285,8 +285,8 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
 	ActiveParticlePosition[dim] = new FLOAT[NumberOfActiveParticles];
       this->GetActiveParticlePosition(ActiveParticlePosition);
 
-      float ActiveParticleMassPointer[NumberOfActiveParticles];
-      for (i = NumberOfActiveParticles; i < NumberOfParticles+NumberOfActiveParticles; i++) {
+      float* ActiveParticleMassPointer = new float[NumberOfActiveParticles];
+      for (i = 0; i < NumberOfActiveParticles; i++) {
 	ActiveParticleMassPointer[i] = ActiveParticles[i]->ReturnMass()*MassFactor;
       }
 
@@ -298,6 +298,7 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
       for (dim = 0; dim < GridRank; dim++)
 	delete [] ActiveParticlePosition[dim];
       delete [] ActiveParticlePosition;
+      delete [] ActiveParticleMassPointer;
     }
  
     /* Deposit particles. */
