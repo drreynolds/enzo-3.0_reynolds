@@ -40,7 +40,7 @@
 #include "ActiveParticle.h"
 #include "SortCompareFunctions.h"
 
-#define DEBUG_AP
+#define NO_DEBUG_AP
 
 void my_exit(int status);
  

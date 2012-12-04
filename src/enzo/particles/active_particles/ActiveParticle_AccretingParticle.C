@@ -28,8 +28,6 @@ const char config_accreting_particle_defaults[] =
 
 #endif
 
-#define NO_DEBUG
-
 /* We need to make sure that we can operate on the grid, so this dance is
  * necessary to make sure that grid is 'friend' to this particle type. */
 
@@ -243,8 +241,6 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius
 int DistributeFeedbackZone(grid* FeedbackZone, HierarchyEntry** Grids, 
 			   int NumberOfGrids, int SendField);
 
-#define DEBUG_AP
-
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
 						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
@@ -345,4 +341,3 @@ namespace {
 std::vector<ParticleAttributeHandler*>
   ActiveParticleType_AccretingParticle::AttributeHandlers;
 
-#undef DEBUG

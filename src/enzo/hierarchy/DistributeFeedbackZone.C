@@ -29,8 +29,6 @@
 #include "CommunicationUtilities.h"
 #include "communication.h"
 
-#define DEBUG_AP
-
 int CommunicationBufferPurge(void);
 int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 				int NumberOfSubgrids[] = NULL,
