@@ -67,6 +67,7 @@ ActiveParticleType::ActiveParticleType(ActiveParticleType* part)
   GridID = part->GridID;
   type = part->type;
   CurrentGrid = part->CurrentGrid;
+  dest_processor = part->dest_processor;
 }
 
 ActiveParticleType::ActiveParticleType(grid *_grid, ActiveParticleFormationData &data)
@@ -83,6 +84,7 @@ ActiveParticleType::ActiveParticleType(grid *_grid, ActiveParticleFormationData 
   /* The correct indices are assigned in CommunicationUpdateActiveParticleCount 
      in ActiveParticleFinalize.*/
   Identifier = INT_UNDEFINED;
+  dest_processor = -1;
 }
 
 

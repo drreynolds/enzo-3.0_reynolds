@@ -393,8 +393,6 @@ ENZO_OBJS +=\
 	Grid_SetSubgridMarkerFromSubgrid.o \
 	Grid_SubgridMarkerPostParallel.o \
 	Grid_SubtractAccretedMassFromSphere.o \
-	Grid_SumGasMass.o \
-	Grid_SumGasMassGZ.o \
 	Grid_WriteCube.o \
 	Grid_WriteCubeInterpolate.o \
 	Grid_WriteGrid.o \

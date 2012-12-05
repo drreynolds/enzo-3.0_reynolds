@@ -89,8 +89,9 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
      The loop breaks when check_overlap returns -1.
    */
   int overlap = 0;
-  while (true) {
-
+  while (true) 
+    {
+   
       for (dim = 0; dim < GridRank; dim++) {
         ActiveLeft[dim]  = GridLeftEdge[dim]  + EdgeOffset[dim];
         ActiveRight[dim] = GridRightEdge[dim] + EdgeOffset[dim];
@@ -261,7 +262,7 @@ int grid::CopyActiveZonesFromGrid(grid *OtherGrid, FLOAT EdgeOffset[MAX_DIMENSIO
 
   delete [] shift;
 
-  this->DebugCheck("CopyZonesFromGrid (after)");
+  this->DebugCheck("CopyActiveZonesFromGrid (after)");
 
   return SUCCESS;
 }

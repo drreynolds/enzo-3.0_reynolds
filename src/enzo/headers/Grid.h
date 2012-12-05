@@ -1384,6 +1384,7 @@ gradient force to gravitational force for one-zone collapse test. */
    int ReturnNumberOfParticles() {return NumberOfParticles;};
    int ReturnNumberOfActiveParticles() {return NumberOfActiveParticles;};
    int ReturnNumberOfActiveParticlesOfThisType(int ActiveParticleIDToFind);
+   ActiveParticleType** ReturnActiveParticles() {return ActiveParticles;};
 
    int ReturnNumberOfStarParticles(void);
 
@@ -2496,12 +2497,6 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			     float &mass, float &metallicity2, 
 			     float &metallicity3,
 			     float &coldgas_mass, float AvgVelocity[]);
-
-  /* Sum mass on this grid */
-
-  int SumGasMass(float *mass);
-
-  float SumGasMassGZ();
 
   int RemoveParticle(int ID, bool disable=false);
 

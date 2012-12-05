@@ -104,7 +104,7 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
 	      OldGrid->CleanUpMovedParticles();
 	    }
       }
-      // If the particle didn't change grids, we still need to mirror the AP data to the particle list.
+      // The particle didn't move, still need to update the AP data and mirror the new data to the particle list.
       else {
 	LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(ParticleList[i]->ReturnID());
       }
@@ -132,7 +132,7 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
 	    if (LevelGrids[SavedGrid]->GridData->AddActiveParticle(static_cast<ActiveParticleType*>(ParticleList[i])) == FAIL) {
 	      ENZO_FAIL("Active particle grid assignment failed"); 
 	    } 
-	    // Still need to mirror the AP data to the particle list.
+	    // Still need to update the AP data and mirror the new data to the particle list.
 	    else {
 	      LevelGrids[SavedGrid]->GridData->UpdateParticleWithActiveParticle(ParticleList[i]->ReturnID());
 	    }

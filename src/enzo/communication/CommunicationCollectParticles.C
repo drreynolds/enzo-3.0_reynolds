@@ -18,8 +18,6 @@
 /         bit inefficient but reduced the number of if-statements.
 /
 ************************************************************************/
-#define DEBUG_AP
- 
 #ifdef USE_MPI
 #include "communicators.h"
 #endif /* USE_MPI */
@@ -41,6 +39,8 @@
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
 #include "SortCompareFunctions.h"
+
+#define NO_DEBUG_AP
 
 void my_exit(int status);
  

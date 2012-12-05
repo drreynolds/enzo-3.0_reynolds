@@ -11,14 +11,14 @@ vpath %.F90 hierarchy/
 ENZO_OBJS +=\
 	AdjustMustRefineParticlesRefineToLevel.o \
 	AdjustRefineRegion.o \
-	ConstructFeedbackZones.o \
+	ConstructFeedbackZone.o \
 	CopyOverlappingZones.o \
 	CopyZonesFromOldGrids.o \
 	CreateSUBlingList.o \
 	CreateSiblingList.o \
 	DeleteSUBlingList.o \
 	DetermineSubgridSizeExtrema.o \
-	DistributeFeedbackZones.o \
+	DistributeFeedbackZone.o \
 	ExternalBoundary_AddField.o \
 	ExternalBoundary_AppendForcingToBaryonFields.o \
 	ExternalBoundary_DeleteObsoleteFields.o \

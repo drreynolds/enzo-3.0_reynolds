@@ -28,8 +28,6 @@ const char config_accreting_particle_defaults[] =
 
 #endif
 
-#define NO_DEBUG
-
 /* We need to make sure that we can operate on the grid, so this dance is
  * necessary to make sure that grid is 'friend' to this particle type. */
 
@@ -107,15 +105,14 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
   AccretingParticleGrid *thisGrid =
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
   
-
-  float *tvel;
-
   int i,j,k,index,method,MassRefinementMethod;
 
   float *density = thisGrid->BaryonField[data.DensNum];
-  float *velx = thisGrid->BaryonField[data.Vel1Num];
-  float *vely = thisGrid->BaryonField[data.Vel2Num];
-  float *velz = thisGrid->BaryonField[data.Vel3Num];
+  
+  float* velx = thisGrid->BaryonField[data.Vel1Num]; 
+  float* vely = thisGrid->BaryonField[data.Vel2Num];
+  float* velz = thisGrid->BaryonField[data.Vel3Num];
+  
   float JeansDensityUnitConversion = (Gamma*pi*kboltz) / (Mu*mh*GravConst);
   float CellTemperature = 0;
   float JeansDensity = 0;
@@ -185,11 +182,9 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
 	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
-	tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
-	  
-	np->vel[0] = tvel[0];
-	np->vel[1] = tvel[1];
-	np->vel[2] = tvel[2];
+	np->vel[0] = velx[index];
+	np->vel[1] = vely[index];
+	np->vel[2] = velz[index];
 	
 	if (HasMetalField)
 	  np->Metallicity = data.TotalMetals[index];
@@ -201,9 +196,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	// Remove mass from grid
 
 	density[index] = DensityThreshold;
-
-	// Clean up
-	delete [] tvel;
 
       } // i
     } // j
@@ -239,12 +231,12 @@ void ActiveParticleType_AccretingParticle::DescribeSupplementalData(ActivePartic
 }
 
 
-grid** ConstructFeedbackZones(ActiveParticleType** ParticleList, int nParticles,
-    int *FeedbackRadius, FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
-    int SendField);
+grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, 
+			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
+			     int SendField);
 
-int DistributeFeedbackZones(grid** FeedbackZones, int NumberOfFeedbackZones,
-			    HierarchyEntry** Grids, int NumberOfGrids, int SendField);
+int DistributeFeedbackZone(grid* FeedbackZone, HierarchyEntry** Grids, 
+			   int NumberOfGrids, int SendField);
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
 						  int AccretionRadius, FLOAT dx, 
@@ -273,41 +265,27 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
   
-  // Some active particles have different feedback radii for each particle,
-  // so we need to set that up here, despite the fact that these accreting
-  // particles don't (right now).
-  FeedbackRadius = new int[nParticles];
   for (i = 0; i < nParticles; i++) {
-    FeedbackRadius[i] = AccretionRadius;
-  }
-  
-  grid** FeedbackZones = ConstructFeedbackZones(ParticleList, nParticles,
-    FeedbackRadius, dx, Grids, NumberOfGrids, ALL_FIELDS);
+    grid* FeedbackZone = ConstructFeedbackZone(ParticleList[i], AccretionRadius, 
+					       dx, Grids, NumberOfGrids, ALL_FIELDS);
 
-  delete FeedbackRadius;
-
-  for (i = 0; i < nParticles; i++) {
-    grid* FeedbackZone = FeedbackZones[i];
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
     
       float AccretionRate = 0;
-        
-      if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],AccretionRadius*dx,&AccretionRate) == FAIL)
+      
+      if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],
+			      AccretionRadius*dx,&AccretionRate) == FAIL)
 	return FAIL;
-  
+      
       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }
+  
+    DistributeFeedbackZone(FeedbackZone, Grids, NumberOfGrids, ALL_FIELDS);
+
+    delete FeedbackZone;
   }
   
-  DistributeFeedbackZones(FeedbackZones, nParticles, Grids, NumberOfGrids, ALL_FIELDS);
-
-  for (i = 0; i < nParticles; i++) {
-    delete FeedbackZones[i];    
-  }
-
-  delete [] FeedbackZones;
-
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
 
@@ -360,4 +338,3 @@ namespace {
 std::vector<ParticleAttributeHandler*>
   ActiveParticleType_AccretingParticle::AttributeHandlers;
 
-#undef DEBUG
