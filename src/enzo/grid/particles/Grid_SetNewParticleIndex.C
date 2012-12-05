@@ -40,11 +40,6 @@ void grid::SetNewParticleIndex(PINT &next_id)
 		<< std::endl;
 #endif
     }
-  // Do the same for mirrored particles.  The normal and active new
-  // particles are still in the same order as they were created.
-  for (n = NumberOfParticles-NumberOfActiveParticles; 
-       n < NumberOfParticles; n++)
-    if (ParticleNumber[n] == INT_UNDEFINED)
-      ParticleNumber[n] = ori_count++;
+
   return;
 }

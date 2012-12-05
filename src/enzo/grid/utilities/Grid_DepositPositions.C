@@ -38,7 +38,7 @@ extern "C" void PFORTRAN_NAME(smooth_deposit)(FLOAT *posx, FLOAT *posy,
  
  
 int grid::DepositPositions(FLOAT *Position[], float *Mass, int Number,
-			   int DepositField)
+			   int DepositField, bool NeverSmooth)
 {
   if (Number == 0) return SUCCESS;
 
@@ -110,7 +110,7 @@ int grid::DepositPositions(FLOAT *Position[], float *Mass, int Number,
     ENZO_FAIL("New gravity module currently supports only 3d.\n");
   }
  
-  if (DepositPositionsParticleSmoothRadius < CellSize)
+  if (DepositPositionsParticleSmoothRadius < CellSize || NeverSmooth)
 
   {
     /* Deposit to field using CIC. */

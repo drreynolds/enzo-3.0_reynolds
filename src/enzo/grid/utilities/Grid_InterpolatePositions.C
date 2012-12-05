@@ -36,7 +36,9 @@ int grid::InterpolatePositions(FLOAT *Position[], int dim, float *Field,
     return SUCCESS;
  
   /* Set the pointer to the AccelerationField or the PotentialField. */
- 
+
+  int i;
+
   float *InterpolationField = AccelerationField[dim];
   if (dim == GridRank)
     InterpolationField = PotentialField;
@@ -55,7 +57,7 @@ int grid::InterpolatePositions(FLOAT *Position[], int dim, float *Field,
   /* Set the left edge of the field. */
  
   FLOAT LeftEdge[MAX_DIMENSION];
-  for (int i = 0; i < GridRank; i++)
+  for (i = 0; i < GridRank; i++)
     LeftEdge[i] = CellLeftEdge[i][0];
 //    LeftEdge[i] = CellLeftEdge[i][0] - ((dim == i)? (0.5*CellWidth[i][0]) : 0);
  
