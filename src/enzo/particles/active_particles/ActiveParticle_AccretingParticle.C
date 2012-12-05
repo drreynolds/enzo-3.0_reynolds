@@ -105,9 +105,6 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
   AccretingParticleGrid *thisGrid =
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
   
-
-  float *tvel;
-
   int i,j,k,index,method,MassRefinementMethod;
 
   float *density = thisGrid->BaryonField[data.DensNum];
