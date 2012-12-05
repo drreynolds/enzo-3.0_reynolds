@@ -55,7 +55,6 @@ ENZO_OBJS +=\
 	Grid_FindMinimumParticleMass.o \
 	Grid_FindNewStarParticles.o \
 	Grid_GetActiveParticlePosition.o \
-	Grid_GetActiveParticleVelocity.o \
 	Grid_InterpolateParticlePositions.o \
 	Grid_MirrorStarParticles.o \
 	Grid_MoveAllParticles.o \

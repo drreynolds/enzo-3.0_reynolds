@@ -2332,7 +2332,6 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   /* Create flat arrays of active particle data */
 
   void GetActiveParticlePosition(FLOAT *ActiveParticlePosition[]);
-  void GetActiveParticleVelocity(float *ActiveParticleVelocity[]);
 
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 
