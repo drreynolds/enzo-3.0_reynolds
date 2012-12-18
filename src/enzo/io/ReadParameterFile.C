@@ -69,7 +69,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   /* declarations */
 
   
-  char line[MAX_LINE_LENGTH], junk[MAX_LINE_LENGTH];
+  char line[MAX_LINE_LENGTH], unused_string[MAX_LINE_LENGTH];
   int i, dim, ret, int_dummy;
   float TempFloat;
   int comment_count = 0;
@@ -1017,8 +1017,8 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
         EnableActiveParticleType(dummy);
     }
     // These lines are read in but not used at the moment.
-    ret += sscanf(line, "PresentParticleTypes = %s", &junk);
-    ret += sscanf(line, "ParticleTypeCounts = %s", &junk);
+    ret += sscanf(line, "PresentParticleTypes = %s", &unused_string);
+    ret += sscanf(line, "ParticleTypeCounts = %s", &unused_string);
 
     ret += sscanf(line, "UseGasDrag = %"ISYM, &UseGasDrag);
     ret += sscanf(line, "GasDragCoefficient = %"GSYM, &GasDragCoefficient);

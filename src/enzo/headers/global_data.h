@@ -947,6 +947,12 @@ EXTERN int ExtraOutputs[MAX_EXTRA_OUTPUTS];
 /* Active particles */
 EXTERN ActiveParticleType_info *EnabledActiveParticles[MAX_ACTIVE_PARTICLE_TYPES];
 EXTERN int EnabledActiveParticlesCount;
+// This global array is currently only synched at the bottom of each
+// call to EvolveLevel (see ActiveParticleFinalize). 
+// This is sufficient for its current use of
+// saving particle meta data to disk. If this array will be used for
+// additional purposes, it should probably be synched during active
+// particle constructor/destructor calls.
 EXTERN int GlobalActiveParticlesTypeCount[MAX_ACTIVE_PARTICLE_TYPES];
 
 /* For EnzoTiming Behavior */
