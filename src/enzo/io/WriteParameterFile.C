@@ -317,6 +317,19 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   }  // This needs to be after CellFlaggingMethod to make sure must
      // refine active particles are configured correctly on restart.
      // There's probably a better way to do this.
+  // Now we write out which particles are actually present in the simulation.
+  // NB: these values are not read in at (re)start.
+  for (int i = 0; i<EnabledActiveParticlesCount; i++){
+    if (GlobalActiveParticlesTypeCount[i] > 0) {
+      fprintf(fptr, "PresentParticleType        = %s\n",
+        EnabledActiveParticles[i]->particle_name.c_str());
+      fprintf(fptr, "%sTypeCount                = %"ISYM"\n",
+        EnabledActiveParticles[i]->particle_name.c_str(), 
+        GlobalActiveParticlesTypeCount[i]);
+    }
+  }
+  if (MetaData.NumberOfParticles)
+    fprintf(fptr, "PresentParticleType        = DarkMatter\n");
 
   fprintf(fptr, "FluxCorrection                 = %"ISYM"\n", FluxCorrection);
   fprintf(fptr, "InterpolationMethod            = %"ISYM"\n", InterpolationMethod);

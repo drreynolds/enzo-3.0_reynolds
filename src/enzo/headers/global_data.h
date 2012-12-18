@@ -947,6 +947,7 @@ EXTERN int ExtraOutputs[MAX_EXTRA_OUTPUTS];
 /* Active particles */
 EXTERN ActiveParticleType_info *EnabledActiveParticles[MAX_ACTIVE_PARTICLE_TYPES];
 EXTERN int EnabledActiveParticlesCount;
+EXTERN int GlobalActiveParticlesTypeCount[MAX_ACTIVE_PARTICLE_TYPES];
 
 /* For EnzoTiming Behavior */
 EXTERN int TimingCycleSkip; // Frequency of timing data dumps.
