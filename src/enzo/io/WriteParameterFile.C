@@ -331,7 +331,7 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   }
   fprintf(fptr, "\n");
   // And their counts
-  fprintf(fptr, "ParticleTypeCounts    =");
+  fprintf(fptr, "ParticleTypeCounts    = ");
   if (MetaData.NumberOfParticles)
     fprintf(fptr, "%"ISYM" ", MetaData.NumberOfParticles);
   for (int i = 0; i<EnabledActiveParticlesCount; i++){
