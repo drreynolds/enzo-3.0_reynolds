@@ -44,7 +44,6 @@
 #include "communication.h"
 #include "CommunicationUtilities.h"
 #include "ActiveParticle.h"
-#include "ActiveParticle_GalaxyParticle.h"
 
 /* function prototypes */
  

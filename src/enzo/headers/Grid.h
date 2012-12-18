@@ -126,6 +126,7 @@ class grid
 //  Active particle data
 //
   int NumberOfActiveParticles;
+  float* ActiveParticleAcceleration[MAX_DIMENSION+1];
   ActiveParticleType **ActiveParticles;
   class ParticleBufferHandler **GetParticleBuffers();
   class ParticleBufferHandler **GetParticleBuffers(bool *mask);
@@ -1051,7 +1052,7 @@ gradient force to gravitational force for one-zone collapse test. */
    GravitatingMassFieldParticles depending on the value of DepositField). */
 
    int DepositPositions(FLOAT *Positions[], float *Mass, int Number, 
-			int DepositField);
+			int DepositField, bool NeverSmooth=false);
 
 /* deposit particles/grids to grid (if they are on the grid). */
 
@@ -1368,6 +1369,8 @@ gradient force to gravitational force for one-zone collapse test. */
      for (int dim = 0; dim < GridRank+ComputePotential; dim++) {
        delete [] ParticleAcceleration[dim];
        ParticleAcceleration[dim] = NULL;
+       delete [] ActiveParticleAcceleration[dim];
+       ActiveParticleAcceleration[dim] = NULL;
      }
    };
 
@@ -2322,15 +2325,14 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int AddActiveParticles(ActiveParticleType **NewParticles,
 			 int NumberOfNewParticles, int start=0);
   int AddActiveParticle(ActiveParticleType* ThisParticle);
-  int AppendActiveParticles(void);
   int AppendActiveParticlesToList(ActiveParticleType** APArray, 
 				  int offset, int search_id);
-  int AppendNewActiveParticles(ActiveParticleType **NewParticles,
-			       int NumberOfNewParticles);
-  int DetachActiveParticles(void);
-  int MirrorActiveParticles(void);
   int DebugActiveParticles(int level);
   
+  /* Create flat arrays of active particle data */
+
+  void GetActiveParticlePosition(FLOAT *ActiveParticlePosition[]);
+
   /* Returns averaged velocity from the 6 neighbor cells and itself */
 
   float* AveragedVelocityAtCell(int index, int DensNum, int Vel1Num);

@@ -214,7 +214,6 @@ int DeleteSUBlingList(int NumberOfGrids,
 		      LevelHierarchyEntry **SUBlingList);
 #endif
 
-int DetachActiveParticles(LevelHierarchyEntry *LevelArray[], int level);
 int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 			     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
 			     int ThisLevel);
@@ -513,24 +512,21 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     //Ensure the consistency of the AccelerationField
     SetAccelerationBoundary(Grids, NumberOfGrids,SiblingList,level, MetaData,
 			    Exterior, LevelArray[level], LevelCycleCount[level]);
-    
     for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
 #endif //SAB.
       /* Copy current fields (with their boundaries) to the old fields
 	  in preparation for the new step. */
- 
       Grids[grid1]->GridData->CopyBaryonFieldToOldBaryonField();
 
       /* Call hydro solver and save fluxes around subgrids. */
       Grids[grid1]->GridData->SolveHydroEquations(LevelCycleCount[level],
 	    NumberOfSubgrids[grid1], SubgridFluxesEstimate[grid1], level);
-      
       /* Solve the cooling and species rate equations. */
  
       Grids[grid1]->GridData->MultiSpeciesHandler();
 
       /* Update particle positions (if present). */
- 
+      
       UpdateParticlePositions(Grids[grid1]->GridData);
 
     /*Trying after solving for radiative transfer */
@@ -759,7 +755,6 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
  
     if (dtThisLevelSoFar[level] < dtLevelAbove) {
       RebuildHierarchy(MetaData, LevelArray, level);
-      DetachActiveParticles(LevelArray, level);
     }
 
     cycle++;

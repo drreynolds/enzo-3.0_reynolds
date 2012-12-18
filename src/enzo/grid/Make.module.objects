@@ -42,9 +42,7 @@ ENZO_OBJS +=\
 	Grid_AddMassAndMomentumToAccretingParticle.o \
 	Grid_AddOneParticleFromList.o \
 	Grid_AddParticlesFromList.o \
-	Grid_AppendActiveParticles.o \
 	Grid_AppendActiveParticlesToList.o \
-	Grid_AppendNewActiveParticles.o \
 	Grid_ApplyGalaxyParticleFeedback.o \
 	Grid_ApplyGalaxyParticleGravity.o \
 	Grid_ChangeParticleTypeBeforeSN.o \
@@ -52,13 +50,12 @@ ENZO_OBJS +=\
 	Grid_CollectParticles.o \
 	Grid_DebugActiveParticles.o \
 	Grid_DepositMustRefineParticles.o \
-	Grid_DetachActiveParticles.o \
 	Grid_FindAllStarParticles.o \
 	Grid_FindMassiveParticles.o \
 	Grid_FindMinimumParticleMass.o \
 	Grid_FindNewStarParticles.o \
+	Grid_GetActiveParticlePosition.o \
 	Grid_InterpolateParticlePositions.o \
-	Grid_MirrorActiveParticles.o \
 	Grid_MirrorStarParticles.o \
 	Grid_MoveAllParticles.o \
 	Grid_MoveAllStars.o \
