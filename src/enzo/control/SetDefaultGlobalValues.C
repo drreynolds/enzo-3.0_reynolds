@@ -789,10 +789,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   VelAnyl                     = 0;
   BAnyl                     = 0;
 
-  for (i = 0; i < MAX_ACTIVE_PARTICLE_TYPES; i++) {
-    EnabledActiveParticles[i] = NULL;
-    GlobalActiveParticlesTypeCount[i] = 0;
-  }
+  for (i = 0; i < MAX_ACTIVE_PARTICLE_TYPES; i++) EnabledActiveParticles[i] = NULL;
   EnabledActiveParticlesCount = 0;
   UnfulfilledStarFormationMass = 0;
   NextActiveParticleID = INT_UNDEFINED;

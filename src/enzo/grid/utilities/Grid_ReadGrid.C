@@ -60,7 +60,7 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
  
   int i, j, k, field, size, active_size, dim;
   char name[MAX_LINE_LENGTH], dummy[MAX_LINE_LENGTH];
-  char logname[MAX_LINE_LENGTH];
+  char logname[MAX_LINE_LENGTH], unused_string[MAX_LINE_LENGTH];
   char procfilename[MAX_LINE_LENGTH];
  
   char id[MAX_GROUP_TAG_SIZE];
@@ -193,6 +193,11 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
       // Ugly hack to support restart files from before active particle support
       NumberOfActiveParticles = 0;
     }
+    
+    // We read these in but don't use them (yet?). Therefore we won't error
+    // out if we can't read them in.
+    fscanf(fptr, "PresentParticleTypes = %s\n", &unused_string);
+    fscanf(fptr, "ParticleTypeCounts = %s\n", &unused_string);
     
     if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0)) {
  

@@ -184,6 +184,27 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     fprintf(fptr, "NumberOfParticles   = %"ISYM"\n", NumberOfParticles);
 
     fprintf(fptr, "NumberOfActiveParticles = %"ISYM"\n", NumberOfActiveParticles);
+    // Now write out which kind of active particles we have in this grid.
+    fprintf(fptr, "PresentParticleTypes = ");
+    if (NumberOfParticles)
+      fprintf(fptr, "DarkMatter ");
+    for (int i = 0; i<EnabledActiveParticlesCount; i++){
+      if (this->ReturnNumberOfActiveParticlesOfThisType(i) > 0) {
+        fprintf(fptr, "%s ", EnabledActiveParticles[i]->particle_name.c_str());
+      }
+    }
+    fprintf(fptr, "\n");
+    // And their counts
+    fprintf(fptr, "ParticleTypeCounts = ");
+    if (NumberOfParticles)
+      fprintf(fptr, "%"ISYM" ", NumberOfParticles);
+    for (int i = 0; i<EnabledActiveParticlesCount; i++){
+      if (this->ReturnNumberOfActiveParticlesOfThisType(i) > 0) {
+        fprintf(fptr, "%"ISYM" ", this->ReturnNumberOfActiveParticlesOfThisType(i));
+      }
+    }
+    fprintf(fptr, "\n");
+
 
     if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0))
       fprintf(fptr, "ParticleFileName = %s\n", procfilename); // must be same as above

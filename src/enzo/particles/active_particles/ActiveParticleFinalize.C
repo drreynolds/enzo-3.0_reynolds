@@ -54,11 +54,11 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   CommunicationUpdateActiveParticleCount(Grids, MetaData, NumberOfGrids,
 					 NumberOfNewActiveParticles);
+
+#ifdef DEBUG
   
   int nParticles;
   ActiveParticleType** ParticleList = NULL;
-
-#ifdef DEBUG
 
   ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, 0);
 
@@ -93,11 +93,6 @@ int ActiveParticleFinalize(HierarchyEntry *Grids[], TopGridData *MetaData,
     ActiveParticleTypeToEvaluate->
       AfterEvolveLevel(Grids,MetaData,NumberOfGrids,LevelArray, 
 		       level, NumberOfNewActiveParticles, ActiveParticleID);
-
-    // This keeps track of how many active particles of each type we have.
-    ParticleList = ActiveParticleFindAll(LevelArray, &nParticles, i);
-    GlobalActiveParticlesTypeCount[i] = nParticles;
-    delete [] ParticleList;
 
   }
 
