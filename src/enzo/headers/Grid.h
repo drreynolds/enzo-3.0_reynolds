@@ -1399,7 +1399,8 @@ gradient force to gravitational force for one-zone collapse test. */
 
    void SetNumberOfParticles(int num) {NumberOfParticles = num;};
    void SetNumberOfActiveParticles(int num) {NumberOfActiveParticles = num;};
-   int SetActiveParticleTypeCounts(int types[MAX_ACTIVE_PARTICLE_TYPES+2]);
+   void SetActiveParticleTypeCounts(int type, int count)
+    { ActiveParticleTypeCount[type] = count; };
 
 /* Particles: delete particle fields and set null. */
 

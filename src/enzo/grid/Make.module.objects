@@ -72,7 +72,6 @@ ENZO_OBJS +=\
 	Grid_ReturnNumberOfStarParticles.o \
 	Grid_ReturnParticleEntry.o \
 	Grid_ReturnStarStatistics.o \
-	Grid_SetActiveParticleTypeCounts.o \
 	Grid_SetNewParticleIndex.o \
 	Grid_SetParticleMassFlaggingField.o \
 	Grid_SortActiveParticlesByNumber.o \

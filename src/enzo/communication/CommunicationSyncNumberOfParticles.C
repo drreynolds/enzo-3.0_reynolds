@@ -34,9 +34,10 @@ int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],
 {
 
   int i, j, idx;
-  int *buffer = new int[2*NumberOfGrids + MAX_ACTIVE_PARTICLE_TYPES];
+  int stride = 2 + MAX_ACTIVE_PARTICLE_TYPES;
+  int *buffer = new int[NumberOfGrids * stride];
 
-  for (i = 0, idx = 0; i < NumberOfGrids; i++, idx += 2)
+  for (i = 0, idx = 0; i < NumberOfGrids; i++, idx += stride)
     if (GridHierarchyPointer[i]->GridData->ReturnProcessorNumber() == 
 	MyProcessorNumber) {
       buffer[idx] = GridHierarchyPointer[i]->GridData->
@@ -60,14 +61,16 @@ int CommunicationSyncNumberOfParticles(HierarchyEntry *GridHierarchyPointer[],
   }
 
 #ifdef USE_MPI
-  CommunicationAllReduceValues(buffer, 2*NumberOfGrids + MAX_ACTIVE_PARTICLE_TYPES,
-    MPI_SUM);
+  CommunicationAllReduceValues(buffer, NumberOfGrids * stride, MPI_SUM);
 #endif
 
-  for (i = 0, idx = 0; i < NumberOfGrids; i++, idx += 2) {
+  for (i = 0, idx = 0; i < NumberOfGrids; i++, idx += stride) {
     GridHierarchyPointer[i]->GridData->SetNumberOfParticles(buffer[idx]);
     GridHierarchyPointer[i]->GridData->SetNumberOfActiveParticles(buffer[idx+1]);
-    GridHierarchyPointer[i]->GridData->SetActiveParticleTypeCounts(buffer);
+    for (j = 0; j < MAX_ACTIVE_PARTICLE_TYPES; j++) {
+      GridHierarchyPointer[i]->GridData->SetActiveParticleTypeCounts(j,
+        buffer[idx+2+j]);
+    }
   }
 
   delete [] buffer;
