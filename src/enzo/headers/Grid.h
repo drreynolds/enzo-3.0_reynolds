@@ -130,6 +130,10 @@ class grid
   ActiveParticleType **ActiveParticles;
   class ParticleBufferHandler **GetParticleBuffers();
   class ParticleBufferHandler **GetParticleBuffers(bool *mask);
+  // At present this is synched up in CommunicationSyncNumberOfParticles.
+  // Therefore below should be accurate as often as NumberOfParticles and
+  // NumberOfActiveParticles are.
+  int ActiveParticleTypeCount[MAX_ACTIVE_PARTICLE_TYPES];
 
 // For once-per-rootgrid-timestep star formation, the following flag
 // determines whether SF is about to occur or not. It's currently
@@ -1395,6 +1399,7 @@ gradient force to gravitational force for one-zone collapse test. */
 
    void SetNumberOfParticles(int num) {NumberOfParticles = num;};
    void SetNumberOfActiveParticles(int num) {NumberOfActiveParticles = num;};
+   int SetActiveParticleTypeCounts(int types[MAX_ACTIVE_PARTICLE_TYPES+2]);
 
 /* Particles: delete particle fields and set null. */
 

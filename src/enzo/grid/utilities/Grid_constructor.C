@@ -168,6 +168,9 @@ grid::grid()
 
   NumberOfActiveParticles = 0;
   ActiveParticles = NULL;
+  for (i=0; i<MAX_ACTIVE_PARTICLE_TYPES; i++) {
+    ActiveParticleTypeCount[i] = 0;
+  }
 
   /* For once-per-rootgrid-timestep star formation, the following flag
      determines whether SF is about to occur or not. It's currently
