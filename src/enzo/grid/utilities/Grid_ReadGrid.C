@@ -196,9 +196,9 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
     
     // We read these in but don't use them (yet?). Therefore we won't error
     // out if we can't read them in.
-    fscanf(fptr, "PresentParticleTypes = %s\n", &unused_string);
-    fscanf(fptr, "ParticleTypeCounts = %s\n", &unused_string);
-    
+    fgets(unused_string, MAX_LINE_LENGTH, fptr);
+    fgets(unused_string, MAX_LINE_LENGTH, fptr);
+
     if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0)) {
  
       /* Read particle file name. */
