@@ -576,9 +576,9 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
                    group_id, "particle_mass",
                    H5P_DEFAULT, H5P_DEFAULT);
 
-    this->write_dataset(1, TempIntArray, "index",
+    this->write_dataset(1, TempIntArray, "particle_index",
         dm_group_id, HDF5_PINT, (VOIDP) ParticleNumber, FALSE);
-    H5Lcreate_hard(dm_group_id, "index",
+    H5Lcreate_hard(dm_group_id, "particle_index",
                    group_id, "particle_index",
                    H5P_DEFAULT, H5P_DEFAULT);
 
