@@ -88,12 +88,8 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
   //if(WriteEverything==TRUE)CopyOnlyActive = FALSE;
  
   char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
-  char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
-  char *OldParticlePositionLabel[] =
      {"particle_position_x", "particle_position_y", "particle_position_z"};
-  char *OldParticleVelocityLabel[] =
+  char *ParticleVelocityLabel[] =
      {"particle_velocity_x", "particle_velocity_y", "particle_velocity_z"};
   char *SmoothedDMLabel[] = {"Dark_Matter_Density", "Velocity_Dispersion",
 			     "Particle_x-velocity", "Particle_y-velocity",
@@ -558,7 +554,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
       this->write_dataset(1, TempIntArray, ParticlePositionLabel[dim],
           dm_group_id, HDF5_FILE_PREC, (VOIDP) ParticlePosition[dim], FALSE);
       H5Lcreate_hard(dm_group_id, ParticlePositionLabel[dim], 
-                     group_id, OldParticlePositionLabel[dim],
+                     group_id, ParticlePositionLabel[dim],
                      H5P_DEFAULT, H5P_DEFAULT);
     }
 
@@ -568,15 +564,15 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
       this->write_dataset(1, TempIntArray, ParticleVelocityLabel[dim],
           dm_group_id, HDF5_REAL, (VOIDP) ParticleVelocity[dim], FALSE);
       H5Lcreate_hard(dm_group_id, ParticleVelocityLabel[dim], 
-                     group_id, OldParticleVelocityLabel[dim],
+                     group_id, ParticleVelocityLabel[dim],
                      H5P_DEFAULT, H5P_DEFAULT);
     }
 
     /* Copy mass to temp and write it. */
 
-    this->write_dataset(1, TempIntArray, "mass",
+    this->write_dataset(1, TempIntArray, "particle_mass",
         dm_group_id, HDF5_REAL, (VOIDP) ParticleMass, FALSE);
-    H5Lcreate_hard(dm_group_id, "mass",
+    H5Lcreate_hard(dm_group_id, "particle_mass",
                    group_id, "particle_mass",
                    H5P_DEFAULT, H5P_DEFAULT);
 

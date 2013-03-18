@@ -300,9 +300,9 @@ int ActiveParticleType_GMCParticle::WriteToOutput(ActiveParticleType **these_par
   writeScalarAttribute(AccretingParticleGroupID,HDF5_INT,"Number of GMC Particles",&n);  
 
   char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
+     {"particle_position_x", "particle_position_y", "particle_position_z"};
   char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
+     {"particle_velocity_x", "particle_velocity_y", "particle_velocity_z"};
 
   /* Create temporary buffers to store particle data */
 
@@ -381,7 +381,7 @@ int ActiveParticleType_GMCParticle::WriteToOutput(ActiveParticleType **these_par
 		  AccretingParticleGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
   }
   
-  WriteDataset(1,&TempInt,"mass",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Mass);
+  WriteDataset(1,&TempInt,"particle_mass",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Mass);
   WriteDataset(1,&TempInt,"creation_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BirthTime);
   WriteDataset(1,&TempInt,"dynamical_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
   WriteDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
@@ -448,9 +448,9 @@ int ActiveParticleType_GMCParticle::ReadFromOutput(ActiveParticleType **&particl
   particles_to_read = new ActiveParticleType*[n]();
 
   char *ParticlePositionLabel[] =
-     {"position_x", "position_y", "position_z"};
+     {"particle_position_x", "particle_position_y", "particle_position_z"};
   char *ParticleVelocityLabel[] =
-     {"velocity_x", "velocity_y", "velocity_z"};
+     {"particle_velocity_x", "particle_velocity_y", "particle_velocity_z"};
 
   FLOAT *Position[MAX_DIMENSION];
   float *Velocity[MAX_DIMENSION];
@@ -492,7 +492,7 @@ int ActiveParticleType_GMCParticle::ReadFromOutput(ActiveParticleType **&particl
     ReadDataset(1,&TempInt,ParticleVelocityLabel[dim],
 		  AccretingParticleGroupID, HDF5_REAL, (VOIDP) Velocity[dim]);
   }
-  ReadDataset(1,&TempInt,"mass",AccretingParticleGroupID,HDF5_R8,(VOIDP) Mass);
+  ReadDataset(1,&TempInt,"particle_mass",AccretingParticleGroupID,HDF5_R8,(VOIDP) Mass);
   ReadDataset(1,&TempInt,"creation_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) BirthTime);
   ReadDataset(1,&TempInt,"dynamical_time",AccretingParticleGroupID,HDF5_REAL,(VOIDP) DynamicalTime);
   ReadDataset(1,&TempInt,"metallicity_fraction",AccretingParticleGroupID,HDF5_REAL,(VOIDP) Metallicity);
