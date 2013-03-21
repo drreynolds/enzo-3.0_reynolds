@@ -145,45 +145,74 @@ issue a pull request.  For instance, you might do something like this:
 That's it!  If you run into any problems, drop us a line on the `Enzo Users'
 Mailing List <http://groups.google.com/group/enzo-users>`_.
 
-How To Use Branching
---------------------
+Managing your Development: Mercurial Bookmarks
+----------------------------------------------
 
-.. warning:: In most cases, you do *not* need to make a new named branch!  Do
-   so with care, as it lives forever.
+Mercurial Bookmarks are a method for naming a changeset head in a non-permanent
+fashion (unlike branches, see below).  If you are planning on making a set of
+changesets to the code base, you should strongly consider creating a bookmark
+so that you can easily manage your development.  For example, if I identify a 
+method to improve load balancing, I might start my development by 
+executing: ::
 
-If you are planning on making a large change to the code base that may not be
-ready for many, many commits, or if you are planning on breaking some
-functionality and rewriting it, you can create a new named branch.  You can
-mark the current repository as a new named branch by executing: ::
+   $ hg bookmark improve-loadbalancing
 
-   $ hg branch new_feature_name
+After doing so, I can immediately see my new bookmark by running: ::
 
-The next commit and all subsequent commits will be contained within that named
-branch.  At this point, add your branch here:
+   $ hg bookmarks
 
-http://code.google.com/p/enzo/wiki/ActiveBranches
+Then if time goes by, and changes were made to the code base that I want to 
+take advantage of, I can simply commit what I've done so far, pull in the new
+changes from the main repository, and perhaps bookmark that as well: ::
 
-To merge changes in from another branch, you would execute: ::
+   $ hg ci -m 'Load Balancing work in progress.'
+   $ hg pull 
+   $ hg bookmark mainline
 
-   $ hg merge some_other_branch
+At this point I can easily flip back and forth between my load balancing work
+and the mainline with ::
 
-Note also that you can use revision specifiers instead of "some_other_branch".
-When you are ready to merge back into the main branch, execute this process: ::
+   $ hg up improve-loadbalancing
+   $ hg up mainline
 
-   $ hg merge name_of_main_branch
-   $ hg commit --close-branch
-   $ hg up -C name_of_main_branch
-   $ hg merge name_of_feature_branch
-   $ hg commit
+Now lets say the situation gets more complicated, and I find a bugfix that I 
+only want to apply to the mainline, and want to do so quickly so that others
+can take advantage of it.  Instead of forking a new repository, cloning it, 
+applying my small patch, then submitting a pull request. I can simply make 
+my changes ::
 
-When you execute the merge you may have to resolve conflicts.  Once you resolve
-conflicts in a file, you can mark it as resolved by doing: ::
+   $ hg up mainline
+   $ ... a short time later ...
+   $ hg ci -m 'My awesome bugfix, so much better now'
+   $ hg push -f -B mainline https://bitbucket.org/my_username/enzo-dev
 
-   $ hg resolve -m path/to/conflicting/file.py
+The "-f" was used to force the push of the mainline bookmark, even if it
+creates a new head on the remote repository.  Remote multiple heads are *okay*!
+Bookmarks help you manage them. At this point, I'd navigate to my fork,
+identify the changeset that I just pushed, and issue a PR *from that
+changeset*.  In this fashion, it is not necessary (nor encouraged!) to create 
+many different forks that you only use to do a small amount of work.
 
-Please be careful when resolving conflicts in files.
+Eventually, you may finally finish that load balancing development work, at 
+which point you can simply ::
 
-Once your branch has been merged in, mark it as closed on the wiki page.
+   $ hg push -B improve-loadbalancing https://bitbucket.org/my_username/enzo-dev  
+
+This may require another "-f", but that's okay!  Then navigate your way to 
+bitbucket, find that changeset, and issue your pull request.
+
+For more information on how to use bookmarks, see
+http://mercurial.selenic.com/wiki/Bookmarks/
+
+
+Please do *not* use Branching
+-----------------------------
+
+.. warning::  In almost all cases, we suggest and request that you do *not* 
+   create a new named branch.  The downside to a named branch is that it lives
+   forever, and while enzo currently has many branches, it is primarily from
+   a time when we thought it was ok to do so.  If you think you should create
+   a new branch, please check with some of the developers first.
 
 The Patch Directory
 --------------------
