@@ -165,7 +165,7 @@ Then if time goes by, and changes were made to the code base that I want to
 take advantage of, I can simply commit what I've done so far, pull in the new
 changes from the main repository, and perhaps bookmark that as well: ::
 
-   $ hg ci -m 'Load Balancing work in progress.'
+   $ hg commit -m 'Load Balancing work in progress.'
    $ hg pull 
    $ hg bookmark mainline
 
@@ -183,7 +183,7 @@ my changes ::
 
    $ hg up mainline
    $ ... a short time later ...
-   $ hg ci -m 'My awesome bugfix, so much better now'
+   $ hg commit -m 'My awesome bugfix, so much better now'
    $ hg push -f -B mainline https://bitbucket.org/my_username/enzo-dev
 
 The "-f" was used to force the push of the mainline bookmark, even if it
