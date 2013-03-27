@@ -7,8 +7,13 @@
 #ifndef __MATH_OPERATIONS_H__
 #define __MATH_OPERATIONS_H__
 
+#ifndef MAX
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+#endif
+
+#ifndef MIN
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
+#endif
 
 typedef double (*MathFunction)(double, double);
 

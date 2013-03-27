@@ -176,12 +176,12 @@ TEST_F(FieldDescriptorSimpleTest, TestDuplicate) {
     FieldDescriptor *fd2;
     fd->CopyFrom(2.0);
     fd2 = fd->Duplicate();
-    ASSERT_EQ(fd->min(), fd2->min());
-    ASSERT_EQ(fd->max(), fd2->max());
+    ASSERT_EQ(fd->Min(), fd2->Min());
+    ASSERT_EQ(fd->Max(), fd2->Max());
     ASSERT_EQ(fd->GetSize(), fd2->GetSize());
-    ASSERT_EQ(fd->sum(), fd2->sum());
+    ASSERT_EQ(fd->Sum(), fd2->Sum());
     fd2->Add(1.0);
-    ASSERT_NE(fd->min(), fd2->min());
+    ASSERT_NE(fd->Min(), fd2->Min());
     delete fd2;
 }
 
@@ -193,8 +193,8 @@ TEST_F(FieldDescriptorSimpleTest, TestMinMax) {
         nv[i] = i;
     }
     // We no longer own this data
-    ASSERT_EQ(fd->min(), 0);
-    ASSERT_EQ(fd->max(), fd->GetSize() - 1);
+    ASSERT_EQ(fd->Min(), 0);
+    ASSERT_EQ(fd->Max(), fd->GetSize() - 1);
 
     // Now we can test the sub-group unary operators
     int LE[MAX_DIMENSIONS], RE[MAX_DIMENSIONS];
@@ -205,16 +205,16 @@ TEST_F(FieldDescriptorSimpleTest, TestMinMax) {
     RE[0] = 8; RE[1] = 8; RE[2] = 8;
     mi = fd->GetValues()[fd->Index(LE[0]  , LE[1]  , LE[2]  )];
     ma = fd->GetValues()[fd->Index(RE[0]-1, RE[1]-1, RE[2]-1)];
-    ASSERT_EQ(fd->min(LE, RE), mi);
-    ASSERT_EQ(fd->max(LE, RE), ma);
+    ASSERT_EQ(fd->Min(LE, RE), mi);
+    ASSERT_EQ(fd->Max(LE, RE), ma);
 
     // A box not aligned with the left edge
     LE[0] = 8 ; LE[1] =  6; LE[2] =  4;
     RE[0] = 12; RE[1] = 21; RE[2] = 30;
     mi = fd->GetValues()[fd->Index(LE[0]  , LE[1]  , LE[2]  )];
     ma = fd->GetValues()[fd->Index(RE[0]-1, RE[1]-1, RE[2]-1)];
-    ASSERT_EQ(fd->min(LE, RE), mi);
-    ASSERT_EQ(fd->max(LE, RE), ma);
+    ASSERT_EQ(fd->Min(LE, RE), mi);
+    ASSERT_EQ(fd->Max(LE, RE), ma);
 
     // A box aligned with the right edge
 
@@ -222,8 +222,8 @@ TEST_F(FieldDescriptorSimpleTest, TestMinMax) {
     RE[0] = 16; RE[1] = 24; RE[2] = 32;
     mi = fd->GetValues()[fd->Index(LE[0]  , LE[1]  , LE[2]  )];
     ma = fd->GetValues()[fd->Index(RE[0]-1, RE[1]-1, RE[2]-1)];
-    ASSERT_EQ(fd->min(LE, RE), mi);
-    ASSERT_EQ(fd->max(LE, RE), ma);
+    ASSERT_EQ(fd->Min(LE, RE), mi);
+    ASSERT_EQ(fd->Max(LE, RE), ma);
 
 }
 
@@ -235,99 +235,99 @@ TEST_F(FieldDescriptorSimpleTest, TestSum) {
         nv[i] = 1.0;
     }
     // We no longer own this data
-    ASSERT_EQ(fd->min(), 1);
-    ASSERT_EQ(fd->max(), 1);
+    ASSERT_EQ(fd->Min(), 1);
+    ASSERT_EQ(fd->Max(), 1);
 
     // Now we can test the sub-group unary operators
     int LE[MAX_DIMENSIONS], RE[MAX_DIMENSIONS];
     double mi, ma;
 
-    ASSERT_EQ(fd->sum(), fd->GetSize());
+    ASSERT_EQ(fd->Sum(), fd->GetSize());
 
     // Left-aligned box
     LE[0] = 0; LE[1] = 0; LE[2] = 0;
     RE[0] = 8; RE[1] = 8; RE[2] = 8;
-    ASSERT_EQ(fd->sum(LE, RE), (RE[0]-LE[0])*(RE[1]-LE[1])*(RE[2]-LE[2]));
+    ASSERT_EQ(fd->Sum(LE, RE), (RE[0]-LE[0])*(RE[1]-LE[1])*(RE[2]-LE[2]));
 
     // A box not aligned with the left edge
     LE[0] = 8 ; LE[1] =  6; LE[2] =  4;
     RE[0] = 12; RE[1] = 21; RE[2] = 30;
-    ASSERT_EQ(fd->sum(LE, RE), (RE[0]-LE[0])*(RE[1]-LE[1])*(RE[2]-LE[2]));
+    ASSERT_EQ(fd->Sum(LE, RE), (RE[0]-LE[0])*(RE[1]-LE[1])*(RE[2]-LE[2]));
 
     // A box aligned with the right edge
 
     LE[0] = 14; LE[1] = 21; LE[2] = 31;
     RE[0] = 16; RE[1] = 24; RE[2] = 32;
-    ASSERT_EQ(fd->sum(LE, RE), (RE[0]-LE[0])*(RE[1]-LE[1])*(RE[2]-LE[2]));
+    ASSERT_EQ(fd->Sum(LE, RE), (RE[0]-LE[0])*(RE[1]-LE[1])*(RE[2]-LE[2]));
 
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestCopyVal) {
     fd->CopyFrom(2.0);
-    ASSERT_EQ(fd->min(), 2.0);
-    ASSERT_EQ(fd->max(), 2.0);
+    ASSERT_EQ(fd->Min(), 2.0);
+    ASSERT_EQ(fd->Max(), 2.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestAddVal) {
     fd->CopyFrom(0.0);
     fd->Add(1.0);
-    ASSERT_EQ(fd->min(), 1.0);
-    ASSERT_EQ(fd->max(), 1.0);
+    ASSERT_EQ(fd->Min(), 1.0);
+    ASSERT_EQ(fd->Max(), 1.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestAddOpVal) {
     fd->CopyFrom(0.0);
     (*fd) += 1.0;
-    ASSERT_EQ(fd->min(), 1.0);
-    ASSERT_EQ(fd->max(), 1.0);
+    ASSERT_EQ(fd->Min(), 1.0);
+    ASSERT_EQ(fd->Max(), 1.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestSubtractVal) {
     fd->CopyFrom(1.0);
     fd->Subtract(1.0);
-    ASSERT_EQ(fd->min(), 0.0);
-    ASSERT_EQ(fd->max(), 0.0);
+    ASSERT_EQ(fd->Min(), 0.0);
+    ASSERT_EQ(fd->Max(), 0.0);
     fd->Subtract(1.0);
-    ASSERT_EQ(fd->min(), -1.0);
-    ASSERT_EQ(fd->max(), -1.0);
+    ASSERT_EQ(fd->Min(), -1.0);
+    ASSERT_EQ(fd->Max(), -1.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestSubtractOpVal) {
     fd->CopyFrom(1.0);
     (*fd) -= 1.0;
-    ASSERT_EQ(fd->min(), 0.0);
-    ASSERT_EQ(fd->max(), 0.0);
+    ASSERT_EQ(fd->Min(), 0.0);
+    ASSERT_EQ(fd->Max(), 0.0);
     (*fd) -= 1.0;
-    ASSERT_EQ(fd->min(), -1.0);
-    ASSERT_EQ(fd->max(), -1.0);
+    ASSERT_EQ(fd->Min(), -1.0);
+    ASSERT_EQ(fd->Max(), -1.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestMultiplyVal) {
     fd->CopyFrom(1.0);
     fd->Multiply(2.0);
-    ASSERT_EQ(fd->min(), 2.0);
-    ASSERT_EQ(fd->max(), 2.0);
+    ASSERT_EQ(fd->Min(), 2.0);
+    ASSERT_EQ(fd->Max(), 2.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestMultiplyOpVal) {
     fd->CopyFrom(1.0);
     (*fd) *= 2.0;
-    ASSERT_EQ(fd->min(), 2.0);
-    ASSERT_EQ(fd->max(), 2.0);
+    ASSERT_EQ(fd->Min(), 2.0);
+    ASSERT_EQ(fd->Max(), 2.0);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestDivideVal) {
     fd->CopyFrom(1.0);
     fd->Divide(2.0);
-    ASSERT_EQ(fd->min(), 0.5);
-    ASSERT_EQ(fd->max(), 0.5);
+    ASSERT_EQ(fd->Min(), 0.5);
+    ASSERT_EQ(fd->Max(), 0.5);
 }
 
 TEST_F(FieldDescriptorSimpleTest, TestDivideOpVal) {
     fd->CopyFrom(1.0);
     (*fd) /= 2.0;
-    ASSERT_EQ(fd->min(), 0.5);
-    ASSERT_EQ(fd->max(), 0.5);
+    ASSERT_EQ(fd->Min(), 0.5);
+    ASSERT_EQ(fd->Max(), 0.5);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestOverlapCalculation) {
@@ -374,40 +374,40 @@ TEST_F(FieldDescriptorOverlapsTest, TestOverlapCalculation) {
 
 TEST_F(FieldDescriptorOverlapsTest, TestCopy) {
     fd1->CopyFrom(fd2);
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
-    ASSERT_EQ(fd1->sum(), 16*8*32);
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
+    ASSERT_EQ(fd1->Sum(), 16*8*32);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestMultiply) {
     fd2->Multiply(fd1);
-    ASSERT_EQ(fd2->sum(), fd2->GetSize() - 16*8*32);
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize() - 16*8*32);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestMultiplyOp) {
     (*fd2) *= fd1;
-    ASSERT_EQ(fd2->sum(), fd2->GetSize() - 16*8*32);
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize() - 16*8*32);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestAdd) {
     fd1->Add(fd2);
     fd1->Add(fd2);
-    ASSERT_EQ(fd1->sum(), 16*8*32*2);
+    ASSERT_EQ(fd1->Sum(), 16*8*32*2);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestAddOp) {
     (*fd1) += fd2;
     (*fd1) += fd2;
-    ASSERT_EQ(fd1->sum(), 16*8*32*2);
+    ASSERT_EQ(fd1->Sum(), 16*8*32*2);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestSubtract) {
     fd1->Subtract(fd2);
-    ASSERT_EQ(fd1->sum(), 16*8*32*-1);
+    ASSERT_EQ(fd1->Sum(), 16*8*32*-1);
 }
 
 TEST_F(FieldDescriptorOverlapsTest, TestSubtractOp) {
     (*fd1) -= fd2;
-    ASSERT_EQ(fd1->sum(), 16*8*32*-1);
+    ASSERT_EQ(fd1->Sum(), 16*8*32*-1);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestOverlapCalculation) {
@@ -443,64 +443,64 @@ TEST_F(FieldDescriptorEnclosedTest, TestOverlapCalculation) {
 
 TEST_F(FieldDescriptorEnclosedTest, TestInnerToOuterCopy) {
     fd1->CopyFrom(fd2);
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
-    ASSERT_EQ(fd1->sum(), 8*16*28);
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
+    ASSERT_EQ(fd1->Sum(), 8*16*28);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestMultiply1) {
     fd1->Multiply(fd2);
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestMultiply1Op) {
     (*fd1) *= fd2;
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestMultiply2) {
     fd2->Multiply(fd1);
-    ASSERT_EQ(fd2->sum(), 0);
+    ASSERT_EQ(fd2->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestMultiply2Op) {
     (*fd2) *= fd1;
-    ASSERT_EQ(fd2->sum(), 0);
+    ASSERT_EQ(fd2->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestDivide) {
     fd1->CopyFrom(1.0);
     fd2->CopyFrom(2.0);
     fd1->Divide(fd2);
-    ASSERT_EQ(fd1->sum(), fd1->GetSize() - 0.5*fd2->GetSize());
+    ASSERT_EQ(fd1->Sum(), fd1->GetSize() - 0.5*fd2->GetSize());
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestDivideOp) {
     fd1->CopyFrom(1.0);
     fd2->CopyFrom(2.0);
     (*fd1) /= fd2;
-    ASSERT_EQ(fd1->sum(), fd1->GetSize() - 0.5*fd2->GetSize());
+    ASSERT_EQ(fd1->Sum(), fd1->GetSize() - 0.5*fd2->GetSize());
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestAdd) {
     fd1->Add(fd2);
     fd1->Add(fd2);
-    ASSERT_EQ(fd1->sum(), 8*16*28*2);
+    ASSERT_EQ(fd1->Sum(), 8*16*28*2);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestAddOp) {
     (*fd1) += fd2;
     (*fd1) += fd2;
-    ASSERT_EQ(fd1->sum(), 8*16*28*2);
+    ASSERT_EQ(fd1->Sum(), 8*16*28*2);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestSubtract) {
     fd1->Subtract(fd2);
-    ASSERT_EQ(fd1->sum(), 8*16*28*-1);
+    ASSERT_EQ(fd1->Sum(), 8*16*28*-1);
 }
 
 TEST_F(FieldDescriptorEnclosedTest, TestSubtractOp) {
     (*fd1) -= fd2;
-    ASSERT_EQ(fd1->sum(), 8*16*28*-1);
+    ASSERT_EQ(fd1->Sum(), 8*16*28*-1);
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestOverlapCalculation) {
@@ -536,48 +536,48 @@ TEST_F(FieldDescriptorDisjointTest, TestOverlapCalculation) {
 
 TEST_F(FieldDescriptorDisjointTest, TestInnerToOuterCopy) {
     fd1->CopyFrom(fd2);
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestMultiply) {
     fd2->Multiply(fd1);
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestMultiplyOp) {
     (*fd2) *= fd1;
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestDivide) {
     fd2->Divide(fd1);
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestDivideOp) {
     (*fd2) /= fd1;
-    ASSERT_EQ(fd2->sum(), fd2->GetSize());
+    ASSERT_EQ(fd2->Sum(), fd2->GetSize());
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestAdd) {
     fd1->Add(fd2);
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestAddOp) {
     (*fd1) += fd2;
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestSubtract) {
     fd1->Subtract(fd2);
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST_F(FieldDescriptorDisjointTest, TestSubtractOp) {
     (*fd1) -= fd2;
-    ASSERT_EQ(fd1->sum(), 0);
+    ASSERT_EQ(fd1->Sum(), 0);
 }
 
 TEST(FieldDescriptorMemoryTest, TestAllocateBoth) {

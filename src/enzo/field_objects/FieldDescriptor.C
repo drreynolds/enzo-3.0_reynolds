@@ -261,29 +261,29 @@ void FieldDescriptor::GetOverlapRegion(FieldDescriptor *Other,
 
 // Mathematical Operations
 
-double FieldDescriptor::min() {
-  return this->min(NULL, NULL);
+double FieldDescriptor::Min() {
+  return this->Min(NULL, NULL);
 }
 
-double FieldDescriptor::min(int *LeftEdge, int *RightEdge) {
+double FieldDescriptor::Min(int *LeftEdge, int *RightEdge) {
   return this->UnaryAccumulator<MinVal>(
       LeftEdge, RightEdge, huge_number);
 }
 
-double FieldDescriptor::max() {
-  return this->max(NULL, NULL);
+double FieldDescriptor::Max() {
+  return this->Max(NULL, NULL);
 }
 
-double FieldDescriptor::max(int *LeftEdge, int *RightEdge) {
+double FieldDescriptor::Max(int *LeftEdge, int *RightEdge) {
   return this->UnaryAccumulator<MaxVal>(
       LeftEdge, RightEdge, -huge_number);
 }
 
-double FieldDescriptor::sum() {
-  return this->sum(NULL, NULL);
+double FieldDescriptor::Sum() {
+  return this->Sum(NULL, NULL);
 }
 
-double FieldDescriptor::sum(int *LeftEdge, int *RightEdge) {
+double FieldDescriptor::Sum(int *LeftEdge, int *RightEdge) {
   double v = this->UnaryAccumulator<AddVal>(
       LeftEdge, RightEdge, 0.0);
 }

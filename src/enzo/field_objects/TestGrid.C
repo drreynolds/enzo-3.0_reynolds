@@ -37,8 +37,8 @@ TEST_F(GridSimpleTest, TestFieldManipulation) {
   FieldDescriptor *H2f = H2->Duplicate();
   (*H2f) /= rho;
 
-  ASSERT_DOUBLE_EQ(H2f->min(), 0.1);
-  ASSERT_DOUBLE_EQ(H2f->max(), 0.1);
+  ASSERT_DOUBLE_EQ(H2f->Min(), 0.1);
+  ASSERT_DOUBLE_EQ(H2f->Max(), 0.1);
   
   // NOTE: Because we convert these from pointers to local values, they are
   // de-allocated as soon as this routine returns.
@@ -56,12 +56,12 @@ TEST_F(GridSimpleTest, TestFieldAccess) {
   this->g->AttachField("Density", fd1);
   FieldDescriptor *fd2 = this->g->GetField("Density");
   // This tests that fd2 points to the same stuff as fd1
-  ASSERT_EQ(fd2->max(), 2.0);
-  ASSERT_EQ(fd2->min(), 2.0);
+  ASSERT_EQ(fd2->Max(), 2.0);
+  ASSERT_EQ(fd2->Min(), 2.0);
   // Let's see if our changes propagate...
   (*fd1) += 1.0;
-  ASSERT_EQ(fd2->max(), 3.0);
-  ASSERT_EQ(fd2->min(), 3.0);
+  ASSERT_EQ(fd2->Max(), 3.0);
+  ASSERT_EQ(fd2->Min(), 3.0);
 }
 
 TEST_F(GridSimpleTest, TestFieldCreation) {

@@ -56,12 +56,12 @@ class FieldDescriptor
 
       // Mathematical Operations
 
-      double min();
-      double min(int *LeftEdge, int *RightEdge);
-      double max();
-      double max(int *LeftEdge, int *RightEdge);
-      double sum();
-      double sum(int *LeftEdge, int *RightEdge);
+      double Min();
+      double Min(int *LeftEdge, int *RightEdge);
+      double Max();
+      double Max(int *LeftEdge, int *RightEdge);
+      double Sum();
+      double Sum(int *LeftEdge, int *RightEdge);
 
       // Operations from other FieldDescriptors
 

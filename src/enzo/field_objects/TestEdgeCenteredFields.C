@@ -71,16 +71,16 @@ TEST_F(EdgeCenteredFieldsTest, TestOperateCorrectly) {
     fd1 = this->fds[i];
     fd1->GetCellDimensions(dims);
     fd1->CopyFrom(1.0);
-    EXPECT_EQ(fd1->sum(), fd1->GetSize());
+    EXPECT_EQ(fd1->Sum(), fd1->GetSize());
 
     fd2 = this->fds[i + 3];
     fd2->GetCellDimensions(sdims);
     fd2->CopyFrom(1.0);
-    EXPECT_EQ(fd2->sum(), fd2->GetSize());
+    EXPECT_EQ(fd2->Sum(), fd2->GetSize());
 
     fd1->Add(fd2);
     
-    total = fd1->sum();
+    total = fd1->Sum();
     etotal = stotal = 1;
 
     for (j = 0; j < 3; j++) {
@@ -103,7 +103,7 @@ TEST_F(EdgeCenteredFieldsTest, TestOperateCorrectly) {
     dims[(i +1)%3] += 1;
     dims[(i +2)%3] += 1;
     total = dims[0] * dims[1] * dims[2];
-    EXPECT_EQ(total * 2, fd1->sum());
+    EXPECT_EQ(total * 2, fd1->Sum());
   }
 }
 

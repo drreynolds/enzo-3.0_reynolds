@@ -180,5 +180,5 @@ TEST_F(FieldCenteringSimpleTest, TestCornerCentered) {
   FieldDescriptor *fd = this->fds[1];
   ASSERT_EQ(fd->GetSize(), 8*9*10);
   fd->CopyFrom(1.0);
-  ASSERT_EQ(fd->sum(), 8*9*10);
+  ASSERT_EQ(fd->Sum(), 8*9*10);
 }
