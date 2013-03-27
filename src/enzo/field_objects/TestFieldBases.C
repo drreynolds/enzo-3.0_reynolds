@@ -4,6 +4,7 @@
 // Authors: Matthew Turk
 //          Greg Bryan
 
+#define FIELD_STORAGE
 #include "gtest/gtest.h"
 #include "FieldObjects.h"
 
@@ -12,7 +13,7 @@ namespace {
     protected:
       virtual void SetUp() {
         this->g = new Grid();
-        FillFieldRegistry(3, &this->fr);
+        FillFieldRegistry(3, &this->fr, &this->fn);
       }
 
       virtual void TearDown() {
@@ -25,6 +26,7 @@ namespace {
 
       Grid *g;
       FieldRegistry fr;
+      FieldNumbers fn;
 
   };
 

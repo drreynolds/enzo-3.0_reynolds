@@ -9,10 +9,11 @@
 
 // These enums may not be 64-bit safe
 
-#define tiny_number 1e-300
-#define huge_number 1e300
 #define MAX_DIMENSIONS 3
 #define MAX_FIELDS 40
+
+#define TEST_huge_number 1e300
+#define TEST_tiny_number 1e-300
 
 enum CenteringType {
   CellCentered,

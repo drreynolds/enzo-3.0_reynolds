@@ -267,7 +267,7 @@ double FieldDescriptor::Min() {
 
 double FieldDescriptor::Min(int *LeftEdge, int *RightEdge) {
   return this->UnaryAccumulator<MinVal>(
-      LeftEdge, RightEdge, huge_number);
+      LeftEdge, RightEdge, 1e300);
 }
 
 double FieldDescriptor::Max() {
@@ -276,7 +276,7 @@ double FieldDescriptor::Max() {
 
 double FieldDescriptor::Max(int *LeftEdge, int *RightEdge) {
   return this->UnaryAccumulator<MaxVal>(
-      LeftEdge, RightEdge, -huge_number);
+      LeftEdge, RightEdge, -1e300);
 }
 
 double FieldDescriptor::Sum() {

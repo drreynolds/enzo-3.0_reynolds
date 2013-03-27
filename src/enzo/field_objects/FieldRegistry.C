@@ -10,10 +10,16 @@
 #include <map>
 #include <string>
 
-#define NEWFIELD(N, U, C, I) (*Fields)[N] = \
-     new FieldDescriptor(C, Rank, ZeroDims, ZeroLeftEdge, I, N, U, NULL);
+#define NEWFIELD(N, U, C, I, E) (*Fields)[N] = \
+     new FieldDescriptor(C, Rank, ZeroDims, ZeroLeftEdge, I, N, U, NULL); \
+     (*FieldIDs)[E] = N;
 
-void FillFieldRegistry(int Rank, FieldRegistry* Fields) {
+#include "macros_and_parameters.h"
+#include "typedefs.h"
+#undef int
+#undef float
+
+void FillFieldRegistry(int Rank, FieldRegistry* Fields, FieldNumbers *FieldIDs) {
   // We provide a routine that will return a map of base field descriptors.
   // Part of the reasoning behind this is that we want to be able to
   // initialize from basic fields with their own centering, names, units, and
@@ -24,27 +30,37 @@ void FillFieldRegistry(int Rank, FieldRegistry* Fields) {
 
   // First the main fields we know about
   
-  NEWFIELD("Density",           "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("TotalEnergy",       "erg / g",      CellCentered, MultiplyByDensity);
-  NEWFIELD("GasEnegy",          "erg / g",      CellCentered, MultiplyByDensity);
-  NEWFIELD("x-velocity",        "cm / s",       CellCentered, MultiplyByDensity);
-  NEWFIELD("y-velocity",        "cm / s",       CellCentered, MultiplyByDensity);
-  NEWFIELD("z-velocity",        "cm / s",       CellCentered, MultiplyByDensity);
+  NEWFIELD("Density",           "g / cm^3", CellCentered, InterpolateDirectly, Density);
+  NEWFIELD("TotalEnergy",       "erg / g",  CellCentered, MultiplyByDensity, TotalEnergy);
+  NEWFIELD("GasEnegy",          "erg / g",  CellCentered, MultiplyByDensity, InternalEnergy);
+  NEWFIELD("x-velocity",        "cm / s",   CellCentered, MultiplyByDensity, Velocity1);
+  NEWFIELD("y-velocity",        "cm / s",   CellCentered, MultiplyByDensity, Velocity2);
+  NEWFIELD("z-velocity",        "cm / s",   CellCentered, MultiplyByDensity, Velocity3);
 
   // Species Fields
  
-  NEWFIELD("Electron_Density",  "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HI_Density",        "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HII_Density",       "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HeI_Density",       "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HeII_Density",      "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HeIII_Density",     "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HM_Density",        "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("H2I_Density",       "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("H2II_Density",      "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("DI_Density",        "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("DII_Density",       "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("HDI_Density",       "g / cm^3",     CellCentered, InterpolateDirectly);
-  NEWFIELD("Metal_Density",     "g / cm^3",     CellCentered, InterpolateDirectly);
+  NEWFIELD("Electron_Density",  "g / cm^3", CellCentered, InterpolateDirectly, ElectronDensity);
+  NEWFIELD("HI_Density",        "g / cm^3", CellCentered, InterpolateDirectly, HIDensity);
+  NEWFIELD("HII_Density",       "g / cm^3", CellCentered, InterpolateDirectly, HIIDensity);
+  NEWFIELD("HeI_Density",       "g / cm^3", CellCentered, InterpolateDirectly, HeIDensity);
+  NEWFIELD("HeII_Density",      "g / cm^3", CellCentered, InterpolateDirectly, HeIIDensity);
+  NEWFIELD("HeIII_Density",     "g / cm^3", CellCentered, InterpolateDirectly, HeIIIDensity);
+  NEWFIELD("HM_Density",        "g / cm^3", CellCentered, InterpolateDirectly, HMDensity);
+  NEWFIELD("H2I_Density",       "g / cm^3", CellCentered, InterpolateDirectly, H2IDensity);
+  NEWFIELD("H2II_Density",      "g / cm^3", CellCentered, InterpolateDirectly, H2IIDensity);
+  NEWFIELD("DI_Density",        "g / cm^3", CellCentered, InterpolateDirectly, DIDensity);
+  NEWFIELD("DII_Density",       "g / cm^3", CellCentered, InterpolateDirectly, DIIDensity);
+  NEWFIELD("HDI_Density",       "g / cm^3", CellCentered, InterpolateDirectly, HDIDensity);
+  NEWFIELD("Metal_Density",     "g / cm^3", CellCentered, InterpolateDirectly, Metallicity);
 
+#ifdef FIELD_DEBUG
+  FieldRegistry::iterator iter;
+  for (iter = Fields->begin(); iter != Fields->end(); ++iter) {
+    fprintf(stderr, "Registered %s\n", iter->second->GetName());
+  }
+  FieldNumbers::iterator iter2;
+  for (iter2 = FieldIDs->begin(); iter2 != FieldIDs->end(); ++iter2) {
+    fprintf(stderr, "Locked %d to %s\n", iter2->first, iter2->second.c_str());
+  }
+#endif
 }

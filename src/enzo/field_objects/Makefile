@@ -1,7 +1,7 @@
 GTEST_DIR=gtest
 CC=g++
 DEFINES=-DGTEST_HAS_PTHREAD=0 -DMOCK_GRID
-CCFLAGS=-ggdb -O0 -Ifield_objects/ -I$(GTEST_DIR)/include -I$(GTEST_DIR) $(DEFINES)
+CCFLAGS=-ggdb -O0 -I.. -Ifield_objects/ -I$(GTEST_DIR)/include -I$(GTEST_DIR) $(DEFINES)
 LDFLAGS=-L$(GTEST_DIR)/lib 
 TEST_SRC=TestFieldDescriptors.C \
 		 TestGrid.C \
