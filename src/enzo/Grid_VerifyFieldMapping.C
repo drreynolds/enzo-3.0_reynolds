@@ -41,7 +41,9 @@ void grid::VerifyFieldMapping()
     }
   }
   if (FoundError == FALSE) {
-    fprintf(stderr, "ERROR-FREE\n");
+    //fprintf(stderr, "ERROR-FREE\n");
+  } else {
+    ENZO_FAIL("PROBLEM!");
   }
 #endif
  

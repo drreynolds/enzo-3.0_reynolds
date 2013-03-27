@@ -46,6 +46,7 @@ class FieldDescriptor
       void GetCellDimensions(int Dimensions[MAX_DIMENSIONS]);
       void GetFieldDimensions(int Dimensions[MAX_DIMENSIONS]);
       void GetLeftEdge(long_int LeftEdge[MAX_DIMENSIONS]);
+      InterpolationType GetInterpolationMethod();
 
       void GetOverlapRegion(FieldDescriptor *Other,
                 int LeftEdgeThis[MAX_DIMENSIONS],

@@ -29,6 +29,7 @@ enum CenteringType {
 enum InterpolationType {
   MultiplyByDensity,   // This quantity should be multiplied by Density before interpolating
   InterpolateDirectly, // This quantity should not be multiplied by anything before interpolating
+  DoNotInterpolate,    // This quantity should not be interpolated at all
   Undefined            // Interpolation behavior is undefined
 };
 

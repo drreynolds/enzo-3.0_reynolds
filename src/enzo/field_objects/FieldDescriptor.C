@@ -239,6 +239,10 @@ void FieldDescriptor::GetLeftEdge(long_int LeftEdge[MAX_DIMENSIONS]) {
     }
 }
 
+InterpolationType FieldDescriptor::GetInterpolationMethod(){
+    return this->InterpolationMethod;
+}
+
 void FieldDescriptor::GetOverlapRegion(FieldDescriptor *Other,
     int LeftEdgeThis[MAX_DIMENSIONS], // These are out values
     int LeftEdgeOther[MAX_DIMENSIONS],

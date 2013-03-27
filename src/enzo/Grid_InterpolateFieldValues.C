@@ -107,6 +107,8 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
     if ((densfield=FindField(Density, FieldType, NumberOfBaryonFields)) < 0) {
       ENZO_FAIL("No density field!\n");
     }
+    FieldRegistry::iterator iter;
+    FieldDescriptor *fd_dens = this->Fields["Density"];
  
     /* Set up array of flags if we are using SecondOrderB interpolation
        method.  These flags indicate if the quantity must always by > 0.
@@ -270,23 +272,30 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
     /* Multiply ParentTemp fields by their own density to get conserved
        quantities. */
  
-    if (ConservativeInterpolation)
-      for (field = 0; field < NumberOfBaryonFields; field++)
-	if (FieldTypeIsDensity(FieldType[field]) == FALSE &&
-	    FieldType[field] != Bfield1 &&
-	    FieldType[field] != Bfield2 &&
-	    FieldType[field] != Bfield3 &&
-	    FieldType[field] != PhiField &&
-	    FieldType[field] != DrivingField1 &&
-	    FieldType[field] != DrivingField2 &&
-	    FieldType[field] != DrivingField3 
-	    && FieldType[field] != DebugField 
-	    && FieldType[field] != GravPotential
-	    )
-	  FORTRAN_NAME(mult3d)(ParentTemp[densfield], ParentTemp[field],
-                               &ParentTempSize, &One, &One,
-			       &ParentTempSize, &One, &One,
-                               &Zero, &Zero, &Zero, &Zero, &Zero, &Zero);
+      if (ConservativeInterpolation) {
+        /*
+           for (field = 0; field < NumberOfBaryonFields; field++)
+           if (FieldTypeIsDensity(FieldType[field]) == FALSE &&
+           FieldType[field] != Bfield1 &&
+           FieldType[field] != Bfield2 &&
+           FieldType[field] != Bfield3 &&
+           FieldType[field] != PhiField &&
+           FieldType[field] != DrivingField1 &&
+           FieldType[field] != DrivingField2 &&
+           FieldType[field] != DrivingField3 
+           && FieldType[field] != DebugField 
+           && FieldType[field] != GravPotential
+           )
+           FORTRAN_NAME(mult3d)(ParentTemp[densfield], ParentTemp[field],
+           &ParentTempSize, &One, &One,
+           &ParentTempSize, &One, &One,
+           &Zero, &Zero, &Zero, &Zero, &Zero, &Zero);
+           */
+        for (iter = this->Fields.begin(); iter != this->Fields.end(); ++iter) {
+          if (iter->second->GetInterpolationMethod() == MultiplyByDensity)
+            iter->second->Multiply(fd_dens);
+        }
+      }
     
     /* Do the interpolation for the density field. */
  
@@ -376,24 +385,32 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
       /* Divide by density field to convert from conserved to physical
          variables (skipping density). */
  
-      if (ConservativeInterpolation)
-	if (FieldTypeIsDensity(FieldType[field]) == FALSE  &&
-	    FieldType[field] != Bfield1 &&
-	    FieldType[field] != Bfield2 &&
-	    FieldType[field] != Bfield3 &&
-	    FieldType[field] != PhiField &&
-	    FieldType[field] != DrivingField1 &&
-	    FieldType[field] != DrivingField2 &&
-	    FieldType[field] != DrivingField3 
-	    && FieldType[field] != DebugField 
-	    &&  FieldType[field] != GravPotential
-	    )
-	  FORTRAN_NAME(div3d)(TemporaryDensityField, TemporaryField,
-			      &TempSize, &One, &One,
-			      &TempSize, &One, &One,
-			      &Zero, &Zero, &Zero, &Zero, &Zero, &Zero,
-			      &Zero, &Zero, &Zero, &TempSize, &Zero, &Zero);
-      
+      if (ConservativeInterpolation) {
+        /*
+        if (FieldTypeIsDensity(FieldType[field]) == FALSE  &&
+            FieldType[field] != Bfield1 &&
+            FieldType[field] != Bfield2 &&
+            FieldType[field] != Bfield3 &&
+            FieldType[field] != PhiField &&
+            FieldType[field] != DrivingField1 &&
+            FieldType[field] != DrivingField2 &&
+            FieldType[field] != DrivingField3 
+            && FieldType[field] != DebugField 
+            &&  FieldType[field] != GravPotential
+           )
+          FORTRAN_NAME(div3d)(TemporaryDensityField, TemporaryField,
+              &TempSize, &One, &One,
+              &TempSize, &One, &One,
+              &Zero, &Zero, &Zero, &Zero, &Zero, &Zero,
+              &Zero, &Zero, &Zero, &TempSize, &Zero, &Zero);
+        */
+
+        for (iter = this->Fields.begin(); iter != this->Fields.end(); ++iter) {
+          if (iter->second->GetInterpolationMethod() == MultiplyByDensity)
+            iter->second->Divide(fd_dens);
+        }
+
+      }
       /* Set FieldPointer to either the correct field (density or the one we
 	 just interpolated to). */
  
