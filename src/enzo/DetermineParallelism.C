@@ -23,10 +23,7 @@
 #include "mpi.h"
 #endif /* USE_MPI */
 
-#include <stdio.h>
-#include <map>
-#include <string>
-#include <math.h>
+#include "preincludes.h"
 
 /* Original includes for Enzo */
 #include "macros_and_parameters.h"
