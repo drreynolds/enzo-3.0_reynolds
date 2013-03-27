@@ -1633,6 +1633,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
 
+  // Now that we know our rank, we can fill our Field Registry
+
+  FillFieldRegistry(MetaData.TopGridRank, &BaseFieldTypes, &BaseFieldIDs);
 
   CheckShearingBoundaryConsistency(MetaData);
   return SUCCESS;

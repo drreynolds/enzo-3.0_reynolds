@@ -10,7 +10,7 @@ FieldDescriptor::FieldDescriptor(
     FieldDescriptor *BaseDefinition,
     int CellDimensions[MAX_DIMENSIONS],
     long_int LeftEdge[MAX_DIMENSIONS],
-    float **FieldPointer) {
+    float **FieldPointer, int SkipValueAllocation) {
   int dim;
   this->ValueCentering = BaseDefinition->ValueCentering;
   this->Rank = BaseDefinition->Rank;
@@ -25,7 +25,13 @@ FieldDescriptor::FieldDescriptor(
 
   // This sets up how we handle the values we point to.
   this->DeallocateFieldValues = this->DeallocateFieldPointer = 0;
-  this->SetPointer(FieldPointer);
+  this->SetPointer(FieldPointer, SkipValueAllocation);
+
+#ifdef FIELD_DEBUG
+  fprintf(stderr, "OWNERSHIP OF %s IS %"ISYM" %"ISYM"\n",
+          this->GetName(), this->DeallocateFieldValues,
+          this->DeallocateFieldPointer);
+#endif
 }
 
 FieldDescriptor::FieldDescriptor(
@@ -142,7 +148,7 @@ float *FieldDescriptor::GetValues() {
   return *(this->FieldPointer);
 }
 
-void FieldDescriptor::SetPointer(float **NewPointer) {
+void FieldDescriptor::SetPointer(float **NewPointer, int SkipValueAllocation) {
   if (NewPointer == NULL) {
     this->AllocateFieldPointer();
     NewPointer = this->FieldPointer;
@@ -150,7 +156,7 @@ void FieldDescriptor::SetPointer(float **NewPointer) {
     this->FieldPointer = NewPointer;
   }
   // If we need to, also allocate values
-  if (NewPointer[0] == NULL) {
+  if ((NewPointer[0] == NULL) && (SkipValueAllocation == 0)) {
     this->AllocateFieldValues();
   }
 }

@@ -18,7 +18,8 @@ class FieldDescriptor
       FieldDescriptor(FieldDescriptor* BaseDefinition,
                       int CellDimensions[MAX_DIMENSIONS],
                       long_int LeftEdge[MAX_DIMENSIONS],
-                      float **FieldPointer = NULL);
+                      float **FieldPointer = NULL,
+                      int SkipValueAllocation = 0);
       FieldDescriptor(CenteringType ValueCentering, int Rank,
                       int CellDimensions[MAX_DIMENSIONS],
                       long_int LeftEdge[MAX_DIMENSIONS],
@@ -114,7 +115,7 @@ class FieldDescriptor
           int CopyDims[MAX_DIMENSIONS]);
 
       void DeallocateIfNeeded();
-      void SetPointer(float **NewPointer);
+      void SetPointer(float **NewPointer, int SkipValueAllocation = 0);
       void AllocateFieldValues();
       void AllocateFieldPointer();
 

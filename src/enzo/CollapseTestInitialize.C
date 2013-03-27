@@ -227,6 +227,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 	     0) == FAIL) {
     ENZO_FAIL("Error in CollapseTestInitializeGrid.");
   }
+  TopGrid.GridData->ReconstructFieldMapping();
 
   /* Convert minimum initial overdensity for refinement to mass
      (unless MinimumMass itself was actually set). */

@@ -15,6 +15,7 @@
 /
 ************************************************************************/
 
+#define DEFINE_STORAGE
 #include "preincludes.h"
  
 #ifdef USE_MPI
@@ -26,7 +27,6 @@
 #include <string.h>
 #include <unistd.h>
  
-#define DEFINE_STORAGE
 #include "EnzoTiming.h"
 #include "ErrorExceptions.h"
 #include "performance.h"

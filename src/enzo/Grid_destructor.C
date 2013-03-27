@@ -47,6 +47,16 @@ grid::~grid()
   /* exit(EXIT_FAILURE); */
   }
 #endif /* UNUSED */
+
+  // Field Registry
+
+  FieldRegistry::iterator iter;
+  for (iter = this->Fields.begin();
+       iter != this->Fields.end(); ++iter) {
+    if (iter->second != NULL) {
+      delete (iter->second);
+    }
+  }
  
   for (i = 0; i < MAX_DIMENSION; i++) {
     delete [] CellLeftEdge[i];
