@@ -5,14 +5,12 @@
 //          Greg Bryan
 
 #include "FieldObjects.h"
-#include "malloc.h"
-#include "assert.h"
 
 FieldDescriptor::FieldDescriptor(
     FieldDescriptor *BaseDefinition,
     int CellDimensions[MAX_DIMENSIONS],
-    long long LeftEdge[MAX_DIMENSIONS],
-    double **FieldPointer) {
+    long_int LeftEdge[MAX_DIMENSIONS],
+    float **FieldPointer) {
   int dim;
   this->ValueCentering = BaseDefinition->ValueCentering;
   this->Rank = BaseDefinition->Rank;
@@ -33,11 +31,11 @@ FieldDescriptor::FieldDescriptor(
 FieldDescriptor::FieldDescriptor(
     CenteringType ValueCentering, int Rank,
     int CellDimensions[MAX_DIMENSIONS],
-    long long LeftEdge[MAX_DIMENSIONS],
+    long_int LeftEdge[MAX_DIMENSIONS],
     InterpolationType InterpolationMethod,
     const char* Name,
     const char* UnitsName,
-    double **FieldPointer) {
+    float **FieldPointer) {
   int dim;
   this->ValueCentering = ValueCentering;
   this->Rank = Rank;
@@ -77,20 +75,20 @@ void FieldDescriptor::DeallocateIfNeeded() {
 
 void FieldDescriptor::AllocateFieldValues() {
   // We do *not* want this to get lost on stack deallocation
-  double *v = new double[this->GetSize()];
+  float *v = new float[this->GetSize()];
   this->FieldPointer[0] = v;
   this->DeallocateFieldValues = 1;
 }
 
 void FieldDescriptor::AllocateFieldPointer() {
-  this->FieldPointer = new double*[1];
+  this->FieldPointer = new float*[1];
   this->FieldPointer[0] = NULL;
   this->DeallocateFieldPointer = 1;
 }
 
 FieldDescriptor* FieldDescriptor::Duplicate(char *NewName, char *NewUnitsName) {
   int i;
-  double *vn;
+  float *vn;
   if (NewName == NULL) NewName = this->Name;
   if (NewUnitsName == NULL) NewUnitsName = this->UnitsName;
   // Note that this will allocate and set the bits to deallocate later
@@ -99,8 +97,8 @@ FieldDescriptor* FieldDescriptor::Duplicate(char *NewName, char *NewUnitsName) {
         NewName, NewUnitsName, NULL);
   if(this->FieldPointer != NULL) {
     // We copy if there are any FieldPointer
-    double *vo = fd->GetValues();
-    double *vt = this->GetValues();
+    float *vo = fd->GetValues();
+    float *vt = this->GetValues();
     for (i = 0; i < this->GetSize(); i++) {
         vo[i] = vt[i];
     }
@@ -139,12 +137,12 @@ void FieldDescriptor::SetName(const char* NewName) {
   this->Name = strdup(NewName);
 }
 
-double *FieldDescriptor::GetValues() {
+float *FieldDescriptor::GetValues() {
   if(this->FieldPointer == NULL) return NULL;
   return *(this->FieldPointer);
 }
 
-void FieldDescriptor::SetPointer(double **NewPointer) {
+void FieldDescriptor::SetPointer(float **NewPointer) {
   if (NewPointer == NULL) {
     this->AllocateFieldPointer();
     NewPointer = this->FieldPointer;
@@ -159,7 +157,6 @@ void FieldDescriptor::SetPointer(double **NewPointer) {
 
 int FieldDescriptor::GetSize() {
   int dim, Dimensions[MAX_DIMENSIONS], size = 1;
-  assert(this->Rank == 3);
   this->GetFieldDimensions(Dimensions);
   for (dim = 0; dim < this->Rank; dim++) {
     size *= Dimensions[dim];
@@ -229,7 +226,7 @@ void FieldDescriptor::GetFieldExtension(int Extension[MAX_DIMENSIONS]) {
   }
 }
 
-void FieldDescriptor::GetLeftEdge(long long LeftEdge[MAX_DIMENSIONS]) {
+void FieldDescriptor::GetLeftEdge(long_int LeftEdge[MAX_DIMENSIONS]) {
     int dim;
     for (dim = 0; dim < this->Rank; dim++) {
         LeftEdge[dim] = this->LeftEdge[dim];
@@ -242,9 +239,9 @@ void FieldDescriptor::GetOverlapRegion(FieldDescriptor *Other,
     int CopyDims[MAX_DIMENSIONS]) {
       // Only CelL overlap
       int OtherDims[MAX_DIMENSIONS];
-      long long OverlapStart, OverlapEnd;
-      long long GlobalLeftEdgeThis[MAX_DIMENSIONS];
-      long long GlobalLeftEdgeOther[MAX_DIMENSIONS];
+      long_int OverlapStart, OverlapEnd;
+      long_int GlobalLeftEdgeThis[MAX_DIMENSIONS];
+      long_int GlobalLeftEdgeOther[MAX_DIMENSIONS];
       int dim;
       this->GetLeftEdge(GlobalLeftEdgeThis);
       Other->GetLeftEdge(GlobalLeftEdgeOther);
@@ -261,30 +258,30 @@ void FieldDescriptor::GetOverlapRegion(FieldDescriptor *Other,
 
 // Mathematical Operations
 
-double FieldDescriptor::Min() {
+float FieldDescriptor::Min() {
   return this->Min(NULL, NULL);
 }
 
-double FieldDescriptor::Min(int *LeftEdge, int *RightEdge) {
+float FieldDescriptor::Min(int *LeftEdge, int *RightEdge) {
   return this->UnaryAccumulator<MinVal>(
       LeftEdge, RightEdge, 1e300);
 }
 
-double FieldDescriptor::Max() {
+float FieldDescriptor::Max() {
   return this->Max(NULL, NULL);
 }
 
-double FieldDescriptor::Max(int *LeftEdge, int *RightEdge) {
+float FieldDescriptor::Max(int *LeftEdge, int *RightEdge) {
   return this->UnaryAccumulator<MaxVal>(
       LeftEdge, RightEdge, -1e300);
 }
 
-double FieldDescriptor::Sum() {
+float FieldDescriptor::Sum() {
   return this->Sum(NULL, NULL);
 }
 
-double FieldDescriptor::Sum(int *LeftEdge, int *RightEdge) {
-  double v = this->UnaryAccumulator<AddVal>(
+float FieldDescriptor::Sum(int *LeftEdge, int *RightEdge) {
+  float v = this->UnaryAccumulator<AddVal>(
       LeftEdge, RightEdge, 0.0);
 }
 
@@ -299,7 +296,7 @@ void FieldDescriptor::CopyFrom(FieldDescriptor *Other) {
   this->InPlaceBinaryOperation<CopyVal>(Other, LeftEdgeThis, LeftEdgeOther, CopyDims);
 }
 
-void FieldDescriptor::CopyFrom(double val) {
+void FieldDescriptor::CopyFrom(float val) {
   static int Zero[MAX_DIMENSIONS] = {0, 0, 0};
   this->InPlaceBinaryOperation<CopyVal>(val, Zero, this->CellDimensions);
 }
@@ -313,7 +310,7 @@ void FieldDescriptor::Add(FieldDescriptor *Other) {
   this->InPlaceBinaryOperation<AddVal>(Other, LeftEdgeThis, LeftEdgeOther, CopyDims);
 }
 
-void FieldDescriptor::Add(double val) {
+void FieldDescriptor::Add(float val) {
   static int Zero[MAX_DIMENSIONS] = {0, 0, 0};
   this->InPlaceBinaryOperation<AddVal>(val, Zero, this->CellDimensions);
 }
@@ -327,7 +324,7 @@ void FieldDescriptor::Subtract(FieldDescriptor *Other) {
   this->InPlaceBinaryOperation<SubVal>(Other, LeftEdgeThis, LeftEdgeOther, CopyDims);
 }
 
-void FieldDescriptor::Subtract(double val) {
+void FieldDescriptor::Subtract(float val) {
   static int Zero[MAX_DIMENSIONS] = {0, 0, 0};
   this->InPlaceBinaryOperation<SubVal>(val, Zero, this->CellDimensions);
 }
@@ -341,7 +338,7 @@ void FieldDescriptor::Multiply(FieldDescriptor *Other) {
   this->InPlaceBinaryOperation<MultVal>(Other, LeftEdgeThis, LeftEdgeOther, CopyDims);
 }
 
-void FieldDescriptor::Multiply(double val) {
+void FieldDescriptor::Multiply(float val) {
   static int Zero[MAX_DIMENSIONS] = {0, 0, 0};
   this->InPlaceBinaryOperation<MultVal>(val, Zero, this->CellDimensions);
 }
@@ -355,7 +352,7 @@ void FieldDescriptor::Divide(FieldDescriptor *Other) {
   this->InPlaceBinaryOperation<DivVal>(Other, LeftEdgeThis, LeftEdgeOther, CopyDims);
 }
 
-void FieldDescriptor::Divide(double val) {
+void FieldDescriptor::Divide(float val) {
   static int Zero[MAX_DIMENSIONS] = {0, 0, 0};
   this->InPlaceBinaryOperation<DivVal>(val, Zero, this->CellDimensions);
 }
@@ -367,7 +364,7 @@ FieldDescriptor &FieldDescriptor::operator+=(FieldDescriptor *Other) {
     return (*this);
 }
 
-FieldDescriptor &FieldDescriptor::operator+=(double val) {
+FieldDescriptor &FieldDescriptor::operator+=(float val) {
     this->Add(val);
     return (*this);
 }
@@ -377,7 +374,7 @@ FieldDescriptor &FieldDescriptor::operator-=(FieldDescriptor *Other) {
     return (*this);
 }
 
-FieldDescriptor &FieldDescriptor::operator-=(double val) {
+FieldDescriptor &FieldDescriptor::operator-=(float val) {
     this->Subtract(val);
     return (*this);
 }
@@ -387,7 +384,7 @@ FieldDescriptor &FieldDescriptor::operator*=(FieldDescriptor *Other) {
     return (*this);
 }
 
-FieldDescriptor &FieldDescriptor::operator*=(double val) {
+FieldDescriptor &FieldDescriptor::operator*=(float val) {
     this->Multiply(val);
     return (*this);
 }
@@ -397,7 +394,7 @@ FieldDescriptor &FieldDescriptor::operator/=(FieldDescriptor *Other) {
     return (*this);
 }
 
-FieldDescriptor &FieldDescriptor::operator/=(double val) {
+FieldDescriptor &FieldDescriptor::operator/=(float val) {
     this->Divide(val);
     return (*this);
 }
@@ -413,12 +410,12 @@ int FieldDescriptor::CanCombine(FieldDescriptor *Other) {
 // Operations
 
 template <MathFunction function>
-double FieldDescriptor::UnaryAccumulator(
-    int *LeftEdge, int *RightEdge, double InitialValue) {
+float FieldDescriptor::UnaryAccumulator(
+    int *LeftEdge, int *RightEdge, float InitialValue) {
   // NOTE: This takes a RightEdge in *cell* values.  This will *do the right
   // thing* for face and vertex centered fields.
   int i, j, k;
-  double val = InitialValue;
+  float val = InitialValue;
   int ind;
   static int Zero[MAX_DIMENSIONS] = {0, 0, 0};
   int Extension[MAX_DIMENSIONS];
@@ -429,7 +426,7 @@ double FieldDescriptor::UnaryAccumulator(
     RightEdge = this->CellDimensions;
   }
   this->GetFieldExtension(Extension);
-  double *vals = this->GetValues();
+  float *vals = this->GetValues();
 
   for (i = LeftEdge[0]; i < RightEdge[0] + Extension[0]; i++) {
     for (j = LeftEdge[1]; j < RightEdge[1] + Extension[1]; j++) {
@@ -458,8 +455,8 @@ void FieldDescriptor::InPlaceBinaryOperation(
 
   int dim, i, j, k, i1, i2, j1, j2, k1, k2, ind1, ind2;
 
-  double *v1 = this->GetValues();
-  double *v2 = Other->GetValues();
+  float *v1 = this->GetValues();
+  float *v2 = Other->GetValues();
 
   for (i = 0, i1 = LeftEdgeThis[0], i2 = LeftEdgeOther[0];
        i < CopyDims[0] + Extension[0];
@@ -480,13 +477,13 @@ void FieldDescriptor::InPlaceBinaryOperation(
 
 template <MathFunction function>
 void FieldDescriptor::InPlaceBinaryOperation(
-    double OtherValue,
+    float OtherValue,
     int LeftEdge[MAX_DIMENSIONS],
     int CopyDims[MAX_DIMENSIONS]) {
 
   int dim, i, j, k, i1, j1, k1, ind1;
 
-  double *v1 = this->GetValues();
+  float *v1 = this->GetValues();
 
   int Extension[MAX_DIMENSIONS];
   this->GetFieldExtension(Extension);

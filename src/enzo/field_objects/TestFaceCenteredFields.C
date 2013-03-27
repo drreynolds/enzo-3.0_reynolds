@@ -15,11 +15,11 @@ namespace {
         dims[0] = 7;
         dims[1] = 8;
         dims[2] = 9;
-        long long le[MAX_DIMENSIONS] = {0, 0, 0};
+        long_int le[MAX_DIMENSIONS] = {0, 0, 0};
         sdims[0] = 3;
         sdims[1] = 4;
         sdims[2] = 5;
-        long long sle[MAX_DIMENSIONS] = {1, 1, 1};
+        long_int sle[MAX_DIMENSIONS] = {1, 1, 1};
 
         int fdi = 0;
         this->fds[fdi++] = new FieldDescriptor(

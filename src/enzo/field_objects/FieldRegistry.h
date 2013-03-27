@@ -3,18 +3,8 @@
 //
 // Authors: Matthew Turk
 //          Greg Bryan
-
-#ifdef min
-#define OLDmin min
-#undef min
-#endif
-
-#ifdef max
-#define OLDmax max
-#undef max
-#endif
-
-#include <map>
+#ifndef __FIELD_REGISTRY_H__
+#define __FIELD_REGISTRY_H__
 
 typedef std::map<std::string, FieldDescriptor *> FieldRegistry;
 typedef std::map<int, std::string> FieldNumbers;
@@ -29,10 +19,5 @@ void FillFieldRegistry(int Rank, FieldRegistry *Fields, FieldNumbers *FieldIDs);
 EXTERN_FIELDS FieldRegistry BaseFieldTypes;
 EXTERN_FIELDS FieldNumbers BaseFieldIDs;
 
-#ifdef OLDmin
-#define min OLDmin
-#endif
-
-#ifdef OLDmax
-#define max OLDmax
+#undef EXTERN_FIELDS
 #endif

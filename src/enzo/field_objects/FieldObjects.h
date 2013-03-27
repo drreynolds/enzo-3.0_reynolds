@@ -4,11 +4,9 @@
 // Authors: Matthew Turk
 //          Greg Bryan
 
-#ifdef float
-#ifndef CONFIG_BFLOAT_8
-#error "Can't compile with BFLOAT != 8"
-#endif
-#endif
+#include "ErrorExceptions.h"
+#include "macros_and_parameters.h"
+#include "typedefs.h"
 
 #include "MathOperations.h"
 #include "FieldDefinitions.h"

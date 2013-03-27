@@ -15,7 +15,7 @@ class Grid
     public:
       Grid();
       Grid(int Dimensions[MAX_DIMENSIONS],
-           long long LeftEdge[MAX_DIMENSIONS]);
+           long_int LeftEdge[MAX_DIMENSIONS]);
       ~Grid();
 
       FieldDescriptor *operator[](const char *Name);
@@ -27,10 +27,10 @@ class Grid
                InterpolationType InterpolationMethod,
                CenteringType ValueCentering);
 
-      double *BaryonFields[MAX_FIELDS];
+      float *BaryonFields[MAX_FIELDS];
       int NumberOfFields;
       int Dimensions[MAX_DIMENSIONS];
-      long long LeftEdge[MAX_DIMENSIONS];
+      long_int LeftEdge[MAX_DIMENSIONS];
 
       FieldRegistry Fields;
       int FindField(int FieldType);

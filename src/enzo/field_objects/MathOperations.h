@@ -15,35 +15,35 @@
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #endif
 
-typedef double (*MathFunction)(double, double);
+typedef float (*MathFunction)(float, float);
 
-inline double MinVal(double a, double b) {
+inline float MinVal(float a, float b) {
     if (a < b) return a;
     return b;
 }
 
-inline double MaxVal(double a, double b) {
+inline float MaxVal(float a, float b) {
     if (a > b) return a;
     return b;
 }
 
-inline double CopyVal(double a, double b) {
+inline float CopyVal(float a, float b) {
     return b;
 }
 
-inline double AddVal(double a, double b) {
+inline float AddVal(float a, float b) {
     return (a + b);
 }
 
-inline double SubVal(double a, double b) {
+inline float SubVal(float a, float b) {
     return (a - b);
 }
 
-inline double MultVal(double a, double b) {
+inline float MultVal(float a, float b) {
     return a*b;
 }
 
-inline double DivVal(double a, double b) {
+inline float DivVal(float a, float b) {
     return a/b;
 }
 

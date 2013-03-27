@@ -5,19 +5,10 @@
 //          Greg Bryan
 
 #include "FieldObjects.h"
-#include "malloc.h"
-#include "assert.h"
-#include <map>
-#include <string>
 
 #define NEWFIELD(N, U, C, I, E) (*Fields)[N] = \
      new FieldDescriptor(C, Rank, ZeroDims, ZeroLeftEdge, I, N, U, NULL); \
      (*FieldIDs)[E] = N;
-
-#include "macros_and_parameters.h"
-#include "typedefs.h"
-#undef int
-#undef float
 
 void FillFieldRegistry(int Rank, FieldRegistry* Fields, FieldNumbers *FieldIDs) {
   // We provide a routine that will return a map of base field descriptors.
@@ -26,7 +17,7 @@ void FillFieldRegistry(int Rank, FieldRegistry* Fields, FieldNumbers *FieldIDs) 
   // so on.  However, we don't really need this to be run in a .h file.
 
   int ZeroDims[MAX_DIMENSIONS] = {1, 1, 1};
-  long long ZeroLeftEdge[MAX_DIMENSIONS] = {0,0,0};
+  long_int ZeroLeftEdge[MAX_DIMENSIONS] = {0,0,0};
 
   // First the main fields we know about
   

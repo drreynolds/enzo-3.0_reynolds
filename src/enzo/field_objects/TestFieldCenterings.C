@@ -13,7 +13,7 @@ namespace {
     protected:
       virtual void SetUp() {
         int dims[MAX_DIMENSIONS] = {7, 8, 9};
-        long long le[MAX_DIMENSIONS] = {0, 0, 0};
+        long_int le[MAX_DIMENSIONS] = {0, 0, 0};
         int fdi = 0;
         this->fds[fdi++] = new FieldDescriptor(
             CellCentered, 3,

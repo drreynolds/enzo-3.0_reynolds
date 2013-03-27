@@ -5,9 +5,6 @@
 // Authors: Matthew Turk
 //          Greg Bryan
 
-#include <stdexcept>
-#include <string>
-
 class FieldsIncompatible : public std::runtime_error {
 public:
     FieldsIncompatible(const std::string& message) 

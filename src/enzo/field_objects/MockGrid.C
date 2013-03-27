@@ -24,7 +24,7 @@ Grid::Grid() {
 }
 
 Grid::Grid(int Dimensions[MAX_DIMENSIONS],
-           long long LeftEdge[MAX_DIMENSIONS]) {
+           long_int LeftEdge[MAX_DIMENSIONS]) {
   int field;
   this->NumberOfFields = 0;
   this->Dimensions[0] = Dimensions[0];
@@ -69,7 +69,7 @@ FieldDescriptor* Grid::AddField(char *Name, char *UnitsName, int NumberOfGhostZo
                           CenteringType ValueCentering) {
   // We own this field.
   int Dimensions[MAX_DIMENSIONS];
-  long long LeftEdge[MAX_DIMENSIONS];
+  long_int LeftEdge[MAX_DIMENSIONS];
   int dim;
   for (dim = 0; dim < MAX_DIMENSIONS; dim++) {
     Dimensions[dim] = this->Dimensions[dim] + 2*NumberOfGhostZones;

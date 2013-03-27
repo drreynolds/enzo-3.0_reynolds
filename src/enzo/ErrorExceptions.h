@@ -21,15 +21,18 @@
 #include <stdio.h>
 
 #include <exception>
+#include <stdexcept>
+#include <cstddef>
 
 // If we are using the new problem type initializers, we need to include these
 // in a file that we know will be included before macros_and_parameters.h.
-#ifdef NEW_PROBLEM_TYPES
 #include <stdlib.h>
 #include <stdio.h>
 #include <map>
 #include <string>
-#endif
+#include <string.h>
+#include <assert.h>
+
 
 // Example from 
 //

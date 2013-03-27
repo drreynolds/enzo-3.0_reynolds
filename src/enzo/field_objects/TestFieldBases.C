@@ -39,7 +39,7 @@ TEST_F(TestFieldRegistry, VerifyCorrectFieldAdding) {
   FieldRegistry::iterator iter;
   int Dimensions[MAX_DIMENSIONS] = {3, 3, 3};
   int Dims[MAX_DIMENSIONS] = {-1, -1, -1};
-  long long LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
+  long_int LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
   for (iter = this->fr.begin(); iter != this->fr.end(); ++iter) {
     fd = new FieldDescriptor(iter->second, Dimensions, LeftEdge);
     ASSERT_STREQ(iter->second->GetName(), fd->GetName());

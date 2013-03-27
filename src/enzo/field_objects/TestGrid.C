@@ -48,7 +48,7 @@ TEST_F(GridSimpleTest, TestFieldManipulation) {
 
 TEST_F(GridSimpleTest, TestFieldAccess) {
   int Dims[MAX_DIMENSIONS] = {16, 16, 16};
-  long long LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
+  long_int LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
   FieldDescriptor *fd1 = new FieldDescriptor(
       CellCentered, 3, Dims, LeftEdge,
       InterpolateDirectly, "Density", "g/cc", NULL);
@@ -68,7 +68,7 @@ TEST_F(GridSimpleTest, TestFieldCreation) {
   FieldDescriptor *fd = this->g->AddField("Density", "g / cc", 2, InterpolateDirectly, CellCentered);
   ASSERT_STREQ(fd->GetName(), "Density");
   ASSERT_EQ(fd->GetSize(), 20*20*20);
-  long long Position[MAX_DIMENSIONS];
+  long_int Position[MAX_DIMENSIONS];
   fd->GetLeftEdge(Position);
   ASSERT_EQ(Position[0], -2);
   ASSERT_EQ(Position[1], -2);
@@ -85,7 +85,7 @@ TEST(GridBaryonFieldsTest, TestFieldCreation) {
   g->AddField("Something1", "", 0, MultiplyByDensity, CellCentered);
   FieldDescriptor *fd = g->GetField("Something1");
   ASSERT_EQ(fd->GetValues(), g->BaryonFields[0]);
-  double **v = g->BaryonFields;
+  float **v = g->BaryonFields;
   delete fd;
   ASSERT_TRUE(g->BaryonFields[0] == NULL);
   g->Fields["Something1"] = NULL;
@@ -97,20 +97,20 @@ TEST(GridBaryonFieldTest, TestFieldManagement) {
   // This is just a valgrind test
   Grid *g = new Grid();
   g->AddField("Something1", "", 0, MultiplyByDensity, CellCentered);
-  double **v = g->BaryonFields;
+  float **v = g->BaryonFields;
   delete g;
 }
 
 TEST(GridBaryonFieldTest, TestAllocateOutFromUnderYou) {
   Grid *g = new Grid();
-  double *v;
+  float *v;
   g->AddField("Something1", "", 0, MultiplyByDensity, CellCentered);
   g->AddField("Something2", "", 0, MultiplyByDensity, CellCentered);
   delete g->BaryonFields[0];
   g->BaryonFields[0] = NULL;
   ASSERT_TRUE(g->GetField("Something1")->GetValues() == NULL);
   ASSERT_TRUE(g->GetField("Something2")->GetValues() == g->BaryonFields[1]);
-  v = g->BaryonFields[0] = new double[16*16*16];
+  v = g->BaryonFields[0] = new float[16*16*16];
   ASSERT_TRUE(g->GetField("Something1")->GetValues() == v);
   ASSERT_TRUE(g->GetField("Something2")->GetValues() == g->BaryonFields[1]);
   delete g;

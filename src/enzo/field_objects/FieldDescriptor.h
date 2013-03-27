@@ -7,9 +7,6 @@
 #ifndef __FIELD_DESCRIPTOR_H__
 #define __FIELD_DESCRIPTOR_H__
 
-#include <string.h>
-#include <string>
-
 class Grid;
 
 class FieldDescriptor 
@@ -20,15 +17,15 @@ class FieldDescriptor
       FieldDescriptor();
       FieldDescriptor(FieldDescriptor* BaseDefinition,
                       int CellDimensions[MAX_DIMENSIONS],
-                      long long LeftEdge[MAX_DIMENSIONS],
-                      double **FieldPointer = NULL);
+                      long_int LeftEdge[MAX_DIMENSIONS],
+                      float **FieldPointer = NULL);
       FieldDescriptor(CenteringType ValueCentering, int Rank,
                       int CellDimensions[MAX_DIMENSIONS],
-                      long long LeftEdge[MAX_DIMENSIONS],
+                      long_int LeftEdge[MAX_DIMENSIONS],
                       InterpolationType InterpolationMethod,
                       const char* Name,
                       const char* UnitsName,
-                      double **FieldPointer = NULL);
+                      float **FieldPointer = NULL);
 
       // Destructor
       ~FieldDescriptor();
@@ -43,11 +40,11 @@ class FieldDescriptor
       void SetName(std::string NewName);
       void SetName(const char* NewName);
       char* GetUnitsName();
-      double *GetValues();
+      float *GetValues();
       int GetSize();
       void GetCellDimensions(int Dimensions[MAX_DIMENSIONS]);
       void GetFieldDimensions(int Dimensions[MAX_DIMENSIONS]);
-      void GetLeftEdge(long long LeftEdge[MAX_DIMENSIONS]);
+      void GetLeftEdge(long_int LeftEdge[MAX_DIMENSIONS]);
 
       void GetOverlapRegion(FieldDescriptor *Other,
                 int LeftEdgeThis[MAX_DIMENSIONS],
@@ -56,29 +53,29 @@ class FieldDescriptor
 
       // Mathematical Operations
 
-      double Min();
-      double Min(int *LeftEdge, int *RightEdge);
-      double Max();
-      double Max(int *LeftEdge, int *RightEdge);
-      double Sum();
-      double Sum(int *LeftEdge, int *RightEdge);
+      float Min();
+      float Min(int *LeftEdge, int *RightEdge);
+      float Max();
+      float Max(int *LeftEdge, int *RightEdge);
+      float Sum();
+      float Sum(int *LeftEdge, int *RightEdge);
 
       // Operations from other FieldDescriptors
 
       void CopyFrom(FieldDescriptor *Other);
-      void CopyFrom(double val);
+      void CopyFrom(float val);
 
       void Add(FieldDescriptor *Other);
-      void Add(double val);
+      void Add(float val);
 
       void Subtract(FieldDescriptor *Other);
-      void Subtract(double val);
+      void Subtract(float val);
 
       void Multiply(FieldDescriptor *Other);
-      void Multiply(double val);
+      void Multiply(float val);
 
       void Divide(FieldDescriptor *Other);
-      void Divide(double val);
+      void Divide(float val);
 
       // Now the fun stuff: operator overloading!
       // We'll do in-place operators first.
@@ -88,20 +85,20 @@ class FieldDescriptor
       FieldDescriptor &operator*=(FieldDescriptor *Other);
       FieldDescriptor &operator/=(FieldDescriptor *Other);
 
-      FieldDescriptor &operator+=(double val);
-      FieldDescriptor &operator-=(double val);
-      FieldDescriptor &operator*=(double val);
-      FieldDescriptor &operator/=(double val);
+      FieldDescriptor &operator+=(float val);
+      FieldDescriptor &operator-=(float val);
+      FieldDescriptor &operator*=(float val);
+      FieldDescriptor &operator/=(float val);
 
       int CanCombine(FieldDescriptor *Other);
 
     protected: 
 
       template <MathFunction function>
-        double UnaryAccumulator(
+        float UnaryAccumulator(
             int LeftEdge[MAX_DIMENSIONS],
             int RightEdge[MAX_DIMENSIONS],
-            double InitialValue);
+            float InitialValue);
 
       template <MathFunction function>
       void InPlaceBinaryOperation(
@@ -112,12 +109,12 @@ class FieldDescriptor
 
       template <MathFunction function>
       void InPlaceBinaryOperation(
-          double OtherValue,
+          float OtherValue,
           int LeftEdge[MAX_DIMENSIONS],
           int CopyDims[MAX_DIMENSIONS]);
 
       void DeallocateIfNeeded();
-      void SetPointer(double **NewPointer);
+      void SetPointer(float **NewPointer);
       void AllocateFieldValues();
       void AllocateFieldPointer();
 
@@ -130,8 +127,8 @@ class FieldDescriptor
       char* Name;
       char* UnitsName;
       int CellDimensions[MAX_DIMENSIONS];
-      long long LeftEdge[MAX_DIMENSIONS];
-      double **FieldPointer;
+      long_int LeftEdge[MAX_DIMENSIONS];
+      float **FieldPointer;
       int DeallocateFieldPointer;
       int DeallocateFieldValues;
 

@@ -12,7 +12,7 @@ namespace {
     protected:
       virtual void SetUp() {
         int dims[MAX_DIMENSIONS] = {16, 24, 32};
-        long long le[MAX_DIMENSIONS] = {0, 64, 128};
+        long_int le[MAX_DIMENSIONS] = {0, 64, 128};
         this->fd = new FieldDescriptor(
             CellCentered, 3,
             dims, le, InterpolateDirectly,
@@ -31,8 +31,8 @@ namespace {
       virtual void SetUp() {
         int i;
         int dims[MAX_DIMENSIONS];
-        long long le[MAX_DIMENSIONS];
-        double *vals;
+        long_int le[MAX_DIMENSIONS];
+        float *vals;
 
         dims[0] = 16; dims[1] = 24; dims[2] = 32;
         le[0] = 4; le[1] = 64; le[2] = 128;
@@ -73,8 +73,8 @@ namespace {
       virtual void SetUp() {
         int i;
         int dims[MAX_DIMENSIONS];
-        long long le[MAX_DIMENSIONS];
-        double *vals;
+        long_int le[MAX_DIMENSIONS];
+        float *vals;
 
         dims[0] = 16; dims[1] = 24; dims[2] = 32;
         le[0] = 0; le[1] = 0; le[2] = 0;
@@ -114,8 +114,8 @@ namespace {
       virtual void SetUp() {
         int i;
         int dims[MAX_DIMENSIONS];
-        long long le[MAX_DIMENSIONS];
-        double *vals;
+        long_int le[MAX_DIMENSIONS];
+        float *vals;
 
         dims[0] = 16; dims[1] = 24; dims[2] = 32;
         le[0] = 0; le[1] = 0; le[2] = 0;
@@ -165,7 +165,7 @@ TEST_F(FieldDescriptorSimpleTest, TestAttributes) {
     ASSERT_EQ(Dimensions[1], 24);
     ASSERT_EQ(Dimensions[2], 32);
 
-    long long Position[MAX_DIMENSIONS];
+    long_int Position[MAX_DIMENSIONS];
     fd->GetLeftEdge(Position);
     ASSERT_EQ(Position[0], 0);
     ASSERT_EQ(Position[1], 64);
@@ -187,7 +187,7 @@ TEST_F(FieldDescriptorSimpleTest, TestDuplicate) {
 
 TEST_F(FieldDescriptorSimpleTest, TestMinMax) {
     int i;
-    double *nv = fd->GetValues();
+    float *nv = fd->GetValues();
     ASSERT_TRUE(nv != NULL);
     for (i = 0; i < fd->GetSize(); i++) {
         nv[i] = i;
@@ -198,7 +198,7 @@ TEST_F(FieldDescriptorSimpleTest, TestMinMax) {
 
     // Now we can test the sub-group unary operators
     int LE[MAX_DIMENSIONS], RE[MAX_DIMENSIONS];
-    double mi, ma;
+    float mi, ma;
 
     // Left-aligned box
     LE[0] = 0; LE[1] = 0; LE[2] = 0;
@@ -229,7 +229,7 @@ TEST_F(FieldDescriptorSimpleTest, TestMinMax) {
 
 TEST_F(FieldDescriptorSimpleTest, TestSum) {
     int i;
-    double *nv = fd->GetValues();
+    float *nv = fd->GetValues();
     ASSERT_TRUE(nv != NULL);
     for (i = 0; i < fd->GetSize(); i++) {
         nv[i] = 1.0;
@@ -240,7 +240,7 @@ TEST_F(FieldDescriptorSimpleTest, TestSum) {
 
     // Now we can test the sub-group unary operators
     int LE[MAX_DIMENSIONS], RE[MAX_DIMENSIONS];
-    double mi, ma;
+    float mi, ma;
 
     ASSERT_EQ(fd->Sum(), fd->GetSize());
 
@@ -333,13 +333,13 @@ TEST_F(FieldDescriptorSimpleTest, TestDivideOpVal) {
 TEST_F(FieldDescriptorOverlapsTest, TestOverlapCalculation) {
     int i;
     // These two objects overlap a little bit.
-    double *nv1;
+    float *nv1;
     nv1 = fd1->GetValues();
     for (i = 0; i < fd1->GetSize(); i++) {
         nv1[i] = 0.0;
     }
 
-    double *nv2 = fd2->GetValues();
+    float *nv2 = fd2->GetValues();
     for (i = 0; i < fd2->GetSize(); i++) {
         nv2[i] = 1.0;
     }
@@ -582,11 +582,11 @@ TEST_F(FieldDescriptorDisjointTest, TestSubtractOp) {
 
 TEST(FieldDescriptorMemoryTest, TestAllocateBoth) {
   int Dimensions[MAX_DIMENSIONS] = {16, 16, 16};
-  long long LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
+  long_int LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
   FieldDescriptor *fd = new FieldDescriptor(
     CellCentered, 3, Dimensions, LeftEdge,
     InterpolateDirectly, "Density", "g/cc", NULL);
-  double *v = fd->GetValues();
+  float *v = fd->GetValues();
   ASSERT_TRUE(v != NULL);
   // Not sure how to test it is correctly de-allocated.
   delete fd;
@@ -594,13 +594,13 @@ TEST(FieldDescriptorMemoryTest, TestAllocateBoth) {
 
 TEST(FieldDescriptorMemoryTest, TestAllocateValues) {
   int Dimensions[MAX_DIMENSIONS] = {16, 16, 16};
-  long long LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
-  double **pv = new double*[1];
+  long_int LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
+  float **pv = new float*[1];
   pv[0] = NULL;
   FieldDescriptor *fd = new FieldDescriptor(
     CellCentered, 3, Dimensions, LeftEdge,
     InterpolateDirectly, "Density", "g/cc", pv);
-  double *v = fd->GetValues();
+  float *v = fd->GetValues();
   ASSERT_TRUE(v != NULL);
   ASSERT_TRUE(pv[0] != NULL);
   delete fd;
@@ -611,13 +611,13 @@ TEST(FieldDescriptorMemoryTest, TestAllocateValues) {
 
 TEST(FieldDescriptorMemoryTest, TestAllocateNothing) {
   int Dimensions[MAX_DIMENSIONS] = {16, 16, 16};
-  long long LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
-  double **pv = new double*[1];
-  pv[0] = new double[16*16*16];
+  long_int LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
+  float **pv = new float*[1];
+  pv[0] = new float[16*16*16];
   FieldDescriptor *fd = new FieldDescriptor(
     CellCentered, 3, Dimensions, LeftEdge,
     InterpolateDirectly, "Density", "g/cc", pv);
-  double *v = fd->GetValues();
+  float *v = fd->GetValues();
   ASSERT_TRUE(v != NULL);
   ASSERT_TRUE(pv[0] != NULL);
   delete fd;
@@ -633,7 +633,7 @@ TEST(FieldDescriptorFromBase, TestCreateFromBase) {
   int Dimensions[MAX_DIMENSIONS] = {16, 16, 16};
   int Dims2[MAX_DIMENSIONS];
   int Dims3[MAX_DIMENSIONS];
-  long long LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
+  long_int LeftEdge[MAX_DIMENSIONS] = {0, 0, 0};
   fd_base = new FieldDescriptor(
       CornerCentered, 3, 
       Dimensions, LeftEdge, InterpolateDirectly,
