@@ -1,0 +1,65 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   io
+#
+
+vpath %.C   io/
+vpath %.c   io/
+vpath %.F   io/
+vpath %.F90 io/
+
+ENZO_OBJS +=\
+	auto_show_compile_options.o \
+	auto_show_config.o \
+	auto_show_flags.o \
+	auto_show_version.o \
+	AMRH5writer.o \
+	AssignGridToTaskMap.o \
+	CallPython.o \
+	CheckForOutput.o \
+	ExposeDataHierarchy.o \
+	ExposeGridHierarchy.o \
+	FindCube.o \
+	InitializeMovieFile.o \
+	InitializePythonInterface.o \
+	ListIO.o \
+	OutputAsParticleData.o \
+	OutputCoolingTimeOnly.o \
+	OutputFromEvolveLevel.o \
+	OutputLevelInformation.o \
+	OutputPotentialFieldOnly.o \
+	OutputSmoothedDarkMatterOnly.o \
+	ReadAllData.o \
+	ReadAttr.o \
+	ReadDataHierarchy.o \
+	ReadEvolveRefineFile.o \
+	ReadFile.o \
+	ReadGridFile.o \
+	ReadIntFile.o \
+	ReadParameterFile.o \
+	ReadPhotonSources.o \
+	ReadStarParticleData.o \
+	ReadUnits.o \
+	UpdateLocalDatabase.o \
+	WriteAllData.o \
+	WriteAllDataCubes.o \
+	WriteConfigure.o \
+	WriteDataCubes.o \
+	WriteDataHierarchy.o \
+	WriteHDF5HierarchyFile.o \
+	WriteMemoryMap.o \
+	WriteParameterFile.o \
+	WritePhotonSources.o \
+	WriteRadiationData.o \
+	WriteStarParticleData.o \
+	WriteStreamData.o \
+	WriteStringAttr.o \
+	WriteTaskMap.o \
+	WriteTracerParticleData.o \
+	WriteUnits.o \
+	h5utilities.o \
+	read_bt.o \
+	read_bv.o \
+	write_bt.o \
+	write_bv.o \
+

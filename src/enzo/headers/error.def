@@ -1,0 +1,15 @@
+#if   defined(FILENAME)
+#define EFILE FILENAME
+#elif defined(__MODULE__)
+#define EFILE __MODULE__
+#elif defined(__FUNCTION__)
+#define EFILE __FUNCTION__
+#else
+#define EFILE "UNKNOWN"
+#endif
+#define ERROR_MESSAGE \
+      CALL f_error("EFILE",__LINE__)
+#define WARNING_MESSAGE \
+      CALL f_warning("EFILE",__LINE__)
+#define DEBUG_MESSAGE \
+      CALL f_warning("EFILE",__LINE__)

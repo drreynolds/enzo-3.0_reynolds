@@ -1,0 +1,278 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   solvers/fld
+#
+
+vpath %.C   solvers/fld/
+vpath %.c   solvers/fld/
+vpath %.F   solvers/fld/
+vpath %.F90 solvers/fld/
+
+ENZO_OBJS +=\
+	BlockSolve.o \
+	CalcEmiss.o \
+	FLDCorrectForImpulses.o \
+	FSProb_ComputeOpacityLW.o \
+	FSProb_Dump.o \
+	FSProb_EnforceBoundary.o \
+	FSProb_Evolve.o \
+	FSProb_FInterface.o \
+	FSProb_InitialGuess.o \
+	FSProb_Initialize.o \
+	FSProb_RadiationSource.o \
+	FSProb_SetupBoundary.o \
+	FSProb_SetupSystem.o \
+	FSProb_WriteParameters.o \
+	FSProb_constructor.o \
+	FSProb_destructor.o \
+	InexactNewton.o \
+	InexactNewton_InexactNewtonForce.o \
+	InexactNewton_LinesearchStepSize.o \
+	InexactNewton_Solve.o \
+	InexactNewton_constructor.o \
+	InexactNewton_destructor.o \
+	RadiativeTransferCallFLD.o \
+	gFLDProblem_AnalyticalEqns.o \
+	gFLDProblem_ChemistrySource.o \
+	gFLDProblem_ComputeRHS.o \
+	gFLDProblem_ComputeRadiationIntegrals.o \
+	gFLDProblem_ComputeTemperature.o \
+	gFLDProblem_ComputeTimeStep.o \
+	gFLDProblem_CrossSections.o \
+	gFLDProblem_DiffRHS.o \
+	gFLDProblem_Dump.o \
+	gFLDProblem_EnforceBoundary.o \
+	gFLDProblem_Evolve.o \
+	gFLDProblem_FInterface.o \
+	gFLDProblem_GasEnergySource.o \
+	gFLDProblem_InitialGuess.o \
+	gFLDProblem_Initialize.o \
+	gFLDProblem_LocRHS.o \
+	gFLDProblem_LocalJac.o \
+	gFLDProblem_LocalRHS.o \
+	gFLDProblem_MatrixEntries.o \
+	gFLDProblem_Opacity.o \
+	gFLDProblem_RadiationSource.o \
+	gFLDProblem_RadiationSpectrum.o \
+	gFLDProblem_SetNewtonBCs.o \
+	gFLDProblem_SetupBoundary.o \
+	gFLDProblem_UpdateBoundary.o \
+	gFLDProblem_WriteParameters.o \
+	gFLDProblem_constructor.o \
+	gFLDProblem_destructor.o \
+	gFLDProblem_lsetup.o \
+	gFLDProblem_lsolve.o \
+	gFLDProblem_nlresid.o \
+	gFLDSplit_AnalyticChemistry.o \
+	gFLDSplit_ChemistrySource.o \
+	gFLDSplit_ComputeRadiationIntegrals.o \
+	gFLDSplit_ComputeTemperature.o \
+	gFLDSplit_ComputeTimeStep.o \
+	gFLDSplit_CrossSections.o \
+	gFLDSplit_Dump.o \
+	gFLDSplit_EnforceBoundary.o \
+	gFLDSplit_Evolve.o \
+	gFLDSplit_FInterface.o \
+	gFLDSplit_GasEnergySource.o \
+	gFLDSplit_InitialGuess.o \
+	gFLDSplit_Initialize.o \
+	gFLDSplit_Opacity.o \
+	gFLDSplit_RadiationSource.o \
+	gFLDSplit_RadiationSpectrum.o \
+	gFLDSplit_SetupBoundary.o \
+	gFLDSplit_SetupSystem.o \
+	gFLDSplit_WriteParameters.o \
+	gFLDSplit_constructor.o \
+	gFLDSplit_destructor.o \
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   solvers/gravity
+#
+
+vpath %.C   solvers/gravity/
+vpath %.c   solvers/gravity/
+vpath %.F   solvers/gravity/
+vpath %.F90 solvers/gravity/
+
+ENZO_OBJS +=\
+	ComputePotentialFieldLevelZero.o \
+	CopyOverlappingParticleMassFields.o \
+	DepositBaryons.o \
+	DepositParticleMassField.o \
+	FastFourierTransform.o \
+	FastFourierTransformPrepareComplex.o \
+	FastFourierTransformSGIMATH.o \
+	MultigridSolver.o \
+	PrepareDensityField.o \
+	PrepareGravitatingMassField.o \
+	PrepareIsolatedGreensFunction.o \
+	acml_st1.o \
+	cic_deposit.o \
+	cic_interp.o \
+	cicinterp.o \
+	comp_accel.o \
+	cray_x1_fft64.o \
+	cray_x1_st1_fft64.o \
+	fft66.o \
+	fft90.o \
+	fft_utils.o \
+	ffte4X.o \
+	ffte_st1.o \
+	fourn.o \
+	grid_cic.o \
+	ibm_fft64.o \
+	ibm_st1_fft64.o \
+	mg_calc_defect.o \
+	mg_prolong.o \
+	mg_prolong2.o \
+	mg_relax.o \
+	mg_restrict.o \
+	mkl_st1.o \
+	nr_1d.o \
+	nr_2d.o \
+	nr_3d.o \
+	nr_st1.o \
+	prefort2.o \
+	prolong.o \
+	prolong_tsc.o \
+	s66_st1.o \
+	s90_st1.o \
+	select_fft.o \
+	sgi_st1_fft64.o \
+	smooth.o \
+	smooth_deposit.o \
+	wrapper1d.o \
+	wrapper2d.o \
+	wrapper3d.o \
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   solvers/hydro
+#
+
+vpath %.C   solvers/hydro/
+vpath %.c   solvers/hydro/
+vpath %.F   solvers/hydro/
+vpath %.F90 solvers/hydro/
+
+ENZO_OBJS +=\
+	CheckEnergyConservation.o \
+	CreateFluxes.o \
+	DeleteFluxes.o \
+	FinalizeFluxes.o \
+	ZeusSource.o \
+	ZeusUtilities.o \
+	Zeus_xTransport.o \
+	Zeus_yTransport.o \
+	Zeus_zTransport.o \
+	calc_dt.o \
+	calc_dt_c.o \
+	calc_eigen.o \
+	euler.o \
+	expand_mhd_terms.o \
+	expand_terms.o \
+	flux_hll.o \
+	flux_hllc.o \
+	flux_twoshock.o \
+	inteuler.o \
+	intlgrg.o \
+	intpos.o \
+	intprim.o \
+	intrmp.o \
+	intvar.o \
+	lgrg.o \
+	pgas2d.o \
+	pgas2d_dual.o \
+	remap.o \
+	twoshock.o \
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   solvers/microphysics
+#
+
+vpath %.C   solvers/microphysics/
+vpath %.c   solvers/microphysics/
+vpath %.F   solvers/microphysics/
+vpath %.F90 solvers/microphysics/
+
+ENZO_OBJS +=\
+	Gadget.o \
+	GadgetInitCoolMemory.o \
+	GadgetIonizeParamsTable.o \
+	GadgetMakeCoolingTable.o \
+	GadgetReadIonizeParams.o \
+	InitializeCloudyCooling.o \
+	InitializeEquilibriumCoolData.o \
+	InitializeGadgetEquilibriumCoolData.o \
+	InitializeLymanWernerTable.o \
+	InitializeRadiationFieldData.o \
+	InitializeRateData.o \
+	RadiationFieldCalculateRates.o \
+	RadiationFieldLymanWernerTable.o \
+	RadiationFieldUpdate.o \
+	ReadMetalCoolingRates.o \
+	ReadMetalCoolingRatios.o \
+	ReadRadiationData.o \
+	calc_photo_rates.o \
+	calc_rad.o \
+	calc_rates.o \
+	calc_tdust_1d.o \
+	calc_tdust_3d.o \
+	calcdiss.o \
+	chtable.o \
+	cie_thin_cooling_rate.o \
+	colh2diss.o \
+	coll_rates.o \
+	cool1d.o \
+	cool1d_cloudy.o \
+	cool1d_koyama.o \
+	cool1d_multi.o \
+	cool1d_sep.o \
+	cool_multi_lum.o \
+	cool_multi_time.o \
+	cool_time.o \
+	mcooling.o \
+	multi_cool.o \
+	solve_cool.o \
+	solve_rate.o \
+	solve_rate_cool.o \
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   solvers/ray_tracing
+#
+
+vpath %.C   solvers/ray_tracing/
+vpath %.c   solvers/ray_tracing/
+vpath %.F   solvers/ray_tracing/
+vpath %.F90 solvers/ray_tracing/
+
+ENZO_OBJS +=\
+	CreateSourceClusteringTree.o \
+	DeletePhotonPackage.o \
+	DeleteRadiationSource.o \
+	EvolvePhotons.o \
+	FindCrossSection.o \
+	FindSuperSource.o \
+	FindSuperSourceByPosition.o \
+	InitializeRadiativeTransferSpectrumTable.o \
+	LinkedListRoutines.o \
+	PhotonPackageRoutines.o \
+	RadiativeTransferComputeTimestep.o \
+	RadiativeTransferHealpixRoutines.o \
+	RadiativeTransferInitialize.o \
+	RadiativeTransferLoadBalanceRevert.o \
+	RadiativeTransferMoveLocalPhotons.o \
+	RadiativeTransferPrepare.o \
+	RadiativeTransferReadParameters.o \
+	RadiativeTransferWriteParameters.o \
+	ReadRadiativeTransferSpectrumTable.o \
+	ReassignSuperSources.o \
+	RestartPhotons.o \
+	ReturnValuesFromSpectrumTable.o \
+	SetSubgridMarker.o \
+	SplitPhotonPackage.o \
+	TemperatureFieldToolsForComptonHeating.o \
+

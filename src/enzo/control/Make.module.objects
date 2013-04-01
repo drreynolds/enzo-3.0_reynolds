@@ -1,0 +1,21 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   control
+#
+
+vpath %.C   control/
+vpath %.c   control/
+vpath %.F   control/
+vpath %.F90 control/
+
+ENZO_OBJS +=\
+	CheckForResubmit.o \
+	CheckForTimeAction.o \
+	Continue.o \
+	EventHooks.o \
+	EvolveHierarchy.o \
+	EvolveLevel.o \
+	InterpretCommandLine.o \
+	SetDefaultGlobalValues.o \
+	SetLevelTimeStep.o \
+

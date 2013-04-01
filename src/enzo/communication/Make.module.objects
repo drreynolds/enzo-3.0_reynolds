@@ -1,0 +1,50 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   communication
+#
+
+vpath %.C   communication/
+vpath %.c   communication/
+vpath %.F   communication/
+vpath %.F90 communication/
+
+ENZO_OBJS +=\
+	CommunicationBroadcastValue.o \
+	CommunicationBufferedSend.o \
+	CommunicationCollectParticles.o \
+	CommunicationCombineGrids.o \
+	CommunicationInitialize.o \
+	CommunicationLoadBalanceGrids.o \
+	CommunicationLoadBalancePhotonGrids.o \
+	CommunicationLoadBalanceRootGrids.o \
+	CommunicationMergeStarParticle.o \
+	CommunicationNonblockingRoutines.o \
+	CommunicationParallelFFT.o \
+	CommunicationPartitionGrid.o \
+	CommunicationReceiveFluxes.o \
+	CommunicationReceiveHandler.o \
+	CommunicationReceiverPhotons.o \
+	CommunicationSendFluxes.o \
+	CommunicationShareActiveParticles.o \
+	CommunicationShareGrids.o \
+	CommunicationShareParticles.o \
+	CommunicationShareStars.o \
+	CommunicationSyncNumberOfParticles.o \
+	CommunicationSyncNumberOfPhotons.o \
+	CommunicationTransferActiveParticles.o \
+	CommunicationTransferParticlesOpt.o \
+	CommunicationTransferPhotons.o \
+	CommunicationTransferStarsOpt.o \
+	CommunicationTransferSubgridParticles.o \
+	CommunicationTranspose.o \
+	CommunicationUpdateActiveParticleCount.o \
+	CommunicationUtilities.o \
+	DetermineNumberOfNodes.o \
+	DetermineParallelism.o \
+	Enzo_Dims_create.o \
+	InitialLoadBalanceRootGrids.o \
+	LoadBalanceHilbertCurve.o \
+	LoadBalanceHilbertCurveRootGrids.o \
+	LoadBalanceSimulatedAnnealing.o \
+	Mpich_V1_Dims_create.o \
+	ProcMap.o

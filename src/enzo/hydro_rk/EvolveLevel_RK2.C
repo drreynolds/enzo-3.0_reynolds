@@ -13,13 +13,10 @@
 #include "preincludes.h"
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include "communicators.h"
 #endif /* USE_MPI */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <unistd.h>
+#include "preincludes.h"
 #include "performance.h"
 #include "EnzoTiming.h"
 #include "ErrorExceptions.h"
@@ -170,7 +167,9 @@ int FastSiblingLocatorInitializeStaticChainingMesh(ChainingMeshStructure *Mesh, 
 						   int TopGridDims[]); 
 
 double ReturnWallTime();
-int CallPython(LevelHierarchyEntry *LevelArray[], TopGridData *MetaData,
+int CallPython(LevelHierarchyEntry *LevelArray[],
+               HierarchyEntry *Grids[],
+               TopGridData *MetaData,
                int level, int from_topgrid);
 int SetLevelTimeStep(HierarchyEntry *Grids[], int NumberOfGrids, int level, 
 		     float *dtThisLevelSoFar, float *dtThisLevel, 
@@ -494,8 +493,10 @@ int EvolveLevel_RK2(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 
       /* Include 'star' particle creation and feedback. */
 
-      Grids[grid1]->GridData->StarParticleHandler
-	(Grids[grid1]->NextGridNextLevel, level, dtLevelAbove, TopGridTimeStep);
+//      Grids[grid1]->GridData->StarParticleHandler
+//	(Grids[grid1]->NextGridNextLevel, level, dtLevelAbove, TopGridTimeStep);
+      if (StarParticleCreation > 0)
+	ENZO_FAIL("Star particles not implemented yet into hydro_rk.");
  
       /* Compute and apply thermal conduction. */
       if(IsotropicConduction || AnisotropicConduction){
@@ -549,7 +550,7 @@ int EvolveLevel_RK2(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 			  , ImplicitSolver
 #endif
 			  );
-    CallPython(LevelArray, MetaData, level, 0);
+    CallPython(LevelArray, Grids, MetaData, level, 0);
 
 
     /* For each grid, delete the GravitatingMassFieldParticles. */

@@ -9,13 +9,11 @@
 /
 ************************************************************************/
 #ifdef USE_MPI
-#include <mpi.h>
+#include <communicators.h>
 #endif /* USE_MPI */
 
-#include <stdio.h>
-#include <map>
-#include <string>
-#include <math.h>
+#include "preincludes.h"
+#include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"

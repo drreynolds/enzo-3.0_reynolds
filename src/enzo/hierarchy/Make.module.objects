@@ -1,0 +1,61 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   hierarchy
+#
+
+vpath %.C   hierarchy/
+vpath %.c   hierarchy/
+vpath %.F   hierarchy/
+vpath %.F90 hierarchy/
+
+ENZO_OBJS +=\
+	AdjustMustRefineParticlesRefineToLevel.o \
+	AdjustRefineRegion.o \
+	ConstructFeedbackZone.o \
+	CopyOverlappingZones.o \
+	CopyZonesFromOldGrids.o \
+	CreateSUBlingList.o \
+	CreateSiblingList.o \
+	DeleteSUBlingList.o \
+	DetermineSubgridSizeExtrema.o \
+	DistributeFeedbackZone.o \
+	ExternalBoundary_AddField.o \
+	ExternalBoundary_AppendForcingToBaryonFields.o \
+	ExternalBoundary_DeleteObsoleteFields.o \
+	ExternalBoundary_DetachForcingFromBaryonFields.o \
+	ExternalBoundary_IdentifyPhysicalQuantities.o \
+	ExternalBoundary_InitializeExternalBoundaryFaceIO.o \
+	ExternalBoundary_Prepare.o \
+	ExternalBoundary_ReadExternalBoundary.o \
+	ExternalBoundary_SetDoubleMachBoundary.o \
+	ExternalBoundary_SetExternalBoundaryIO.o \
+	ExternalBoundary_SetExternalBoundaryParticles.o \
+	ExternalBoundary_SetShockPoolBoundary.o \
+	ExternalBoundary_SetWavePoolBoundary.o \
+	ExternalBoundary_SetWengenCollidingFlowBoundary.o \
+	ExternalBoundary_WriteExternalBoundary.o \
+	ExternalBoundary_constructor.o \
+	FastSiblingLocatorFinalize.o \
+	FastSiblingLocatorInitialize.o \
+	FastSiblingLocatorInitializeStaticChainingMesh.o \
+	FindRootGrid.o \
+	FindSubgrids.o \
+	GenerateGridArray.o \
+	Hierarchy_DeleteHierarchyEntry.o \
+	IdentifyNewSubgridsBySignature.o \
+	LevelHierarchy_AddLevel.o \
+	ProtoSubgrid_AcceptableGrid.o \
+	ProtoSubgrid_CleanUp.o \
+	ProtoSubgrid_ComputeSecondDerivative.o \
+	ProtoSubgrid_ComputeSignature.o \
+	ProtoSubgrid_CopyFlaggedZonesFromGrid.o \
+	ProtoSubgrid_CopyToNewSubgrid.o \
+	ProtoSubgrid_FindGridsByZeroSignature.o \
+	ProtoSubgrid_ReturnNthLongestDimension.o \
+	ProtoSubgrid_ShrinkToMinimumSize.o \
+	ProtoSubgrid_constructor.o \
+	RebuildHierarchy.o \
+	SetBoundaryConditions.o \
+	SetEvolveRefineRegion.o \
+	UpdateFromFinerGrids.o \
+

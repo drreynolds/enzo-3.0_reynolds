@@ -1,0 +1,163 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   particles/active_particles
+#
+
+vpath %.C   particles/active_particles/
+vpath %.c   particles/active_particles/
+vpath %.F   particles/active_particles/
+vpath %.F90 particles/active_particles/
+
+ENZO_OBJS +=\
+        ActiveParticle.o \
+        ActiveParticleFinalize.o \
+        ActiveParticleDepositMass.o \
+        ActiveParticleFindAll.o \
+        ActiveParticleInitialize.o \
+        ActiveParticleRoutines.o \
+        ActiveParticle_AccretingParticle.o \
+        AssignActiveParticlesToGrids.o \
+        RecordTotalActiveParticleCount.o \
+        ActiveParticle_DisableParticle.o \
+        ActiveParticle_CenOstriker.o \
+        ActiveParticle_GalaxyParticle.o \
+        ActiveParticle_Kravtsov.o \
+        ActiveParticle_MirrorToParticle.o \
+        ActiveParticle_PopIII.o \
+        ActiveParticle_SampleParticle.o \
+        ActiveParticle_SphereContained.o \
+        ActiveParticle_SpringelHernquist.o
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   particles/fof
+#
+
+vpath %.C   particles/fof/
+vpath %.c   particles/fof/
+vpath %.F   particles/fof/
+vpath %.F90 particles/fof/
+
+ENZO_OBJS +=\
+	FOF.o \
+	FOF_Finalize.o \
+	FOF_Initialize.o \
+	FOF_allocate.o \
+	FOF_cmpfunc.o \
+	FOF_density.o \
+	FOF_forcetree.o \
+	FOF_iindexx.o \
+	FOF_indexx.o \
+	FOF_ngbtree.o \
+	FOF_nrutil.o \
+	FOF_potential.o \
+	FOF_properties.o \
+	FOF_selectb.o \
+	FOF_sort2_flt_int.o \
+	FOF_sort2_int.o \
+	FOF_sort_int.o \
+	FOF_subfind.o \
+	FOF_subgroups.o \
+	FOF_unbind.o \
+	FofLib.o \
+	FriendOfFriend.o \
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   particles/star_objects
+#
+
+vpath %.C   particles/star_objects/
+vpath %.c   particles/star_objects/
+vpath %.F   particles/star_objects/
+vpath %.F90 particles/star_objects/
+
+ENZO_OBJS +=\
+	CalculatePopIIILifetime.o \
+	CalculateSubtractionParameters.o \
+	ParticleMergeRoutines.o \
+	ParticleSplitter.o \
+	RecalibrateAccretingMass.o \
+	RecalibrateMBHFeedbackThermalRadius.o \
+	StarListRoutines.o \
+	StarParticleAccretion.o \
+	StarParticleAddFeedback.o \
+	StarParticleCountOnly.o \
+	StarParticleDeath.o \
+	StarParticleFinalize.o \
+	StarParticleFindAll.o \
+	StarParticleInitialize.o \
+	StarParticleMergeMBH.o \
+	StarParticleMergeNew.o \
+	StarParticlePopIII_IMFInitialize.o \
+	StarParticleRadTransfer.o \
+	StarParticleSetRefinementLevel.o \
+	StarParticleSubtractAccretedMass.o \
+	StarRoutines.o \
+	Star_Accrete.o \
+	Star_AccreteAngularMomentum.o \
+	Star_ActivateNewStar.o \
+	Star_ApplyFeedbackTrue.o \
+	Star_AssignAccretedAngularMomentum.o \
+	Star_AssignFinalMassFromIMF.o \
+	Star_CalculateFeedbackParameters.o \
+	Star_CalculateMassAccretion.o \
+	Star_ComputePhotonRates.o \
+	Star_DeleteCopyInGridGlobal.o \
+	Star_DeleteParticle.o \
+	Star_DisableParticle.o \
+	Star_FindFeedbackSphere.o \
+	Star_HitEndpoint.o \
+	Star_IsARadiationSource.o \
+	Star_MirrorToParticle.o \
+	Star_MultiplyAccretionRate.o \
+	Star_RemoveMassFromStarAfterFeedback.o \
+	Star_SetFeedbackFlag.o \
+	Star_SphereContained.o \
+	Star_SubtractAccretedMassFromCell.o \
+	cluster_maker.o \
+	feedback_formulae.o \
+	mbh_maker.o \
+	pop3_color_maker.o \
+	pop3_color_maker_c.o \
+	pop3_maker.o \
+	pop3_properties.o \
+	sink_maker.o \
+	star_feedback_pn_snia.o \
+	star_maker1.o \
+	star_maker2.o \
+	star_maker3.o \
+	star_maker4.o \
+	star_maker5.o \
+	star_maker7.o \
+	star_maker8.o \
+	star_maker9.o \
+	star_maker_h2reg.o \
+
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   particles/utilities
+#
+
+vpath %.C   particles/utilities/
+vpath %.c   particles/utilities/
+vpath %.F   particles/utilities/
+vpath %.F90 particles/utilities/
+
+ENZO_OBJS +=\
+	CopyParticlesAcrossPeriodicBoundaries.o \
+	CreateSmoothedDarkMatterFields.o \
+	DepositActiveParticleMassFlaggingField.o \
+	DepositParticleMassFlaggingField.o \
+	TracerParticleCreation.o \
+	UpdateParticlePositions.o \
+	cic_deposit_c.o \
+	cic_flag.o \
+	cic_flag_c.o \
+	cic_interp_c.o \
+	particle_splitter.o \
+	smooth_deposit_c.o \
+	tscint1d.o \
+	tscint2d.o \
+	tscint3d.o \
+

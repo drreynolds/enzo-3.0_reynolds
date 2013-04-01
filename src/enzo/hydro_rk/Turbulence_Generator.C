@@ -10,9 +10,7 @@
 /
 ************************************************************************/
 
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
+#include "preincludes.h"
 
 #include "macros_and_parameters.h"
 extern int NumberOfGhostZones;

@@ -1,0 +1,82 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   utilities
+#
+
+vpath %.C   utilities/
+vpath %.c   utilities/
+vpath %.F   utilities/
+vpath %.F90 utilities/
+vpath %.c   utilities/uuid/
+
+ENZO_OBJS +=\
+	CheckOverlap.o \
+	ComputeTable.o \
+	CosmologyComputeExpansionFactor.o \
+	CosmologyComputeExpansionTimestep.o \
+	CosmologyComputeTimeFromRedshift.o \
+	CosmologyGetUnits.o \
+	E_ColumnFormat.o \
+	EnzoVector.o \
+	EnzoVector_Exchange.o \
+	EnzoVector_ExchangeEnd.o \
+	EnzoVector_ExchangeStart.o \
+	EnzoVector_test.o \
+	ExtractSection.o \
+	ExtraOutput.o \
+	F_ColumnFormat.o \
+	FindField.o \
+	FreeRealMem.o \
+	GetNodeFreeMemory.o \
+	GetUnits.o \
+	HilbertCurve3D.o \
+	I_ColumnFormat.o \
+	MemoryAllocationRoutines.o \
+	MemoryPoolRoutines.o \
+	MersenneTwister.o \
+	P_ColumnFormat.o \
+	ProjectToPlane.o \
+	ProjectToPlane2.o \
+	QuickSortAndDrag.o \
+	RadiationGetUnits.o \
+	Reduce_Times.o \
+	ReportMemoryUsage.o \
+	ReturnWallTime.o \
+	SearchUtilities.o \
+	ShellSortAndDrag.o \
+	SortCompareFunctions.o \
+	SysMkdir.o \
+	TransposeRegionOverlap.o \
+	bondi_alpha.o \
+	c_message.o \
+	execinfo_local.o \
+	f_message.o \
+	flow.o \
+	fortio.o \
+	int_lin3d.o \
+	int_spline.o \
+	interp1d.o \
+	interp2d.o \
+	interp3d.o \
+	interpolate.o \
+	mused.o \
+	ngpinterp.o \
+	performance.o \
+	power_of_2.o \
+	project.o \
+	projectbool.o \
+	projplane.o \
+	rotate2d.o \
+	rotate3d.o \
+	utilities.o \
+	uuid.o \
+	clear.o \
+	compare.o \
+	copy.o \
+	gen_uuid.o \
+	isnull.o \
+	pack.o \
+	parse.o \
+	unpack.o \
+	unparse.o \
+	uuid_time.o \

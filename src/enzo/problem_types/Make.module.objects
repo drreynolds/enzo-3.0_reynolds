@@ -1,0 +1,79 @@
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   problem_types
+#
+
+vpath %.C   problem_types/
+vpath %.c   problem_types/
+vpath %.F   problem_types/
+vpath %.F90 problem_types/
+
+ENZO_OBJS +=\
+	AdiabaticExpansionInitialize.o \
+	CallProblemSpecificRoutines.o \
+	CheckShearingBoundaryConsistency.o \
+	ClusterInitialize.o \
+	CollapseTestInitialize.o \
+	ComputeRandomForcingNormalization.o \
+	ConductionBubbleInitialize.o \
+	ConductionCloudInitialize.o \
+	ConductionTestInitialize.o \
+	CoolingTestInitialize.o \
+	CosmoIonizationInitialize.o \
+	CosmologyReadParameters.o \
+	CosmologySimulationInitialize.o \
+	CosmologyWriteParameters.o \
+	DoubleMachInitialize.o \
+	FSMultiSourceInitialize.o \
+	FreeExpansionInitialize.o \
+	GalaxySimulationInitialize.o \
+	GravityEquilibriumTestInitialize.o \
+	HydroShockTubesInitialize.o \
+	ImplosionInitialize.o \
+	InitializeNew.o \
+	KHInitialize.o \
+	NestedCosmologySimulationInitialize.o \
+	NohInitialize.o \
+	NullProblem.o \
+	OneZoneFreefallTestInitialize.o \
+	PhotonTestInitialize.o \
+	PhotonTestRestartInitialize.o \
+	PoissonSolverTestInitialize.o \
+	PressurelessCollapseInitialize.o \
+	ProblemType.o \
+	ProblemType_CollapsingCoolingCloud.o \
+	ProblemType_ExplodingCloud.o \
+	ProblemType_Python.o \
+	ProblemType_RotatingCylinder.o \
+	ProtostellarCollapseInitialize.o \
+	PutSinkRestartInitialize.o \
+	RHIonizationClumpInitialize.o \
+	RHIonizationSteepInitialize.o \
+	RHIonizationTestInitialize.o \
+	RadHydroConstTestInitialize.o \
+	RadHydroGreyMarshakWaveInitialize.o \
+	RadHydroPulseTestInitialize.o \
+	RadHydroRadShockInitialize.o \
+	RadHydroStreamTestInitialize.o \
+	RadiatingShockInitialize.o \
+	RotatingCylinderInitialize.o \
+	SedovBlastInitialize.o \
+	ShearingBox2DInitialize.o \
+	ShearingBoxInitialize.o \
+	ShearingBoxStratifiedInitialize.o \
+	ShockInABoxInitialize.o \
+	ShockPoolInitialize.o \
+	SphericalInfallInitialize.o \
+	StratifiedMediumExplosionInitialize.o \
+	SupernovaRestartInitialize.o \
+	TestGravityCheckResults.o \
+	TestGravityInitialize.o \
+	TestGravityMotion.o \
+	TestGravitySphereCheckResults.o \
+	TestGravitySphereInitialize.o \
+	TestOrbitInitialize.o \
+	TurbulenceSimulationInitialize.o \
+	WavePoolInitialize.o \
+	ZeldovichPancakeInitialize.o \
+	turboinit.o \
+
