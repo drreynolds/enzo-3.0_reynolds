@@ -4,7 +4,7 @@
 /
 /  written by: Britton Smith
 /  date:       October, 2010
-/  modified1:  
+/  modified1:
 /
 /  PURPOSE:
 /
@@ -35,7 +35,7 @@ int grid::SolveOneZoneFreefall()
 {
 
   /* Return if this doesn't concern us. */
-  
+
   if (ProcessorNumber != MyProcessorNumber)
     return SUCCESS;
 
@@ -49,10 +49,10 @@ int grid::SolveOneZoneFreefall()
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num, B1Num, B2Num, B3Num;
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
       DINum, DIINum, HDINum;
-    
+
   /* Find fields: density, total energy, velocity1-3. */
 
-  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
+  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num,
 				       Vel3Num, TENum, B1Num, B2Num, B3Num) == FAIL) {
         ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
   }
@@ -60,7 +60,7 @@ int grid::SolveOneZoneFreefall()
   /* Find Multi-species fields. */
 
   if (MultiSpecies)
-    if (IdentifySpeciesFields(DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, 
+    if (IdentifySpeciesFields(DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum,
                       HMNum, H2INum, H2IINum, DINum, DIINum, HDINum) == FAIL) {
             ENZO_FAIL("Error in grid->IdentifySpeciesFields.");
     }
@@ -74,33 +74,12 @@ int grid::SolveOneZoneFreefall()
 
   /* Calculate units. */
 
-  float TemperatureUnits = 1, DensityUnits = 1, LengthUnits = 1, 
+  float TemperatureUnits = 1, DensityUnits = 1, LengthUnits = 1,
     VelocityUnits = 1, TimeUnits = 1;
 
   if (GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
 	       &TimeUnits, &VelocityUnits, Time) == FAIL) {
     ENZO_FAIL("Error in GetUnits.");
-  }
-
-  /* Get gamma field for updating densities and energies. */
-
-  float *gamma_field = new float[size];
-  if (this->ComputeGammaField(gamma_field) == FAIL) {
-    ENZO_FAIL("Error in grid->ComputeGammaField.\n");
-  }
-
-  /* Compute pressure field. */
-  float *pressure = new float[size];
-  if (this->ComputePressure(Time, pressure) == FAIL) {
-    ENZO_FAIL("Error in grid->ComputePressure.\n");
-  }
-
-  /* Compute ratio of pressure gradient force to graviational force.
-     Equation 9 of Omukai et al (2005). */
-
-  float *force_factor = new float[size];
-  if (this->ComputeOneZoneCollapseFactor(force_factor) == FAIL) {
-    ENZO_FAIL("Error in ComputeOneZoneCollapseFactor.\n");
   }
 
   /* Get gamma field for updating densities and energies. */
@@ -156,10 +135,6 @@ int grid::SolveOneZoneFreefall()
       freefall_pressure[t][i] = freefall_pressure[t-1][i];
     }
   }
-      CollapseHistory[1][0][i] = CollapseHistory[0][0][i];
-      CollapseHistory[1][1][i] = CollapseHistory[0][1][i];
-    }
-  }
 
   // move current values into t-1
   for (i = 0; i < size; i++) {
@@ -189,18 +164,18 @@ int grid::SolveOneZoneFreefall()
 
 	index = i + j*GridDimension[0] + k*GridDimension[0]*GridDimension[1];
 
-	/* Modify the equation for free-fall collapse with a factor 
-	   taking into account the ratio of pressure gradient force 
+	/* Modify the equation for free-fall collapse with a factor
+	   taking into account the ratio of pressure gradient force
 	   to gravity following Equation 9 from Omukai et al. (2005). */
 
-	NewDensity = POW((POW(BaryonField[DensNum][index], -0.5) - 
+	NewDensity = POW((POW(BaryonField[DensNum][index], -0.5) -
                           (0.5 * FreefallTimeConstant * dtFixed *
                            POW((1 - force_factor[index]), 0.5))), -2.);
 	DensityRatio = NewDensity / BaryonField[DensNum][index];
 
         /* Update enegy. */
 
-        BaryonField[TENum][index] += (Gamma - 1) * BaryonField[TENum][index] * 
+        BaryonField[TENum][index] += (Gamma - 1) * BaryonField[TENum][index] *
           FreefallTimeConstant * POW(BaryonField[DensNum][index], 0.5) * dtFixed;
 	  POW(BaryonField[DensNum][index], 0.5) * dtFixed;
         if (DualEnergyFormalism) {
@@ -213,7 +188,7 @@ int grid::SolveOneZoneFreefall()
 
 	if (index == max_rho_index) {
 	  fprintf(stderr, "One-zone collapse: rho[%"ISYM", %"ISYM", %"ISYM"] = %"ESYM" g/cm^3, f = %"FSYM,
-		  i, j, k, (BaryonField[DensNum][index] * DensityUnits), 
+		  i, j, k, (BaryonField[DensNum][index] * DensityUnits),
 		  force_factor[index]);
 	}
 
@@ -249,13 +224,7 @@ int grid::SolveOneZoneFreefall()
             BaryonField[MetalNum+1][index] *= DensityRatio;
             BaryonField[MetalNum+2][index] *= DensityRatio;
 	  }
-          }
-
-	if (index == max_rho_index) {
-	  fprintf(stderr, ".\n");
 	}
-
-        }
 
 	if (index == max_rho_index) {
 	  fprintf(stderr, ".\n");

@@ -13,6 +13,7 @@ ENZO_OBJS +=\
 	CallProblemSpecificRoutines.o \
 	CheckShearingBoundaryConsistency.o \
 	ClusterInitialize.o \
+        ClusterSMBHSumGasMass.o \
 	CollapseTestInitialize.o \
 	ComputeRandomForcingNormalization.o \
 	ConductionBubbleInitialize.o \
@@ -76,4 +77,3 @@ ENZO_OBJS +=\
 	WavePoolInitialize.o \
 	ZeldovichPancakeInitialize.o \
 	turboinit.o \
-

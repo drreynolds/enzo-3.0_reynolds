@@ -4,16 +4,13 @@
 /
 /  written by: Yuan Li and Greg Bryan
 /  date:       December, 2011
-/  modified1: 
+/  modified1:
 /
 /  PURPOSE:
 /
 ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <time.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -33,9 +30,9 @@ extern float ClusterSMBHColdGasMass;
 int grid::ClusterSMBHFeedback(int level)
 {
   /* Only use Zeus, not PPM*/
-  if (HydroMethod != Zeus_Hydro) 
+  if (HydroMethod != Zeus_Hydro)
     ENZO_FAIL("Error in HydroMethod. Please use Zeus.");
-  
+
 
   if (MyProcessorNumber != ProcessorNumber)
     return SUCCESS;
@@ -51,7 +48,7 @@ int grid::ClusterSMBHFeedback(int level)
 
   //printf("starting feedback");
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
-  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
+  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num,
                                              Vel3Num, TENum) == FAIL)   ///this or thisgrid
      ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
 
@@ -89,7 +86,7 @@ int grid::ClusterSMBHFeedback(int level)
   float JetVelocity, FastJetVelocity; // Jet Velocity in km/s (should make parameter)-- gets value from parameter ClusterSMBHJetVelocity
   JetScaleRadius = ClusterSMBHJetRadius/2.0;  //JetScaleRadius is half the radius of the jet launch region in cellwidths
   float DiskRadius, ClusterSMBHDiskRadius = 0.5;  //ClusterSMBHDiskRadiu make parameter?
-  DiskRadius = ClusterSMBHDiskRadius*kpc/LengthUnits; //from kpc to codeunits 
+  DiskRadius = ClusterSMBHDiskRadius*kpc/LengthUnits; //from kpc to codeunits
 
   for (dim = 0; dim < GridRank; dim++) {
     JetCenter[dim] = PointSourceGravityPosition[dim];
@@ -174,7 +171,7 @@ if (JetOnGrid == true){
 
   /* Convert to code units. */
   density_normalization = (JetMdot/JetNormalization)*dtFixed/pow(CellWidth[0][0], 3);
-  Tramp = ClusterSMBHTramp*1.0e6*3.1557e7/TimeUnits;  // from Myr to code units 
+  Tramp = ClusterSMBHTramp*1.0e6*3.1557e7/TimeUnits;  // from Myr to code units
 
 //  SlowJetVelocity = ClusterSMBHJetVelocity*1.0e5/VelocityUnits; //from km/s to code units  //
   JetVelocity = sqrt((ClusterSMBHJetEdot*1.0e44*ClusterSMBHKineticFraction*2)/(ClusterSMBHJetMdot*SolarMass/3.1557e7))/VelocityUnits;
@@ -182,7 +179,7 @@ if (JetOnGrid == true){
 //  FastJetVelocity = ClusterSMBHFastJetVelocity*1.0e5/VelocityUnits; //from km/s to code units
 //  FastJetVelocity *= min((Time-ClusterSMBHStartTime)/Tramp, 1.0);     //linear ramp
 //  JetVelocity *= 0.5*tanh(5.0*((Time-ClusterSMBHStartTime)/Tramp-0.5)+1.0);     // tanh ramp
-  
+
   /* Clip edge of jet launching disk so we don't set cell off the edge of the grid. */
 
 
@@ -217,12 +214,12 @@ if (jet_dim == 2){
 	JetVelocity_z = JetVelocity * ClusterSMBHJetOpenAngleRadius / sqrt(pow(ClusterSMBHJetOpenAngleRadius, 2) + pow(radius, 2));
 	JetVelocity_xy = JetVelocity * radius / sqrt(pow(ClusterSMBHJetOpenAngleRadius, 2) + pow(radius, 2));
         JetVelocity_x = JetVelocity_xy * (xpos/CellWidth[0][0]) / radius;
-        JetVelocity_y = JetVelocity_xy * (ypos/CellWidth[0][0]) / radius; 
+        JetVelocity_y = JetVelocity_xy * (ypos/CellWidth[0][0]) / radius;
       }
 
       /*this is the bottom jet: */
 
-      if (JetStartIndex[jet_dim] >= 0) {   
+      if (JetStartIndex[jet_dim] >= 0) {
         k = JetStartIndex[jet_dim];  //start from the lower(outer) boundary of the cell
         BaryonField[DensNum][GRIDINDEX_NOGHOST(i,j,k)] += density_add;
         density_ratio = density_add/ BaryonField[DensNum][GRIDINDEX_NOGHOST(i,j,k)];
@@ -233,10 +230,10 @@ if (jet_dim == 2){
 
        /* If Using Zeus, shift the index for z-velocity */
 
-      if (HydroMethod == Zeus_Hydro) { 
+      if (HydroMethod == Zeus_Hydro) {
  	if (k+1 <= GridDimension[jet_dim]-1) { // update velocity if it is still on the grid
           BaryonField[Vel3Num][GRIDINDEX_NOGHOST(i,j,k+1)] = - density_ratio*JetVelocity_z + (1.0-density_ratio)*BaryonField[Vel3Num][GRIDINDEX_NOGHOST(i,j,k+1)];
-	}   
+	}
       }   //end Zeus
       else {
 	BaryonField[Vel3Num][GRIDINDEX_NOGHOST(i,j,k)] = - density_ratio*JetVelocity_z + (1.0-density_ratio)*BaryonField[Vel3Num][GRIDINDEX_NOGHOST(i,j,k)];
@@ -244,7 +241,7 @@ if (jet_dim == 2){
       }  //end bottom jet
 
 	/*this is the top jet: */
-      if (JetEndIndex[jet_dim] <= GridDimension[jet_dim]-1) { 
+      if (JetEndIndex[jet_dim] <= GridDimension[jet_dim]-1) {
         k = JetEndIndex[jet_dim];
         BaryonField[DensNum][GRIDINDEX_NOGHOST(i,j,k)] += density_add;
         density_ratio = density_add/ BaryonField[DensNum][GRIDINDEX_NOGHOST(i,j,k)];
@@ -346,7 +343,7 @@ if (jet_dim == 1){
 
       /*this is the bottom jet: */
 
-      if (JetStartIndex[jet_dim] >= 0) { 
+      if (JetStartIndex[jet_dim] >= 0) {
         j = JetStartIndex[jet_dim];  //start from the lower(outer) boundary of the cell
         BaryonField[DensNum][GRIDINDEX_NOGHOST(i,j,k)] += density_add;
         density_ratio = density_add/ BaryonField[DensNum][GRIDINDEX_NOGHOST(i,j,k)];
@@ -356,7 +353,7 @@ if (jet_dim == 1){
 
        /* If Using Zeus, shift the index for z-velocity */
 
-      if (HydroMethod == Zeus_Hydro) { 
+      if (HydroMethod == Zeus_Hydro) {
         if (j+1 <= GridDimension[jet_dim]-1) { // update velocity if it is still on the grid
           BaryonField[Vel2Num][GRIDINDEX_NOGHOST(i,j+1,k)] = - density_ratio*JetVelocity_y + (1.0-density_ratio)*BaryonField[Vel2Num][GRIDINDEX_NOGHOST(i,j+1,k)];
         }
@@ -389,7 +386,7 @@ if (DiskOnGrid == true && ClusterSMBHCalculateGasMass != 0){
      return SUCCESS;
   float AccretionRate = JetMdot*2.0; // in codeunit  *2 because Mdot is Mdot of one jet. There are two jets!
   int size = GridDimension[0]*GridDimension[1]*GridDimension[2];
-  float ColdGasTemperature = 3.0e4;       
+  float ColdGasTemperature = 3.0e4;
   float *BaryonFieldTemperature = new float[size];  // i.e. temperature
   if (BaryonFieldTemperature == NULL)
     ENZO_FAIL("Unable to allocate Temperature field in Grid_ClusterSMBHEachGridGasMass.");
@@ -408,4 +405,3 @@ if (DiskOnGrid == true && ClusterSMBHCalculateGasMass != 0){
   return SUCCESS;
 
 }
- 

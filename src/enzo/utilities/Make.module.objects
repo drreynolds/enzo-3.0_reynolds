@@ -31,6 +31,7 @@ ENZO_OBJS +=\
 	GetUnits.o \
 	HilbertCurve3D.o \
 	I_ColumnFormat.o \
+	MakeFieldConservative.o \
 	MemoryAllocationRoutines.o \
 	MemoryPoolRoutines.o \
 	MersenneTwister.o \

@@ -4,7 +4,7 @@
 /
 /  written by: Yuan Li
 /  date:       May 2012
-/  modified1: 
+/  modified1:
 /
 /  NOTES:
 /
@@ -13,12 +13,8 @@
 #ifdef USE_MPI
 #include "mpi.h"
 #endif /* USE_MPI */
- 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <math.h>
 
+#include "preincludes.h"
 #include "performance.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"

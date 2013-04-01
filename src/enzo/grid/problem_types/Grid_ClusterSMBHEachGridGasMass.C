@@ -4,16 +4,13 @@
 /
 /  written by: Yuan Li and Greg Bryan
 /  date:       May, 2012
-/  modified1: 
+/  modified1:
 /
 /  PURPOSE:
 /
 ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <time.h>
+#include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -43,7 +40,7 @@ int grid::ClusterSMBHEachGridGasMass(int level)
     return SUCCESS;
 
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
-  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
+  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num,
                                              Vel3Num, TENum) == FAIL)   ///this or thisgrid
      ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
 
@@ -65,7 +62,7 @@ int grid::ClusterSMBHEachGridGasMass(int level)
 
   int dim = 0;
   float DiskRadius, ClusterSMBHDiskRadius = 0.5;  //ClusterSMBHDiskRadiu make parameter?
-  DiskRadius = ClusterSMBHDiskRadius*kpc/LengthUnits; //from kpc to codeunits 
+  DiskRadius = ClusterSMBHDiskRadius*kpc/LengthUnits; //from kpc to codeunits
   for (dim = 0; dim < GridRank; dim++) {
     DiskCenter[dim] = PointSourceGravityPosition[dim];
     DiskLeftCorner[dim] = PointSourceGravityPosition[dim]- DiskRadius;
@@ -118,4 +115,3 @@ int grid::ClusterSMBHEachGridGasMass(int level)
   return SUCCESS;
 
 }
- 

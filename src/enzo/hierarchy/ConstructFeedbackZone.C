@@ -1,6 +1,6 @@
 /***********************************************************************
 /
-/  Construct a fake grid for feedback algorithms based on a 
+/  Construct a fake grid for feedback algorithms based on a
 /  list of active particles
 /
 /  written by: Nathan Goldbaum
@@ -37,7 +37,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 
 
 
-grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius, 
+grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
 			    FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
 			    int SendField)
 {
@@ -53,34 +53,34 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
 
   APGrid = ThisParticle->ReturnCurrentGrid();
   FBRdx = dx * FLOAT(FeedbackRadius);
-    
+
   if (APGrid == NULL)
-    ENZO_FAIL("Particle CurrentGrid is invalid!\n"); 
-    
+    ENZO_FAIL("Particle CurrentGrid is invalid!\n");
+
   // This should only happen if the grid pointer is invalid
-  if ((APGrid->GetGridLeftEdge(0) > ParticlePosition[0]+FBRdx) || 
-      (APGrid->GetGridLeftEdge(1) > ParticlePosition[1]+FBRdx) || 
-      (APGrid->GetGridLeftEdge(2) > ParticlePosition[2]+FBRdx) || 
+  if ((APGrid->GetGridLeftEdge(0) > ParticlePosition[0]+FBRdx) ||
+      (APGrid->GetGridLeftEdge(1) > ParticlePosition[1]+FBRdx) ||
+      (APGrid->GetGridLeftEdge(2) > ParticlePosition[2]+FBRdx) ||
       (APGrid->GetGridRightEdge(0) < ParticlePosition[0]-FBRdx) ||
       (APGrid->GetGridRightEdge(1) < ParticlePosition[1]-FBRdx) ||
       (APGrid->GetGridRightEdge(2) < ParticlePosition[2]-FBRdx))
     ENZO_FAIL("Particle outside own grid!\n");
-  
-  
+
+
   /* Setup Feedback Zones before copying data */
-  
+
   FeedbackZoneRank = APGrid->GetGridRank();
 
   int FeedbackZoneDimension[MAX_DIMENSION];
-  FLOAT LeftCellOffset[MAX_DIMENSION],FeedbackZoneLeftEdge[MAX_DIMENSION], 
+  FLOAT LeftCellOffset[MAX_DIMENSION],FeedbackZoneLeftEdge[MAX_DIMENSION],
     FeedbackZoneRightEdge[MAX_DIMENSION], ncells[MAX_DIMENSION];
   FLOAT CellSize, GridGZLeftEdge;
 
   for (dim = 0; dim < FeedbackZoneRank; dim++) {
-    FeedbackZoneDimension[dim] = (2*(FeedbackRadius+DEFAULT_GHOST_ZONES)+1);
+    FeedbackZoneDimension[dim] = (2*(FeedbackRadius+NumberOfGhostZones)+1);
     CellSize = APGrid->GetCellWidth(dim,0);
     GridGZLeftEdge = APGrid->GetCellLeftEdge(dim,0);
-      
+
     LeftCellOffset[dim] = MODF((ParticlePosition[dim]-GridGZLeftEdge)/CellSize,&ncells[dim]);
 
     FeedbackZoneLeftEdge[dim]  = GridGZLeftEdge + CellSize*(ncells[dim]-FeedbackRadius);
@@ -88,16 +88,16 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
   }
 
   grid* FeedbackZone = new grid;
-      
+
   FeedbackZone->InheritProperties(APGrid);
-    
-  FeedbackZone->PrepareGrid(FeedbackZoneRank, FeedbackZoneDimension, 
+
+  FeedbackZone->PrepareGrid(FeedbackZoneRank, FeedbackZoneDimension,
 			    FeedbackZoneLeftEdge,FeedbackZoneRightEdge,0);
-    
+
   FeedbackZone->SetProcessorNumber(APGrid->ReturnProcessorNumber());
-  
+
   FeedbackZone->SetTimeStep(APGrid->ReturnTimeStep());
-        
+
   // This will only allocate the BaryonField on the host processor
   if (FeedbackZone->AllocateAndZeroBaryonField() == FAIL)
     ENZO_FAIL("FeedbackZone BaryonField allocation failed\n");
@@ -121,10 +121,10 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
   CommunicationReceiveCurrentDependsOn = COMMUNICATION_NO_DEPENDENCE;
   CommunicationDirection = COMMUNICATION_POST_RECEIVE;
 
-  for (j = 0; j < NumberOfGrids; j++) 
+  for (j = 0; j < NumberOfGrids; j++)
     if (FeedbackZone->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector,SendField) == FAIL)
       ENZO_FAIL("FeedbackZone copy failed!\n");
-    
+
   /* Send data */
 
   CommunicationDirection = COMMUNICATION_SEND;
@@ -132,7 +132,7 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
   for (j = 0; j < NumberOfGrids; j++)
     if (FeedbackZone->CopyActiveZonesFromGrid(Grids[j]->GridData,ZeroVector,SendField) == FAIL)
       ENZO_FAIL("FeedbackZone copy failed!\n");
- 
+
   /* Receive data */
 
   if (CommunicationReceiveHandler() == FAIL)
@@ -143,5 +143,5 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
 #endif
 
   return FeedbackZone;
-  
+
 }

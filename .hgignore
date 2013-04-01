@@ -53,3 +53,4 @@ doc/manual/build
 run/results.js
 j
 src/enzo/build/generated_code/*
+src/enzo/io/InitializePythonInterface_finderfunctions.inc
