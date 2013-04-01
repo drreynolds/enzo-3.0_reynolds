@@ -54,7 +54,6 @@
 
 #define MEMORY_POOL_SIZE  __memory_pool_size
 
-#define DEFAULT_GHOST_ZONES                 3  /* at least 3 */
 
 #define MAX_NUMBER_OF_OUTPUT_REDSHIFTS    500
 
@@ -376,6 +375,7 @@ typedef int            HDF5_hid_t;
 
 /* Definitions for grid::CommunicationSend/ReceiveRegion and 
    grid::DepositPositions */
+#define MAX_EXTRA_OUTPUTS                10 
 
 #define INTERPOLATED_FIELDS              -8
 #define PARTICLE_MASS_FLAGGING_FIELD     -7

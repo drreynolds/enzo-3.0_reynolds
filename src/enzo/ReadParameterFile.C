@@ -117,7 +117,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "dtHistoryDump       = %"PSYM, &MetaData.dtHistoryDump);
  
     ret += sscanf(line, "TracerParticleOn  = %"ISYM, &TracerParticleOn);
-    ret += sscanf(line, "ParticleTypeInFile = %"ISYM, &ParticleTypeInFile);
     ret += sscanf(line, "WriteGhostZones = %"ISYM, &WriteGhostZones);
     ret += sscanf(line, "ReadGhostZones = %"ISYM, &ReadGhostZones);
     ret += sscanf(line, "OutputParticleTypeGrouping = %"ISYM,
@@ -226,6 +225,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       }
     }
 
+    ret += sscanf(line, "NumberOfGhostZones = %"ISYM, &NumberOfGhostZones);
     ret += sscanf(line, "LoadBalancing = %"ISYM, &LoadBalancing);
     ret += sscanf(line, "ResetLoadBalancing = %"ISYM, &ResetLoadBalancing);
     ret += sscanf(line, "LoadBalancingCycleSkip = %"ISYM, &LoadBalancingCycleSkip);
@@ -303,7 +303,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     }
 #endif
     ret += sscanf(line, "HydroMethod            = %"ISYM, &HydroMethod);
-    if (HydroMethod==MHD_RK) useMHD = 1;
 
     ret += sscanf(line, "huge_number            = %"FSYM, &huge_number);
     ret += sscanf(line, "tiny_number            = %"FSYM, &tiny_number);
@@ -904,7 +903,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "PythonTopGridSkip = %"ISYM, &PythonTopGridSkip);
     ret += sscanf(line, "PythonSubcycleSkip = %"ISYM, &PythonSubcycleSkip);
     ret += sscanf(line, "PythonReloadScript = %"ISYM, &PythonReloadScript);
-
 #ifdef USE_PYTHON
     ret += sscanf(line, "NumberOfPythonCalls = %"ISYM, &NumberOfPythonCalls);
     ret += sscanf(line, "NumberOfPythonTopGridCalls = %"ISYM, &NumberOfPythonTopGridCalls);
@@ -994,7 +992,33 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "CoolingPowerCutOffDensity1 = %"GSYM, &CoolingPowerCutOffDensity1);
     ret += sscanf(line, "CoolingPowerCutOffDensity2 = %"GSYM, &CoolingPowerCutOffDensity2);
     ret += sscanf(line, "UseCUDA = %"ISYM,&UseCUDA);
+    ret += sscanf(line, "ClusterSMBHFeedback = %"ISYM, &ClusterSMBHFeedback);
+    ret += sscanf(line, "ClusterSMBHJetMdot = %"FSYM, &ClusterSMBHJetMdot);
+    ret += sscanf(line, "ClusterSMBHJetVelocity = %"FSYM, &ClusterSMBHJetVelocity);
+    ret += sscanf(line, "ClusterSMBHJetRadius = %"FSYM, &ClusterSMBHJetRadius);
+    ret += sscanf(line, "ClusterSMBHJetLaunchOffset = %"FSYM, &ClusterSMBHJetLaunchOffset);
+    ret += sscanf(line, "ClusterSMBHStartTime = %"FSYM, &ClusterSMBHStartTime);
+    ret += sscanf(line, "ClusterSMBHTramp = %"FSYM, &ClusterSMBHTramp);
+    ret += sscanf(line, "ClusterSMBHJetOpenAngleRadius = %"FSYM, &ClusterSMBHJetOpenAngleRadius);
+    ret += sscanf(line, "ClusterSMBHFastJetRadius = %"FSYM, &ClusterSMBHFastJetRadius);
+    ret += sscanf(line, "ClusterSMBHFastJetVelocity = %"FSYM, &ClusterSMBHFastJetVelocity);
+    ret += sscanf(line, "ClusterSMBHJetEdot = %"FSYM, &ClusterSMBHJetEdot);
+    ret += sscanf(line, "ClusterSMBHKineticFraction = %"FSYM, &ClusterSMBHKineticFraction);
+    ret += sscanf(line, "ClusterSMBHJetAngleTheta = %"FSYM, &ClusterSMBHJetAngleTheta);
+    ret += sscanf(line, "ClusterSMBHJetAnglePhi = %"FSYM, &ClusterSMBHJetAnglePhi);
+    ret += sscanf(line, "ClusterSMBHJetPrecessionPeriod = %"FSYM, &ClusterSMBHJetPrecessionPeriod);
+    ret += sscanf(line, "ClusterSMBHCalculateGasMass = %"ISYM, &ClusterSMBHCalculateGasMass);
+    ret += sscanf(line, "ClusterSMBHFeedbackSwitch = %"ISYM, &ClusterSMBHFeedbackSwitch);
+    ret += sscanf(line, "ClusterSMBHEnoughColdGas = %"FSYM, &ClusterSMBHEnoughColdGas);
+    ret += sscanf(line, "ClusterSMBHAccretionTime = %"FSYM, &ClusterSMBHAccretionTime);
+    ret += sscanf(line, "ClusterSMBHJetDim = %"ISYM, &ClusterSMBHJetDim);
+    ret += sscanf(line, "ClusterSMBHAccretionEpsilon = %"FSYM, &ClusterSMBHAccretionEpsilon);
 
+    ret += sscanf(line, "ExtraOutputs = %"ISYM" %"ISYM" %"ISYM" %"ISYM" %"ISYM" %"ISYM" %"ISYM" %"ISYM" %"ISYM" %"ISYM"", ExtraOutputs,
+		  ExtraOutputs +1,ExtraOutputs +2,ExtraOutputs +3,
+		  ExtraOutputs +4,ExtraOutputs +5,ExtraOutputs +6,
+		  ExtraOutputs +7,ExtraOutputs +8,ExtraOutputs +9);
+    ret += sscanf(line, "CorrectParentBoundaryFlux             = %"ISYM, &CorrectParentBoundaryFlux);
     ret += sscanf(line, "MoveParticlesBetweenSiblings = %"ISYM,
 		  &MoveParticlesBetweenSiblings);
     ret += sscanf(line, "ParticleSplitterIterations = %"ISYM,
@@ -1128,6 +1152,10 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     if (ReconstructionMethod == INT_UNDEFINED)
       ReconstructionMethod = PLM;
   }
+
+  if (HydroMethod==MHD_RK) useMHD = 1;
+  //if (HydroMethod==MHD_Li) useMHDCT = 1;
+  //if (useMHDCT) CorrectParentBoundaryFlux = TRUE;
 
   //  OutputTemperature = ((ProblemType == 7) || (ProblemType == 11));
 
@@ -1382,13 +1410,17 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
   /* Set the number of particle attributes, if left unset. */
  
-  if (NumberOfParticleAttributes == INT_UNDEFINED)
+  if (NumberOfParticleAttributes == INT_UNDEFINED || 
+      NumberOfParticleAttributes == 0) {
     if (StarParticleCreation || StarParticleFeedback) {
       NumberOfParticleAttributes = 3;
       if (StarMakerTypeIaSNe) NumberOfParticleAttributes++;
+      AddParticleAttributes = TRUE;
     } else {
       NumberOfParticleAttributes = 0;
     }
+    
+  }
  
 #ifdef UNUSED
   if (MaximumGravityRefinementLevel == INT_UNDEFINED)
@@ -1462,6 +1494,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     printf("ReadParameterFile: ProblemType=70.  Disabling hydrodynamics!\n");
     UseHydro=FALSE;
   }
+
 
 
   if ((MetaData.GravityBoundary != TopGridPeriodic) &&
@@ -1550,6 +1583,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 		"PopIIISupernovaMustRefine.  Set the level or turn off"
 		"PopIIISupernovaMustRefine.");
   } // ENDIF PopIIISupernovaMustRefine
+//del
 
   if (TracerParticleOn) {
     ParticleTypeInFile = TRUE;
@@ -1626,15 +1660,13 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 #endif
   }
 
-#ifdef SAB
-  if (HydroMethod == Zeus_Hydro && SelfGravity != 0)
-      ENZO_FAIL("SetAccelerationBoundary (-D SAB) does not work with zeus_hydro !\n");
-#endif 
 
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
 
+  //
 
   CheckShearingBoundaryConsistency(MetaData);
+
   return SUCCESS;
 #endif /* ndef CONFIG_USE_LIBCONFIG */
 }
