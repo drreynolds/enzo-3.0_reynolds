@@ -130,6 +130,8 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
   bool JeansRefinement = false;
   bool MassRefinement = false;
 
+  const int offset[] = {1, GridDimension[0], GridDimension[0]*GridDimension[1]};
+
   // determine refinement criteria
   for (method = 0; method < MAX_FLAGGING_METHODS; method++) {
     if (CellFlaggingMethod[method] == 2) {
@@ -159,7 +161,11 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
 	}
 	if (DensityThreshold == huge_number)
-	  ENZO_FAIL("Error in Accreting Particles: Must refine by jeans length or overdensity!");
+	  ENZO_VFAIL("Error in Accreting Particles: DensityThreshold = huge_number! \n"
+		     "JeansDensity = %"GOUTSYM" \n"
+		     "data.DensityUnits = %"GOUTSYM" \n"
+		     "CellTemperature = %"GOUTSYM" \n", 
+		     JeansDensity, data.DensityUnits, CellTemperature);
 	
 	if (density[index] <= DensityThreshold) 
 	  continue;
@@ -182,10 +188,19 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
 	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
-	np->vel[0] = velx[index];
-	np->vel[1] = vely[index];
-	np->vel[2] = velz[index];
-	
+	if (HydroMethod == PPM_DirectEuler) {
+	  np->vel[0] = velx[index];
+	  np->vel[1] = vely[index];
+	  np->vel[2] = velz[index];
+	}
+	else if (HydroMethod == Zeus_Hydro) {
+	  np->vel[0] = 0.5 * (velx[index] + velx[index+offset[0]]);
+	  np->vel[1] = 0.5 * (vely[index] + vely[index+offset[1]]);
+	  np->vel[2] = 0.5 * (velz[index] + velz[index+offset[2]]);
+	} else {
+	  ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
+	}
+
 	if (HasMetalField)
 	  np->Metallicity = data.TotalMetals[index];
 	else
