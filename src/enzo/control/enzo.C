@@ -16,9 +16,9 @@
 ************************************************************************/
 
 #include "preincludes.h"
- 
+
 #include "preincludes.h"
- 
+
 #define DEFINE_STORAGE
 #include "communicators.h"
 #include "EnzoTiming.h"
@@ -51,12 +51,12 @@ int FinalizePythonInterface();
 #endif
 
 // Function prototypes
- 
+
 int InitializeNew(  char *filename, HierarchyEntry &TopGrid, TopGridData &tgd,
 		    ExternalBoundary &Exterior, float *Initialdt);
 int InitializeMovieFile(TopGridData &MetaData, HierarchyEntry &TopGrid);
 
-int InitializeLocal(int restart, HierarchyEntry &TopGrid, 
+int InitializeLocal(int restart, HierarchyEntry &TopGrid,
 		    TopGridData &MetaData);
 
 int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
@@ -64,7 +64,7 @@ int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		      bool ReadParticlesOnly=false);
 
 int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &tgd,
-		    ExternalBoundary *Exterior, 
+		    ExternalBoundary *Exterior,
 #ifdef TRANSFER
 		    ImplicitProblemABC *ImplicitSolver,
 #endif
@@ -85,7 +85,7 @@ int ProjectToPlane(TopGridData &MetaData, LevelHierarchyEntry *LevelArray[],
 		   int ProjectionSmooth, ExternalBoundary *Exterior);
 int ProjectToPlane2(char *ParameterFile, HierarchyEntry &TopGrid,
 		    TopGridData &MetaData, LevelHierarchyEntry *LevelArray[],
-		    int ProjectStartTemp[], int ProjectEndTemp[], 
+		    int ProjectStartTemp[], int ProjectEndTemp[],
 		    FLOAT ProjectStartCoordinate[],
 		    FLOAT ProjectEndCoordinate[], int ProjectLevel,
 		    int ProjectionDimension, char *ProjectionFileName,
@@ -110,7 +110,7 @@ int InterpretCommandLine(int argc, char *argv[], char *myname,
 			 int RegionStart[], int RegionEnd[],
 			 FLOAT RegionStartCoordinates[],
 			 FLOAT RegionEndCoordinates[],
-			 int &Level, int &HaloFinderOnly, 
+			 int &Level, int &HaloFinderOnly,
 			 int &WritePotentialOnly,
 			 int &SmoothedDarkMatterOnly,
 			 int &WriteCoolingTimeOnly,
@@ -120,7 +120,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData);
 
 int WriteAllData(char *basename, int filenumber,
 		 HierarchyEntry *TopGrid, TopGridData &MetaData,
-		 ExternalBoundary *Exterior, 
+		 ExternalBoundary *Exterior,
 #ifdef TRANSFER
 		 ImplicitProblemABC *ImplicitSolver,
 #endif
@@ -151,7 +151,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[] = NULL,
 				int NumberOfSubgrids[] = NULL,
 				int FluxFlag = FALSE,
 				TopGridData* MetaData = NULL);
-int CreateSiblingList(HierarchyEntry ** Grids, int NumberOfGrids, SiblingGridList *SiblingList, 
+int CreateSiblingList(HierarchyEntry ** Grids, int NumberOfGrids, SiblingGridList *SiblingList,
 		      int StaticLevelZero,TopGridData * MetaData,int level);
 
 
@@ -168,7 +168,7 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
 			      FLOAT WriteTime);
 void DeleteGridHierarchy(HierarchyEntry *GridEntry);
 int OutputPotentialFieldOnly(char *ParameterFile,
-			     LevelHierarchyEntry *LevelArray[], 
+			     LevelHierarchyEntry *LevelArray[],
 			     HierarchyEntry *TopGrid,
 			     TopGridData &MetaData,
 			     ExternalBoundary &Exterior,
@@ -177,7 +177,7 @@ int OutputPotentialFieldOnly(char *ParameterFile,
 #endif
 			     int OutputDM);
 int OutputSmoothedDarkMatterOnly(char *ParameterFile,
-				 LevelHierarchyEntry *LevelArray[], 
+				 LevelHierarchyEntry *LevelArray[],
 				 HierarchyEntry *TopGrid,
 				 TopGridData &MetaData,
 				 ExternalBoundary &Exterior
@@ -186,7 +186,7 @@ int OutputSmoothedDarkMatterOnly(char *ParameterFile,
 #endif
                  );
 int OutputCoolingTimeOnly(char *ParameterFile,
-			  LevelHierarchyEntry *LevelArray[], 
+			  LevelHierarchyEntry *LevelArray[],
 			  HierarchyEntry *TopGrid,
 			  TopGridData &MetaData,
 			  ExternalBoundary &Exterior
@@ -198,7 +198,7 @@ int OutputCoolingTimeOnly(char *ParameterFile,
 
 void CommunicationAbort(int);
 void auto_show_compile_options(void);
-int FOF(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[], 
+int FOF(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 	int WroteData=1, int FOFOnly=FALSE);
 
 #ifdef TASKMAP
@@ -206,10 +206,10 @@ int GetNodeFreeMemory(void);
 #endif
 
 #ifdef TRANSFER
-int RadiativeTransferInitialize(char *ParameterFile, 
-				HierarchyEntry &TopGrid, 
+int RadiativeTransferInitialize(char *ParameterFile,
+				HierarchyEntry &TopGrid,
 				TopGridData &MetaData,
-				ExternalBoundary &Exterior, 
+				ExternalBoundary &Exterior,
 				ImplicitProblemABC* &ImplicitSolver,
 				LevelHierarchyEntry *LevelArray[]);
 #endif
@@ -222,7 +222,7 @@ void my_exit(int status);
 void PrintMemoryUsage(char *str);
 
 
- 
+
 //  ENZO Main Program
 
 #ifdef SHARED_LIBRARY
@@ -253,11 +253,11 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
       sleep(5);
   }
 #endif
-  
+
 
   int int_argc;
   int_argc = argc;
- 
+
 #ifdef USE_MPI
   double t_init0, t_init1;
 
@@ -300,7 +300,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 #endif
 #endif
 
-  // Begin 
+  // Begin
 
 #ifdef MPI_INSTRUMENTATION
   Start_Wall_Time = MPI_Wtime();
@@ -320,15 +320,15 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
     auto_show_compile_options();
 
   // Main declarations
- 
+
   TopGridData MetaData;
   HierarchyEntry TopGrid;
   ExternalBoundary Exterior;
   LevelHierarchyEntry *LevelArray[MAX_DEPTH_OF_HIERARCHY];
 
- 
+
   // Initialize
- 
+
   int restart                  = FALSE,
     OutputAsParticleDataFlag = FALSE,
     InformationOutput        = FALSE,
@@ -353,7 +353,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
         RegionEndCoordinates[MAX_DIMENSION];
 
   float Initialdt = 0;
- 
+
 #ifdef FLOW_TRACE
   char pid[MAX_TASK_TAG_SIZE];
   char flow_trace_log[MAX_NAME_LENGTH];
@@ -364,35 +364,35 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   flow_trace_level = 0;
   flow_trace_on = TRUE;
 #endif
- 
+
   if (flow_trace_on) flow_trace1("ENZO");
- 
+
 #ifdef TRANSFER
   ImplicitProblemABC *ImplicitSolver;
 #endif
 
 #ifdef MPI_INSTRUMENTATION
   char perfname[MAX_NAME_LENGTH];
- 
+
   flagging_count = 0;
   moving_count = 0;
   in_count = 0;
   out_count = 0;
   flagging_pct = 0.0;
   moving_pct = 0.0;
- 
+
   GlobalCommunication = 0.0;
   RecvComm = 0.0;
   WaitComm = 0.0;
- 
+
   for (i=0; i < MAX_COUNTERS; i++) {
     timer[i] = 0.0;
     counter[i] = 0;
   }
- 
+
   sprintf(perfname, "perfdata_%"ISYM".%"ISYM, NumberOfProcessors, MyProcessorNumber);
   perfname[strlen(perfname)] = '\0';
- 
+
   sprintf(tracename, "trace_%"ISYM".%"ISYM, NumberOfProcessors, MyProcessorNumber);
   tracename[strlen(tracename)] = '\0';
 
@@ -415,14 +415,14 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
 
   // START
- 
+
   for (int level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
     LevelArray[level] = NULL;
   }
- 
+
 
   // Interpret command-line arguments
- 
+
   if (InterpretCommandLine(int_argc, argv, myname, restart, debug, extract,
 			   InformationOutput, OutputAsParticleDataFlag,
 			   project, ProjectionDimension, ProjectionSmooth,  velanyl,
@@ -439,13 +439,13 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
     }
   }
 
- 
+
   // If we need to read the parameter file as a restart file, do it now
- 
+
   if (restart || OutputAsParticleDataFlag || extract || InformationOutput || project  ||  velanyl) {
- 
+
     SetDefaultGlobalValues(MetaData);
- 
+
     if (debug) printf("Reading parameter file %s\n", ParameterFile);
 
 
@@ -472,46 +472,46 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
     // TA: Changed this:
     //    if (!ParallelRootGridIO && restart && TopGrid.NextGridThisLevel == NULL) {
-    // thinking that TopGrid.NextGridThisLevel == NULL when was ParallelRootGridIO == 0 
-    // in the run that wrote this restart dump. 
+    // thinking that TopGrid.NextGridThisLevel == NULL when was ParallelRootGridIO == 0
+    // in the run that wrote this restart dump.
     // Removing it however lets one to restart from a single grid
     // but write parallel root grid io for all new outputs
 
     if (restart && TopGrid.NextGridThisLevel == NULL && !HaloFinderOnly) {
       CommunicationPartitionGrid(&TopGrid, 0);  // partition top grid if necessary
     }
- 
+
     if (MyProcessorNumber == ROOT_PROCESSOR) {
       fprintf(stderr, "Successfully read ParameterFile %s.\n", ParameterFile);
     }
- 
+
     AddLevel(LevelArray, &TopGrid, 0);    // recursively add levels
 
     // Initialize streaming files if necessary
     InitializeMovieFile(MetaData, TopGrid);
- 
+
   }
 
 
   // Information dump
- 
+
   if (InformationOutput) {
     OutputLevelInformation(stdout, MetaData, LevelArray);
     my_exit(EXIT_SUCCESS);
   }
- 
- 
+
+
   // Extract a grid subsection (doesn't return)
- 
+
   if (extract) {
     ExtractSection(TopGrid, MetaData, LevelArray, &Exterior,
 		   RegionStart, RegionEnd,
 		   RegionStartCoordinates, RegionEndCoordinates, RegionLevel);
   }
- 
- 
+
+
   // Output fields as particle data
- 
+
   if (OutputAsParticleDataFlag) {
     if (OutputAsParticleData(MetaData, LevelArray, RegionStart, RegionEnd,
 			     RegionStartCoordinates, RegionEndCoordinates,
@@ -519,11 +519,11 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
       my_exit(EXIT_FAILURE);
     else
       my_exit(EXIT_SUCCESS);
-  } 
+  }
 
- 
+
   // Project 3D field to 2D plane
- 
+
   if (project == 1) {
     if (ProjectToPlane(MetaData, LevelArray, RegionStart, RegionEnd,
 		     RegionStartCoordinates, RegionEndCoordinates,
@@ -532,22 +532,22 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
       my_exit(EXIT_FAILURE);
     else
       my_exit(EXIT_SUCCESS);
-  } 
+  }
 
   int dim, dim1, dim2;
   char proj_name[100];
   if (project == 2) {
     dim1 = (ProjectionDimension == -1) ? 0 : ProjectionDimension;
-    dim2 = (ProjectionDimension == -1) ? 
+    dim2 = (ProjectionDimension == -1) ?
       MetaData.TopGridRank : ProjectionDimension+1;
     for (dim = dim1; dim < dim2; dim++) {
       sprintf(proj_name, "project_%4.4d_%c.h5", MetaData.CycleNumber, 120+dim);
       if (MyProcessorNumber == ROOT_PROCESSOR)
 	printf("ProjectToPlane: dimension %d.  Output %s\n", dim, proj_name);
-      if (ProjectToPlane2(ParameterFile, TopGrid, MetaData, LevelArray, 
+      if (ProjectToPlane2(ParameterFile, TopGrid, MetaData, LevelArray,
 			  RegionStart, RegionEnd,
 			  RegionStartCoordinates, RegionEndCoordinates,
-			  RegionLevel, dim, proj_name, ProjectionSmooth, 
+			  RegionLevel, dim, proj_name, ProjectionSmooth,
 #ifdef TRANSFER
 			  ImplicitSolver,
 #endif
@@ -556,8 +556,8 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
       else
 	my_exit(EXIT_SUCCESS);
     } // ENDFOR dim
-  } 
- 
+  }
+
   if (HaloFinderOnly) {
     InlineHaloFinder = TRUE;
     HaloFinderSubfind = FALSE;
@@ -567,7 +567,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
   if (WritePotentialOnly) {
     OutputPotentialFieldOnly(ParameterFile, LevelArray, &TopGrid,
-			     MetaData, Exterior, 
+			     MetaData, Exterior,
 #ifdef TRANSFER
 		         ImplicitSolver,
 #endif
@@ -576,7 +576,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   }
 
   if (SmoothedDarkMatterOnly) {
-    OutputSmoothedDarkMatterOnly(ParameterFile, LevelArray, &TopGrid, 
+    OutputSmoothedDarkMatterOnly(ParameterFile, LevelArray, &TopGrid,
 				 MetaData, Exterior
 #ifdef TRANSFER
 		       , ImplicitSolver
@@ -596,18 +596,18 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   }
 
   /* Do vector analysis */
-  
+
   if (velanyl) {
     VelAnyl = 1;
   //   RebuildHierarchy(&MetaData, LevelArray, 0);
-    
+
 
 //     for (int level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
 //       HierarchyEntry **Grids;
 //       int NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
 //       if (LevelArray[level] != NULL) {
 // 	/* Initialize the chaining mesh used in the FastSiblingLocator. */
-	
+
 // 	ChainingMeshStructure ChainingMesh;
 // 	FastSiblingLocatorInitialize(&ChainingMesh, MetaData.TopGridRank,
 // 				     MetaData.TopGridDims);
@@ -616,14 +616,14 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 // 	  fprintf(stderr, "Error allocating SiblingList\n");
 // 	  return FAIL;
 // 	}
-	
+
 // 	/* Add all the grids to the chaining mesh. */
-	
+
 // 	for (int grid1 = 0; grid1 < NumberOfGrids; grid1++)
 // 	  Grids[grid1]->GridData->FastSiblingLocatorAddGrid(&ChainingMesh);
-	
+
 // 	/* For each grid, get a list of possible siblings from the chaining mesh. */
-	
+
 // 	for (int grid1 = 0; grid1 < NumberOfGrids; grid1++)
 // 	  if (Grids[grid1]->GridData->FastSiblingLocatorFindSiblings(
 // 					   &ChainingMesh, &SiblingList[grid1],
@@ -634,18 +634,18 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 // 	  }
 
 // 	/* Clean up the chaining mesh. */
-	
+
 // 	FastSiblingLocatorFinalize(&ChainingMesh);
-	
-// 	if (SetBoundaryConditions(Grids, NumberOfGrids, SiblingList, level, &MetaData, 
+
+// 	if (SetBoundaryConditions(Grids, NumberOfGrids, SiblingList, level, &MetaData,
 // 				  &Exterior, LevelArray[level]) == FAIL) {
 // 	  printf("error setboundary");
 // 	}
 //       }
 //     }
-    
+
 //     if (WriteAllData(MetaData.DataDumpName, MetaData.DataDumpNumber-1,
-//                      &TopGrid, MetaData, 
+//                      &TopGrid, MetaData,
 // #ifdef TRANSFER
 //                      ImplicitSolver,
 // #endif
@@ -661,7 +661,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
   PrintMemoryUsage("Call initialize");
 
- 
+
   if (!restart) {
 
     if (InitializeNew(ParameterFile, TopGrid, MetaData, Exterior, &Initialdt) == FAIL) {
@@ -675,7 +675,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
       //      Exterior.Prepare(TopGrid.GridData);
       AddLevel(LevelArray, &TopGrid, 0);    // recursively add levels
     }
- 
+
 
 #ifdef USE_MPI
     CommunicationBarrier();
@@ -690,7 +690,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   /* Initialize the radiative transfer */
 
 #ifdef TRANSFER
-  if (RadiativeTransferInitialize(ParameterFile, TopGrid, MetaData, Exterior, 
+  if (RadiativeTransferInitialize(ParameterFile, TopGrid, MetaData, Exterior,
 				  ImplicitSolver, LevelArray) == FAIL) {
     fprintf(stderr, "Error in RadiativeTransferInitialize.\n");
     my_exit(EXIT_FAILURE);
@@ -703,13 +703,13 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   // We initialize our Python interface now
   if(debug)fprintf(stdout, "Initializing Python interface\n");
   InitializePythonInterface(argc, argv);
-#endif 
+#endif
 
   // Call the main evolution routine
- 
+
   if (debug) fprintf(stderr, "INITIALDT ::::::::::: %16.8e\n", Initialdt);
   try {
-  if (EvolveHierarchy(TopGrid, MetaData, &Exterior, 
+  if (EvolveHierarchy(TopGrid, MetaData, &Exterior,
 #ifdef TRANSFER
 		      ImplicitSolver,
 #endif
@@ -737,26 +737,26 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
     CommunicationAbort(EXIT_FAILURE);
   }
 
- 
+
   if (flow_trace_on) flow_trace2("ENZO");
 
 
 
 
   // Terminate
-  
+
 #ifdef MPI_INSTRUMENTATION
 
   End_Wall_Time = MPI_Wtime();
   WallTime = End_Wall_Time - Start_Wall_Time;
- 
+
   filePtr = fopen(perfname, "w");
   fprintf(filePtr, "Elapsed wall time:                   %12.6e\n", WallTime);
   fprintf(filePtr, "Communication time:                  %12.6e\n", CommunicationTime);
   fprintf(filePtr, "Global communication time:           %12.6e\n", GlobalCommunication);
   fprintf(filePtr, "Receive communication time:          %12.6e\n", RecvComm);
   fprintf(filePtr, "Waiting communication time:          %12.6e\n", WaitComm);
- 
+
   fprintf(filePtr, "\n\n");
   fprintf(filePtr, "Transferring region       (%8"ISYM" times) %12.6e\n", counter[5],  timer[5]);
   fprintf(filePtr, "Sending particles         (%8"ISYM" times) %12.6e\n", counter[7],  timer[7]);
@@ -767,7 +767,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   fprintf(filePtr, "BroadcastValue            (%8"ISYM" times) %12.6e\n", counter[15], timer[15]);
   fprintf(filePtr, "MinValue                  (%8"ISYM" times) %12.6e\n", counter[16], timer[16]);
   fprintf(filePtr, "UpdateStarParticleCount   (%8"ISYM" times) %12.6e\n", counter[11], timer[11]);
- 
+
   fprintf(filePtr, "\n\n");
   fprintf(filePtr, "RebuildHierarchy          (%8"ISYM" times) %12.6e\n", counter[1],  timer[1]);
   fprintf(filePtr, "RebuildHierarchy interval (%8"ISYM" times) %12.6e\n", counter[0],  timer[0]);
@@ -775,11 +775,11 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   fprintf(filePtr, "Region transfer size      (%8"ISYM" times) %12.6e\n", counter[5],  timer[6]);
   fprintf(filePtr, "Particles sent            (%8"ISYM" times) %12.6e\n", counter[7],  timer[8]);
   fprintf(filePtr, "Particle transfer size    (%8"ISYM" times) %12.6e\n", counter[9],  timer[10]);
- 
+
   fprintf(filePtr, "\n\n");
   fprintf(filePtr, "Number of load balancing calls %"ISYM"/%"ISYM" (LOAD_BALANCE_RATIO=%"FSYM")\n",counter[3], counter[2], timer[3]);
   fprintf(filePtr, "Number of flagging cells  (%8"ISYM" times) %12.6e\n", counter[4], timer[4]);
- 
+
   fprintf(filePtr, "\n\n");
 
   if ( flagging_count != 0 )
@@ -787,15 +787,15 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
             flagging_pct/flagging_count, flagging_pct, flagging_count);
   else
     fprintf(filePtr, "Average percentage of flagging cells 0\n");
- 
+
   if ( moving_count != 0 )
     fprintf(filePtr, "Average percentage of moving cells   %12.6e(= %12.6e/%"ISYM")\n",
             moving_pct/moving_count, moving_pct,moving_count);
   else
     fprintf(filePtr, "Average percentage of moving cells 0\n");
- 
+
   fclose(filePtr);
- 
+
 #ifdef MPI_TRACE
   fclose(tracePtr);
 #endif /* MPI_TRACE */
@@ -805,15 +805,15 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 #ifdef MEM_TRACE
   fclose(memtracePtr);
 #endif /* MEM_TRACE */
- 
+
 #ifdef FLOW_TRACE
     fclose(flow_trace_fptr);
 #endif
- 
+
   my_exit(EXIT_SUCCESS);
- 
+
 }
- 
+
 void my_exit(int status)
 {
   // Exit gracefully if successful; abort on error
@@ -849,4 +849,3 @@ void my_exit(int status)
 
   }
 }
-

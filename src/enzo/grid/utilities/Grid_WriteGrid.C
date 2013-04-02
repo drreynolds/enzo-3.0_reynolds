@@ -9,20 +9,20 @@
 /  modified3:  Robert Harkness, April 2008
 /  modified4:  Matthew Turk, September 2009
 /  modified5:  Michael Kuhlen, October 2010, HDF5 hierarchy
-/  modified6:  Nathan Goldbaum, November 2011, Active Particle Support  
+/  modified6:  Nathan Goldbaum, November 2011, Active Particle Support
 /
 /  PURPOSE:
 /
 ************************************************************************/
- 
+
 //  Write grid to file pointer fptr
 //     (we assume that the grid is at an appropriate stopping point,
 //      where the Old values aren't required)
- 
+
 #include <hdf5.h>
 #include "preincludes.h"
 #include "h5utilities.h"
- 
+
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -36,13 +36,13 @@
 #include "ActiveParticle.h"
 
 void my_exit(int status);
- 
-// HDF5 function prototypes
- 
 
- 
+// HDF5 function prototypes
+
+
+
 // function prototypes
- 
+
 void WriteListOfFloats(FILE *fptr, int N, FLOAT floats[]);
 void WriteListOfInts(FILE *fptr, int N, int nums[]);
 int WriteStringAttr(hid_t dset_id, char *Alabel, char *String, FILE *log_fptr);
@@ -58,25 +58,25 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 
   int i, j, k, dim, field, size, active_size, ActiveDim[MAX_DIMENSION];
   int file_status;
- 
+
   float *temp, *temp_VelAnyl;
   float *temperature, *dust_temperature,
     *cooling_time;
- 
+
   FILE *log_fptr;
   FILE *procmap_fptr;
- 
+
   hid_t       group_id, dset_id;
   hid_t       float_type_id, FLOAT_type_id;
   hid_t       file_type_id, FILE_type_id;
   hid_t       file_dsp_id;
   hid_t       old_fields, acc_node;
- 
+
   hsize_t     GMFOutDims[MAX_DIMENSION];
   hsize_t     OutDims[MAX_DIMENSION];
   hsize_t     FullOutDims[MAX_DIMENSION];
   hsize_t     TempIntArray[1];
- 
+
   herr_t      h5_status;
   herr_t      h5_error = -1;
 
@@ -86,7 +86,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 
   int CopyOnlyActive = TRUE;
   //if(WriteEverything==TRUE)CopyOnlyActive = FALSE;
- 
+
   char *ParticlePositionLabel[] =
      {"particle_position_x", "particle_position_y", "particle_position_z"};
   char *ParticleVelocityLabel[] =
@@ -95,21 +95,21 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 			     "Particle_x-velocity", "Particle_y-velocity",
 			     "Particle_z-velocity"};
   /* initialize */
- 
+
   char id[MAX_GROUP_TAG_SIZE];
   sprintf(id, "%"GROUP_TAG_FORMAT""ISYM, grid_id);
- 
+
   /* make sure quantities defined at least for 3d */
- 
+
   for (dim = GridRank; dim < 3; dim++) {
     GridDimension[dim] = 1;
     GridStartIndex[dim] = 0;
     GridEndIndex[dim] = 0;
   }
- 
+
   for (dim = 0; dim < 3; dim++)
     ActiveDim[dim] = GridEndIndex[dim] - GridStartIndex[dim] +1;
- 
+
   /* ------------------------------------------------------------------- */
   /* 1) Save general grid class data */
 
@@ -136,33 +136,33 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
   if (MyProcessorNumber == ROOT_PROCESSOR && HierarchyFileOutputFormat > 0) {
 
     fprintf(fptr, "Task              = %"ISYM"\n", ProcessorNumber);
- 
+
     fprintf(fptr, "GridRank          = %"ISYM"\n", GridRank);
- 
+
     fprintf(fptr, "GridDimension     = ");
     WriteListOfInts(fptr, GridRank, GridDimension);
- 
+
     fprintf(fptr, "GridStartIndex    = ");
     WriteListOfInts(fptr, GridRank, GridStartIndex);
- 
+
     fprintf(fptr, "GridEndIndex      = ");
     WriteListOfInts(fptr, GridRank, GridEndIndex);
- 
+
     fprintf(fptr, "GridLeftEdge      = ");
     WriteListOfFloats(fptr, GridRank, GridLeftEdge);
- 
+
     fprintf(fptr, "GridRightEdge     = ");
     WriteListOfFloats(fptr, GridRank, GridRightEdge);
- 
+
     fprintf(fptr, "Time              = %"GOUTSYM"\n", Time);
 
     if(WriteEverything == TRUE)
     fprintf(fptr, "OldTime           = %"GOUTSYM"\n", OldTime);
- 
+
     fprintf(fptr, "SubgridsAreStatic = %"ISYM"\n", SubgridsAreStatic);
- 
+
     fprintf(fptr, "NumberOfBaryonFields = %"ISYM"\n", NumberOfBaryonFields);
- 
+
     if (NumberOfBaryonFields > 0) {
       fprintf(fptr, "FieldType = ");
 
@@ -204,7 +204,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 
     if ((NumberOfParticles > 0) || (NumberOfActiveParticles > 0))
       fprintf(fptr, "ParticleFileName = %s\n", procfilename); // must be same as above
- 
+
     if (SelfGravity)
       fprintf(fptr, "GravityBoundaryType = %"ISYM"\n", GravityBoundaryType);
 
@@ -217,8 +217,8 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     delete [] groupfilename;
     return SUCCESS;
   }
- 
- 
+
+
   /* Open HDF file for writing. */
 
   group_id = H5Gcreate(file_id, name, 0);
@@ -231,32 +231,46 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     writeScalarAttribute(old_fields, HDF5_PREC, "OldTime", &this->OldTime);
     writeScalarAttribute(old_fields, HDF5_PREC, "dtFixed", &dtFixedCopy);
   }
- 
+
+  // If requested, find shocks immediately before output
+  if (ShockMethod){
+    // Update the shock fields.
+    // If FindShocksOnlyOnOutput > 1, don't update shock fields.
+    int temp_shocks_var = FindShocksOnlyOnOutput;
+    if (FindShocksOnlyOnOutput <= 1 ){
+      // Set FindShocksOnlyOnOutput temporarily to 0 so that shocks
+      // are found in the ShockHandler routine.
+      FindShocksOnlyOnOutput = 0;
+      this->ShocksHandler();
+      FindShocksOnlyOnOutput = temp_shocks_var;
+    }
+  }
+
   /* ------------------------------------------------------------------- */
   /* 2) save baryon field quantities (including fields). */
- 
+
   if (NumberOfBaryonFields > 0) {
- 
+
     /* 2a) Set HDF file dimensions (use FORTRAN ordering). */
- 
+
     for (dim = 0; dim < GridRank; dim++) {
       OutDims[GridRank-dim-1] = ActiveDim[dim];
       FullOutDims[GridRank-dim-1] = GridDimension[dim];
       GMFOutDims[GridRank-dim-1] = GravitatingMassFieldDimension[dim];
     }
- 
+
     /* 2b) Write out co-ordinate values.  Use the centre of each cell. */
- 
+
     size = 1;
- 
+
     for (dim = 0; dim < GridRank; dim++) size *= GridDimension[dim];
- 
+
     /* create temporary buffer */
- 
+
     temp = new float[size];
- 
+
     /* 2c) Loop over fields, writing each one. */
- 
+
     for (field = 0; field < NumberOfBaryonFields; field++) {
 
       if(WriteEverything == FALSE) {
@@ -280,10 +294,10 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
             FALSE);
 
       }
- 
+
     }   // end of loop over fields
 
-    
+
     if (WriteEverything == TRUE) {
         /* Clean up our reference here */
 
@@ -293,7 +307,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
           acc_node = H5Gcreate(group_id, "Acceleration", 0);
           if(acc_node == h5_error)ENZO_FAIL("Couldn't create Acceleration node!");
 
-          /* If we're to write everything, we must also write 
+          /* If we're to write everything, we must also write
              the AccelerationField */
 
           for(dim = 0; dim < GridRank; dim++) {
@@ -371,38 +385,38 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
         }
     }
 
-   
 
-    /* If requested, compute and output the temperature field 
+
+    /* If requested, compute and output the temperature field
        as well since its such a pain to compute after the fact. */
- 
+
     if (OutputTemperature) {
- 
+
       /* Allocate field and compute temperature. */
- 
+
       temperature = new float[size];
- 
+
       if (this->ComputeTemperatureField(temperature) == FAIL) {
 		ENZO_FAIL("Error in grid->ComputeTemperatureField.");
       }
- 
+
       this->write_dataset(GridRank, OutDims, "Temperature",
                     group_id, file_type_id, (VOIDP) temperature, TRUE, temp);
 
       /* Copy active part of field into grid */
- 
+
       // If outputing dust temperature, keep temperature field for the calculation.
       if (!OutputDustTemperature) {
 	delete [] temperature;
       }
- 
+
     } // end: if (OutputTemperature)
 
-    /* If requested, compute and output the dust temperature field 
+    /* If requested, compute and output the dust temperature field
        as well since its such a pain to compute after the fact. */
- 
+
     if (OutputDustTemperature) {
- 
+
       /* Get temperature field if we do not already have it. */
 
       if (!OutputTemperature) {
@@ -414,33 +428,33 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
       }
 
       /* Allocate field and compute temperature. */
- 
+
       dust_temperature = new float[size];
- 
+
       if (this->ComputeDustTemperatureField(temperature,
 					    dust_temperature) == FAIL) {
 		ENZO_FAIL("Error in grid->ComputeDustTemperatureField.");
       }
- 
+
       this->write_dataset(GridRank, OutDims, "Dust_Temperature",
                     group_id, file_type_id, (VOIDP) dust_temperature, TRUE, temp);
 
       /* Copy active part of field into grid */
- 
+
       // If outputing dust temperature, keep temperature field for the calculation.
       if (!OutputTemperature) {
 	delete [] temperature;
       }
       delete [] dust_temperature;
- 
+
     } // end: if (OutputDustTemperature)
 
     if (OutputCoolingTime != FALSE) {
- 
+
       /* Allocate field and compute cooling time. */
 
       cooling_time = new float[size];
- 
+
       float TemperatureUnits = 1, DensityUnits = 1, LengthUnits = 1,
 	VelocityUnits = 1, TimeUnits = 1, aUnits = 1;
 
@@ -455,24 +469,24 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
       for (i = 0;i < size;i++) {
 	cooling_time[i] = fabs(cooling_time[i]) * TimeUnits;
       }
- 
+
       this->write_dataset(GridRank, OutDims, "Cooling_Time",
                     group_id, file_type_id, (VOIDP) cooling_time, TRUE, temp);
- 
+
       delete [] cooling_time;
- 
+
     } // if (OutputCoolingTime)
 
     /* Make sure that there is a copy of dark matter field to save
        (and at the right resolution). */
 
     if (OutputSmoothedDarkMatter == FALSE) {
-    
+
       if (SelfGravity && NumberOfParticles > 0) {
         if (this->ComputeDarkMatterDensity(temp) == FAIL) {
           ENZO_FAIL("Error in grid->ComputeDarkMatterDensity.\n")
         }
- 
+
     this->write_dataset(GridRank, OutDims, "Dark_Matter_Density",
                   group_id, file_type_id, (VOIDP) temp, FALSE);
 
@@ -481,15 +495,15 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     } // ENDIF !OutputSmoothedDarkMatter
 
     delete [] temp;
- 
+
     /* Write BoundaryFluxes info (why? it's just recreated when the grid
                                   is read in) */
- 
+
   } // end: if (NumberOfBaryonFields > 0)
 
   /* ------------------------------------------------------------------- */
   /* 2b) Save particle quantities smoothed to the grid. */
- 
+
   if (OutputSmoothedDarkMatter > 0) {
 
     size = active_size = 1;
@@ -498,7 +512,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
       size *= GridDimension[dim];
       active_size *= ActiveDim[dim];
     }
- 
+
     temp = new float[active_size];
 
     int NumberOfDMFields;
@@ -506,7 +520,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     case 1: NumberOfDMFields = 1; break;  // density
     case 2: NumberOfDMFields = 5; break;  // + rms velocity + 3-velocity
     } // ENDSWITCH
-      
+
     for (field = 0; field < NumberOfDMFields; field++) {
 
       // Only the active part was calculated, so no copying in the routine
@@ -521,14 +535,14 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     } // ENDFOR field
 
     delete [] temp;
-      
+
   } // ENDIF OutputSmoothedDarkMatter
- 
+
   /* ------------------------------------------------------------------- */
   /* 3) Save particle quantities. */
 
   hid_t ParticleGroupID = h5_error;
- 
+
   if (NumberOfParticles > 0) {
 
     if (ParticleGroupID == h5_error) {
@@ -553,7 +567,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     for (dim = 0; dim < GridRank; dim++) {
       this->write_dataset(1, TempIntArray, ParticlePositionLabel[dim],
           dm_group_id, HDF5_FILE_PREC, (VOIDP) ParticlePosition[dim], FALSE);
-      H5Lcreate_hard(dm_group_id, ParticlePositionLabel[dim], 
+      H5Lcreate_hard(dm_group_id, ParticlePositionLabel[dim],
                      group_id, ParticlePositionLabel[dim],
                      H5P_DEFAULT, H5P_DEFAULT);
     }
@@ -563,7 +577,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
     for (dim = 0; dim < GridRank; dim++) {
       this->write_dataset(1, TempIntArray, ParticleVelocityLabel[dim],
           dm_group_id, HDF5_REAL, (VOIDP) ParticleVelocity[dim], FALSE);
-      H5Lcreate_hard(dm_group_id, ParticleVelocityLabel[dim], 
+      H5Lcreate_hard(dm_group_id, ParticleVelocityLabel[dim],
                      group_id, ParticleVelocityLabel[dim],
                      H5P_DEFAULT, H5P_DEFAULT);
     }
@@ -645,7 +659,7 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
             this->ActiveParticles, i, NumberOfActiveParticles,
             ActiveParticleTypeToEvaluate->particle_name,
             ParticleGroupID);
-						     
+
       }
 
 
@@ -654,22 +668,22 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
   if (ParticleGroupID != h5_error) {
     H5Gclose(ParticleGroupID);
   }
-  
+
   /* Close HDF group and file. */
-  
+
   if (WriteEverything == TRUE) this->WriteAllFluxes(group_id);
   h5_status = H5Gclose(group_id);
-  
+
   /* 4) Save Gravity info. */
-  
+
   /* Clean up. */
-  
+
   delete [] name;
   delete [] procfilename;
   delete [] groupfilename;
-  
+
   return SUCCESS;
-  
+
 }
 
 int grid::write_dataset(int ndims, hsize_t *dims, const char *name, hid_t group,
@@ -684,7 +698,7 @@ int grid::write_dataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 
     for (dim = 0; dim < 3; dim++)
       ActiveDim[dim] = GridEndIndex[dim] - GridStartIndex[dim] +1;
- 
+
     if(active_only == TRUE) {
        if (data_type != HDF5_REAL) ENZO_FAIL("Can't cast to float!");
        float *data_float = (float *) data;
@@ -696,18 +710,18 @@ int grid::write_dataset(int ndims, hsize_t *dims, const char *name, hid_t group,
 	         (k-GridStartIndex[2])*ActiveDim[0]*ActiveDim[1] ] =
 	      data_float[i + j*GridDimension[0] +
 		                     k*GridDimension[0]*GridDimension[1]];
-    } else { 
+    } else {
       temp = (float *) data; /* Should be fine, since we re-cast back to VOID */
     }
 
   file_dsp_id = H5Screate_simple((Eint32) ndims, dims, NULL);
   if( file_dsp_id == h5_error )
     ENZO_VFAIL("Error creating dataspace for %s", name)
-      
+
   dset_id =  H5Dcreate(group, name, data_type, file_dsp_id, H5P_DEFAULT);
   if( dset_id == h5_error )
     ENZO_VFAIL("Error creating dataset %s", name)
-      
+
   h5_status = H5Dwrite(dset_id, data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                         (VOIDP) temp);
   if( h5_status == h5_error )
