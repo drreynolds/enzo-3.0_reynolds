@@ -484,6 +484,7 @@ OBJS_CONFIG_LIB = \
         Grid_GetEnclosedMass.o \
         Grid_GetEnclosedMassInShell.o \
         Grid_GetProjectedBoundaryFluxes.o \
+        Grid_GrackleWrapper.o \
         Grid_GravityEquilibriumTestInitializeGrid.o \
         Grid_WriteGridExtract.o \
         Grid_WriteGrid.o \
