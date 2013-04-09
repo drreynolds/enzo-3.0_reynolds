@@ -26,45 +26,57 @@
 #include "phys_constants.h"
 
 
-#define NO_DEBUG_AP
+#define DEBUG_AP
 
 float bondi_alpha(float x);
 
-int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT AccretionRadius,
-				       float* AccretionRate){
+int grid::AccreteOntoAccretingParticle(
+  ActiveParticleType** ThisParticle,FLOAT AccretionRadius,
+  float* AccretionRate)
+{
 
   /* Return if this doesn't involve us */
   if (MyProcessorNumber != ProcessorNumber)
     return SUCCESS;
 
-  /* Check whether the cube that circumscribes the accretion zone intersects with this grid */
+  /* Check whether the cube that circumscribes the accretion zone intersects
+   * with this grid */
 
-  FLOAT *ParticlePosition = (*ThisParticle)->ReturnPosition();
+  FLOAT xsink = (*ThisParticle)->ReturnPosition()[0];
+  FLOAT ysink = (*ThisParticle)->ReturnPosition()[1];
+  FLOAT zsink = (*ThisParticle)->ReturnPosition()[2];
 
-  if ((GridLeftEdge[0] > ParticlePosition[0]+AccretionRadius) || (GridRightEdge[0] < ParticlePosition[0]-AccretionRadius) ||
-      (GridLeftEdge[1] > ParticlePosition[1]+AccretionRadius) || (GridRightEdge[1] < ParticlePosition[1]-AccretionRadius) ||
-      (GridLeftEdge[2] > ParticlePosition[2]+AccretionRadius) || (GridRightEdge[2] < ParticlePosition[2]-AccretionRadius))
+  if ((GridLeftEdge[0] > xsink+AccretionRadius) ||
+      (GridLeftEdge[1] > ysink+AccretionRadius) ||
+      (GridLeftEdge[2] > zsink+AccretionRadius) ||
+      (GridRightEdge[0] < xsink-AccretionRadius) ||
+      (GridRightEdge[1] < ysink-AccretionRadius) ||
+      (GridRightEdge[2] < zsink-AccretionRadius))
     return SUCCESS;
 
-  FLOAT CellSize, KernelRadius, radius2;
+  /* Delcare and initialize local variables */
+
+  FLOAT KernelRadius, radius2;
 
   int i, j, k, dim, index;
+  int size = this->GetGridSize(), maxexcluded=0;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10.,
     SmallEFac = 10., AccretedMass = 0, AccretedMomentum[3],
-    RhoInfinity, vsink[3], vgas[3], mcell, etot, eint, ke, Weight, maccreted,
+    RhoInfinity, vgas[3], mcell, etot, eint, ke, Weight, maccreted,
     rhocell, pcell[3], etotnew, rhonew, reff[3], rsqr,
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew,
-    kenew, xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, rmin,
+    kenew, xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, efac, rmin,
     dxmin, huge = 1.0e30, WeightedSum = 0,
     SumOfWeights = 0, AverageDensity = 0;
 
   int isub, jsub, ksub, excluded, NDIV = 8, NumberOfCells=0;
 
-  const int offset[] = {1, GridDimension[0], GridDimension[0]*GridDimension[1]};
+  int offset[] =
+    {1, GridDimension[0], GridDimension[0]*GridDimension[1]};
 
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++)
+  {
     AccretedMomentum[i] = 0;
-    vsink[i] = 0;
     vgas[i] = 0;
     pcell[i] = 0;
     reff[i] = 0;
@@ -75,29 +87,13 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
     jsp[i] = 0;
   }
 
-  /* Get indices in BaryonField for density, internal energy, thermal energy, velocity */
-  int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
-  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num,
-				       Vel3Num, TENum) == FAIL) {
-    ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
-  }
-
-  /* Compute cell width and find bottom left and top right corners of grid */
-
-  CellSize = CellWidth[0][0];
-
-  for (dim = 0; dim < GridRank; dim++) {
-    CellVolume*=CellWidth[dim][0];
-  }
-
-  /* Get grid info and calculate index of the sink host cell */
-  int size = this->GetGridSize(), maxexcluded=0;
   int *nexcluded = new int[size]();
   float **pnew = new float*[MAX_DIMENSION];
   float **pold = new float*[MAX_DIMENSION];
   float **ovel = new float*[MAX_DIMENSION];
   float **paccrete = new float*[MAX_DIMENSION];
-  for (dim = 0; dim < GridRank; dim++) {
+  for (dim = 0; dim < GridRank; dim++)
+  {
     pnew[dim] = new float[size]();
     pold[dim] = new float[size]();
     ovel[dim] = new float[size]();
@@ -108,73 +104,116 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
   int cindex = (GridEndIndex[0] - GridStartIndex[0])/2 + GridStartIndex[0];
   int cgindex = GRIDINDEX_NOGHOST(cindex,cindex,cindex);
 
-  /* Find the Bondi-Hoyle radius */
-  float vInfinity, cInfinity, CellTemperature;
-  float velx = BaryonField[Vel1Num][cgindex];
-  float vely = BaryonField[Vel2Num][cgindex];
-  float velz = BaryonField[Vel3Num][cgindex];
-  FLOAT BondiHoyleRadius;
-  float *Temperature = new float[size]();
+  /* Get indices in BaryonField for density, internal energy, thermal energy,
+   * velocity */
+  int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
+  if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num,
+				       Vel3Num, TENum) == FAIL)
+  {
+    ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
+  }
+
+  /* Calculate cell volume */
+
+  for (dim = 0; dim < GridRank; dim++)
+  {
+    CellVolume*=CellWidth[dim][0];
+  }
+
+  /* Find sink properties */
+
   float msink = (*ThisParticle)->ReturnMass()*CellVolume;
+
+  float vsink[3] =
+    {
+      (*ThisParticle)->ReturnVelocity()[0],
+      (*ThisParticle)->ReturnVelocity()[1],
+      (*ThisParticle)->ReturnVelocity()[2]
+    };
+
+  /* Find the Bondi-Hoyle radius */
+  float *Temperature = new float[size]();
 
   this->ComputeTemperatureField(Temperature);
 
-  vsink[0] = (*ThisParticle)->ReturnVelocity()[0];
-  vsink[1] = (*ThisParticle)->ReturnVelocity()[1];
-  vsink[2] = (*ThisParticle)->ReturnVelocity()[2];
+  float vInfinity = sqrt(pow(vsink[0] - BaryonField[Vel1Num][cgindex],2) +
+			 pow(vsink[1] - BaryonField[Vel2Num][cgindex],2) +
+			 pow(vsink[2] - BaryonField[Vel3Num][cgindex],2));
 
-  vInfinity = sqrt(pow(vsink[0] - velx,2) +
-		   pow(vsink[1] - vely,2) +
-		   pow(vsink[2] - velz,2));
+  float CellTemperature = Temperature[cgindex];
+  if (JeansRefinementColdTemperature > 0)
+    CellTemperature = JeansRefinementColdTemperature;
 
-  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : Temperature[cgindex];
-  cInfinity = sqrt(Gamma*kboltz*CellTemperature/(Mu*mh))/GlobalLengthUnits*GlobalTimeUnits;
-  BondiHoyleRadius = GravitationalConstant*msink/
+  float cInfinity = sqrt(Gamma * kboltz * CellTemperature / (Mu * mh)) /
+    GlobalLengthUnits*GlobalTimeUnits;
+
+  FLOAT BondiHoyleRadius = GravitationalConstant*msink/
     (pow(vInfinity,2) + pow(cInfinity,2));
 
   delete [] Temperature;
 
   // Eqn 13
-  if (BondiHoyleRadius < CellSize/4.0)
-    KernelRadius = CellSize/4.0;
+  if (BondiHoyleRadius < CellWidth[0][0]/4.0)
+    KernelRadius = CellWidth[0][0]/4.0;
   else if (BondiHoyleRadius < AccretionRadius/2.0)
     KernelRadius = BondiHoyleRadius;
   else
     KernelRadius = AccretionRadius/2.0;
 
-  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
-    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
+  {
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
+    {
       index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
-      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++)
+      {
 	radius2 =
-	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
-	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
-	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);
-	if ((AccretionRadius*AccretionRadius) > radius2) {
-	  WeightedSum += BaryonField[DensNum][index]*exp(-radius2/(KernelRadius*KernelRadius));
+	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - xsink,2) +
+	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ysink,2) +
+	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - zsink,2);
+	if ((AccretionRadius*AccretionRadius) > radius2)
+	{
+	  WeightedSum += BaryonField[DensNum][index]*
+	    exp(-radius2/(KernelRadius*KernelRadius));
 	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
 	  NumberOfCells++;
-	  if (HydroMethod == PPM_DirectEuler) {
+	  if (HydroMethod == PPM_DirectEuler)
+	  {
 	    vgas[0] = BaryonField[Vel1Num][index];
 	    vgas[1] = BaryonField[Vel2Num][index];
 	    vgas[2] = BaryonField[Vel3Num][index];
-	  } else if (HydroMethod == Zeus_Hydro) {
-	    vgas[0] = 0.5 * (BaryonField[Vel1Num][index] + BaryonField[Vel1Num][index+offset[0]]);
-	    vgas[1] = 0.5 * (BaryonField[Vel2Num][index] + BaryonField[Vel2Num][index+offset[1]]);
-	    vgas[2] = 0.5 * (BaryonField[Vel3Num][index] + BaryonField[Vel3Num][index+offset[2]]);
-	  } else
+	  }
+	  else if (HydroMethod == Zeus_Hydro)
+	  {
+	    vgas[0] = 0.5 *
+	      (BaryonField[Vel1Num][index] +
+	       BaryonField[Vel1Num][index+offset[0]]);
+	    vgas[1] = 0.5 *
+	      (BaryonField[Vel2Num][index] +
+	       BaryonField[Vel2Num][index+offset[1]]);
+	    vgas[2] = 0.5 *
+	      (BaryonField[Vel3Num][index] +
+	       BaryonField[Vel3Num][index+offset[2]]);
+	  }
+	  else
 	    ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
 
 	  /* The true accretion rate is somewhat less than this due to
 	     angular momentum conservation.  Subdivide the cell into
 	     NDIV^2 subcells and estimate the reduction assuming
 	     ballistic orbits. See the discussion near Eqn 15. */
-	  for (ksub = 0; ksub < NDIV-1; ksub++) {
-	    zdist = CellLeftEdge[2][k] + CellWidth[2][k]*(float(ksub)+0.5)/NDIV - ParticlePosition[2];
-	    for (jsub = 0; jsub < NDIV-1; jsub++) {
-	      ydist = CellLeftEdge[1][j] + CellWidth[1][j]*(float(jsub)+0.5)/NDIV - ParticlePosition[1];
-	      for (isub = 0; isub < NDIV-1; isub++) {
-		xdist = CellLeftEdge[0][i] + CellWidth[0][i]*(float(jsub)+0.5)/NDIV - ParticlePosition[0];
+	  for (ksub = 0; ksub < NDIV-1; ksub++)
+	  {
+	    for (jsub = 0; jsub < NDIV-1; jsub++)
+	    {
+	      for (isub = 0; isub < NDIV-1; isub++)
+	      {
+		xdist = CellLeftEdge[0][i] +
+		  CellWidth[0][i]*(float(jsub)+0.5)/NDIV - xsink;
+		ydist = CellLeftEdge[1][j] +
+		  CellWidth[1][j]*(float(jsub)+0.5)/NDIV - ysink;
+		zdist = CellLeftEdge[2][k] +
+		  CellWidth[2][k]*(float(ksub)+0.5)/NDIV - zsink;
 
 		dist = sqrt(xdist*xdist+ydist*ydist+zdist*zdist);
 		if (dist == 0.0)
@@ -193,14 +232,17 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 		// Compute specific kinetic + gravitational energy
 		esp = (POW((vgas[0] - vsink[0]),2) +
 		       POW((vgas[1] - vsink[1]),2) +
-		       POW((vgas[2] - vsink[2]),2)) / 2.0 - GravitationalConstant * msink/dist;
+		       POW((vgas[2] - vsink[2]),2)) / 2.0 -
+		  GravitationalConstant * msink/dist;
+
+		efac = 1.0 -
+		  sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2));
 
 		// Compute distance of closest approach
 		if (esp > 0.0)
 		  rmin = huge*CellWidth[0][0];
 		else
-		  rmin = -GravitationalConstant*msink/(2.0*esp) *
-		    (1.0 - sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2)));
+		  rmin = -GravitationalConstant*msink/(2.0*esp) * efac;
 
 		dxmin = rmin / CellWidth[0][0];
 		if (dxmin >= 0.25)
@@ -212,7 +254,6 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
 	  if (abs(i-cindex) <= 1 && abs(j-cindex) <= 1 && abs(k-cindex) <= 1)
 	    maxexcluded = max(nexcluded[index],maxexcluded);
-
 	}
       }
     }
@@ -225,29 +266,40 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
     else
       nexcluded[cgindex] = 0;
 
-  AverageDensity = WeightedSum/SumOfWeights;
+  AverageDensity = WeightedSum / SumOfWeights;
 
   // Eqn 12
-  RhoInfinity = AverageDensity/bondi_alpha(1.2*CellSize / BondiHoyleRadius);
+  RhoInfinity = AverageDensity /
+    bondi_alpha(1.2*CellWidth[0][0] / BondiHoyleRadius);
 
   // Eqn 11
   *AccretionRate = (4*pi*RhoInfinity*POW(BondiHoyleRadius,2)*
 		    sqrt(POW(lambda_c*cInfinity,2) + POW(vInfinity,2)));
 
-  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
-    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
+  for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
+  {
+    for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
+    {
       index = GRIDINDEX_NOGHOST(GridStartIndex[0],j,k);
-      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++) {
+      for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, index++)
+      {
 	// useful shorthand
-	if (HydroMethod == PPM_DirectEuler) {
+	if (HydroMethod == PPM_DirectEuler)
+	{
 	  vgas[0] = BaryonField[Vel1Num][index];
 	  vgas[1] = BaryonField[Vel2Num][index];
 	  vgas[2] = BaryonField[Vel3Num][index];
-	} else if (HydroMethod == Zeus_Hydro) {
-	  vgas[0] = 0.5 * (BaryonField[Vel1Num][index] + BaryonField[Vel1Num][index+offset[0]]);
-	  vgas[1] = 0.5 * (BaryonField[Vel2Num][index] + BaryonField[Vel2Num][index+offset[1]]);
-	  vgas[2] = 0.5 * (BaryonField[Vel3Num][index] + BaryonField[Vel3Num][index+offset[2]]);
-	} else
+	}
+	else if (HydroMethod == Zeus_Hydro)
+	{
+	  vgas[0] = 0.5 * (BaryonField[Vel1Num][index] +
+			   BaryonField[Vel1Num][index+offset[0]]);
+	  vgas[1] = 0.5 * (BaryonField[Vel2Num][index] +
+			   BaryonField[Vel2Num][index+offset[1]]);
+	  vgas[2] = 0.5 * (BaryonField[Vel3Num][index] +
+			   BaryonField[Vel3Num][index+offset[2]]);
+	}
+	else
 	  ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
 
 	rhocell = BaryonField[DensNum][index];
@@ -258,10 +310,13 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	pold[2][index] = mcell*vgas[2];
 
 	radius2 =
-	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0],2) +
-	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1],2) +
-	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2],2);
-	if ((AccretionRadius*AccretionRadius) < radius2) { // outside the accretion radius
+	  POW((CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - xsink,2) +
+	  POW((CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ysink,2) +
+	  POW((CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - zsink,2);
+
+	if ((AccretionRadius*AccretionRadius) < radius2)
+	{
+	  // outside the accretion radius
 	  mnew[index] = mcell;
 	  pnew[0][index] = pold[0][index];
 	  pnew[1][index] = pold[1][index];
@@ -269,22 +324,30 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	  paccrete[0][index] = 0;
 	  paccrete[1][index] = 0;
 	  paccrete[2][index] = 0;
-	} else { // inside
+	}
+	else
+	{ // inside
 	  pcell[0] = mcell*(vgas[0] - vsink[0]);
 	  pcell[1] = mcell*(vgas[1] - vsink[1]);
 	  pcell[2] = mcell*(vgas[2] - vsink[2]);
 
 	  // TE and GE are stored per unit mass
-	  if (HydroMethod == PPM_DirectEuler) {
+	  if (HydroMethod == PPM_DirectEuler)
+	  {
 	    etot = mcell*BaryonField[TENum][index];
 	    if (DualEnergyFormalism)
 	      eint = mcell*BaryonField[GENum][index];
 	    else
-	      eint = etot - 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
-	  } else if (HydroMethod == Zeus_Hydro) {  // (total energy is really internal energy)
+	      eint = etot - 0.5*mcell*
+		(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+	  }
+	  else if (HydroMethod == Zeus_Hydro)
+	  {  // (total energy is really internal energy)
 	    eint = mcell*BaryonField[TENum][index];
-	    etot = eint + 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
-	  } else
+	    etot = eint + 0.5*mcell*
+	      (vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
+	  }
+	  else
 	    ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
 
 	  ke = 0.5*mcell*(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
@@ -303,7 +366,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	     accreting no mass from the cell or if we are accreting
 	     all of the mass from it.  */
 
-	  if ((maccreted == 0) || (mcell-maccreted < 2.0*SmallRhoFac*SmallRho*CellVolume)) {
+	  if ((maccreted == 0) ||
+	      (mcell-maccreted < 2.0*SmallRhoFac*SmallRho*CellVolume))
+	  {
 	    paccrete[0][index] = pcell[0]*CellVolume*(maccreted/mcell);
 	    paccrete[1][index] = pcell[1]*CellVolume*(maccreted/mcell);
 	    paccrete[2][index] = pcell[2]*CellVolume*(maccreted/mcell);
@@ -318,12 +383,13 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	     so that momentum is conserved but leave the transverse
 	     component unchanged */
 
-	  else {
-
+	  else
+	  {
 	    // Keep cell mass well above density floor
 	    if ((mcell - maccreted)/CellVolume > SmallRhoFac*SmallRho)
 	      mnew[index] = mcell - maccreted;
-	    else {
+	    else
+	    {
 	      mnew[index] = SmallRhoFac*SmallRho*CellVolume;
 	      maccreted = mcell - mnew[index];
 	    }
@@ -331,13 +397,14 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    rhonew = mnew[index]/CellVolume;
 
 	    // Find the radius vector
-	    reff[0] = (CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - ParticlePosition[0];
-	    reff[1] = (CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ParticlePosition[1];
-	    reff[2] = (CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - ParticlePosition[2];
+	    reff[0] = (CellLeftEdge[0][i] + 0.5*CellWidth[0][i]) - xsink;
+	    reff[1] = (CellLeftEdge[1][j] + 0.5*CellWidth[1][j]) - ysink;
+	    reff[2] = (CellLeftEdge[2][k] + 0.5*CellWidth[2][k]) - zsink;
 	    rsqr = reff[0]*reff[0]+reff[1]*reff[1]+reff[2]*reff[2];
 
 	    // Prevent a floating point error if close to central cell
-	    if (rsqr <= POW(1e-7*CellWidth[0][0],2)) {
+	    if (rsqr <= POW(1e-7*CellWidth[0][0],2))
+	    {
 	      reff[0] = 0.0;
 	      reff[1] = 0.0;
 	      reff[2] = 0.0;
@@ -400,7 +467,9 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 
 #ifdef DEBUG_AP
 	    if (index == cgindex)
-	      printf("Sink Density: %"GOUTSYM", Cell Density: %"GOUTSYM", New Density: %"GOUTSYM"\n",
+	      printf("Sink Density: %"GOUTSYM", "
+		     "Cell Density: %"GOUTSYM", "
+		     "New Density:  %"GOUTSYM"\n",
 		     maccreted/CellVolume,
 		     BaryonField[DensNum][index],
 		     BaryonField[DensNum][index]-maccreted/CellVolume);
@@ -410,39 +479,50 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 	    BaryonField[DensNum][index] -= maccreted/CellVolume;
 
 	    // Update the grid velocities
-	    if (HydroMethod == PPM_DirectEuler) {
+	    if (HydroMethod == PPM_DirectEuler)
+	    {
 	      BaryonField[Vel1Num][index] = pnew[0][index]/mnew[index];
 	      BaryonField[Vel2Num][index] = pnew[1][index]/mnew[index];
 	      BaryonField[Vel3Num][index] = pnew[2][index]/mnew[index];
-	    } else if (HydroMethod == Zeus_Hydro) {
+	    }
+	    else if (HydroMethod == Zeus_Hydro)
+	    {
 	      // do nothing for now.
-	    } else
+	    }
+	    else
 	      ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
 
 	    // Update the energies
-	    if (HydroMethod == PPM_DirectEuler) {
+	    if (HydroMethod == PPM_DirectEuler)
+	    {
 	      BaryonField[TENum][index] = etotnew/mnew[index];
 	      if (DualEnergyFormalism)
 		BaryonField[GENum][index] = eintnew/mnew[index];
-	    } else if (HydroMethod == Zeus_Hydro) {
+	    }
+	    else if (HydroMethod == Zeus_Hydro)
+	    {
 	      BaryonField[TENum][index] = eintnew/mnew[index];
-	    } else
+	    }
+	    else
 	      ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
 
 	    // Check if mass or energy is too small, correct if necessary
-	    if (BaryonField[DensNum][index] < SmallRhoFac*SmallRho) {
+	    if (BaryonField[DensNum][index] < SmallRhoFac*SmallRho)
+	    {
 	      BaryonField[DensNum][index] = SmallRhoFac*SmallRho;
 	      BaryonField[Vel1Num][index] = vgas[0];
 	      BaryonField[Vel2Num][index] = vgas[1];
 	      BaryonField[Vel3Num][index] = vgas[2];
 	    }
 
-	    if (HydroMethod == PPM_DirectEuler) {
+	    if (HydroMethod == PPM_DirectEuler)
+	    {
 	      if (BaryonField[TENum][index] -
 		  0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] +
 			 BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
 			 BaryonField[Vel3Num][index]*BaryonField[Vel3Num][index])
-		  < SmallEFac*SmallEint) {
+		  < SmallEFac*SmallEint)
+	      {
 		BaryonField[TENum][index] = SmallEFac*SmallEint +
 		  0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] +
 			 BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
@@ -451,33 +531,38 @@ int grid::AccreteOntoAccretingParticle(ActiveParticleType** ThisParticle,FLOAT A
 		  BaryonField[GENum][index] = SmallEFac*SmallEint;
 	      }
 	    }
-	    else if (HydroMethod == Zeus_Hydro) {
-	      if (BaryonField[TENum][index] < SmallEFac*SmallEint) {
+	    else if (HydroMethod == Zeus_Hydro)
+	    {
+	      if (BaryonField[TENum][index] < SmallEFac*SmallEint)
+	      {
 		BaryonField[TENum][index] = SmallEFac*SmallEint;
 	      }
-	    } else
+	    }
+	    else
 	      ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
-
 	  }
 	}
       }
     }
   }
 
-  float OldMass = (*ThisParticle)->Mass*CellVolume;
-  float *OldVel = (*ThisParticle)->vel;
+  float Mass = (*ThisParticle)->Mass*CellVolume;
+  float *Vel = (*ThisParticle)->vel;
 
-  float NewVelocity[3] = {
-    (OldMass*OldVel[0]+AccretedMomentum[0])/(OldMass+AccretedMass*CellVolume),
-    (OldMass*OldVel[1]+AccretedMomentum[1])/(OldMass+AccretedMass*CellVolume),
-    (OldMass*OldVel[2]+AccretedMomentum[2])/(OldMass+AccretedMass*CellVolume) };
+  float NewVelocity[3] =
+    {
+    (Mass*Vel[0]+AccretedMomentum[0])/(Mass+AccretedMass*CellVolume),
+    (Mass*Vel[1]+AccretedMomentum[1])/(Mass+AccretedMass*CellVolume),
+    (Mass*Vel[2]+AccretedMomentum[2])/(Mass+AccretedMass*CellVolume)
+    };
 
   (*ThisParticle)->SetVelocity(NewVelocity);
   (*ThisParticle)->AddMass(AccretedMass);
 
   /* Clean up */
 
-  for (dim = 0; dim < GridRank; dim++) {
+  for (dim = 0; dim < GridRank; dim++)
+  {
     delete [] pnew[dim];
     delete [] pold[dim];
     delete [] ovel[dim];
