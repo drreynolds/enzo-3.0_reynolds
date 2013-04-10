@@ -342,7 +342,7 @@ int grid::AccreteOntoAccretingParticle(
 		(vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
 	  }
 	  else if (HydroMethod == Zeus_Hydro)
-	  {  // (total energy is really internal energy)
+	  {  // total energy is really internal energy
 	    eint = mcell*BaryonField[TENum][index];
 	    etot = eint + 0.5*mcell*
 	      (vgas[0]*vgas[0] + vgas[1]*vgas[1] + vgas[2]*vgas[2]);
@@ -411,31 +411,10 @@ int grid::AccreteOntoAccretingParticle(
 	      rsqr = 1.0;
 	    }
 
-	    // Compute the parallel component of the momentum
-	    rdotp = reff[0]*pcell[0]+reff[1]*pcell[1]+reff[2]*pcell[2];
-	    prad[0] = reff[0]*rdotp/rsqr;
-	    prad[1] = reff[1]*rdotp/rsqr;
-	    prad[2] = reff[2]*rdotp/rsqr;
-
-	    // Compute the transverse component of the momentum
-	    ptrans[0] = pcell[0] - prad[0];
-	    ptrans[1] = pcell[1] - prad[1];
-	    ptrans[2] = pcell[2] - prad[2];
-
-	    // Compute the new radial component of the momentum
-	    pradnew[0] = prad[0]*mnew[index]/mcell;
-	    pradnew[1] = prad[1]*mnew[index]/mcell;
-	    pradnew[2] = prad[2]*mnew[index]/mcell;
-
-	    // Set the new transverse momentum
-	    ptransnew[0] = ptrans[0];
-	    ptransnew[1] = ptrans[1];
-	    ptransnew[2] = ptrans[2];
-
 	    // Compute the amount of momentum accreted
-	    paccrete[0][index] = pcell[0] - pradnew[0] - ptransnew[0];
-	    paccrete[1][index] = pcell[1] - pradnew[1] - ptransnew[1];
-	    paccrete[2][index] = pcell[2] - pradnew[2] - ptransnew[2];
+	    paccrete[0][index] = pcell[0] * maccreted/mcell;
+	    paccrete[1][index] = pcell[1] * maccreted/mcell;
+	    paccrete[2][index] = pcell[2] * maccreted/mcell;
 
 	    // Compute new total internal energy. By construction,
 	    // this keeps the specific internal energy constant after
