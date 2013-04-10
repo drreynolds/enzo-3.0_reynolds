@@ -200,7 +200,8 @@ int grid::ComputeCoolingTime(float *cooling_time)
  
   if (grackle_chemistry.use_chemistry) {
 
-    // update units that change
+    /* Update units. */
+
     grackle_units.density_units = DensityUnits;
     grackle_units.length_units = LengthUnits;
 
@@ -230,9 +231,9 @@ int grid::ComputeCoolingTime(float *cooling_time)
         thermal_energy[i] = BaryonField[TENum][i] - 
           0.5 * POW(BaryonField[Vel1Num][i], 2.0);
         if(GridRank > 1)
-          thermal_energy[i] -= 0.5*POW(BaryonField[Vel2Num][i], 2.0);
+          thermal_energy[i] -= 0.5 * POW(BaryonField[Vel2Num][i], 2.0);
         if(GridRank > 2)
-          thermal_energy[i] -= 0.5*POW(BaryonField[Vel3Num][i], 2.0);
+          thermal_energy[i] -= 0.5 * POW(BaryonField[Vel3Num][i], 2.0);
 
         if(HydroMethod == MHD_RK) {
           thermal_energy[i] -= 0.5 * (POW(BaryonField[iBx][i], 2.0) + 
@@ -262,6 +263,8 @@ int grid::ComputeCoolingTime(float *cooling_time)
     if (temp_thermal == TRUE) {
       delete [] thermal_energy;
     }
+
+    delete [] TotalMetals;
 
     return SUCCESS;
   }
