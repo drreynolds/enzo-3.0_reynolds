@@ -69,8 +69,6 @@ int grid::AccreteOntoAccretingParticle(
     dxmin, huge = 1.0e30, WeightedSum = 0,
     SumOfWeights = 0, AverageDensity = 0;
 
-  int isub, jsub, ksub, excluded, NDIV = 8, NumberOfCells=0;
-
   int offset[] =
     {1, GridDimension[0], GridDimension[0]*GridDimension[1]};
 
@@ -87,7 +85,6 @@ int grid::AccreteOntoAccretingParticle(
     jsp[i] = 0;
   }
 
-  int *nexcluded = new int[size]();
   float **pnew = new float*[MAX_DIMENSION];
   float **pold = new float*[MAX_DIMENSION];
   float **ovel = new float*[MAX_DIMENSION];
@@ -176,7 +173,6 @@ int grid::AccreteOntoAccretingParticle(
 	  WeightedSum += BaryonField[DensNum][index]*
 	    exp(-radius2/(KernelRadius*KernelRadius));
 	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
-	  NumberOfCells++;
 	  if (HydroMethod == PPM_DirectEuler)
 	  {
 	    vgas[0] = BaryonField[Vel1Num][index];
@@ -198,73 +194,10 @@ int grid::AccreteOntoAccretingParticle(
 	  else
 	    ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
 
-	  /* The true accretion rate is somewhat less than this due to
-	     angular momentum conservation.  Subdivide the cell into
-	     NDIV^2 subcells and estimate the reduction assuming
-	     ballistic orbits. See the discussion near Eqn 15. */
-	  for (ksub = 0; ksub < NDIV-1; ksub++)
-	  {
-	    for (jsub = 0; jsub < NDIV-1; jsub++)
-	    {
-	      for (isub = 0; isub < NDIV-1; isub++)
-	      {
-		xdist = CellLeftEdge[0][i] +
-		  CellWidth[0][i]*(float(jsub)+0.5)/NDIV - xsink;
-		ydist = CellLeftEdge[1][j] +
-		  CellWidth[1][j]*(float(jsub)+0.5)/NDIV - ysink;
-		zdist = CellLeftEdge[2][k] +
-		  CellWidth[2][k]*(float(ksub)+0.5)/NDIV - zsink;
-
-		dist = sqrt(xdist*xdist+ydist*ydist+zdist*zdist);
-		if (dist == 0.0)
-		  dist = CellWidth[0][0]/huge;
-
-		// Compute specific angular momentum
-		jsp[0] = ydist*(vgas[2] - vsink[2]) -
-		  zdist*(vgas[1] - vsink[1]);
-		jsp[1] = zdist*(vgas[0] - vsink[0]) -
-		  xdist*(vgas[2] - vsink[2]);
-		jsp[2] = xdist*(vgas[1] - vsink[1]) -
-		  ydist*(vgas[0] - vsink[0]);
-
-		jspsqr = jsp[0]*jsp[0]+jsp[1]*jsp[1]+jsp[2]*jsp[2];
-
-		// Compute specific kinetic + gravitational energy
-		esp = (POW((vgas[0] - vsink[0]),2) +
-		       POW((vgas[1] - vsink[1]),2) +
-		       POW((vgas[2] - vsink[2]),2)) / 2.0 -
-		  GravitationalConstant * msink/dist;
-
-		efac = 1.0 -
-		  sqrt(1.0 + 2.0*jspsqr*esp/POW(GravitationalConstant*msink,2));
-
-		// Compute distance of closest approach
-		if (esp > 0.0)
-		  rmin = huge*CellWidth[0][0];
-		else
-		  rmin = -GravitationalConstant*msink/(2.0*esp) * efac;
-
-		dxmin = rmin / CellWidth[0][0];
-		if (dxmin >= 0.25)
-		  nexcluded[index]+=1;
-
-	      } // ksub
-	    } // jsub
-	  } // ksub
-
-	  if (abs(i-cindex) <= 1 && abs(j-cindex) <= 1 && abs(k-cindex) <= 1)
-	    maxexcluded = max(nexcluded[index],maxexcluded);
 	}
       }
     }
   }
-
-  // Correct the central cell
-  if (nexcluded[cgindex] > 0)
-    if (KernelRadius / CellWidth[0][0] >= 0.25)
-      nexcluded[cgindex] = maxexcluded;
-    else
-      nexcluded[cgindex] = 0;
 
   AverageDensity = WeightedSum / SumOfWeights;
 
@@ -357,10 +290,6 @@ int grid::AccreteOntoAccretingParticle(
 	  maccreted =  this->dtFixed * (*AccretionRate) * Weight;
 	  if (maccreted > 0.25*mcell)
 	    maccreted = 0.25*mcell;
-
-	  // Scale down maccreted
-	  maccreted = maccreted/POW(NDIV,3) *
-	    (POW(NDIV,3)-nexcluded[index]);
 
 	  /* Don't worry about conserving angular momentum if we're
 	     accreting no mass from the cell or if we are accreting
@@ -553,7 +482,6 @@ int grid::AccreteOntoAccretingParticle(
   delete [] mold;
   delete [] ovel;
   delete [] paccrete;
-  delete [] nexcluded;
 
   return SUCCESS;
 }
