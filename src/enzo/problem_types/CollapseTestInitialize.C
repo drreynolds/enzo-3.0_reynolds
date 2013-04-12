@@ -35,7 +35,7 @@ void AddLevel(LevelHierarchyEntry *Array[], HierarchyEntry *Grid, int level);
 int RebuildHierarchy(TopGridData *MetaData,
 		     LevelHierarchyEntry *LevelArray[], int level);
 
-int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
+int CollapseTestInitialize(FILE *fptr, FILE *Outfptr, 
 			  HierarchyEntry &TopGrid, TopGridData &MetaData)
 {
   const char *DensName = "Density";
@@ -84,9 +84,8 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
     CollapseTestSphereCutOff[MAX_SPHERES],
     CollapseTestSphereAng1[MAX_SPHERES],
     CollapseTestSphereAng2[MAX_SPHERES],
-    CollapseTestSphereRotationPeriod[MAX_SPHERES],
-    CollapseTestSphereSmoothRadius[MAX_SPHERES],
-    CollapseTestSphereMetallicity[MAX_SPHERES];
+    CollapseTestSphereMetallicity[MAX_SPHERES],
+    CollapseTestSphereSmoothRadius[MAX_SPHERES];
   int CollapseTestSphereNumShells[MAX_SPHERES],
     CollapseTestSphereInitialLevel[MAX_SPHERES],
     CollapseTestSphereType[MAX_SPHERES],
@@ -107,7 +106,6 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
     CollapseTestSphereCutOff[sphere] = 6.5;
     CollapseTestSphereAng1[sphere] = 0;
     CollapseTestSphereAng2[sphere] = 0;
-    CollapseTestSphereRotationPeriod[sphere] = 0;
     CollapseTestSphereNumShells[sphere] = 1;
     CollapseTestSphereSmoothRadius[sphere] = 1.2;
     CollapseTestSphereMetallicity[sphere] = 0;
@@ -135,21 +133,21 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 
     ret += sscanf(line, "CollapseTestNumberOfSpheres = %"ISYM,
 		  &CollapseTestNumberOfSpheres);
-    ret += sscanf(line, "CollapseTestRefineAtStart = %"ISYM,
+    ret += sscanf(line, "CollapseTestRefineAtStart = %"ISYM, 
 		  &CollapseTestRefineAtStart);
-    ret += sscanf(line, "CollapseTestUseParticles = %"ISYM,
+    ret += sscanf(line, "CollapseTestUseParticles = %"ISYM, 
 		  &CollapseTestUseParticles);
     ret += sscanf(line, "CollapseTestParticleMeanDensity = %"FSYM,
 		  &CollapseTestParticleMeanDensity);
-    ret += sscanf(line, "CollapseTestUseColour = %"ISYM,
+    ret += sscanf(line, "CollapseTestUseColour = %"ISYM, 
 		  &CollapseTestUseColour);
-    ret += sscanf(line, "CollapseTestUseMetals = %"ISYM,
+    ret += sscanf(line, "CollapseTestUseMetals = %"ISYM, 
 		  &CollapseTestUseMetals);
-    ret += sscanf(line, "CollapseTestInitialTemperature = %"FSYM,
+    ret += sscanf(line, "CollapseTestInitialTemperature = %"FSYM, 
 		  &CollapseTestInitialTemperature);
     ret += sscanf(line, "CollapseTestInitialDensity = %"FSYM,
 		  &CollapseTestInitialDensity);
-    ret += sscanf(line, "CollapseTestUniformVelocity = %"FSYM" %"FSYM" %"FSYM,
+    ret += sscanf(line, "CollapseTestUniformVelocity = %"FSYM" %"FSYM" %"FSYM, 
 		  CollapseTestUniformVelocity, CollapseTestUniformVelocity+1,
 		  CollapseTestUniformVelocity+2);
     if (sscanf(line, "CollapseTestSphereType[%"ISYM"]", &sphere) > 0)
@@ -171,12 +169,12 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
       ret += sscanf(line, "CollapseTestSphereMetallicity[%"ISYM"] = %"FSYM, &sphere,
 		    &CollapseTestSphereMetallicity[sphere]);
     if (sscanf(line, "CollapseTestSpherePosition[%"ISYM"]", &sphere) > 0)
-      ret += sscanf(line, "CollapseTestSpherePosition[%"ISYM"] = %"PSYM" %"PSYM" %"PSYM,
+      ret += sscanf(line, "CollapseTestSpherePosition[%"ISYM"] = %"PSYM" %"PSYM" %"PSYM, 
 		    &sphere, &CollapseTestSpherePosition[sphere][0],
 		    &CollapseTestSpherePosition[sphere][1],
 		    &CollapseTestSpherePosition[sphere][2]);
     if (sscanf(line, "CollapseTestSphereVelocity[%"ISYM"]", &sphere) > 0)
-      ret += sscanf(line, "CollapseTestSphereVelocity[%"ISYM"] = %"FSYM" %"FSYM" %"FSYM,
+      ret += sscanf(line, "CollapseTestSphereVelocity[%"ISYM"] = %"FSYM" %"FSYM" %"FSYM, 
 		    &sphere, &CollapseTestSphereVelocity[sphere][0],
 		    &CollapseTestSphereVelocity[sphere][1],
 		    &CollapseTestSphereVelocity[sphere][2]);
@@ -198,9 +196,6 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
     if (sscanf(line, "CollapseTestSphereAng2[%"ISYM"]", &sphere) > 0)
       ret += sscanf(line, "CollapseTestSphereAng2[%"ISYM"] = %"FSYM, &sphere,
                     &CollapseTestSphereAng2[sphere]);
-    if (sscanf(line, "CollapseTestSphereRotationPeriod[%"ISYM"]", &sphere) > 0)
-      ret += sscanf(line, "CollapseTestSphereRotationPeriod[%"ISYM"] = %"FSYM, &sphere,
-		    &CollapseTestSphereRotationPeriod[sphere]);
     if (sscanf(line, "CollapseTestSphereNumShells[%"ISYM"]", &sphere) > 0)
       ret += sscanf(line, "CollapseTestSphereNumShells[%"ISYM"] = %"ISYM, &sphere,
                     &CollapseTestSphereNumShells[sphere]);
@@ -219,7 +214,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 
     /* if the line is suspicious, issue a warning */
 
-    if (ret == 0 && strstr(line, "=") && strstr(line, "CollapseTest")
+    if (ret == 0 && strstr(line, "=") && strstr(line, "CollapseTest") 
 	&& line[0] != '#')
       fprintf(stderr, "warning: the following parameter line was not interpreted:\n%s\n", line);
 
@@ -235,10 +230,9 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
              CollapseTestFracKeplerianRot, CollapseTestSphereTurbulence,
 	     CollapseTestSphereDispersion,
              CollapseTestSphereCutOff, CollapseTestSphereAng1,
-             CollapseTestSphereAng2, CollapseTestSphereRotationPeriod,
-	     CollapseTestSphereNumShells, CollapseTestSphereType,
-	     CollapseTestSphereConstantPressure,
-	     CollapseTestSphereSmoothSurface, CollapseTestSphereSmoothRadius,
+             CollapseTestSphereAng2, CollapseTestSphereNumShells,
+	     CollapseTestSphereType, CollapseTestSphereConstantPressure,
+	     CollapseTestSphereSmoothSurface, CollapseTestSphereSmoothRadius, 
 	     CollapseTestUseParticles, CollapseTestParticleMeanDensity,
              CollapseTestUniformVelocity, CollapseTestUseColour,
 	     CollapseTestUseMetals,
@@ -250,14 +244,12 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
   /* Convert minimum initial overdensity for refinement to mass
      (unless MinimumMass itself was actually set). */
 
-  for (i = 0; i < MAX_FLAGGING_METHODS; i++)
-    if (MinimumMassForRefinement[i] == FLOAT_UNDEFINED) {
-      MinimumMassForRefinement[i] = MinimumOverDensityForRefinement[i];
-      for (dim = 0; dim < MetaData.TopGridRank; dim++)
-	MinimumMassForRefinement[i] *=
-	  (DomainRightEdge[dim]-DomainLeftEdge[dim])/
-	  float(MetaData.TopGridDims[dim]);
-    }
+  if (MinimumMassForRefinement[0] == FLOAT_UNDEFINED) {
+    MinimumMassForRefinement[0] = MinimumOverDensityForRefinement[0];
+    for (dim = 0; dim < MetaData.TopGridRank; dim++)
+      MinimumMassForRefinement[0] *=(DomainRightEdge[dim]-DomainLeftEdge[dim])/
+	float(MetaData.TopGridDims[dim]);
+  }
 
   /* If requested and there are no manual settings of the refinement
      of spheres, refine the grid to the desired level. */
@@ -280,7 +272,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
       FLOAT ThisLeftEdge[MAX_DIMENSION], ThisRightEdge[MAX_DIMENSION];
 
       for (sphere = 0; sphere < CollapseTestNumberOfSpheres; sphere++) {
-
+	
 	max_level = CollapseTestSphereInitialLevel[sphere];
 	if (max_level > 0) {
 
@@ -289,7 +281,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 	    Subgrid[lev] = new HierarchyEntry;
 
 	  for (lev = 0; lev < max_level; lev++) {
-
+	    
 	    for (dim = 0; dim < MetaData.TopGridRank; dim++) {
 	      dx = 1.0 / float(MetaData.TopGridDims[dim]) / POW(RefineBy, lev);
 	      ThisLeftEdge[dim] = CollapseTestSpherePosition[sphere][dim] -
@@ -298,15 +290,15 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 	      ThisRightEdge[dim] = CollapseTestSpherePosition[sphere][dim] +
 		0.5 * CollapseTestSphereRadius[sphere] + 2*dx;
 	      ThisRightEdge[dim] = nint(ThisRightEdge[dim] / dx) * dx;
-	      NumberOfSubgridDims[dim] =
-		nint((ThisRightEdge[dim] - ThisLeftEdge[dim]) /
-		     (DomainRightEdge[dim] - DomainLeftEdge[dim]) / dx);
+	      NumberOfSubgridDims[dim] = 
+		nint((ThisRightEdge[dim] - ThisLeftEdge[dim]) / 
+		     (DomainRightEdge[dim] - DomainLeftEdge[dim]) / dx);		
 	    } // ENDFOR dims
 
 	    if (debug)
 	      printf("CollapseTest:: Level[%"ISYM"]: NumberOfSubgridZones[0] = %"ISYM"\n",
 		     lev+1, NumberOfSubgridDims[0]);
-
+	    
 	    if (NumberOfSubgridDims[0] > 0) {
 
 	      // Insert into AMR hierarchy
@@ -328,7 +320,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 		NumberOfSubgridDims[dim] += 2*NumberOfGhostZones;
 	      Subgrid[lev]->GridData = new grid;
 	      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData);
-	      Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank,
+	      Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank, 
 						  NumberOfSubgridDims,
 						  ThisLeftEdge,
 						  ThisRightEdge, 0);
@@ -342,10 +334,9 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 		  CollapseTestFracKeplerianRot, CollapseTestSphereTurbulence,
 		  CollapseTestSphereDispersion,
 		  CollapseTestSphereCutOff, CollapseTestSphereAng1,
-		  CollapseTestSphereAng2, CollapseTestSphereRotationPeriod,
-		  CollapseTestSphereNumShells, CollapseTestSphereType,
-		  CollapseTestSphereConstantPressure,
-		  CollapseTestSphereSmoothSurface, CollapseTestSphereSmoothRadius,
+		  CollapseTestSphereAng2, CollapseTestSphereNumShells,
+		  CollapseTestSphereType, CollapseTestSphereConstantPressure,
+		  CollapseTestSphereSmoothSurface, CollapseTestSphereSmoothRadius, 
 		  CollapseTestUseParticles, CollapseTestParticleMeanDensity,
 		  CollapseTestUniformVelocity, CollapseTestUseColour,
 		  CollapseTestUseMetals,
@@ -353,7 +344,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 		  lev-1) == FAIL) {
 		ENZO_FAIL("Error in CollapseTestInitializeGrid.");
 	      }
-
+	      
 	    } // ENDIF zones exist
 	  } // ENDFOR levels
 	} // ENDIF max_level > 0
@@ -387,10 +378,9 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 		 CollapseTestFracKeplerianRot, CollapseTestSphereTurbulence,
 		 CollapseTestSphereDispersion,
 		 CollapseTestSphereCutOff, CollapseTestSphereAng1,
-		 CollapseTestSphereAng2, CollapseTestSphereRotationPeriod,
-		 CollapseTestSphereNumShells, CollapseTestSphereType,
-		 CollapseTestSphereConstantPressure,
-		 CollapseTestSphereSmoothSurface, CollapseTestSphereSmoothRadius,
+		 CollapseTestSphereAng2, CollapseTestSphereNumShells,
+		 CollapseTestSphereType, CollapseTestSphereConstantPressure,
+		 CollapseTestSphereSmoothSurface, CollapseTestSphereSmoothRadius, 
 		 CollapseTestUseParticles, CollapseTestParticleMeanDensity,
 		 CollapseTestUniformVelocity, CollapseTestUseColour,
 		 CollapseTestUseMetals,
@@ -503,8 +493,6 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
               CollapseTestSphereAng1[sphere]);
       fprintf(Outfptr, "CollapseTestSphereAng2[%"ISYM"] = %"GOUTSYM"\n", sphere,
               CollapseTestSphereAng2[sphere]);
-      fprintf(Outfptr, "CollapseTestSphereRotationPeriod[%"ISYM"] = %"GOUTSYM"\n", sphere,
-	      CollapseTestSphereRotationPeriod[sphere]);
       fprintf(Outfptr, "CollapseTestSphereNumShells[%"ISYM"] = %"ISYM"\n", sphere,
               CollapseTestSphereNumShells[sphere]);
       fprintf(Outfptr, "CollapseTestSphereConstantPressure[%"ISYM"] = %"ISYM"\n", sphere,
