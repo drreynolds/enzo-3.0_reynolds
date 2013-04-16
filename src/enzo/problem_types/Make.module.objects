@@ -42,6 +42,7 @@ ENZO_OBJS +=\
 	PoissonSolverTestInitialize.o \
 	PressurelessCollapseInitialize.o \
 	ProblemType.o \
+	ProblemType_AgoraRestart.o \
 	ProblemType_CollapsingCoolingCloud.o \
 	ProblemType_ExplodingCloud.o \
 	ProblemType_Python.o \
