@@ -73,6 +73,7 @@ int CommunicationTranspose(region *FromRegion, int NumberOfFromRegions,
 			   region *ToRegion, int NumberOfToRegions,
 			   int TransposeOrder)
 {
+    TIMER_START("CommunicationTranspose");
     int retval;
     switch (UnigridTranspose) {
     case 0:
@@ -93,6 +94,7 @@ int CommunicationTranspose(region *FromRegion, int NumberOfFromRegions,
     default:
       ENZO_VFAIL("Invalid value for UnigridTranspose = %d", UnigridTranspose);
     } // ENDSWITCH
+    TIMER_STOP("CommunicationTranspose");
     return retval;
 }
 

@@ -76,8 +76,6 @@ Branches
    feature under development or some other characteristic of a line of
    development.
 
-On the Google Code wiki there is a list of active branches.
-
 When you check out the Enzo repository, you receive a full and complete copy of
 the entire history of that repository; you can update between revisions at
 will without ever touching the network again.  This allows not only for
@@ -100,8 +98,8 @@ tested, verified, or even to provide correct answers.
    development repository!
 
 To conceptually -- and technically! -- separate these two repositories, they
-also live in different places.  We keep the stable repository at Google Code,
-and the development repository at BitBucket.  Enzo is (as of 2.1) developed in
+also live in different places.  We keep both the stable repository 
+and the development repository at BitBucket.  Enzo is (as of 2.2) developed in
 a relatively simple fashion:
 
   #. On BitBucket, developers "fork" the primary development repository.
@@ -112,14 +110,14 @@ a relatively simple fashion:
      development branch.  New features will be aggregated into patch
      releases on the "stable" branch.
   #. When a new patch release is issued, the current development branch is
-     pushed to the "stable" branch on Google Code.
+     pushed to the "enzo-stable" repository on Bitbucket.
 
 The idea here is that there is a double firewall: the development repository is
 very high-cadence and with high-turnover, but the stable repository is much
 slower, more carefully curated, and inclusions in it are well-tested.
 
- * Stable code lives at: http://enzo.googlecode.com/
- * Development code lives at: http://bitbucket.org/enzo/
+ * Stable code lives at: https://bitbucket.org/enzo/enzo-stable
+ * Development code lives at: http://bitbucket.org/enzo/enzo-dev
 
 How To Share Changes
 --------------------
@@ -160,11 +158,9 @@ executing: ::
 After doing so, I can immediately see my new bookmark by running: ::
 
    $ hg bookmarks
-
 Then if time goes by, and changes were made to the code base that I want to 
 take advantage of, I can simply commit what I've done so far, pull in the new
 changes from the main repository, and perhaps bookmark that as well: ::
-
    $ hg commit -m 'Load Balancing work in progress.'
    $ hg pull 
    $ hg bookmark mainline
