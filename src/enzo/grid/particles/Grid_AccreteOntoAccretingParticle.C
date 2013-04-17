@@ -26,7 +26,7 @@
 #include "phys_constants.h"
 
 
-#define DEBUG_AP
+#define NO_DEBUG_AP
 
 float bondi_alpha(float x);
 
