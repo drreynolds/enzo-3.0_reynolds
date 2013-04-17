@@ -30,9 +30,6 @@
 #include "CosmologyParameters.h"
 #include "TopGridData.h"
 #include "ProblemType.h"
-#ifdef NEW_PROBLEM_TYPES
-#include "message_passing.h"
-#endif
 
 int ExposeDataHierarchy(TopGridData *MetaData, HierarchyEntry *Grid, 
 		       int &GridID, FLOAT WriteTime, int reset, int ParentID, int level);
