@@ -70,8 +70,6 @@ private:
   FLOAT CenterPosition[MAX_DIMENSION];
   FLOAT ScaleLength;
   FLOAT ScaleHeight;
-  FLOAT CutOffRadius;
-  FLOAT CutOffZ;
   float DiskMass;
   float GasFraction;
   float DiskTemperature;
@@ -140,8 +138,6 @@ public:
     // Temperature: K
     this->ScaleLength         = .0343218;
     this->ScaleHeight         = .00343218;
-    this->CutOffRadius        = .2;
-    this->CutOffZ             = 0.03;
     this->DiskMass            = 42.9661;
     this->GasFraction         = 0.2;
     this->DiskTemperature     = 1e4;
@@ -162,8 +158,6 @@ public:
 		    CenterPosition, CenterPosition+1, CenterPosition+2);
       ret += sscanf(line, "AgoraRestartScaleLength = %"PSYM, &ScaleLength);
       ret += sscanf(line, "AgoraRestartScaleHeight = %"PSYM, &ScaleHeight);
-      ret += sscanf(line, "AgoraRestartCutOffRadius = %"PSYM, &CutOffRadius);
-      ret += sscanf(line, "AgoraRestartCutOffZ = %"PSYM, &CutOffZ);
       ret += sscanf(line, "AgoraRestartDiskMass = %"FSYM, &DiskMass);
       ret += sscanf(line, "AgoraRestartGasFraction = %"FSYM, &GasFraction);
       ret += sscanf(line, "AgoraRestartDiskTemperature = %"FSYM, &DiskTemperature);
@@ -266,8 +260,6 @@ public:
 	      CenterPosition[0], CenterPosition[1], CenterPosition[2]);
       fprintf(Outfptr, "AgoraRestartScaleLength             = %"PSYM"\n", ScaleLength);
       fprintf(Outfptr, "AgoraRestartScaleHeight             = %"PSYM"\n", ScaleHeight);
-      fprintf(Outfptr, "AgoraRestartCutOffRadius            = %"PSYM"\n", CutOffRadius);
-      fprintf(Outfptr, "AgoraRestartCutOffZ                 = %"PSYM"\n", CutOffZ);
       fprintf(Outfptr, "AgoraRestartDiskMass                = %"FSYM"\n", DiskMass);
       fprintf(Outfptr, "AgoraRestartGasFraction             = %"FSYM"\n", GasFraction);
       fprintf(Outfptr, "AgoraRestartDiskTemperature         = %"FSYM"\n", DiskTemperature);
