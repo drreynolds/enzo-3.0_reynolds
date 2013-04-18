@@ -181,27 +181,6 @@ int grid::AccreteOntoAccretingParticle(
 	  WeightedSum += BaryonField[DensNum][index]*
 	    exp(-radius2/(KernelRadius*KernelRadius));
 	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
-	  if (HydroMethod == PPM_DirectEuler)
-	  {
-	    vgas[0] = BaryonField[Vel1Num][index];
-	    vgas[1] = BaryonField[Vel2Num][index];
-	    vgas[2] = BaryonField[Vel3Num][index];
-	  }
-	  else if (HydroMethod == Zeus_Hydro)
-	  {
-	    vgas[0] = 0.5 *
-	      (BaryonField[Vel1Num][index] +
-	       BaryonField[Vel1Num][index+offset[0]]);
-	    vgas[1] = 0.5 *
-	      (BaryonField[Vel2Num][index] +
-	       BaryonField[Vel2Num][index+offset[1]]);
-	    vgas[2] = 0.5 *
-	      (BaryonField[Vel3Num][index] +
-	       BaryonField[Vel3Num][index+offset[2]]);
-	  }
-	  else
-	    ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
-
 	}
       }
     }
@@ -323,7 +302,9 @@ int grid::AccreteOntoAccretingParticle(
 	  {
 	    // Keep cell mass well above density floor
 	    if ((mcell - maccreted)/CellVolume > SmallRhoFac*SmallRho)
+	    {
 	      mnew[index] = mcell - maccreted;
+	    }
 	    else
 	    {
 	      mnew[index] = SmallRhoFac*SmallRho*CellVolume;
@@ -434,14 +415,12 @@ int grid::AccreteOntoAccretingParticle(
 	      {
 		if (BaryonField[GENum][index] < SmallEFac*SmEint)
 		  BaryonField[GENum][index] = SmallEFac*SmEint;
-		break;
 	      }
-
-	      if (BaryonField[TENum][index] -
-		  0.5 * (POW(BaryonField[Vel1Num][index],2) + 
-			 POW(BaryonField[Vel2Num][index],2) +
-			 POW(BaryonField[Vel3Num][index],2))
-		  < SmallEFac*SmEint)
+	      else if (BaryonField[TENum][index] -
+		       0.5 * (POW(BaryonField[Vel1Num][index],2) +
+			      POW(BaryonField[Vel2Num][index],2) +
+			      POW(BaryonField[Vel3Num][index],2))
+		       < SmallEFac*SmEint)
 	      {
 		BaryonField[TENum][index] = SmallEFac*SmEint +
 		  0.5 * (POW(BaryonField[Vel1Num][index],2) +
