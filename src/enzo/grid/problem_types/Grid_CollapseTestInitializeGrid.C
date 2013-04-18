@@ -145,7 +145,7 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
   const double Mpc = 3.0856e24, SolarMass = 1.989e33, GravConst = 6.67e-8,
     pi = 3.14159, mh = 1.67e-24, kboltz = 1.381e-16, LightSpeed = 2.9979e10;
   float DensityUnits, LengthUnits, TemperatureUnits, TimeUnits, 
-    VelocityUnits, CriticalDensity = 1, BoxLength = 1, mu = 0.6;
+    VelocityUnits, CriticalDensity = 1, BoxLength = 1, mu = Mu;
 
   FLOAT a, dadt, ExpansionFactor = 1;
   GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits, &TimeUnits, 
