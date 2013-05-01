@@ -105,7 +105,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	  }
 
 	  /* Finally, append the new active particles to the list */
-	  for(i = LocalNumberOfActiveParticles; i < offset + LocalNumberOfActiveParticles; i++) {
+	  for(i = LocalNumberOfActiveParticles; i < offset + LocalNumberOfActiveParticles; i++) 
 	    LocalActiveParticlesOfThisType[i] = LocalActiveParticlesOnThisLevel[i - LocalNumberOfActiveParticles];
 
 	  LocalNumberOfActiveParticles += LocalNumberOfActiveParticlesOnThisLevel;
