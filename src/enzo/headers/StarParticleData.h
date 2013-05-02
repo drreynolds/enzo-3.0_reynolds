@@ -112,9 +112,6 @@ SPEXTERN float  MBHFeedbackMetalYield;
 SPEXTERN float  MBHFeedbackThermalRadius;
 SPEXTERN float  MBHFeedbackJetsThresholdMass;
 
-
-SPEXTERN float CenOstrikerStochasticStarFormation;
-SPEXTERN float CenOstrikerJeansMassCriterion;
 SPEXTERN float UnfulfilledStarFormationMass;
 
 SPEXTERN float  H2StarMakerEfficiency;
