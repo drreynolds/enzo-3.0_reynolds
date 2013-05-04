@@ -74,6 +74,10 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   float TempFloat;
   int comment_count = 0;
  
+  char **active_particle_types;
+  active_particle_types = new char*[MAX_ACTIVE_PARTICLE_TYPES];
+  int active_particles = 0;
+
   /* read until out of lines */
 
   rewind(fptr);
@@ -1030,10 +1034,10 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 		  ResetMagneticFieldAmplitude+1,
 		  ResetMagneticFieldAmplitude+2);
 
-    int ActiveParticleTypeIndex;
     if (sscanf(line, "AppendActiveParticleType = %s", dummy) == 1) {
-        fprintf(stdout, "Enabling particle type %s\n", dummy);
-        EnableActiveParticleType(dummy);
+      active_particle_types[active_particles] = new char[MAX_LINE_LENGTH];
+      strcpy(active_particle_types[active_particles], dummy);
+      active_particles++;
     }
 
     ret += sscanf(line, "UseGasDrag = %"ISYM, &UseGasDrag);
@@ -1113,6 +1117,13 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
     delete [] dummy;
   }
+
+  // Enable the active particles that were selected.
+  for (i = 0;i < active_particles;i++) {
+    fprintf(stdout, "Enabling particle type %s\n", active_particle_types[i]);
+    EnableActiveParticleType(active_particle_types[i]);
+  }
+  delete [] active_particle_types;
 
   // HierarchyFile IO sanity check
 
