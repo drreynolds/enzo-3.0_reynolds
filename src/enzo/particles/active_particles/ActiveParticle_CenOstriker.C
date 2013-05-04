@@ -5,6 +5,7 @@
 ************************************************************************/
 
 #include "ActiveParticle_CenOstriker.h"
+#include "phys_constants.h"
 
 #ifdef NEW_CONFIG
 
@@ -103,7 +104,7 @@ int ActiveParticleType_CenOstriker::InitializeParticleType() {
   FeedbackDistCellStep = StarFeedbackDistCellStep;
   JeansMassCriterion = true;
   StochasticStarFormation = false;
-  UnigridVelocities = true;
+  UnigridVelocities = false;
   PhysicalOverdensity = true;
 
 #endif
@@ -122,9 +123,6 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
   float BaryonMass,VelocityDivergence,TotalDensity,DynamicalTime,
     IsothermalSoundSpeedSquared,JeansMass,StarFraction, RandomNumber;
   float SoundSpeedConstant = 1.3095e8;
-  float mh = 1.67262171e-24;  // [g]
-  float GravConst = 6.67428e-8; // [cgs]
-  float SolarMass = 1.9891e33; // [g]
   int i, j, k, dim, index, offset_y, offset_z;
   int NumberOfNewParticles = 0;
 
@@ -203,8 +201,10 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	}
 
 	// 6) Check to see if star is above threshold (given in units of M_solar)
-	StarFraction = min(StarMakerMassEfficiency*thisGrid->ReturnTimeStep()/DynamicalTime, 0.9);
-	DynamicalTime = max(DynamicalTime, StarMakerMinimumDynamicalTime*3.156e7/data.TimeUnits);
+	StarFraction = min(StarMakerMassEfficiency *
+                           thisGrid->ReturnTimeStep() / DynamicalTime, 0.9);
+	DynamicalTime = max(DynamicalTime, StarMakerMinimumDynamicalTime * yr /
+                            data.TimeUnits);
 	
 	// 7) If we allow stochastic star formation, make new particles 
         //    every time the unfulfilled star formation buffer
@@ -249,7 +249,6 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	
 	if (UnigridVelocities == false) {
 	  float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
-	  
 	  np->vel[0] = tvel[0];
 	  np->vel[1] = tvel[1];
 	  np->vel[2] = tvel[2];
@@ -291,7 +290,6 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
   float *metals = thisGrid->BaryonField[data.MetalNum];
   float dt = thisGrid->dtFixed;
   float dx = float(thisGrid->CellWidth[0][0]);
-  float clight = 2.9979e10; // [cm / s]
 
   float xv1, xv2, ParticleBirthTime, ParticleDynamicalTimeAtBirth,
     ParticleMass, ParticleInitialMass, ParticleMetalFraction, 
@@ -385,7 +383,8 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
     DensityToAddToEachCell = (StarFormationDensityThisTimestep * 
                               StarMassEjectionFraction) / StarFeedbackDistTotalCells;
 
-    // If using distributed feedback, check if particle is too close to the boundary and adjust indices accordingly
+    // If using distributed feedback, check if particle is too close 
+    // to the boundary and adjust indices accordingly
 
     if (StarFeedbackDistRadius > 0)
       {
@@ -399,7 +398,8 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     // Subtract ejected mass from particle
     
-    ParticleMass -= StarFormationDensityThisTimestep*StarMassEjectionFraction;
+    ParticleMass -= StarFormationDensityThisTimestep *
+      StarMassEjectionFraction;
 
     // Save particle mass
 
@@ -407,27 +407,31 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     // Record amount of star formation in this grid
 
-    StellarMassFormedThisTimestepOnThisGrid += StarFormationDensityThisTimestep*dt*POW(dx,3);
+    StellarMassFormedThisTimestepOnThisGrid += 
+      StarFormationDensityThisTimestep * dt * POW(dx,3);
 
     // Calculate supernova energy for this timestep
 
-    SupernovaEnergyThisTimestep = StarEnergyToThermalFeedback * StarFormationDensityThisTimestep * 
-      POW(clight/data.VelocityUnits,2) / StarFeedbackDistTotalCells;
+    SupernovaEnergyThisTimestep = StarEnergyToThermalFeedback * 
+      StarFormationDensityThisTimestep * POW(clight/data.VelocityUnits,2) /
+      StarFeedbackDistTotalCells;
 
 #define NO_SHARE_ENERGY
 #ifdef SHARE_ENERGY
-    SupernovaEnergyThisTimestep *= StarFormationDensityThisTimestep*StarMassEjectionFraction / 
-      (StarFormationDensityThisTimestep*StarMassEjectionFraction + ParticleInitialMass*exp(-xv2)*(1.0+xv2));
+    SupernovaEnergyThisTimestep *= StarFormationDensityThisTimestep *
+      StarMassEjectionFraction / 
+      (StarFormationDensityThisTimestep * StarMassEjectionFraction + 
+       ParticleInitialMass*exp(-xv2)*(1.0+xv2));
 #endif /* SHARE_ENERGY */
 
     // Add energy to the energy field
-    for (kc = k - FeedbackDistRadius; kc <= k + FeedbackDistRadius; kc++){
+    for (kc = k - StarFeedbackDistRadius; kc <= k + StarFeedbackDistRadius; kc++){
       stepk = fabs(kc - k);
-      for (jc = j - FeedbackDistRadius; jc <= j + FeedbackDistRadius; jc++){
+      for (jc = j - StarFeedbackDistRadius; jc <= j + StarFeedbackDistRadius; jc++){
 	stepj = stepk + fabs(jc - j);
-	for (ic = i - FeedbackDistRadius; ic <= i + FeedbackDistRadius; ic++){
+	for (ic = i - StarFeedbackDistRadius; ic <= i + StarFeedbackDistRadius; ic++){
 	  cellstep = stepj + fabs(ic - i);
-	  DistIndex = GRIDINDEX_NOGHOST(thisGrid->GridStartIndex[0],jc,kc);
+	  DistIndex = GRIDINDEX_NOGHOST(ic,jc,kc);
 	  if (cellstep <= StarFeedbackDistCellStep) {
 	    DensityRatio = 1.0/(density[DistIndex] + DensityToAddToEachCell);
 	    totalenergy[DistIndex] = ((totalenergy[DistIndex]*density[DistIndex]) + 
@@ -451,20 +455,31 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
 	    // Mass and momentum feedback
 
-	    velx[DistIndex] = velx[DistIndex]*density[DistIndex] + DensityToAddToEachCell * xvel;
-	    vely[DistIndex] = vely[DistIndex]*density[DistIndex] + DensityToAddToEachCell * yvel;
-	    velz[DistIndex] = velz[DistIndex]*density[DistIndex] + DensityToAddToEachCell * zvel;
+	    velx[DistIndex] = velx[DistIndex] * density[DistIndex] +
+              DensityToAddToEachCell * xvel;
+	    vely[DistIndex] = vely[DistIndex] * density[DistIndex] +
+              DensityToAddToEachCell * yvel;
+	    velz[DistIndex] = velz[DistIndex] * density[DistIndex] +
+              DensityToAddToEachCell * zvel;
 	    density[DistIndex] += DensityToAddToEachCell;
 	    velx[DistIndex] /= density[DistIndex];
 	    vely[DistIndex] /= density[DistIndex];
 	    velz[DistIndex] /= density[DistIndex];
-	      
+
+            // If using DualEnergyFormalism, use gas energy to 
+            // set total energy
+            if ((HydroMethod != Zeus_Hydro) && 
+                (DualEnergyFormalism == 1)) {
+              totalenergy[DistIndex] = gasenergy[DistIndex] +
+                0.5 * (velx[DistIndex] * velx[DistIndex] +
+                       vely[DistIndex] * vely[DistIndex] +
+                       velz[DistIndex] * velz[DistIndex]);
+            }
 
 	  }
 	}
       }
     }
-
     
   } // end loop over particles
   
