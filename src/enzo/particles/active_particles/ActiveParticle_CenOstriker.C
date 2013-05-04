@@ -160,7 +160,7 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	  continue;
 	
 	// 2. Density greater than threshold
-	if (density[index] < StarMakerOverDensityThreshold)
+	if (density[index] < OverdensityThreshold)
 	  continue;
 
 	/* 3. Negative divergence: For ZEUS, the velocities are
@@ -201,27 +201,27 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	}
 
 	// 6) Check to see if star is above threshold (given in units of M_solar)
-	StarFraction = min(StarMakerMassEfficiency *
+	StarFraction = min(MassEfficiency *
                            thisGrid->ReturnTimeStep() / DynamicalTime, 0.9);
-	DynamicalTime = max(DynamicalTime, StarMakerMinimumDynamicalTime * yr /
+	DynamicalTime = max(DynamicalTime, MinimumDynamicalTime * yr /
                             data.TimeUnits);
 	
 	// 7) If we allow stochastic star formation, make new particles 
         //    every time the unfulfilled star formation buffer
 	//    exceeds the mininimum particle mass
 	if (StochasticStarFormation) {
-	  if (StarFraction*BaryonMass < StarMakerMinimumMass) {
+	  if (StarFraction*BaryonMass < MinimumStarMass) {
 	    UnfulfilledStarFormationMass += StarFraction*BaryonMass;
-	    if (UnfulfilledStarFormationMass < StarMakerMinimumMass) 
+	    if (UnfulfilledStarFormationMass < MinimumStarMass) 
 	      continue;
-	    StarFraction = min(StarMakerMinimumMass/BaryonMass, 0.5);
+	    StarFraction = min(MinimumStarMass/BaryonMass, 0.5);
 	    UnfulfilledStarFormationMass -= StarFraction*BaryonMass;
 	  } 
 	}
 
         // If not doing stochastic star formation, check if star 
         // particle mass exceeds the minimum
-        else if (StarFraction * BaryonMass < StarMakerMinimumMass) {
+        else if (StarFraction * BaryonMass < MinimumStarMass) {
           continue;
         }
 
@@ -347,7 +347,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
     // First, calculate the initial mass of the star particle in question
     
     ParticleInitialMass = ParticleMass / 
-      (1.0 - StarMassEjectionFraction * (1.0 - (1.0 + xv1)*exp(-xv1)));
+      (1.0 - MassEjectionFraction * (1.0 - (1.0 + xv1)*exp(-xv1)));
     
     // Then, calculate the amount of mass that would have formed in this timestep.
 
@@ -381,25 +381,25 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
     // calculate mass added to each cell
 
     DensityToAddToEachCell = (StarFormationDensityThisTimestep * 
-                              StarMassEjectionFraction) / StarFeedbackDistTotalCells;
+                              MassEjectionFraction) / StarFeedbackDistTotalCells;
 
     // If using distributed feedback, check if particle is too close 
     // to the boundary and adjust indices accordingly
 
-    if (StarFeedbackDistRadius > 0)
+    if (FeedbackDistRadius > 0)
       {
-	i = max(1+NumberOfGhostZones+StarFeedbackDistRadius,
-		min(GridXSize - NumberOfGhostZones - StarFeedbackDistRadius,i));
-	j = max(1+NumberOfGhostZones+StarFeedbackDistRadius,
-		min(GridYSize - NumberOfGhostZones - StarFeedbackDistRadius,j));
-	k = max(1+NumberOfGhostZones+StarFeedbackDistRadius,
-		min(GridZSize - NumberOfGhostZones - StarFeedbackDistRadius,k));	
+	i = max(1+NumberOfGhostZones+FeedbackDistRadius,
+		min(GridXSize - NumberOfGhostZones - FeedbackDistRadius,i));
+	j = max(1+NumberOfGhostZones+FeedbackDistRadius,
+		min(GridYSize - NumberOfGhostZones - FeedbackDistRadius,j));
+	k = max(1+NumberOfGhostZones+FeedbackDistRadius,
+		min(GridZSize - NumberOfGhostZones - FeedbackDistRadius,k));	
       }
 
     // Subtract ejected mass from particle
     
     ParticleMass -= StarFormationDensityThisTimestep *
-      StarMassEjectionFraction;
+      MassEjectionFraction;
 
     // Save particle mass
 
@@ -412,27 +412,27 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     // Calculate supernova energy for this timestep
 
-    SupernovaEnergyThisTimestep = StarEnergyToThermalFeedback * 
+    SupernovaEnergyThisTimestep = EnergyToThermalFeedback * 
       StarFormationDensityThisTimestep * POW(clight/data.VelocityUnits,2) /
       StarFeedbackDistTotalCells;
 
 #define NO_SHARE_ENERGY
 #ifdef SHARE_ENERGY
     SupernovaEnergyThisTimestep *= StarFormationDensityThisTimestep *
-      StarMassEjectionFraction / 
-      (StarFormationDensityThisTimestep * StarMassEjectionFraction + 
+      MassEjectionFraction / 
+      (StarFormationDensityThisTimestep * MassEjectionFraction + 
        ParticleInitialMass*exp(-xv2)*(1.0+xv2));
 #endif /* SHARE_ENERGY */
 
     // Add energy to the energy field
-    for (kc = k - StarFeedbackDistRadius; kc <= k + StarFeedbackDistRadius; kc++){
+    for (kc = k - FeedbackDistRadius; kc <= k + FeedbackDistRadius; kc++){
       stepk = fabs(kc - k);
-      for (jc = j - StarFeedbackDistRadius; jc <= j + StarFeedbackDistRadius; jc++){
+      for (jc = j - FeedbackDistRadius; jc <= j + FeedbackDistRadius; jc++){
 	stepj = stepk + fabs(jc - j);
-	for (ic = i - StarFeedbackDistRadius; ic <= i + StarFeedbackDistRadius; ic++){
+	for (ic = i - FeedbackDistRadius; ic <= i + FeedbackDistRadius; ic++){
 	  cellstep = stepj + fabs(ic - i);
 	  DistIndex = GRIDINDEX_NOGHOST(ic,jc,kc);
-	  if (cellstep <= StarFeedbackDistCellStep) {
+	  if (cellstep <= FeedbackDistCellStep) {
 	    DensityRatio = 1.0/(density[DistIndex] + DensityToAddToEachCell);
 	    totalenergy[DistIndex] = ((totalenergy[DistIndex]*density[DistIndex]) + 
 				      SupernovaEnergyThisTimestep)*DensityRatio;
@@ -449,8 +449,8 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 	    if (data.MetalNum != -1) {
 	      metals[DistIndex] = (metals[DistIndex] * density[DistIndex] +
 		(StarFormationDensityThisTimestep / StarFeedbackDistTotalCells) *
-		(StarMetalYield * (1.0 - ParticleMetalFraction) +
-		 StarMassEjectionFraction * ParticleMetalFraction)) * DensityRatio;
+		(MetalYield * (1.0 - ParticleMetalFraction) +
+		 MassEjectionFraction * ParticleMetalFraction)) * DensityRatio;
             }
 
 	    // Mass and momentum feedback
