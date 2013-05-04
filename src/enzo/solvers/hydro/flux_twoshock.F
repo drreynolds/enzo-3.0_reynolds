@@ -30,7 +30,7 @@ c  modified6:  June, 2010 by John Wise; transferred from euler.src into its
 c                         own routine
 c
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INTG_PREC ijkn
       parameter (ijkn=MAX_ANY_SINGLE_DIRECTION)
 c

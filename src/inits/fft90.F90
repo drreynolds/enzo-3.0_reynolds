@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 MODULE singleton
   !-----------------------------------------------------------------------------
   ! Multivariate Fast Fourier Transform
@@ -136,7 +136,7 @@ MODULE singleton
   ! Michael Steffens, 09.12.96, <Michael.Steffens@mbox.muk.uni-hannover.de>
   !-----------------------------------------------------------------------------
   IMPLICIT NONE
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
   PRIVATE
   PUBLIC:: fft, fftn, fftkind, fftintk, fftlogk

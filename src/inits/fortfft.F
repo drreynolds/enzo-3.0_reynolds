@@ -1,11 +1,11 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
       subroutine fortfft(x, rank, dim1, dim2, dim3, dir)
 
 !  written by: Robert Harkness
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 

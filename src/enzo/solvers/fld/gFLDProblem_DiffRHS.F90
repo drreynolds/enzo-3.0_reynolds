@@ -95,7 +95,7 @@ subroutine gFLDProblem_DiffRHS_3D(rhs, EgCur, EgOld, Temp, kappaE,     &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
   !--------------
   ! argument declarations
@@ -501,7 +501,7 @@ subroutine gFLDProblem_DiffRHS_2D(rhs, EgCur, EgOld, Temp, kappaE,      &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
   !--------------
   ! argument declarations
@@ -815,7 +815,7 @@ subroutine gFLDProblem_DiffRHS_1D(rhs, EgCur, EgOld, Temp, kappaE, &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
   !--------------
   ! argument declarations

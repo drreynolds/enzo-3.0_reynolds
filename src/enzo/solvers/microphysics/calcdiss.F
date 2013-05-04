@@ -111,7 +111,7 @@ c     (for other parameters see CW84)
 c
 c-----------------------------------------------------------------------
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC ijkn
       parameter (ijkn=MAX_ANY_SINGLE_DIRECTION)

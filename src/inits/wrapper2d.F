@@ -1,9 +1,9 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 
       subroutine wrapper2d(x, rank, n1, n2, n3, dir, method)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: rank, n1, n2, n3, dir
       CMPLX_PREC :: x(n1,n2)
@@ -52,7 +52,7 @@
       subroutine fftwrap2d( a, n, dir, method )
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       CMPLX_PREC :: a(*)
       INTG_PREC :: n(3)

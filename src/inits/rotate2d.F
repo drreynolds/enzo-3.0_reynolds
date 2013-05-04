@@ -1,8 +1,8 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
       subroutine rotate2d(x,n1,n2,y)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC n1,n2
       CMPLX_PREC x(n1,n2), y(n2,n1)

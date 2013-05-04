@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 !=======================================================================
 !//////////////////////  SUBROUTINE MAKE_FIELD  \\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -36,7 +36,7 @@
 !        nx,y,zd2    = number of grid points divided by 2 for each axis
 
       implicit NONE
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 
@@ -159,7 +159,7 @@ c===================================================================
      &                    itype, z, kcutoffsq, box, irangen)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Parameter
 

@@ -1,10 +1,10 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
       subroutine s90_st1( a, n, dir )
 
       use singleton
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTEGER(fftintk) :: n, dir
       COMPLEX(fftkind) :: a(n)

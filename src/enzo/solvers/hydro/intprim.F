@@ -53,7 +53,7 @@ c
 c-----------------------------------------------------------------------
 c
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
 c  argument declarations
 c
@@ -239,7 +239,7 @@ c-----------------------------------------------------------------------
      $     qcent, qvanl)
 c      
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC i1, i2, idim
       R_PREC qslice(idim), qplus(idim), qmnus(idim), qcent(idim), 
@@ -265,7 +265,7 @@ c-----------------------------------------------------------------------
       subroutine char2prim(n, dqc, rem, i1, i2, idim, dq)
 c      
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC n, i1, i2, idim
       R_PREC dqc(idim,5), dq(idim), rem(idim,5,5)
@@ -287,7 +287,7 @@ c-----------------------------------------------------------------------
      $     ql, qr)
 c      
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC i1, i2, idim
       R_PREC qslice(idim), c3(idim), c4(idim), c5(idim), c6(idim)
@@ -309,7 +309,7 @@ c-----------------------------------------------------------------------
      $     i1, i2, idim)
 c
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC i1, i2, idim, iflatten
       R_PREC qslice(idim), ql(idim), qr(idim), flatten(idim)
@@ -365,7 +365,7 @@ c-----------------------------------------------------------------------
      $     i1, i2, idim, dq, q6, qla, qra, ql0, qr0)
 c
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC i1, i2, idim
       R_PREC qslice(idim), ql(idim), qr(idim), char1(idim), char2(idim),

@@ -58,7 +58,7 @@ subroutine gFLDProblem_ChemistrySource(HIsrc, HeIsrc, HeIIsrc, time,   &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 !#ifdef USE_MPI
 !#include "mpif.h"
 !#endif

@@ -1,7 +1,7 @@
       subroutine nr_1d(x, rank, n1, n2, n3, dir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: rank, n1, n2, n3, dir
       CMPLX_PREC :: x(n1)

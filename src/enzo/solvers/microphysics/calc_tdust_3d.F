@@ -34,7 +34,7 @@
 !-----------------------------------------------------------------------
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 !  Arguments
 
       INTG_PREC in, jn, kn, is, js, ks, ie, je, ke, nratec,

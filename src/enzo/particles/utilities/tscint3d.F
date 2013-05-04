@@ -44,7 +44,7 @@ c
 c  LOCALS:
 c-----------------------------------------------------------------------
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC ijkn, MAX_REFINE, num_iter
       parameter (ijkn = MAX_ANY_SINGLE_DIRECTION, num_iter = 2)

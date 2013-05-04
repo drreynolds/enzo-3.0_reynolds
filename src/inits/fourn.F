@@ -30,7 +30,7 @@ c    data  - transformed array
 c
 c-----------------------------------------------------------------------
       implicit NONE
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 c
 c  Arguments
 c

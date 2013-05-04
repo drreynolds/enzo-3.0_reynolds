@@ -25,7 +25,7 @@
       subroutine mkl_st1(x, n1, idir)
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       CMPLX_PREC :: x(n1)
@@ -64,7 +64,7 @@
       subroutine mkl_st1(x, n1, idir)
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       CMPLX_PREC :: x(n1)
@@ -103,7 +103,7 @@
       subroutine mkl_st1(x, n1, idir)
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       CMPLX_PREC :: x(n1)

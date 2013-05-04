@@ -84,7 +84,7 @@ subroutine FSProb_SetupSystem(mat, rhs, rhsnorm, E, E0, kappa_h2on,       &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
   
   !--------------
   ! argument declarations
@@ -154,7 +154,7 @@ subroutine FSProb_SetupSystem3D(mat, rhs, rhsnorm, E, E0, kappa_h2on,    &
 !  PURPOSE: 3D version of the routine
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
   
   !--------------
   ! argument declarations
@@ -470,7 +470,7 @@ subroutine FSProb_SetupSystem2D(mat, rhs, rhsnorm, E, E0, kappa_h2on,    &
 !  PURPOSE: 2D version of the routine
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
   
   !--------------
   ! argument declarations
@@ -693,7 +693,7 @@ subroutine FSProb_SetupSystem1D(mat, rhs, rhsnorm, E, E0, kappa_h2on,    &
 !  PURPOSE: 1D version of the routine
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
   
   !--------------
   ! argument declarations

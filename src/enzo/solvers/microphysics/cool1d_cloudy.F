@@ -58,7 +58,7 @@
 !-----------------------------------------------------------------------
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  General Arguments
 
@@ -327,7 +327,7 @@
      &     dataSize, dataField, value)
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  General Arguments
 
@@ -369,7 +369,7 @@
      &     dataSize, dataField, value)
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  General Arguments
 
@@ -429,7 +429,7 @@
      &     dataSize, dataField, value)
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  General Arguments
 
@@ -506,7 +506,7 @@
      &     dataSize, dataField, value)
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  General Arguments
 
@@ -599,7 +599,7 @@
      &     dataSize, dataField, value)
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  General Arguments
 

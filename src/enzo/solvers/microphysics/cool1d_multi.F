@@ -60,7 +60,7 @@
 !-----------------------------------------------------------------------
 
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !  Arguments
 

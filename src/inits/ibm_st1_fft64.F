@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 
 #ifdef SP2
 
@@ -7,7 +7,7 @@
       subroutine ibm_st1(x, n1, idir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       CMPLX_PREC :: x(n1)
@@ -76,7 +76,7 @@
       subroutine ibm_st1(x, n1, idir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       CMPLX_PREC :: x(n1)
@@ -142,7 +142,7 @@
       subroutine ibm_st1(x, n1, idir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC n1, idir
       CMPLX_PREC x(n1)

@@ -44,7 +44,7 @@ c  REMARKS:
 c    We may use the integral form to make result independant on time step
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c
 c  Arguments:
@@ -104,7 +104,7 @@ c  The Arguments have the same meaning as those in SNII_feedback
 c
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c
 c  Arguments:
@@ -160,7 +160,7 @@ c    We may use the integral form to make result independant on time step
 c
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c
 c  Arguments:
@@ -204,7 +204,7 @@ c     mlossPN - the cumulative mass ejection due to PN.
 c
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c
 c  Arguments:
