@@ -179,7 +179,7 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 
 	if (VelocityDivergence > 0.0) continue;
 
-	// 4. t_cool < t_freefall (skip if T > 11000 K)
+	// 4. t_cool < t_freefall (skip if T < 11000 K)
 	TotalDensity = ( density[index] + data.DarkMatterDensity[index] ) * 
 	  data.DensityUnits;
 	DynamicalTime = sqrt(3.0 * M_PI / 32.0 / GravConst / TotalDensity) / data.TimeUnits;
@@ -190,11 +190,11 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 
 	// 5. Cell mass is greater than the Jeans Mass
         BaryonMass = density[index] * data.DensityUnits * 
-          POW(dx, 3) / SolarMass;
+          POW(dx*data.LengthUnits, 3) / SolarMass;
 	if (JeansMassCriterion) {
 	  IsothermalSoundSpeedSquared = SoundSpeedConstant * data.Temperature[index];
 	  JeansMass = M_PI / (6.0 * sqrt(density[index] * data.DensityUnits)) *
-	    POW(M_PI * IsothermalSoundSpeedSquared / GravConst,1.5) / SolarMass;
+	    POW(M_PI * IsothermalSoundSpeedSquared / GravConst, 1.5) / SolarMass;
 
 	  if (BaryonMass < JeansMass)
 	    continue;
@@ -248,10 +248,16 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
 	
 	if (UnigridVelocities == false) {
-	  float *tvel = thisGrid->AveragedVelocityAtCell(index,data.DensNum,data.Vel1Num);
-	  np->vel[0] = tvel[0];
-	  np->vel[1] = tvel[1];
-	  np->vel[2] = tvel[2];
+	  if (HydroMethod != Zeus_Hydro) {
+	    np->vel[0] = velx[index];
+	    np->vel[1] = vely[index];
+	    np->vel[2] = velz[index];
+	  }
+	  else {
+	    np->vel[0] = 0.5*(velx[index]+velx[index+1]);
+	    np->vel[1] = 0.5*(vely[index]+vely[index+offset_y]);
+	    np->vel[2] = 0.5*(velz[index]+velz[index+offset_z]);
+	  }
 	} 
 	else {
 	  np->vel[0] = tiny_number;
@@ -271,6 +277,10 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
       }
     }
   }
+
+  if (debug && data.NumberOfNewParticles > 0)
+    fprintf(stderr, "AP_CenOstriker: Have created %"ISYM" new particles\n",
+	    data.NumberOfNewParticles);
 
   return SUCCESS;
 }
