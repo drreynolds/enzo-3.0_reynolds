@@ -1062,7 +1062,7 @@ gradient force to gravitational force for one-zone collapse test. */
    GravitatingMassFieldParticles depending on the value of DepositField). */
 
    int DepositPositions(FLOAT *Positions[], float *Mass, int Number, 
-			int DepositField, bool NeverSmooth=false);
+			int DepositField);
 
 /* deposit particles/grids to grid (if they are on the grid). */
 

@@ -110,7 +110,7 @@ int grid::DepositParticlePositionsLocal(FLOAT DepositTime, int DepositField)
   }
 
   if (this->DepositPositions(ActiveParticlePosition, ActiveParticleMassPointer,
-			     NumberOfActiveParticles, DepositField, true) == FAIL) {
+			     NumberOfActiveParticles, DepositField) == FAIL) {
     ENZO_FAIL("Error in grid->DepositPositions\n");
   }
 
