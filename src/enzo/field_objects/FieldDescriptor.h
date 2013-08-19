@@ -154,6 +154,8 @@ class FieldDescriptor
 
       // Mathematical Operations
 
+      // These operations return a single value.
+
       float Min();
       float Min(int *LeftEdge, int *RightEdge);
       float Max();
@@ -162,6 +164,10 @@ class FieldDescriptor
       float Sum(int *LeftEdge, int *RightEdge);
 
       // Operations from other FieldDescriptors
+
+      // These operations accept either another FieldDescriptor (in which case
+      // the correct bounds for the computation will be computed) or a scalar
+      // value.
 
       void CopyFrom(FieldDescriptor *Other);
       void CopyFrom(float val);
@@ -180,6 +186,9 @@ class FieldDescriptor
 
       // Now the fun stuff: operator overloading!
       // We'll do in-place operators first.
+      
+      // These are in-place operators that modify the values of the current
+      // field.
 
       FieldDescriptor &operator+=(FieldDescriptor *Other);
       FieldDescriptor &operator-=(FieldDescriptor *Other);
@@ -195,12 +204,25 @@ class FieldDescriptor
 
     protected: 
 
+      // These "UnaryAccumulator" functions are templated functions that enable
+      // a function to collects a single value to be returned at the end of
+      // computation.  These could, for instance, be things like summations,
+      // standard deviations, etc.  Note that the left edge and right edge
+      // values are integers in local *cell* coordinates, and computations that
+      // are conducted on face and edge centered values will compute internally
+      // the correct indices.
       template <MathFunction function>
         float UnaryAccumulator(
             int LeftEdge[MAX_DIMENSIONS],
             int RightEdge[MAX_DIMENSIONS],
             float InitialValue);
 
+      // These "InPlaceBinary" functions are templated functions that enable
+      // a function to process two different field descriptors and modify
+      // *this* one in place.  This could, for instance, be multiplying two
+      // field descriptors or subtracting them.  As above, the dimensions are
+      // specified in cell coordinates and will be converted to indices in the
+      // fields themselves.
       template <MathFunction function>
       void InPlaceBinaryOperation(
           FieldDescriptor *Other,
@@ -208,6 +230,9 @@ class FieldDescriptor
           int LeftEdgeOther[MAX_DIMENSIONS],
           int CopyDims[MAX_DIMENSIONS]);
 
+      // This inplace binary operation enables a single scalar value to be used
+      // as the other value for a binary operation.  For instance, this could
+      // be multiplying by a constant.
       template <MathFunction function>
       void InPlaceBinaryOperation(
           float OtherValue,
