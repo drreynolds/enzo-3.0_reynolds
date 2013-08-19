@@ -14,12 +14,92 @@ class FieldDescriptor
 
     public:
       // Constructors
+      //
+      // This is the constructor for a bare field descriptor.  It is unlikely
+      // to be used in practice, as it will then require setting up the
+      // dimensions and so on at a later time, which is non-trivial.  However,
+      // it is often used internally for copying and so on.
       FieldDescriptor();
+      // This constructor starts from an *existing* field definition (see
+      // FieldRegistry.C for existing defined fields) and then constructs that
+      // field (and its corresponding centering, etc) in a new object, which
+      // can then be modified.  This is the most common constructor.
+      //
+      // This function accepts:
+      //    CellDimensions    
+      //        This should be the number of cell dimensions, not the number of
+      //        values expected for the specified centering type.  Internally,
+      //        the field object will calculate the necessary number of values
+      //        for the specified centering.
+      //    LeftEdge
+      //        This is the left edge, in (arbitrary, positive-definite)
+      //        integers of the region of space that this field occupies.
+      //        Often this is calculated by taking the left edge of a grid
+      //        object and dividing by the local cell width; in this way, it's
+      //        an integer coordinate constructed at the local refinement
+      //        level.
+      //    FieldPointer
+      //        Either a pointer to a field, or a pointer to a pointer to a
+      //        field.  Can be NULL, or a pointer to a NULL field.  When used
+      //        with Enzo grid objects, typically a FieldDescriptor will be
+      //        instantiated with a pointer to a BaryonField pointer.  In this
+      //        way, it will be affiliated with a NULL pointer, or a pointer to
+      //        a real field, and it will be able to live outside of any
+      //        allocations and deallocations that occur.  If a pointer is
+      //        supplied, it will be "owned" by this object.
+      //    SkipValueAllocation
+      //        This specifies whether we should skip new-ing a field if the
+      //        field pointer is NULL.  Typically, when working with Enzo grid
+      //        objects, we will skip value allocation.
       FieldDescriptor(FieldDescriptor* BaseDefinition,
                       int CellDimensions[MAX_DIMENSIONS],
                       long_int LeftEdge[MAX_DIMENSIONS],
                       float **FieldPointer = NULL,
                       int SkipValueAllocation = 0);
+      // This constructor is the most raw method of constructing a
+      // FieldDescriptor, and it allows fields to be created from no previous
+      // information.  It may be useful for one-off fields that do not persist
+      // for a long time, such as simple derived values and the like.
+      //
+      // This function accepts:
+      //    CenteringType
+      //        This describes the type of centering the field values have.
+      //        The full list can be found in FieldDefinitions.h, but it
+      //        includes things like face, edge, corner, cell.
+      //    Rank
+      //        The rank of the field, i.e., the dimensionality.  1, 2, 3
+      //        typically.
+      //    CellDimensions    
+      //        This should be the number of cell dimensions, not the number of
+      //        values expected for the specified centering type.  Internally,
+      //        the field object will calculate the necessary number of values
+      //        for the specified centering.
+      //    LeftEdge
+      //        This is the left edge, in (arbitrary, positive-definite)
+      //        integers of the region of space that this field occupies.
+      //        Often this is calculated by taking the left edge of a grid
+      //        object and dividing by the local cell width; in this way, it's
+      //        an integer coordinate constructed at the local refinement
+      //        level.
+      //    InterpolationMethod
+      //        When we are interpolating between levels, do we need to do
+      //        anything special during the process?  Options include
+      //        multiplying by density, not interpolating at all, directly
+      //        interpolating, or undefined.  New methods can be easily added.
+      //    Name
+      //        The name of the field.  Will be used for fast lookups.
+      //    UnitsName
+      //        The name of the units for this field.  Not currently used.
+      //    FieldPointer
+      //        Either a pointer to a field, or a pointer to a pointer to a
+      //        field.  Can be NULL, or a pointer to a NULL field.  When used
+      //        with Enzo grid objects, typically a FieldDescriptor will be
+      //        instantiated with a pointer to a BaryonField pointer.  In this
+      //        way, it will be affiliated with a NULL pointer, or a pointer to
+      //        a real field, and it will be able to live outside of any
+      //        allocations and deallocations that occur.  If a pointer is
+      //        supplied, it will be "owned" by this object.  If NULL, it will
+      //        be allocated.
       FieldDescriptor(CenteringType ValueCentering, int Rank,
                       int CellDimensions[MAX_DIMENSIONS],
                       long_int LeftEdge[MAX_DIMENSIONS],
