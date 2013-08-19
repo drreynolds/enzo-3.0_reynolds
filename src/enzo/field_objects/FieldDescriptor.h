@@ -128,6 +128,25 @@ class FieldDescriptor
       void GetLeftEdge(long_int LeftEdge[MAX_DIMENSIONS]);
       InterpolationType GetInterpolationMethod();
 
+      // This function, typically only used internally but still public, is
+      // designed to determine the overlap in *cell* space of two different
+      // FieldDescriptors.  Note that any other functions that allow left edge
+      // and copydims to be specified will internally calculate the offset and
+      // necessary indices to account for centering of values.
+      //
+      //    FieldDescriptor
+      //        The other field descriptor, with which the calculated overlap
+      //        is desired.
+      //    LeftEdgeThis
+      //        This (output parameter) is the left edge in *local* coordinates
+      //        of *cells* for this field descriptor for the overlap between
+      //        the two field descriptors.
+      //    LeftEdgeOther
+      //        This (output parameter) is the left edge in *local* coordinates
+      //        of *cells* for the *other* field descriptor.for the overlap
+      //        between the two field descriptors.
+      //    CopyDims
+      //        The number of *cell* values that overlap.
       void GetOverlapRegion(FieldDescriptor *Other,
                 int LeftEdgeThis[MAX_DIMENSIONS],
                 int LeftEdgeOther[MAX_DIMENSIONS],
