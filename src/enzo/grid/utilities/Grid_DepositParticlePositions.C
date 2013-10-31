@@ -242,9 +242,7 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
  
     /* If required, Change the mass of particles in this grid. */
  
-    if (MassFactor != 1.0 || 
-	((StarParticleCreation == (1 << SINK_PARTICLE)) && 
-	 SmoothField == TRUE)) {
+    if ((MassFactor != 1.0) || (SmoothField == TRUE)) {
       ParticleMassTemp = new float[NumberOfParticles];
       for (i = 0; i < NumberOfParticles; i++)
 	ParticleMassTemp[i] = ParticleMass[i]*MassFactor;
@@ -279,28 +277,6 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
     
     */
 
-    if (NumberOfActiveParticles > 0) {
-      FLOAT** ActiveParticlePosition = new FLOAT*[GridRank];
-      for (dim = 0; dim < GridRank; dim++)
-	ActiveParticlePosition[dim] = new FLOAT[NumberOfActiveParticles];
-      this->GetActiveParticlePosition(ActiveParticlePosition);
-
-      float* ActiveParticleMassPointer = new float[NumberOfActiveParticles];
-      for (i = 0; i < NumberOfActiveParticles; i++) {
-	ActiveParticleMassPointer[i] = ActiveParticles[i]->ReturnMass()*MassFactor;
-      }
-
-      PFORTRAN_NAME(cic_deposit)(
-           ActiveParticlePosition[0], ActiveParticlePosition[1], ActiveParticlePosition[2], 
-	   &GridRank, &NumberOfActiveParticles, ActiveParticleMassPointer, DepositFieldPointer, 
-	   LeftEdge, Dimension, Dimension+1, Dimension+2, &CellSize, &addaspoints);
-
-      for (dim = 0; dim < GridRank; dim++)
-	delete [] ActiveParticlePosition[dim];
-      delete [] ActiveParticlePosition;
-      delete [] ActiveParticleMassPointer;
-    }
- 
     /* Deposit particles. */
 
     if (SmoothField == FALSE) {
@@ -329,6 +305,48 @@ int grid::DepositParticlePositions(grid *TargetGrid, FLOAT DepositTime,
 	 &DepositPositionsParticleSmoothRadius);
     }
     
+    if (NumberOfActiveParticles > 0) {
+      FLOAT** ActiveParticlePosition = new FLOAT*[GridRank];
+      for (dim = 0; dim < GridRank; dim++)
+	ActiveParticlePosition[dim] = new FLOAT[NumberOfActiveParticles];
+      this->GetActiveParticlePosition(ActiveParticlePosition);
+
+      float* ActiveParticleMassPointer = new float[NumberOfActiveParticles];
+      for (i = 0; i < NumberOfActiveParticles; i++) {
+	if ((MassFactor != 1.0) || (SmoothField == TRUE))
+	  ActiveParticleMassPointer[i] = ActiveParticles[i]->ReturnMass()*MassFactor;
+	else
+	  ActiveParticleMassPointer[i] = ActiveParticles[i]->ReturnMass();
+
+	if (DepositField == MASS_FLAGGING_FIELD &&
+	    DepositParticleMaximumParticleMass > 0 && MassFactor != 1.0)
+	  ActiveParticleMassPointer[i] = min(DepositParticleMaximumParticleMass,
+					     ParticleMassPointer[i]);
+      }
+
+      if (SmoothField == FALSE) {
+
+	PFORTRAN_NAME(cic_deposit)(
+	  ActiveParticlePosition[0], ActiveParticlePosition[1], ActiveParticlePosition[2], 
+	  &GridRank, &NumberOfActiveParticles, ActiveParticleMassPointer, DepositFieldPointer, 
+	  LeftEdge, Dimension, Dimension+1, Dimension+2, &CellSize, &addaspoints);
+
+      }
+      else {
+
+	PFORTRAN_NAME(smooth_deposit)(
+	  ActiveParticlePosition[0], ActiveParticlePosition[1], ActiveParticlePosition[2], 
+	  &GridRank, &NumberOfActiveParticles, ActiveParticleMassPointer, DepositFieldPointer, 
+	  LeftEdge, Dimension, Dimension+1, Dimension+2, &CellSize,
+	  &DepositPositionsParticleSmoothRadius);
+      }
+
+      for (dim = 0; dim < GridRank; dim++)
+	delete [] ActiveParticlePosition[dim];
+      delete [] ActiveParticlePosition;
+      delete [] ActiveParticleMassPointer;
+    }
+
   } // ENDIF this processor
  
   /* If on different processors, copy deposited field back to the

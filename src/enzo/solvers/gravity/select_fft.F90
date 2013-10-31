@@ -3,7 +3,7 @@
       subroutine fortfft(x, rank, dim1, dim2, dim3, dir)
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTG_PREC :: rank, dim1, dim2, dim3, dir
       CMPLX_PREC :: x(dim1,dim2,dim3)

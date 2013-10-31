@@ -2,7 +2,7 @@
       integer*8 function power_of_2(in)
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       integer*8 in, n, m
 

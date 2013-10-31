@@ -1,8 +1,8 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
       subroutine spline(x,y,n,yp1,ypn,y2)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Parameters
 
@@ -58,7 +58,7 @@
       subroutine splint(xa,ya,y2a,n,x,y)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 

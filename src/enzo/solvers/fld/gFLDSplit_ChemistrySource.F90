@@ -44,7 +44,7 @@ subroutine gFLDSplit_ChemistrySource(HIsrc, HeIsrc, HeIIsrc, time, a,   &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations

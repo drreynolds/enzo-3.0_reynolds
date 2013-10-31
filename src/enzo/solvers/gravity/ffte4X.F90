@@ -16,7 +16,7 @@
       module ffte_param
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTEGER, parameter :: fftkind = RKIND
       INTEGER, parameter :: fftintk = IKIND

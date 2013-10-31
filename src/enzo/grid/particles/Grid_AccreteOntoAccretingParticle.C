@@ -23,10 +23,9 @@
 #include "Grid.h"
 #include "Hierarchy.h"
 #include "ActiveParticle.h"
-#include "phys_constants.h"
 
 
-#define DEBUG_AP
+#define NO_DEBUG_AP
 
 float bondi_alpha(float x);
 
@@ -61,13 +60,13 @@ int grid::AccreteOntoAccretingParticle(
   int i, j, k, dim, index;
   int size = this->GetGridSize(), maxexcluded=0;
   float lambda_c = 0.25*exp(1.5), CellMass, CellVolume = 1., SmallRhoFac = 10.,
-    SmallEFac = 10., AccretedMass = 0, AccretedMomentum[3],
+    SmallEFac = 10., SmEint = 0, AccretedMass = 0, AccretedMomentum[3],
     RhoInfinity, vgas[3], mcell, etot, eint, ke, Weight, maccreted,
     rhocell, pcell[3], etotnew, rhonew, reff[3], rsqr,
     rdotp, prad[3], ptrans[3], pradnew[3], ptransnew[3], eintnew,
     kenew, xdist, ydist, zdist, dist, jsp[3], jspsqr, esp, efac, rmin,
-    dxmin, huge = 1.0e30, WeightedSum = 0,
-    SumOfWeights = 0, AverageDensity = 0;
+    dxmin, huge = 1.0e30, WeightedSum = 0, SumOfWeights = 0, 
+    AverageDensity = 0, PressureUnits = 0, GEUnits = 0;
 
   int offset[] =
     {1, GridDimension[0], GridDimension[0]*GridDimension[1]};
@@ -116,6 +115,15 @@ int grid::AccreteOntoAccretingParticle(
   {
     CellVolume*=CellWidth[dim][0];
   }
+
+  PressureUnits = (GlobalMassUnits / GlobalLengthUnits / 
+		   POW(GlobalTimeUnits,2));
+  GEUnits = POW(GlobalLengthUnits,2) / POW(GlobalTimeUnits, 2);
+  
+  SmEint = max(
+    SmallP * PressureUnits / ((Gamma - 1)*SmallRho),
+    1.5 * kboltz * SmallT / (Mu*mh)
+    ) / GEUnits;
 
   /* Find sink properties */
 
@@ -173,27 +181,6 @@ int grid::AccreteOntoAccretingParticle(
 	  WeightedSum += BaryonField[DensNum][index]*
 	    exp(-radius2/(KernelRadius*KernelRadius));
 	  SumOfWeights += exp(-radius2/(KernelRadius*KernelRadius));
-	  if (HydroMethod == PPM_DirectEuler)
-	  {
-	    vgas[0] = BaryonField[Vel1Num][index];
-	    vgas[1] = BaryonField[Vel2Num][index];
-	    vgas[2] = BaryonField[Vel3Num][index];
-	  }
-	  else if (HydroMethod == Zeus_Hydro)
-	  {
-	    vgas[0] = 0.5 *
-	      (BaryonField[Vel1Num][index] +
-	       BaryonField[Vel1Num][index+offset[0]]);
-	    vgas[1] = 0.5 *
-	      (BaryonField[Vel2Num][index] +
-	       BaryonField[Vel2Num][index+offset[1]]);
-	    vgas[2] = 0.5 *
-	      (BaryonField[Vel3Num][index] +
-	       BaryonField[Vel3Num][index+offset[2]]);
-	  }
-	  else
-	    ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
-
 	}
       }
     }
@@ -303,7 +290,6 @@ int grid::AccreteOntoAccretingParticle(
 	    paccrete[2][index] = pcell[2]*CellVolume*(maccreted/mcell);
 
 	    etotnew = etot * (1.0 - maccreted/mcell);
-	    eintnew = eint * (1.0 - maccreted/mcell);
 	  }
 
 	  /* Find the components of the momentum vector transverse and
@@ -316,7 +302,9 @@ int grid::AccreteOntoAccretingParticle(
 	  {
 	    // Keep cell mass well above density floor
 	    if ((mcell - maccreted)/CellVolume > SmallRhoFac*SmallRho)
+	    {
 	      mnew[index] = mcell - maccreted;
+	    }
 	    else
 	    {
 	      mnew[index] = SmallRhoFac*SmallRho*CellVolume;
@@ -404,12 +392,10 @@ int grid::AccreteOntoAccretingParticle(
 	    if (HydroMethod == PPM_DirectEuler)
 	    {
 	      BaryonField[TENum][index] = etotnew/mnew[index];
-	      if (DualEnergyFormalism)
-		BaryonField[GENum][index] = eintnew/mnew[index];
 	    }
 	    else if (HydroMethod == Zeus_Hydro)
 	    {
-	      BaryonField[TENum][index] = eintnew/mnew[index];
+	      // Do nothing, internal energy is unchanged.
 	    }
 	    else
 	      ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
@@ -425,26 +411,28 @@ int grid::AccreteOntoAccretingParticle(
 
 	    if (HydroMethod == PPM_DirectEuler)
 	    {
-	      if (BaryonField[TENum][index] -
-		  0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] +
-			 BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
-			 BaryonField[Vel3Num][index]*BaryonField[Vel3Num][index])
-		  < SmallEFac*SmallEint)
+	      if (DualEnergyFormalism)
 	      {
-		BaryonField[TENum][index] = SmallEFac*SmallEint +
-		  0.5 * (BaryonField[Vel1Num][index]*BaryonField[Vel1Num][index] +
-			 BaryonField[Vel2Num][index]*BaryonField[Vel2Num][index] +
-			 BaryonField[Vel3Num][index]*BaryonField[Vel3Num][index]);
-		if (DualEnergyFormalism)
-		  BaryonField[GENum][index] = SmallEFac*SmallEint;
+		if (BaryonField[GENum][index] < SmallEFac*SmEint)
+		  BaryonField[GENum][index] = SmallEFac*SmEint;
+	      }
+	      else if (BaryonField[TENum][index] -
+		       0.5 * (POW(BaryonField[Vel1Num][index],2) +
+			      POW(BaryonField[Vel2Num][index],2) +
+			      POW(BaryonField[Vel3Num][index],2))
+		       < SmallEFac*SmEint)
+	      {
+		BaryonField[TENum][index] = SmallEFac*SmEint +
+		  0.5 * (POW(BaryonField[Vel1Num][index],2) +
+                         POW(BaryonField[Vel2Num][index],2) +
+                         POW(BaryonField[Vel3Num][index],2));
 	      }
 	    }
 	    else if (HydroMethod == Zeus_Hydro)
 	    {
-	      if (BaryonField[TENum][index] < SmallEFac*SmallEint)
-	      {
-		BaryonField[TENum][index] = SmallEFac*SmallEint;
-	      }
+	      // Total energy is gas energy for Zeus.
+	      if (BaryonField[TENum][index] < SmallEFac*SmEint)
+		BaryonField[TENum][index] = SmallEFac*SmEint;
 	    }
 	    else
 	      ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");

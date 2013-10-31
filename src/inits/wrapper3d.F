@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 
       subroutine wrapper3d(x, rank, n1, n2, n3, dir, method)
 
@@ -7,7 +7,7 @@
 !     Date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 
@@ -72,7 +72,7 @@
       subroutine fftwrap3d( a, n, dir, method )
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       CMPLX_PREC :: a(*)
       INTG_PREC :: n(3)

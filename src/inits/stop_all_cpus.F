@@ -1,8 +1,8 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
       subroutine stop_all_cpus
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #ifdef USE_MPI
       include 'mpif.h'

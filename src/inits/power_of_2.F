@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
       integer*8 function power_of_2(in)
 
 !     Check for power-of-2 dimension for NR FFT
@@ -7,7 +7,7 @@
 !     Date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       integer*8 in, n, m
 

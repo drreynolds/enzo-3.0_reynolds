@@ -68,7 +68,7 @@ int grid::DepositParticlePositionsLocal(FLOAT DepositTime, int DepositField)
   /* Allocate and fill the ActiveParticleMassPointer, obtain ActiveParticlePosition
      from the grid object */
 
-  float ActiveParticleMassPointer[NumberOfActiveParticles];
+  float* ActiveParticleMassPointer = new float[NumberOfActiveParticles];
   for (i = 0; i < NumberOfActiveParticles; i++)
     ActiveParticleMassPointer[i] = ActiveParticles[i]->ReturnMass()*MassFactor;
     
@@ -110,7 +110,7 @@ int grid::DepositParticlePositionsLocal(FLOAT DepositTime, int DepositField)
   }
 
   if (this->DepositPositions(ActiveParticlePosition, ActiveParticleMassPointer,
-			     NumberOfActiveParticles, DepositField, true) == FAIL) {
+			     NumberOfActiveParticles, DepositField) == FAIL) {
     ENZO_FAIL("Error in grid->DepositPositions\n");
   }
 
@@ -119,6 +119,7 @@ int grid::DepositParticlePositionsLocal(FLOAT DepositTime, int DepositField)
   for (dim = 0; dim < GridRank; dim++)
     delete [] ActiveParticlePosition[dim];
   delete [] ActiveParticlePosition;
+  delete [] ActiveParticleMassPointer;
 
   /* If necessary, delete the particle mass temporary. */
  

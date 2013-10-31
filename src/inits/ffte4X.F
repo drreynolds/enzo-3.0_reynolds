@@ -16,7 +16,7 @@
       module ffte_param
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTEGER, parameter :: fftkind = RKIND
       INTEGER, parameter :: fftintk = IKIND

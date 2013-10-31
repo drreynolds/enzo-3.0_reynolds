@@ -74,6 +74,10 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   float TempFloat;
   int comment_count = 0;
  
+  char **active_particle_types;
+  active_particle_types = new char*[MAX_ACTIVE_PARTICLE_TYPES];
+  int active_particles = 0;
+
   /* read until out of lines */
 
   rewind(fptr);
@@ -1030,10 +1034,10 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 		  ResetMagneticFieldAmplitude+1,
 		  ResetMagneticFieldAmplitude+2);
 
-    int ActiveParticleTypeIndex;
     if (sscanf(line, "AppendActiveParticleType = %s", dummy) == 1) {
-        fprintf(stdout, "Enabling particle type %s\n", dummy);
-        EnableActiveParticleType(dummy);
+      active_particle_types[active_particles] = new char[MAX_LINE_LENGTH];
+      strcpy(active_particle_types[active_particles], dummy);
+      active_particles++;
     }
 
     ret += sscanf(line, "UseGasDrag = %"ISYM, &UseGasDrag);
@@ -1078,6 +1082,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     if (strstr(line, "TracerParticleCreation")) ret++;
     if (strstr(line, "TurbulenceSimulation")) ret++;
     if (strstr(line, "ProtostellarCollapse")) ret++;
+    if (strstr(line, "AgoraRestart")) ret++;
     if (strstr(line, "GalaxySimulation")) ret++;
     if (strstr(line, "ConductionTest")) ret++;
     if (strstr(line, "ConductionBubble")) ret++;
@@ -1112,6 +1117,13 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
     delete [] dummy;
   }
+
+  // Enable the active particles that were selected.
+  for (i = 0;i < active_particles;i++) {
+    fprintf(stdout, "Enabling particle type %s\n", active_particle_types[i]);
+    EnableActiveParticleType(active_particle_types[i]);
+  }
+  delete [] active_particle_types;
 
   // HierarchyFile IO sanity check
 
@@ -1361,8 +1373,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
   /* Set some star feedback parameters. */
 
-  if ((STARFEED_METHOD(NORMAL_STAR) || STARFEED_METHOD(UNIGRID_STAR)) && 
-      (StarFeedbackDistRadius > 0)) {
+  if (StarFeedbackDistRadius > 0) {
 
     // Calculate number of cells in the shape over which to distribute feedback.
     StarFeedbackDistRadius = min(StarFeedbackDistRadius,

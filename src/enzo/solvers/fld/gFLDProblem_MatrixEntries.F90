@@ -91,7 +91,7 @@ subroutine gFLDProblem_MatrixEntries_3D(matentries, EgCur, EgOld, Temp,  &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations
@@ -534,7 +534,7 @@ subroutine gFLDProblem_MatrixEntries_2D(matentries, EgCur, EgOld, Temp,  &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations
@@ -871,7 +871,7 @@ subroutine gFLDProblem_MatrixEntries_1D(matentries, EgCur, EgOld, Temp, &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations

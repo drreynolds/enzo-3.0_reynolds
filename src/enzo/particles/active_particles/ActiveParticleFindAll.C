@@ -81,7 +81,6 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	  if (LocalNumberOfActiveParticles != 0) 
 	    {
 	      ParticlesOnThisProc = LocalActiveParticlesOfThisType;
-	      delete [] LocalActiveParticlesOfThisType;
 	      LocalActiveParticlesOfThisType = NULL;
 	    }
 
@@ -94,7 +93,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	    offset += NumberOfActiveParticlesInGrids[GridNum];
 	  } 
 
-	  LocalActiveParticlesOfThisType = new ActiveParticleType*[offset]();
+	  LocalActiveParticlesOfThisType = new ActiveParticleType*[offset + LocalNumberOfActiveParticles]();
 	  
 	  /* If we've already found active particles, copy the cached
 	     list to the new one and delete the old list */
@@ -106,7 +105,7 @@ ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[],
 	  }
 
 	  /* Finally, append the new active particles to the list */
-	  for(i = LocalNumberOfActiveParticles; i < offset; i++)
+	  for(i = LocalNumberOfActiveParticles; i < offset + LocalNumberOfActiveParticles; i++) 
 	    LocalActiveParticlesOfThisType[i] = LocalActiveParticlesOnThisLevel[i - LocalNumberOfActiveParticles];
 
 	  LocalNumberOfActiveParticles += LocalNumberOfActiveParticlesOnThisLevel;

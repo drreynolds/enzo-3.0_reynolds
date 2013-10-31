@@ -8,7 +8,7 @@
 !     Date:       November, 2003
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !     Arguments
 
@@ -73,7 +73,7 @@
       subroutine fftwrap3d( a, n, dir, method )
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       CMPLX_PREC :: a(*)
       INTG_PREC :: n(3)

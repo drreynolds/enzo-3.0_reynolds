@@ -167,7 +167,7 @@ c
 c
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 #include "phys_const.def"
 #define XH 0.76_RKIND
 #define MU 1.22_RKIND
@@ -690,7 +690,7 @@ c    Sigma_HI - Sobolev-like estimate of the neutral hydrogen column density
 c
 c-----------------------------------------------------------------------
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c  Arguments
 c

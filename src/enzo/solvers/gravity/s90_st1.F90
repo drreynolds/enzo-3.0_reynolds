@@ -4,7 +4,7 @@
       use singleton
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTEGER(fftintk) :: n, dir
       COMPLEX(fftkind) :: a(n)
