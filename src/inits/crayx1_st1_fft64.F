@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 #ifdef CRAYX1
 
 #ifdef CONFIG_BFLOAT_4
@@ -6,7 +6,7 @@
       subroutine cray_st1(x, n1, idir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       complex :: x(n1)
@@ -45,7 +45,7 @@
       subroutine cray_st1(x, n1, idir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       complex :: x(n1)
@@ -84,7 +84,7 @@
       subroutine cray_st1(x, n1, idir)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
       INTG_PREC :: n1, idir
       complex :: x(n1)

@@ -77,7 +77,7 @@ c
 c
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c
 c  Arguments
@@ -338,7 +338,7 @@ c
 c
 c-----------------------------------------------------------------------
        implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c-----------------------------------------------------------------------
 c
 c  Arguments

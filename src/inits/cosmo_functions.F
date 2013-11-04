@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 !=======================================================================
 ! Set the current radiation density (incl. massless neutrinos) for h=1
 !define OMEGA0_RAD 4.22e-5
@@ -6,7 +6,7 @@
 !=======================================================================
 
 !=======================================================================
-! Set R_PREC to match what's in fortran_types.def (since it cannot be 
+! Set R_PREC to match what's in headers/fortran_types.def (since it cannot be 
 ! included before the first function declaration)
 #ifdef CONFIG_BFLOAT_4
 #define R_PREC real*4
@@ -37,7 +37,7 @@
 !  OUTPUTS:
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -72,7 +72,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Argument
 
@@ -98,7 +98,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -138,7 +138,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -186,7 +186,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -248,7 +248,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -301,7 +301,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -355,7 +355,7 @@
 
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 
@@ -404,7 +404,7 @@
 !  date:       November, 2003
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 #include "cosmo.h"
 

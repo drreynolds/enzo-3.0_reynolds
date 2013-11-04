@@ -1,7 +1,7 @@
       subroutine s66_st1( a, n, dir )
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTG_PREC :: n, dir
       R_PREC :: a(2*n)

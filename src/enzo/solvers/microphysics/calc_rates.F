@@ -157,7 +157,7 @@ c
 #define USE_NEW_COLLISIONAL_RATES
 c
       implicit NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
 c  Arguments
 c

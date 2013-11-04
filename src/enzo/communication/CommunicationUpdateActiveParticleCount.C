@@ -41,6 +41,7 @@
 #include "TopGridData.h"
 #include "Hierarchy.h"
 #include "LevelHierarchy.h"
+#include "CommunicationUtilities.h"
 
 #define NO_DEBUG
 
@@ -52,24 +53,18 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 
   LCAPERF_START("UpdateActiveParticleCount");
 
-  int grid, *TotalParticleCount = new int[NumberOfGrids],
-          *PartialParticleCount = new int[NumberOfGrids],
-        *TotalNewActiveParticleCount = new int[NumberOfGrids],
+  int grid, *TotalNewActiveParticleCount = new int[NumberOfGrids],
       *PartialNewActiveParticleCount = new int[NumberOfGrids];
  
   /* Set ParticleCount to zero and record number of particles for grids
      on this processor. */
  
   for (grid = 0; grid < NumberOfGrids; grid++) {
-    TotalParticleCount[grid] = 0;
     TotalNewActiveParticleCount[grid] = 0;
     if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber) {
-      PartialParticleCount[grid] =
-	Grids[grid]->GridData->ReturnNumberOfParticles();
       PartialNewActiveParticleCount[grid] = NumberOfNewActiveParticles[grid];	
     }
     else {
-      PartialParticleCount[grid] = 0;
       PartialNewActiveParticleCount[grid] = 0;
     }
 }
@@ -86,20 +81,8 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
 
   MPI_Arg GridCount = NumberOfGrids;
    
-  MPI_Allreduce(PartialParticleCount, TotalParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, EnzoTopComm);
   MPI_Allreduce(PartialNewActiveParticleCount, TotalNewActiveParticleCount, GridCount,
 		DataTypeInt, MPI_SUM, EnzoTopComm);
-
-#ifdef UNUSED
-  if (MyProcessorNumber == ROOT_PROCESSOR)
-    for (grid = 0; grid < NumberOfGrids; grid++) {
-      fprintf(stdout, "PartialParticleCount[%d] = %d\n", grid, PartialParticleCount[grid]); 
-      fprintf(stdout, "TotalParticleCount[%d]   = %d\n", grid, TotalParticleCount[grid]);
-      fprintf(stdout, "PartialNewActiveParticleCount[%d] = %d\n", grid, PartialNewActiveParticleCount[grid]); 
-      fprintf(stdout, "TotalNewActiveParticleCount[%d]   = %d\n", grid, TotalNewActiveParticleCount[grid]);
-    }
-#endif
 
 #ifdef MPI_INSTRUMENTATION
   endtime = MPI_Wtime();
@@ -120,182 +103,54 @@ int CommunicationUpdateActiveParticleCount(HierarchyEntry *Grids[],
     if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber) 
 
       /* If this grid is on this processor, then call routine to set the
-	 particle index numbers.  This also updates NumberOfActiveParticles. */
+	 particle index numbers.  */
 
       Grids[grid]->GridData->SetNewParticleIndex(NextActiveParticleID);
 
     else {
  
       /* If not on this processor, then keep track of the number of new
-	 star particles (which is the difference between the number 
-	 got from the communication and what is currently stored).
-	 Finally, correct the number of particles in our record. */
+	 star particles to ensure the active particle IDs are unique */
 
       NextActiveParticleID += TotalNewActiveParticleCount[grid];
-      Grids[grid]->GridData->SetNumberOfParticles(TotalParticleCount[grid]);
 
     }
 
-    //printf("NumberOfActiveParticles = %"ISYM"\n", NumberOfActiveParticles); 
-
   }
 
-#ifdef UNUSED
-  fprintf(stdout, "\nin CUSPC.C \n", MetaData->NumberOfParticles); 
-  fprintf(stdout, "MetaData->NumberOfParticles = %d\n", MetaData->NumberOfParticles); 
-  fprintf(stdout, "NumberOfActiveParticles now = %d\n", NumberOfActiveParticles);
-  fprintf(stdout, "NumberOfOtherParticles now = %d\n", NumberOfOtherParticles);
+  // Update ActiveParticleType counts as well
+
+  int i, j, idx, nap;
+  int stride = EnabledActiveParticlesCount;
+  int *buffer = new int[NumberOfGrids * stride];
+
+  for (i = 0, idx = 0; i < NumberOfGrids; i++, idx += stride)
+      if (Grids[i]->GridData->ReturnProcessorNumber() == MyProcessorNumber) {
+	nap = Grids[i]->GridData->ReturnNumberOfActiveParticles();
+	  for (j = 0; j < EnabledActiveParticlesCount; j++) {
+	    buffer[idx+j] = Grids[i]->GridData->ReturnNumberOfActiveParticlesOfThisType(j);
+	  }
+      }
+      else {
+	for (j = 0; j < EnabledActiveParticlesCount; j++)
+	  buffer[idx + j] = 0;
+      }
+
+#ifdef USE_MPI
+  CommunicationAllReduceValues(buffer, NumberOfGrids * stride, MPI_SUM);
 #endif
 
-#ifdef DEBUG
-
-  int *nCount = new int[NumberOfProcessors];
-  int i;
-
-  MPI_Allgather(&NumberOfActiveParticles, 1, DataTypeInt,
-		nCount, 1, DataTypeInt, EnzoTopComm);
-
-  for (i = 0; i < NumberOfProcessors-1; i++) {
-    if (nCount[i] != nCount[i+1]) {
-      ENZO_FAIL("Global active particle counts inconsistent!"); }
-  }
-
-  MPI_Allgather(&NumberOfOtherParticles, 1, DataTypeInt,
-		nCount, 1, DataTypeInt, EnzoTopComm);
-
-  for (i = 0; i < NumberOfProcessors-1; i++) {
-    if (nCount[i] != nCount[i+1]) {
-      ENZO_FAIL("Global particle counts inconsistent!"); }
-  }
-
-  MPI_Allgather(&NextActiveParticleID, 1, DataTypeInt,
-		nCount, 1, DataTypeInt, EnzoTopComm);
-
-  for (i = 0; i < NumberOfProcessors-1; i++) {
-    if (nCount[i] != nCount[i+1]) {
-      ENZO_FAIL("Global acitve particle IDs are inconsistent!"); }
-  }
-
-  delete [] nCount;
+  for (i = 0, idx = 0; i < NumberOfGrids; i++, idx += stride)
+    for (j = 0; j < EnabledActiveParticlesCount; j++)
+      Grids[i]->GridData->SetActiveParticleTypeCounts(j, buffer[idx+j]);
   
-#endif
-
   /* Clean up. */
  
-  delete [] TotalParticleCount;
-  delete [] PartialParticleCount;
   delete [] TotalNewActiveParticleCount;
   delete [] PartialNewActiveParticleCount;
- 
+  delete [] buffer;
+
   LCAPERF_STOP("UpdateActiveParticleCount");
  
   return SUCCESS;
 }
-
-
-
-
-
-
-
-
-
-
-/* Old version: not only it doesn't work when the new particles are not stars, 
-   but it has assigned indices incorrectly */
-
-#ifdef UNUSED
-int CommunicationUpdateStarParticleCountOld(HierarchyEntry *Grids[],
-					    TopGridData *MetaData,
-					    int NumberOfGrids)
-{
- 
-  int grid, *TotalParticleCount = new int[NumberOfGrids],
-          *PartialParticleCount = new int[NumberOfGrids],
-        *TotalStarParticleCount = new int[NumberOfGrids],
-      *PartialStarParticleCount = new int[NumberOfGrids];
- 
-  /* Set ParticleCount to zero and record number of particles for grids
-     on this processor. */
- 
-  for (grid = 0; grid < NumberOfGrids; grid++) {
-    TotalParticleCount[grid] = 0;
-    TotalStarParticleCount[grid] = 0;
-    if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber) {
-      PartialParticleCount[grid] =
-	Grids[grid]->GridData->ReturnNumberOfParticles();
-      PartialStarParticleCount[grid] =
-	Grids[grid]->GridData->ReturnNumberOfStarParticles();
-    }
-    else {
-      PartialParticleCount[grid] = 0;
-      PartialStarParticleCount[grid] = 0;
-    }
-}
- 
-#ifdef USE_MPI
- 
-  /* Get counts from each processor to get total list of new particles. */
- 
-#ifdef MPI_INSTRUMENTATION
-  starttime = MPI_Wtime();
-#endif
-
-  MPI_Datatype DataTypeInt = (sizeof(int) == 4) ? MPI_INT : MPI_LONG_LONG_INT;
-
-  MPI_Arg GridCount = NumberOfGrids;
-   
-  MPI_Allreduce(PartialParticleCount, TotalParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, EnzoTopComm);
-  MPI_Allreduce(PartialStarParticleCount, TotalStarParticleCount, GridCount,
-		DataTypeInt, MPI_SUM, EnzoTopComm);
-
-#ifdef MPI_INSTRUMENTATION
-  endtime = MPI_Wtime();
-  timer[11] += endtime-starttime;
-  counter[11] ++;
-  GlobalCommunication += endtime-starttime;
-  CommunicationTime += endtime-starttime;
-#endif /* MPI_INSTRUMENTATION */
- 
-#endif /* USE_MPI */
- 
-  /* Set new particle count for each grid. */
- 
-  for (grid = 0; grid < NumberOfGrids; grid++) {
-
-    if (Grids[grid]->GridData->ReturnProcessorNumber() == MyProcessorNumber) 
-
-      /* If this grid is on this processor, then call routine to set the
-	 particle index numbers.  This also updates NumberOfStarParticles. */
-
-      Grids[grid]->GridData->SetNewParticleIndexOld(NumberOfStarParticles,
-						    MetaData->NumberOfParticles);
-
-    else {
- 
-      /* If not on this processor, then keep track of the number of new
-	 star particles (which is the difference between the number 
-	 got from the communication and what is currently stored).
-	 Finally, correct the number of particles in our record. */
-
-      NumberOfStarParticles += TotalParticleCount[grid] -
-                       Grids[grid]->GridData->ReturnNumberOfParticles();
-      Grids[grid]->GridData->SetNumberOfParticles(TotalParticleCount[grid]);
-
-    }
-
-    //  printf("NumberOfStarParticles = %"ISYM"\n", NumberOfStarParticles); 
-
-  }
-
-  /* Clean up. */
- 
-  delete [] TotalParticleCount;
-  delete [] PartialParticleCount;
-  delete [] TotalStarParticleCount;
-  delete [] PartialStarParticleCount;
-
-  return SUCCESS;
-}
-#endif //UNUSED

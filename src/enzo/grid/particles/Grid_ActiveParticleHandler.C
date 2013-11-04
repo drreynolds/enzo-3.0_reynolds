@@ -92,9 +92,6 @@ int grid::ActiveParticleHandler(HierarchyEntry* SubgridPointer, int level,
     
   }
 
-  /*fprintf(stderr, "G_APH: Have created %"ISYM" new particles\n",
-          NumberOfNewParticles);*/
-
   /* Now we copy the particles from NewParticles into a statically allocated
    * array */
 

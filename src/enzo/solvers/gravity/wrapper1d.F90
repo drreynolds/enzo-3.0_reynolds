@@ -4,7 +4,7 @@
       subroutine wrapper1d(x, rank, n1, n2, n3, dir, method)
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       INTG_PREC :: rank, n1, n2, n3, dir
       CMPLX_PREC :: x(n1)
@@ -41,7 +41,7 @@
       subroutine fftwrap1d( a, n, dir, method )
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       CMPLX_PREC :: a(*)
       INTG_PREC :: n(3)

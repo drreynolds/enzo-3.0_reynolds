@@ -48,7 +48,7 @@ C
 C     *******************************************************************
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       R_PREC DEN(NID)
@@ -119,7 +119,7 @@ C     S2J(),S3J(),S4J(),S5J() : COEFFICIENTS FOR PHOTOIONIZ. CROSS SECTION
 C
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       DIMENSION WEIGHT(12), SOLAR(12)
@@ -157,7 +157,7 @@ C     NAME METAL
 C 
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       R_PREC CBOVCOOL(NIT,NID)
@@ -279,7 +279,7 @@ C     NAME=APHTR
       SUBROUTINE APHTR(NO,N,AP1,AP2,HEATR)
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       R_PREC AP1(12,30),AP2(12,30),HEATR(12,30)
@@ -404,7 +404,7 @@ C     NAME=PHTR
       SUBROUTINE PHTR(NO,N,PHOTR,HEATR)
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       R_PREC PHOTR(12,30),HEATR(12,30)
@@ -557,7 +557,7 @@ C
 C     T  : TEMPERATURE
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       R_PREC E(30),EA(30),S2(30),S3(30),S4(30),S5(30)
@@ -747,7 +747,7 @@ C     AS INPUT THIS ROUTINE TAKES THE ELECTRON NUMBER DENSITY IN THE FORM
 C     AN(), IN UNITS OF THE HYDROGEN ATOM NUMBER DENSITY
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"
 C
       R_PREC PHOTR(12,30),AP1(12,30),AP2(12,30)
@@ -1230,7 +1230,7 @@ C     NAME=ATREAD
       SUBROUTINE ATREAD
 C
       IMPLICIT NONE
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       INCLUDE "MTLPARAM.h"   
 C
       R_PREC E(30),EA(30),S2(30),S3(30),S4(30),S5(30)
@@ -2657,7 +2657,7 @@ C
 C     NAME=SEATON
       FUNCTION SEATON(X,Q)
 C     R. MOORE OCTOBER 1976
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
       IMPLICIT NONE
       REAL*8 XD, XS1, XS2, X3, A10, A11, A12, A13, A14, A15, 
      &                 A20, A21, A22, A23, A24, A25, A30, A31, A32, A33, 

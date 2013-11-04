@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 !=======================================================================
 !////////////////////////  SUBROUTINE ADJFFT  \\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -18,7 +18,7 @@
 !  OUTPUTS: array(in,jn,*)
 
       implicit NONE
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 

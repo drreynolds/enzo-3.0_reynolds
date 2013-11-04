@@ -57,7 +57,7 @@ subroutine gFLDProblem_GasEnergySource(ecsrc, time, Era, eca, nHIa,     &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 !#ifdef USE_MPI
 !#include "mpif.h"
 !#endif

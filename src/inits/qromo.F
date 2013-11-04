@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 !---------------------------------------------------------------------------
 !  Routines from Numerical Recipes, unless I am mistaken (RH).
 !---------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 !     choices for "choose".
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Parameters
 
@@ -78,7 +78,7 @@
 !     the returned value y = p(x).
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Parameter
 
@@ -187,7 +187,7 @@
 !     have the same sign.
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 
@@ -253,7 +253,7 @@
 !     modified between sequential calls.
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 
@@ -312,7 +312,7 @@
 !     at the lower limit aa
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 
@@ -380,7 +380,7 @@ c     allows for an inverse square-root singularity int the integrand
 c     at the upper limit bb
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Arguments
 

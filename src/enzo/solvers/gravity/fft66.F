@@ -53,7 +53,7 @@ c    in addition, if the square-free portion k of n has two or
 c    more prime factors, then maxp must be .ge. k-1.
 c
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 c
       INTG_PREC i, ii, inc, isn, j, jc, jf, jj, k, k1, k2, k3, k4, kk, 
      &          ks, kspan, kspnn, kt, m, maxf, maxp, n, nfac, nn, np, 

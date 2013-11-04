@@ -57,7 +57,7 @@ subroutine gFLDProblem_SetNewtonBCs_3D(matentries, rhsentries, a,      &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations
@@ -292,7 +292,7 @@ subroutine gFLDProblem_SetNewtonBCs_2D(matentries, rhsentries, a,     &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations
@@ -460,7 +460,7 @@ subroutine gFLDProblem_SetNewtonBCs_1D(matentries, rhsentries, a,   &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations

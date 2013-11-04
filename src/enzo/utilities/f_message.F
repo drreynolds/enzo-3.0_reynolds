@@ -21,7 +21,7 @@ c=======================================================================
 
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       CHARACTER sourcefile*(*)
       INTG_PREC linenumber
@@ -41,7 +41,7 @@ c=======================================================================
 
 
       implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
       CHARACTER sourcefile*(*)
       INTG_PREC linenumber

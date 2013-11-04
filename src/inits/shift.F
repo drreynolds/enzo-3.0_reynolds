@@ -1,4 +1,4 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 !=======================================================================
 !////////////////////////  SUBROUTINE SHIFT  \\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -22,7 +22,7 @@
 !        field       = input & output field
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !  Arguments
 

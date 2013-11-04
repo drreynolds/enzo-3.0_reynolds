@@ -39,7 +39,7 @@ subroutine gFLDSplit_GasEnergySource(ecsrc, time, a, ProbType, aUnits, &
 !
 !=======================================================================
   implicit none
-#include "fortran_types.def"
+#include "headers/fortran_types.def"
 
 !--------------
 ! argument declarations

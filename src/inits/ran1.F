@@ -1,6 +1,6 @@
-#include "../enzo/fortran.def"
+#include "../enzo/headers/fortran.def"
 !=======================================================================
-! Set R_PREC to match what's in fortran_types.def (since it cannot be 
+! Set R_PREC to match what's in headers/fortran_types.def (since it cannot be 
 ! included before the first function declaration)
 #ifdef CONFIG_BFLOAT_4
 #define R_PREC real*4
@@ -14,7 +14,7 @@
       R_PREC function ran1(idum)
 
       implicit none
-#include "../enzo/fortran_types.def"
+#include "../enzo/headers/fortran_types.def"
 
 !     Parameters
 
