@@ -100,8 +100,11 @@ ENZO_OBJS +=\
 	Grid_AppendForcingToBaryonFields.o \
 	Grid_ApplyTimeAction.o \
 	Grid_ClusterInitializeGrid.o \
+	Grid_ClusterSMBHEachGridGasMass.o \
+	Grid_ClusterSMBHFeedback.o \
 	Grid_CollapseTestInitializeGrid.o \
 	Grid_ComputeExternalNohBoundary.o \
+	Grid_ComputeOneZoneCollapseFactor.o \
 	Grid_ConductionBubbleInitialize.o \
 	Grid_ConductionCloudInitialize.o \
 	Grid_ConductionTestInitialize.o \
@@ -188,7 +191,6 @@ ENZO_OBJS +=\
 	Grid_ComputeHeat.o \
 	Grid_ComputeLuminosity.o \
 	Grid_ComputeMetalLineLuminosity.o \
-	Grid_ComputeOneZoneCollapseFactor.o \
 	Grid_ComputePhotonTimestep.o \
 	Grid_ComputePhotonTimestepHII.o \
 	Grid_ComputePhotonTimestepTau.o \
@@ -247,7 +249,6 @@ vpath %.F   grid/utilities/
 vpath %.F90 grid/utilities/
 
 ENZO_OBJS +=\
-	FluxFix_Grid_CorrectForRefinedFluxes.o \
 	Grid_AccelerationBoundaryRoutines.o \
 	Grid_AccessBaryonFields.o \
 	Grid_AddBaryonsToGravitatingMassField.o \
@@ -403,4 +404,3 @@ ENZO_OBJS +=\
 	Grid_ZeroSolutionUnderSubgrid.o \
 	Grid_constructor.o \
 	Grid_destructor.o \
-

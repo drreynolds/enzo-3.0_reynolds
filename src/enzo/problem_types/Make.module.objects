@@ -13,6 +13,7 @@ ENZO_OBJS +=\
 	CallProblemSpecificRoutines.o \
 	CheckShearingBoundaryConsistency.o \
 	ClusterInitialize.o \
+        ClusterSMBHSumGasMass.o \
 	CollapseTestInitialize.o \
 	ComputeRandomForcingNormalization.o \
 	ConductionBubbleInitialize.o \
@@ -41,6 +42,7 @@ ENZO_OBJS +=\
 	PoissonSolverTestInitialize.o \
 	PressurelessCollapseInitialize.o \
 	ProblemType.o \
+	ProblemType_AgoraRestart.o \
 	ProblemType_CollapsingCoolingCloud.o \
 	ProblemType_ExplodingCloud.o \
 	ProblemType_Python.o \
@@ -76,4 +78,3 @@ ENZO_OBJS +=\
 	WavePoolInitialize.o \
 	ZeldovichPancakeInitialize.o \
 	turboinit.o \
-

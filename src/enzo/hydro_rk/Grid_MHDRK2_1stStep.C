@@ -23,9 +23,6 @@
 
 double ReturnWallTime();
 
-int MHDTimeUpdate_CUDA(float **Prim, int GridDimension[], 
-			int GridStartIndex[], int GridEndIndex[], int GridRank,
-		       float dtdx, float dt, float C_h, float C_p, float cTheta_Limiter);
 
 int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[], 
 			 int NumberOfSubgrids, int level,
@@ -43,6 +40,13 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
   if (NumberOfBaryonFields == 0) {
     return SUCCESS;
   }
+
+#ifdef ECUDA
+  if (UseCUDA) {
+    this->CudaMHDRK2_1stStep(SubgridFluxes, NumberOfSubgrids, level, Exterior);
+    return SUCCESS;
+  }
+#endif
 
   double time1 = ReturnWallTime();
   int igrid;
@@ -101,19 +105,6 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
   /* RK2 first step */
 
 
-#ifdef ECUDA
-  if (UseCUDA == 1) {
-    FLOAT dtdx = dtFixed/CellWidth[0][0];
-    double time2 = ReturnWallTime();
-    if (MHDTimeUpdate_CUDA(Prim, GridDimension, GridStartIndex, GridEndIndex, GridRank,
-			    dtdx, dtFixed, C_h, C_p, Theta_Limiter) == FAIL) {
-      printf("RK1: MHDTimeUpdate_CUDA failed.\n");
-      return FAIL;
-    }
-    return SUCCESS;
-  }
-#endif
-
   float *dU[NEQ_MHD+NSpecies+NColor];
 
   int size = 1;
@@ -122,7 +113,7 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
   
   int activesize = 1;
   for (int dim = 0; dim < GridRank; dim++)
-    activesize *= (GridDimension[dim] - 2*DEFAULT_GHOST_ZONES);
+    activesize *= (GridDimension[dim] - 2*NumberOfGhostZones);
 
   for (int field = 0; field < NEQ_MHD+NSpecies+NColor; field++)
     dU[field] = new float[activesize];

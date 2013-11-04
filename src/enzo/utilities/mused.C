@@ -41,6 +41,7 @@ Eint64 mused(void)
 
 // Memory usage from proc tables
 
+#include "preincludes.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
@@ -73,6 +74,7 @@ Eint64 mused(void)
 
 #else
 
+#include "preincludes.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"

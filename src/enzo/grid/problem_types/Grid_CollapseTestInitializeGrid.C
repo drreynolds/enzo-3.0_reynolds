@@ -38,8 +38,6 @@ float gasdev();
 double BE(double r);
 double q(double r);
 double Ang(double a1, double a2, double R, double r);
-// Density profile for Bondi flow
-float bondi_alpha(float x);
 
 // Returns random velocity from Maxwellian distribution
 double Maxwellian(double c_tilda, double vel_unit, double mu, double gamma);
@@ -76,9 +74,11 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 				     float SphereCutOff[MAX_SPHERES],
 				     float SphereAng1[MAX_SPHERES],
 				     float SphereAng2[MAX_SPHERES],
-				     float SphereRotationPeriod[MAX_SPHERES],
 				     int   SphereNumShells[MAX_SPHERES],
 				     int   SphereType[MAX_SPHERES],
+				     int   SphereConstantPressure[MAX_SPHERES],
+				     int   SphereSmoothSurface[MAX_SPHERES],
+				     float SphereSmoothRadius[MAX_SPHERES],
 				     int   SphereUseParticles,
 				     float ParticleMeanDensity,
 				     float UniformVelocity[MAX_DIMENSION],
@@ -125,7 +125,7 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
     }
   }
   if (SphereUseMetals)
-    FieldType[MetalNum = NumberOfBaryonFields++] = Metallicity;
+    FieldType[MetalNum = NumberOfBaryonFields++] = SNColour;
 
   int ColourNum = NumberOfBaryonFields;
   if (SphereUseColour)
@@ -276,8 +276,9 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 
     float density, dens1, old_density, Velocity[MAX_DIMENSION], 
       DiskVelocity[MAX_DIMENSION], temperature, temp1, sigma, sigma1, 
-      colour, weight, a, DMVelocity[MAX_DIMENSION], metallicity;
-    FLOAT r, rcyl, x_B, x, y = 0, z = 0;
+      colour, weight, a, DMVelocity[MAX_DIMENSION], metallicity, 
+      outer_radius;
+    FLOAT r, rcyl, x, y = 0, z = 0;
     int n = 0, ibin;
 
     double SphereRotationalPeriod[MAX_SPHERES];
@@ -413,13 +414,6 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 	       ThickenTransitionRadius, InnerScaleHeight);
 	break;
 
-      case 11:
-	SphereMass = (4*pi/3)*pow((SphereRadius[sphere]*LengthUnits), 3) *
-	  (SphereDensity[sphere]*DensityUnits);
-	printf("mass = %"GSYM", lunit = %"GSYM", dunit = %"GSYM", rho = %"GSYM", r = %"GSYM"\n",
-	       SphereMass, LengthUnits, DensityUnits, SphereDensity[sphere],
-	       SphereRadius[sphere]);
-
       } // ENDSWITCH SphereType
       
       printf("\nSphere Mass (M_sun): %"FSYM"\n", SphereMass/SolarMass);
@@ -485,7 +479,9 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 
 	    /* Compute Cartesian coordinates for rotational properties */
 	    	    
-	    if (r < SphereRadius[sphere]) {
+	    outer_radius = (SphereSmoothSurface[sphere] == TRUE) ? 
+	      SphereSmoothRadius[sphere]*SphereRadius[sphere] : SphereRadius[sphere];
+	    if (r < outer_radius) {
 
 	      /* Compute spherical coordinate theta */
 
@@ -551,13 +547,6 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 		DMVelocity[1] += radial_velocity * ypos / r;
 		DMVelocity[2] += radial_velocity * zpos / r;
 	      }
-
-	      if (SphereType[sphere] == 11) {
-		float Omega = 2*pi/SphereRotationPeriod[sphere];
-		SphereVelocity[sphere][0] = -Omega*ypos;
-		SphereVelocity[sphere][1] = Omega*xpos;
-		SphereVelocity[sphere][2] = 0;
-	      }
 	      
 	      /* 1) Uniform */
 
@@ -607,7 +596,6 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 
 	      if (SphereType[sphere] == 6) {
 		dens1 = SphereDensity[sphere] * BE(r*Scale_Factor[sphere]);
-		dens1 = dens1*(1.1 + 0.1*cos(2*theta));
 	      }
 
 	      /* 7) Uniform density, Keplerian disk */
@@ -747,11 +735,6 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 
 	      } // end: disk
 	    
-	      if (SphereType[sphere] == 11) {
-		// Burkert & Bodenheimer 'standard' isothermal collapse
-		dens1 = SphereDensity[sphere]*(1+0.1*cos(2*theta));	
-	      }
-
 	      /* If the density is larger than the background (or the previous
 		 sphere), then set the velocity. */
 
@@ -773,10 +756,15 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 		//	      temp1 = InitialTemperature;
 
 		if (SphereType[sphere] != 7 && SphereType[sphere] != 9)
-		  if (temp1 == InitialTemperature)
-		    temperature = SphereTemperature[sphere];
-		  else
+		  if (temp1 == InitialTemperature) {
+		    if (SphereConstantPressure[sphere] == TRUE) {
+		      temperature = SphereTemperature[sphere] * (SphereDensity[sphere] / dens1);
+		    } else {
+		      temperature = SphereTemperature[sphere];
+		    }
+		  } else {
 		    temperature = temp1;
+		  }
 
 		sigma = sigma1;
 		if (SphereType[sphere] != 10)
@@ -845,6 +833,18 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 	      } // ENDIF type == 8
 	      
 	    }
+
+	    if (SphereSmoothSurface[sphere] == TRUE && 
+		r < SphereSmoothRadius[sphere]*SphereRadius[sphere] &&
+		    r > SphereRadius[sphere]) {
+	      float ramp = 1.0 - 1.0 * tanh((3.0/(SphereSmoothRadius[sphere]-1.0))*
+					    (r/SphereRadius[sphere] - 1.0));
+	      ramp = max(ramp, 1.0/density);
+	      density *= ramp;
+	      if (SphereConstantPressure[sphere] == TRUE) {
+		temperature /= ramp;
+	      }
+	    } // end: if (SmoothSurface)
 
 	  } // end: loop over spheres
 

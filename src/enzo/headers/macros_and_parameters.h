@@ -54,7 +54,6 @@
 
 #define MEMORY_POOL_SIZE  __memory_pool_size
 
-#define DEFAULT_GHOST_ZONES                 3  /* at least 3 */
 
 #define MAX_NUMBER_OF_OUTPUT_REDSHIFTS    500
 
@@ -557,7 +556,6 @@ typedef int            HDF5_hid_t;
 #define IMF_TABLE_ENTRIES 1000
 
 #ifdef USE_MPI
-#define MPI_INSTRUMENTATION
 #else /* USE_MPI */
 //#undef MEM_TRACE
 #undef MPI_TRACE

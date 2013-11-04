@@ -39,29 +39,33 @@ int CallProblemSpecificRoutines(TopGridData * MetaData, HierarchyEntry *ThisGrid
     ThisGrid->GridData->SphericalInfallGetProfile(level, 1);
   if (ProblemType == 30)
     ThisGrid->GridData->AnalyzeTrackPeaks(level, 0);
-//  if (ProblemType == 27)
-//    if (ThisGrid->GridData->ReturnProcessorNumber()==MyProcessorNumber){
-//      float AM[3], MeanVelocity[3], DMVelocity[3];
-//      FLOAT Center[] = {0,0,0}, CenterOfMass[3], DMCofM[3];
-//      ThisGrid->GridData->CalculateAngularMomentum
-//	(Center, AM, MeanVelocity, DMVelocity, CenterOfMass, DMCofM);
-//      fprintf(stdout, 
-//	      "level = %"ISYM" %"ISYM" %"ISYM"  "
-//	      "Vel %"FSYM" %"FSYM" %"FSYM"  "
-//	      "DMVel %"FSYM" %"FSYM" %"FSYM"  "
-//	      "CofM %"PSYM" %"PSYM" %"PSYM"  "
-//	      "DMCofM %"FSYM" %"FSYM" %"FSYM"\n",
-//	      level, LevelCycleCount[level], GridNum, MeanVelocity[0],
-//	      MeanVelocity[1], MeanVelocity[2],
-//	      DMVelocity[0], DMVelocity[1], DMVelocity[2],
-//	      -CenterOfMass[0], -CenterOfMass[1], -CenterOfMass[2],
-//	      DMCofM[0], DMCofM[1], DMCofM[2]);
-//    }
+ if (ProblemType == 27)
+   if (ThisGrid->GridData->ReturnProcessorNumber()==MyProcessorNumber){
+     float AM[3], MeanVelocity[3], DMVelocity[3];
+     FLOAT Center[] = {0,0,0}, CenterOfMass[3], DMCofM[3];
+     ThisGrid->GridData->CalculateAngularMomentum
+	(Center, AM, MeanVelocity, DMVelocity, CenterOfMass, DMCofM);
+     fprintf(stdout, 
+	      "level = %"ISYM" %"ISYM" %"ISYM"  "
+	      "Vel %"FSYM" %"FSYM" %"FSYM"  "
+	      "DMVel %"FSYM" %"FSYM" %"FSYM"  "
+	      "CofM %"PSYM" %"PSYM" %"PSYM"  "
+	      "DMCofM %"FSYM" %"FSYM" %"FSYM"\n",
+	      level, LevelCycleCount[level], GridNum, MeanVelocity[0],
+	      MeanVelocity[1], MeanVelocity[2],
+	      DMVelocity[0], DMVelocity[1], DMVelocity[2],
+	      -CenterOfMass[0], -CenterOfMass[1], -CenterOfMass[2],
+	      DMCofM[0], DMCofM[1], DMCofM[2]);
+   }
 
   /* Solve analytical free-fall */
   if (ProblemType == 63) {
     ThisGrid->GridData->SolveOneZoneFreefall();
   }
+
+  /* Add radio-mode jet feedback */
+  if (ClusterSMBHFeedback == TRUE)
+   ThisGrid->GridData->ClusterSMBHFeedback(level);
 
   return SUCCESS;
 }

@@ -12,10 +12,10 @@
 /  RETURNS: SUCCESS or FAIL
 /
 ************************************************************************/
- 
+
 // This routine intializes a new simulation based on the parameter file.
 //
- 
+
 #include "preincludes.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -23,12 +23,12 @@
 #include "global_data.h"
 #include "TopGridData.h"
 #include "StarParticleData.h"
- 
+
 /* character strings */
- 
+
 char DefaultDimUnits[] = "cm";
 char *DefaultDimLabel[] = {"x", "y", "z"};
- 
+
 char DefaultRestartName[] = "restart";
 char DefaultDataName[] = "data";
 char DefaultHistoryName[] = "history";
@@ -36,42 +36,42 @@ char DefaultRedshiftName[] = "RedshiftOutput";
 char DefaultNewMovieName[] = "MoviePack";
 char DefaultTracerParticleName[] = "TracerOutput";
 char DefaultExtraName[] = "ExtraDumpXX";
-char DefaultExtraDir[]="ED00"; 
 
 char DefaultRestartDir[] = "RS";
 char DefaultDataDir[] = "DD";
 char DefaultHistoryDir[] = "HD";
 char DefaultRedshiftDir[] = "RD";
 char DefaultTracerParticleDir[] = "TD";
- 
- 
- 
- 
+char DefaultExtraDir[]="ED00";
+
+
+
+
 int SetDefaultGlobalValues(TopGridData &MetaData)
 {
- 
+
   /* declarations */
- 
+
   const float Pi = 3.14159;
   int dim, i, j;
- 
+
   huge_number               = 1.0e+20;
   tiny_number               = 1.0e-20;
 
   /* set the default MetaData values. */
- 
+
   MetaData.CycleNumber     = 0;
   MetaData.SubcycleNumber     = 0;
   MetaData.Time            = 0.0;
   MetaData.CPUTime         = 0.0;
- 
+
   MetaData.StopTime        = FLOAT_UNDEFINED;  // This must be set be the user
   MetaData.StopCycle       = 100000;            // 10000 timesteps
   MetaData.StopSteps       = 10000;            // 10000 timesteps
   MetaData.StopCPUTime     = 720.0*3600.0;     // 30 days
   MetaData.ResubmitOn      = FALSE;
   MetaData.ResubmitCommand = NULL;
- 
+
   MetaData.MaximumTopGridTimeStep = huge_number;
 
   MetaData.TimeLastRestartDump = 0.0;
@@ -85,7 +85,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   MetaData.TimeLastInterpolatedDataDump    = FLOAT_UNDEFINED;
   MetaData.dtInterpolatedDataDump          = 0.0;
   MetaData.WroteData           = FALSE;
- 
+
   MetaData.CycleLastRestartDump = 0;
   MetaData.CycleSkipRestartDump = 0;
   MetaData.CycleLastDataDump    = INT_UNDEFINED;
@@ -95,10 +95,10 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   MetaData.CycleLastHistoryDump = INT_UNDEFINED;
   MetaData.CycleSkipHistoryDump = 0;
   MetaData.CycleSkipGlobalDataDump = 0; //AK
- 
+
   MetaData.OutputFirstTimeAtLevel = 0; // zero is off
   MetaData.StopFirstTimeAtLevel   = 0; // zero is off
- 
+
   MetaData.NumberOfOutputsBeforeExit = 0;
   MetaData.OutputsLeftBeforeExit     = 0;
 
@@ -128,6 +128,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   MetaData.LocalDir            = NULL;
   MetaData.GlobalDir           = NULL;
 
+  NumberOfGhostZones = 3;
   LoadBalancing = 1;     //On, memory equalization method
   LoadBalancingCycleSkip = 10;  // Load balance root grids every 10 cycles
   ResetLoadBalancing = FALSE;
@@ -152,14 +153,14 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
     TimeActionTime[i]      = 0;
     TimeActionParameter[i] = FLOAT_UNDEFINED;
   }
- 
+
   for (i = 0; i < MAX_CUBE_DUMPS; i++) {
     CubeDumps[i] = NULL;
   }
- 
+
   MetaData.StaticHierarchy     = TRUE;
   FastSiblingLocatorEntireDomain = TRUE;
- 
+
   MetaData.TopGridRank = INT_UNDEFINED;
   for (dim = 0; dim < MAX_DIMENSION; dim++) {
     MetaData.TopGridDims[dim]                = INT_UNDEFINED;
@@ -167,23 +168,23 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
     MetaData.RightFaceBoundaryCondition[dim] = reflecting;
   }
   MetaData.BoundaryConditionName = NULL;
- 
+
   MetaData.GravityBoundary        = TopGridPeriodic;
 
 #ifdef TRANSFER
   MetaData.RadHydroParameterFname = NULL;
 #endif
- 
+
   MetaData.ParticleBoundaryType   = periodic;  // only one implemented!
   MetaData.NumberOfParticles      = 0;         // no particles
- 
+
   MetaData.CourantSafetyNumber    = 0.6;
   MetaData.PPMFlatteningParameter = 0;    // off
   MetaData.PPMDiffusionParameter  = 0;    // off
   MetaData.PPMSteepeningParameter = 0;    // off
 
   MetaData.FirstTimestepAfterRestart = TRUE;
- 
+
   /* set the default global data. */
   CheckpointRestart         = 0;
 
@@ -209,7 +210,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   SubgridSizeAutoAdjust     = TRUE; // true for adjusting maxsize and minedge
   OptimalSubgridsPerProcessor = 16;    // Subgrids per processor
   NumberOfBufferZones       = 1;
- 
+
   for (i = 0; i < MAX_FLAGGING_METHODS; i++) {
     MinimumSlopeForRefinement[i]= 0.3;
     SlopeFlaggingFields[i] = INT_UNDEFINED;
@@ -218,7 +219,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
     MinimumOverDensityForRefinement[i]       = 1.5;
     MinimumMassForRefinementLevelExponent[i] = 0;
   }
- 
+
   for (dim = 0; dim < MAX_DIMENSION; dim++) {
     DomainLeftEdge[dim]             = 0.0;
     DomainRightEdge[dim]            = 1.0;
@@ -234,7 +235,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
     MustRefineRegionLeftEdge[dim] = 0.0;
     MustRefineRegionRightEdge[dim] = 1.0;
   }
- 
+
   for (i = 0; i < MAX_STATIC_REGIONS; i++) {
     StaticRefineRegionLevel[i] = INT_UNDEFINED;
     AvoidRefineRegionLevel[i]  = INT_UNDEFINED;
@@ -257,7 +258,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   DatabaseLocation = NULL;
 
- 
+
   ParallelRootGridIO          = FALSE;
   ParallelParticleIO          = FALSE;
   Unigrid                     = FALSE;
@@ -281,7 +282,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   CurrentDensityOutput             = 999;
   IncrementDensityOutput           = 999;
   CurrentMaximumDensity            = -999;
- 
+
   CubeDumpEnabled             = 0;
 
 #ifdef STAGE_INPUT
@@ -291,7 +292,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   First_Pass                  = 0;
 
   MemoryLimit                 = 4000000000L;
- 
+
   ExternalGravity             = FALSE;             // off
   ExternalGravityDensity      = 0.0;
   ExternalGravityRadius       = 0.0;
@@ -299,7 +300,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   UniformGravity              = FALSE;             // off
   UniformGravityDirection     = 0;                 // x-direction
   UniformGravityConstant      = 1.0;
- 
+
   PointSourceGravity           = FALSE;             // off
   PointSourceGravityConstant   = 1.0;
   PointSourceGravityCoreRadius = 0.0;
@@ -318,7 +319,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   GreensFunctionMaxNumber     = 1;                 // only one at a time
   GreensFunctionMaxSize       = 1;                 // not used yet
- 
+
   DualEnergyFormalism         = FALSE;             // off
   DualEnergyFormalismEta1     = 0.001;             // typical 0.001
   DualEnergyFormalismEta2     = 0.1;               // 0.08-0.1
@@ -349,7 +350,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   ShockMethod                 = 0;                 // off
   ShockTemperatureFloor       = 1.0;               // Set to 1K
   StorePreShockFields         = 0;
-  FindShocksOnlyOnOutput      = 0;                 // Find at every cycle and 
+  FindShocksOnlyOnOutput      = 0;                 // Find at every cycle and
                                                    // during output by default.
   RadiationFieldType          = 0;
   RadiationFieldRedshift      = 0.0;
@@ -407,7 +408,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   ZEUSQuadraticArtificialViscosity = 2.0;
   UseMinimumPressureSupport        = FALSE;
   MinimumPressureSupportParameter  = 100.0;
- 
+
   //MinimumSlopeForRefinement        = 0.3;          // 30% change in value
   MinimumShearForRefinement        = 1.0;          //AK
   MinimumPressureJumpForRefinement = 0.33;         // As in PPM method paper
@@ -417,7 +418,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   RefineByResistiveLengthSafetyFactor  = 2.0;
   ShockwaveRefinementMinMach = 1.3; // Only above M=1.3
   ShockwaveRefinementMinVelocity = 1.0e7; //1000 km/s
-  ShockwaveRefinementMaxLevel = 0; 
+  ShockwaveRefinementMaxLevel = 0;
   MustRefineParticlesRefineToLevel = 0;
   MustRefineParticlesRefineToLevelAutoAdjust = FALSE;
   MustRefineParticlesMinimumMass   = 0.0;
@@ -458,10 +459,32 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   AnisotropicConductionSpitzerFraction = 1.0;
   ConductionCourantSafetyNumber = 0.5;
 
+  ClusterSMBHFeedback              = FALSE;
+  ClusterSMBHJetMdot               = 3.0;
+  ClusterSMBHJetVelocity           = 10000.0;
+  ClusterSMBHJetRadius             = 6.0;
+  ClusterSMBHJetLaunchOffset       = 10.0;
+  ClusterSMBHStartTime             = 1.0;
+  ClusterSMBHTramp                 = 0.1;
+  ClusterSMBHJetOpenAngleRadius    = 0.0;
+  ClusterSMBHFastJetRadius         = 0.1;
+  ClusterSMBHFastJetVelocity       = 10000.0;
+  ClusterSMBHJetEdot               = 1.0;
+  ClusterSMBHKineticFraction       = 1.0;
+  ClusterSMBHJetAngleTheta         = 0.0;
+  ClusterSMBHJetAnglePhi           = 0.0;
+  ClusterSMBHJetPrecessionPeriod   = 0.0;
+  ClusterSMBHCalculateGasMass      = 1;
+  ClusterSMBHFeedbackSwitch        = FALSE;
+  ClusterSMBHEnoughColdGas         = 1.0e7;
+  ClusterSMBHAccretionTime         = 5.0;
+  ClusterSMBHJetDim                = 2;
+  ClusterSMBHAccretionEpsilon      = 0.001;
+
   PythonTopGridSkip                = 0;
   PythonSubcycleSkip               = 1;
   PythonReloadScript               = FALSE;
-  
+
   // EnzoTiming Dump Frequency
   TimingCycleSkip                  = 1;
 
@@ -646,7 +669,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   TestProblemData.HydrogenFractionByMass = 0.76;
 
   /* The DToHRatio is by mass in the code, so multiply by 2. */
-  TestProblemData.DeuteriumToHydrogenRatio = 2.0*3.4e-5; // Burles & Tytler 1998 
+  TestProblemData.DeuteriumToHydrogenRatio = 2.0*3.4e-5; // Burles & Tytler 1998
 
   // multispecies default values assume completely neutral gas with primordial D/H ratio
   TestProblemData.MultiSpecies = 0;
@@ -768,8 +791,9 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   VelocityGradient=1.0;
   ShearingBoundaryDirection=-1;
   ShearingVelocityDirection=-1;
-  ShearingBoxProblemType = 0; 
+  ShearingBoxProblemType = 0;
   useMHD=0;
+  CorrectParentBoundaryFlux = FALSE; //Corrects (or doesn't) parent flux when subgrid shares an exposed face with parent.
 
   for(int i=0; i<MAX_EXTRA_OUTPUTS; i++) ExtraOutputs[i]=INT_UNDEFINED;
   MoveParticlesBetweenSiblings = TRUE;
@@ -784,7 +808,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   ResetMagneticField = FALSE;
   for (dim = 0; dim < MAX_DIMENSION; dim++) {
     ResetMagneticFieldAmplitude[dim] = 0.0;   // in Gauss
-  }  
+  }
 
   VelAnyl                     = 0;
   BAnyl                     = 0;

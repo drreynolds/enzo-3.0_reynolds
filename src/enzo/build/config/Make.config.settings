@@ -35,7 +35,6 @@
 #    CONFIG_HYPRE
 #    CONFIG_EMISSIVITY
 #    CONFIG_FAST_SIB
-#    CONFIG_FLUX_FIX
 #    CONFIG_BITWISE_IDENTICALITY
 #    CONFIG_USE_ECUDA
 #    CONFIG_SET_ACCELERATION_BOUNDARY
@@ -268,14 +267,7 @@
 
      CONFIG_FAST_SIB = yes
 
-#=======================================================================
-# CONFIG_FLUX_FIX
-#=======================================================================
-#    yes           Include the SUBling (Subgrid of Sibling) Flux Correction Fix
-#    no            Skip this step
-#-----------------------------------------------------------------------
-
-     CONFIG_FLUX_FIX = yes
+#======================================================================= 
 
 #======================================================================= 
 # CONFIG_BITWISE_IDENTICALITY

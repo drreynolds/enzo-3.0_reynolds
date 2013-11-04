@@ -22,10 +22,11 @@
 #include "ActiveParticle.h"
 #include "FOF_allvars.h"
 #include "MemoryPool.h"
-
-#ifdef FLUX_FIX
-#include "TopGridData.h"
+#ifdef ECUDA
+#include "hydro_rk/CudaMHD.h"
 #endif
+
+#include "TopGridData.h"
 
 struct HierarchyEntry;
 
@@ -184,6 +185,10 @@ class grid
   int TimestepsSinceCreation; 	// Not really since creation anymore... 
   				// resets everytime the grid outputs
 
+// density and pressure history for one-zone collapse
+// for calculating effective gamma
+  float **freefall_density;
+  float **freefall_pressure;
 
   // density and pressure history for one-zone collapse
   // for calculating effective gamma
@@ -202,6 +207,14 @@ class grid
 #ifdef TRANSFER
 #include "PhotonGrid_Variables.h"
 #endif
+
+#ifdef ECUDA
+//
+// CUDA MHD solver data
+//
+  cuMHDData MHDData;
+#endif
+
 
  public:
 
@@ -450,15 +463,10 @@ public:
 	   flux estimates).  Returns SUCCESS or FAIL.
     (for step #19) */
 
-#ifdef FLUX_FIX
    int CorrectForRefinedFluxes(fluxes *InitialFluxes, fluxes *RefinedFluxes,
 			       fluxes *BoundaryFluxesThisTimeStep,
 			       int SUBlingGrid,
 			       TopGridData *MetaData);
-#else
-   int CorrectForRefinedFluxes(fluxes *InitialFluxes, fluxes *RefinedFluxes,
-			       fluxes *BoundaryFluxesThisTimeStep);
-#endif
 
 /* Baryons: add the fluxes pointed to by the argument to the boundary fluxes
             of this grid (sort of for step #16).  Note that the two fluxes
@@ -943,14 +951,12 @@ gradient force to gravitational force for one-zone collapse test. */
 				   boundary_type RightFaceBoundaryCondition[]);
 
 /* David Collins flux correction - July 2005 */
-#ifdef FLUX_FIX
    int CheckForSharedFace(grid *OtherGrid,
 			       boundary_type LeftFaceBoundaryCondition[],
 			       boundary_type RightFaceBoundaryCondition[]);
 
    int CheckForSharedFaceHelper(grid *OtherGrid,
 				     FLOAT EdgeOffset[MAX_DIMENSION]);
-#endif
 
 /* baryons: check for overlap between grids & return TRUE if it exists
             (correctly includes periodic boundary conditions). */
@@ -1056,7 +1062,7 @@ gradient force to gravitational force for one-zone collapse test. */
    GravitatingMassFieldParticles depending on the value of DepositField). */
 
    int DepositPositions(FLOAT *Positions[], float *Mass, int Number, 
-			int DepositField, bool NeverSmooth=false);
+			int DepositField);
 
 /* deposit particles/grids to grid (if they are on the grid). */
 
@@ -1984,9 +1990,11 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			     float SphereCutOff[MAX_SPHERES],
 			     float SphereAng1[MAX_SPHERES],
 			     float SphereAng2[MAX_SPHERES],
-			     float SphereRotationPeriod[MAX_SPHERES], 
 			     int   SphereNumShells[MAX_SPHERES],
 			     int   SphereType[MAX_SPHERES],
+			     int   SphereConstantPressure[MAX_SPHERES],
+			     int   SphereSmoothSurface[MAX_SPHERES],
+			     float SphereSmoothRadius[MAX_SPHERES],
 			     int   SphereUseParticles,
 			     float ParticleMeanDensity,
 			     float UniformVelocity[MAX_DIMENSION],
@@ -2008,7 +2016,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                              int   SphereUseParticles,
                              float UniformVelocity[MAX_DIMENSION],
                              int   SphereUseColour,
-                             float InitialTemperature, int level);
+                             float InitialTemperature, 
+			     float ClusterInitialSpinParameter, int level);
 
   /* CosmologySimulation: initialize grid. */
   int CosmologySimulationInitializeGrid(
@@ -2638,6 +2647,8 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 // new hydro & MHD routines
 //------------------------------------------------------------------------
 
+  int ClusterSMBHFeedback(int level);
+  int ClusterSMBHEachGridGasMass(int level);
   int SetNumberOfColours(void);
   int SaveSubgridFluxes(fluxes *SubgridFluxes[], int NumberOfSubgrids,
                         float *Flux3D[], int flux, float fluxcoef, float dt);
@@ -2842,6 +2853,27 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int ComputeResistivity(float *resistivity, int DensNum);
   /* END OF NEW STANFORD HYDRO/MHD ROUTINES */
 
+//------------------------------------------------------------------------
+// CUDA MHD routines
+//------------------------------------------------------------------------
+#ifdef ECUDA
+  void CudaMHDMallocGPUData();
+  void CudaMHDFreeGPUData();
+  void CudaSolveMHDEquations(fluxes *SubgridFluxes[], int NumberOfSubgrids, int renorm);
+  void CudaMHDSweep(int dir);
+  void CudaMHDSaveSubgridFluxes(fluxes *SubgridFluxes[], 
+                                int NumberOfSubgrids, int dir); 
+  void CudaMHDSourceTerm();
+  void CudaMHDUpdatePrim(int renorm);
+  int CudaMHDRK2_1stStep(fluxes *SubgridFluxes[], 
+                         int NumberOfSubgrids, int level,
+                         ExternalBoundary *Exterior);
+  int CudaMHDRK2_2ndStep(fluxes *SubgridFluxes[], 
+                         int NumberOfSubgrids, int level,
+                         ExternalBoundary *Exterior);
+#endif
+
+
 };
 
 // inline int grid::ReadRandomForcingFields (FILE *main_file_pointer);
@@ -2850,3 +2882,4 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
 
 #endif
+

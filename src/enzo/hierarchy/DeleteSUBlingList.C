@@ -34,7 +34,6 @@
 #include "TopGridData.h"
 #include "LevelHierarchy.h"
  
-#ifdef FLUX_FIX
  
 int DeleteSUBlingList( int NumberOfGrids,
 		      LevelHierarchyEntry **SUBlingList)
@@ -59,4 +58,3 @@ int DeleteSUBlingList( int NumberOfGrids,
   return SUCCESS;
  
 }
-#endif

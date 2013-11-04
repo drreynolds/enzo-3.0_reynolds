@@ -35,7 +35,7 @@ class AccretingParticleGrid : private grid {
   friend class ActiveParticleType_AccretingParticle;
 };
 
-/* Note that we only refer to AccretingParticleGrid here. 
+/* Note that we only refer to AccretingParticleGrid here.
  * Given a grid object, we static cast to get this:
  *
  *    AccretingParticleGrid *thisgrid =
@@ -77,7 +77,7 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
       TurnOnParticleMassRefinement = false;
       break;
     }
-	
+
   if (TurnOnParticleMassRefinement) {
     method = 0;
     while(CellFlaggingMethod[method] != INT_UNDEFINED)
@@ -104,15 +104,15 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 
   AccretingParticleGrid *thisGrid =
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
-  
+
   int i,j,k,index,method,MassRefinementMethod;
 
   float *density = thisGrid->BaryonField[data.DensNum];
-  
-  float* velx = thisGrid->BaryonField[data.Vel1Num]; 
+
+  float* velx = thisGrid->BaryonField[data.Vel1Num];
   float* vely = thisGrid->BaryonField[data.Vel2Num];
   float* velz = thisGrid->BaryonField[data.Vel3Num];
-  
+
   float JeansDensityUnitConversion = (Gamma*pi*kboltz) / (Mu*mh*GravConst);
   float CellTemperature = 0;
   float JeansDensity = 0;
@@ -125,10 +125,12 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
                           thisGrid->GridDimension[2]};
 
   FLOAT dx = thisGrid->CellWidth[0][0];
-  
+
   bool HasMetalField = (data.MetalNum != -1 || data.ColourNum != -1);
   bool JeansRefinement = false;
   bool MassRefinement = false;
+
+  const int offset[] = {1, GridDimension[0], GridDimension[0]*GridDimension[1]};
 
   // determine refinement criteria
   for (method = 0; method < MAX_FLAGGING_METHODS; method++) {
@@ -136,7 +138,7 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
       MassRefinement = true;
       MassRefinementMethod = method;
     }
-    if (CellFlaggingMethod[method] == 6) 
+    if (CellFlaggingMethod[method] == 6)
       JeansRefinement = true;
   }
 
@@ -153,15 +155,19 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	DensityThreshold = huge_number;
 	if (JeansRefinement) {
 	  CellTemperature = (JeansRefinementColdTemperature > 0) ? JeansRefinementColdTemperature : data.Temperature[index];
-	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature / 
+	  JeansDensity = JeansDensityUnitConversion * OverflowFactor * CellTemperature /
 	    POW(data.LengthUnits*dx*4.0,2);
 	  JeansDensity /= data.DensityUnits;
 	  DensityThreshold = min(DensityThreshold,JeansDensity);
 	}
 	if (DensityThreshold == huge_number)
-	  ENZO_FAIL("Error in Accreting Particles: Must refine by jeans length or overdensity!");
-	
-	if (density[index] <= DensityThreshold) 
+	  ENZO_VFAIL("Error in Accreting Particles: DensityThreshold = huge_number! \n"
+		     "JeansDensity = %"GOUTSYM" \n"
+		     "data.DensityUnits = %"GOUTSYM" \n"
+		     "CellTemperature = %"GOUTSYM" \n",
+		     JeansDensity, data.DensityUnits, CellTemperature);
+
+	if (density[index] <= DensityThreshold)
 	  continue;
 
 	// Passed creation tests, create sink particle
@@ -177,22 +183,31 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
 	np->level = data.level;
 	np->GridID = data.GridID;
 	np->CurrentGrid = thisGrid;
-	
+
 	np->pos[0] = thisGrid->CellLeftEdge[0][i] + 0.5*thisGrid->CellWidth[0][i];
 	np->pos[1] = thisGrid->CellLeftEdge[1][j] + 0.5*thisGrid->CellWidth[1][j];
 	np->pos[2] = thisGrid->CellLeftEdge[2][k] + 0.5*thisGrid->CellWidth[2][k];
-	
-	np->vel[0] = velx[index];
-	np->vel[1] = vely[index];
-	np->vel[2] = velz[index];
-	
+
+	if (HydroMethod == PPM_DirectEuler) {
+	  np->vel[0] = velx[index];
+	  np->vel[1] = vely[index];
+	  np->vel[2] = velz[index];
+	}
+	else if (HydroMethod == Zeus_Hydro) {
+	  np->vel[0] = 0.5 * (velx[index] + velx[index+offset[0]]);
+	  np->vel[1] = 0.5 * (vely[index] + vely[index+offset[1]]);
+	  np->vel[2] = 0.5 * (velz[index] + velz[index+offset[2]]);
+	} else {
+	  ENZO_FAIL("AccretingParticle does not support RK Hydro or RK MHD");
+	}
+
 	if (HasMetalField)
 	  np->Metallicity = data.TotalMetals[index];
 	else
 	  np->Metallicity = 0.0;
 
 	np->AccretionRate = 0.0;
-	
+
 	// Remove mass from grid
 
 	density[index] = DensityThreshold;
@@ -200,21 +215,21 @@ int ActiveParticleType_AccretingParticle::EvaluateFormation
       } // i
     } // j
   } // k
- 
+
   return SUCCESS;
-}  
+}
 
 int ActiveParticleType_AccretingParticle::EvaluateFeedback(grid *thisgrid_orig, ActiveParticleFormationData &data)
 {
   AccretingParticleGrid *thisGrid =
     static_cast<AccretingParticleGrid *>(thisgrid_orig);
-  
+
   int npart = thisGrid->NumberOfActiveParticles;
 
   for (int n = 0; n < npart; n++) {
-    ActiveParticleType_AccretingParticle *ThisParticle = 
+    ActiveParticleType_AccretingParticle *ThisParticle =
       static_cast<ActiveParticleType_AccretingParticle*>(thisGrid->ActiveParticles[n]);
-  
+
     ThisParticle->level = data.level;
   }
 
@@ -231,61 +246,61 @@ void ActiveParticleType_AccretingParticle::DescribeSupplementalData(ActivePartic
 }
 
 
-grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius, 
+grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius,
 			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
 			     int SendField);
 
-int DistributeFeedbackZone(grid* FeedbackZone, HierarchyEntry** Grids, 
+int DistributeFeedbackZone(grid* FeedbackZone, HierarchyEntry** Grids,
 			   int NumberOfGrids, int SendField);
 
 int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticleType** ParticleList,
-						  int AccretionRadius, FLOAT dx, 
+						  int AccretionRadius, FLOAT dx,
 						  LevelHierarchyEntry *LevelArray[], int ThisLevel)
 {
-  
-  /* Skip accretion if we're not on the maximum refinement level. 
+
+  /* Skip accretion if we're not on the maximum refinement level.
      This should only ever happen right after creation and then
-     only in pathological cases where sink creation is happening at 
+     only in pathological cases where sink creation is happening at
      the edges of two regions at the maximum refinement level */
 
   if (ThisLevel < MaximumRefinementLevel)
     return SUCCESS;
 
-  /* For each particle, loop over all of the grids and do accretion 
+  /* For each particle, loop over all of the grids and do accretion
      if the grid overlaps with the accretion zone                   */
-  
+
   int i, NumberOfGrids;
   int *FeedbackRadius = NULL;
   HierarchyEntry **Grids = NULL;
   grid *sinkGrid = NULL;
-  
+
   bool SinkIsOnThisProc, SinkIsOnThisGrid;
-  
+
   float SubtractedMass, SubtractedMomentum[3] = {};
-  
+
   NumberOfGrids = GenerateGridArray(LevelArray, ThisLevel, &Grids);
-  
+
   for (i = 0; i < nParticles; i++) {
-    grid* FeedbackZone = ConstructFeedbackZone(ParticleList[i], AccretionRadius, 
+    grid* FeedbackZone = ConstructFeedbackZone(ParticleList[i], AccretionRadius,
 					       dx, Grids, NumberOfGrids, ALL_FIELDS);
 
     if (MyProcessorNumber == FeedbackZone->ReturnProcessorNumber()) {
-    
+
       float AccretionRate = 0;
-      
+
       if (FeedbackZone->AccreteOntoAccretingParticle(&ParticleList[i],
 			      AccretionRadius*dx,&AccretionRate) == FAIL)
 	return FAIL;
-      
+
       // No need to communicate the accretion rate to the other CPUs since this particle is already local.
       static_cast<ActiveParticleType_AccretingParticle*>(ParticleList[i])->AccretionRate = AccretionRate;
     }
-  
+
     DistributeFeedbackZone(FeedbackZone, Grids, NumberOfGrids, ALL_FIELDS);
 
     delete FeedbackZone;
   }
-  
+
   if (AssignActiveParticlesToGrids(ParticleList, nParticles, LevelArray) == FAIL)
     return FAIL;
 
@@ -293,7 +308,7 @@ int ActiveParticleType_AccretingParticle::Accrete(int nParticles, ActiveParticle
   return SUCCESS;
 }
 
-int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, 
+int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level,
 							   int TopGridDims[], int AccretingParticleID)
 {
   /* Generate a list of all sink particles in the simulation box */
@@ -301,15 +316,14 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   FLOAT *pos = NULL, dx=0;
   ActiveParticleType **AccretingParticleList = NULL ;
   LevelHierarchyEntry *Temp = NULL;
-  
+
   AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
-  
+
   /* Calculate CellWidth on maximum refinement level */
-  
-  // this will fail for noncubic boxes or simulations with MinimimMassForRefinementLevelExponent
+
   dx = (DomainRightEdge[0] - DomainLeftEdge[0]) /
     (TopGridDims[0]*POW(FLOAT(RefineBy),FLOAT(MaximumRefinementLevel)));
-  
+
   for (i=0 ; i<nParticles; i++){
     pos = AccretingParticleList[i]->ReturnPosition();
     for (Temp = LevelArray[level]; Temp; Temp = Temp->NextGridThisLevel)
@@ -330,11 +344,10 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
 }
 
 namespace {
-  ActiveParticleType_info *AccretingParticleInfo = 
-    register_ptype <ActiveParticleType_AccretingParticle> 
+  ActiveParticleType_info *AccretingParticleInfo =
+    register_ptype <ActiveParticleType_AccretingParticle>
     ("AccretingParticle");
 }
 
 std::vector<ParticleAttributeHandler*>
   ActiveParticleType_AccretingParticle::AttributeHandlers;
-

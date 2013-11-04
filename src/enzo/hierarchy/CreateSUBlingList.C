@@ -47,7 +47,6 @@
 #include "LevelHierarchy.h"
 #include "CommunicationUtilities.h"
 
-#ifdef FLUX_FIX
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
 
@@ -250,4 +249,3 @@ int CreateSUBlingList(TopGridData *MetaData,
   return SUCCESS;
  
 }
-#endif

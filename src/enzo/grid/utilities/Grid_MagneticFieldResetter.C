@@ -49,7 +49,7 @@ int grid::MagneticFieldResetter(int level)
  
   /* initialize */
  
-  int dim, i, j, k, index, size, field, GhostZones = DEFAULT_GHOST_ZONES;
+  int dim, i, j, k, index, size, field, GhostZones = NumberOfGhostZones;
   int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;
   int B1Num, B2Num, B3Num, PhiNum;
 

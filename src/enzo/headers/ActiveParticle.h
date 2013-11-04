@@ -18,9 +18,7 @@
 #define __ACTIVE_PARTICLE_H
 
 #include <typeinfo>
-#ifdef FLUX_FIX
 #include "TopGridData.h"
-#endif
 #include "ParticleAttributeHandler.h"
 #include "h5utilities.h"
 
@@ -45,7 +43,7 @@ public:
   void OutputPositionInformation(void);
 
   /* Several pure virtual functions */
-  
+
   /* This should return the number of new star particles created, and should
    * create them. */
 
@@ -98,7 +96,7 @@ public:
   void  MirrorToParticle(void);
   void  CopyFromParticle(grid *_grid, int _id, int _level);
   int   DisableParticle(LevelHierarchyEntry *LevelArray[], int NewProcessorNumber);
-  int   SphereContained(LevelHierarchyEntry *LevelArray[], int level, 
+  int   SphereContained(LevelHierarchyEntry *LevelArray[], int level,
 			float Radius);
   void  PrintInfo(void);
   //void  ActivateNewStar(FLOAT Time, float Timestep);
@@ -121,9 +119,9 @@ protected:
   grid *CurrentGrid;
   FLOAT	pos[MAX_DIMENSION];
   float vel[MAX_DIMENSION];
-  double Mass;	      
+  double Mass;
   float BirthTime;
-  float DynamicalTime;      
+  float DynamicalTime;
   float Metallicity;
   PINT Identifier;
   int level;
@@ -132,7 +130,7 @@ protected:
   int type;
 
 private: /* Cannot be accessed by subclasses! */
-  
+
   friend class grid;
   friend class ActiveParticleType_info;
 
@@ -271,7 +269,7 @@ namespace ActiveParticleHelpers {
   }
 
   template <class APClass> void Allocate(int Count, char **buffer) {
-          
+
       /* This routine is called for each particle type. */
       /* So we need to re-calculate the element and header size for each. */
 
@@ -410,7 +408,7 @@ namespace ActiveParticleHelpers {
               it != handlers.end(); ++it) {
               size += (*it)->GetAttribute(buffer, In);
           }
-          /* 
+          /*
           std::cout << "APF[" << MyProcessorNumber << "] " << i << " " << size << " ";
           PrintActiveParticle<APClass>(In);
            */
@@ -453,13 +451,13 @@ ActiveParticleMap &get_active_particle_types();
 
 void EnableActiveParticleType(char *active_particle_type_name);
 
-ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles, 
+ActiveParticleType** ActiveParticleFindAll(LevelHierarchyEntry *LevelArray[], int *GlobalNumberOfActiveParticles,
 					   int ActiveParticleIDToFind);
 
 class ActiveParticleType_info
 {
 public:
-       
+
   /* We will add more functions to this as necessary */
   ActiveParticleType_info
   (std::string this_name,
@@ -469,15 +467,15 @@ public:
    int (*initialize)(),
    int (*feedback)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*before_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
    int (*after_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
 		  int ThisLevel, int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
    int (*deposit_mass)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
 				int ThisLevel, int GalaxyParticleID),
    int (*flagfield)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID),
    void (*allocate_buffer)(int Count, char **buffer),
@@ -485,7 +483,7 @@ public:
    void (*unpack_buffer)(char *buffer, int offset, ActiveParticleType** Outlist,
                        int OutCount),
    int (*element_size)(void),
-   void (*write_particles)(ActiveParticleType **particles, 
+   void (*write_particles)(ActiveParticleType **particles,
                          int type_id, int total_particles,
                          const std::string name, hid_t node),
    int (*read_particles)(ActiveParticleType **particles, int &offset, const
@@ -527,11 +525,11 @@ public:
   int (*EvaluateFormation)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*EvaluateFeedback)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*BeforeEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
 				     int ThisLevel, int TotalStarParticleCountPrevious[],
 				     int ActiveParticleID);
   int (*AfterEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
 				    int ThisLevel, int TotalStarParticleCountPrevious[],
 				    int ActiveParticleID);
   int (*DepositMass)(HierarchyEntry *Grids[], TopGridData *MetaData,
@@ -544,7 +542,7 @@ public:
                        int OutCount);
   int (*FillBuffer)(ActiveParticleType **InList, int InCount, char *buffer);
   int (*ReturnElementSize)(void);
-  void (*WriteParticles)(ActiveParticleType **InList, 
+  void (*WriteParticles)(ActiveParticleType **InList,
                        int ParticleTypeID, int TotalParticles,
                        const std::string name, hid_t node);
   int (*ReadParticles)(ActiveParticleType **OutList, int &offset, const
@@ -568,7 +566,7 @@ template <class APClass>
 ActiveParticleType_info *register_ptype(std::string name)
 {
   APClass *pp = new APClass();
-  
+
   ActiveParticleType_info *pinfo = new ActiveParticleType_info
     (name,
      (&APClass::EvaluateFormation),
@@ -601,4 +599,3 @@ ActiveParticleType_info *register_ptype(std::string name)
 
 
 #endif
-
