@@ -357,6 +357,10 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     for (grid1 = 0; grid1 < NumberOfGrids; grid1++)
       Grids[grid1]->GridData->ClearBoundaryFluxes();
   }
+#ifdef FIELD_DEBUG
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++)
+      Grids[grid1]->GridData->VerifyFieldMapping();
+#endif
  
   /* After we calculate the ghost zones, we can initialize streaming
      data files (only on level 0) */

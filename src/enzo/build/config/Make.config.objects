@@ -554,6 +554,8 @@ OBJS_CONFIG_LIB = \
         Grid_CosmologyReadParticles3D.o \
         Grid_ReadHierarchyInformationHDF5.o \
 	Grid_ReadRandomForcingFields.o \
+	Grid_ReconstructFieldMapping.o \
+	Grid_VerifyFieldMapping.o \
 	Grid_RemoveForcingFromBaryonFields.o \
 	Grid_RemoveParticle.o \
 	Grid_RemoveActiveParticle.o \
@@ -922,7 +924,9 @@ OBJS_CONFIG_LIB = \
         ZeusSource.o \
         Zeus_xTransport.o \
         Zeus_yTransport.o \
-        Zeus_zTransport.o
+        Zeus_zTransport.o \
+        field_objects/FieldDescriptor.o \
+        field_objects/FieldRegistry.o
 
 #-----------------------------------------------------------------------
 # Objects for radiative transfer module

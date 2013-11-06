@@ -109,6 +109,8 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
     if ((densfield=FindField(Density, FieldType, NumberOfBaryonFields)) < 0) {
       ENZO_FAIL("No density field!\n");
     }
+    FieldRegistry::iterator iter;
+    FieldDescriptor *fd_dens = this->Fields["Density"];
  
     /* Set up array of flags if we are using SecondOrderB interpolation
        method.  These flags indicate if the quantity must always by > 0.
@@ -272,7 +274,8 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
     /* Multiply ParentTemp fields by their own density to get conserved
        quantities. */
  
-    if (ConservativeInterpolation)
+    if (ConservativeInterpolation) {
+        /*
       for (field = 0; field < NumberOfBaryonFields; field++){
 	if (MakeFieldConservative( FieldType[field] ) ){
 	  FORTRAN_NAME(mult3d)(ParentTemp[densfield], ParentTemp[field],
@@ -281,6 +284,12 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
                                &Zero, &Zero, &Zero, &Zero, &Zero, &Zero);
     }
       }
+           */
+        for (iter = this->Fields.begin(); iter != this->Fields.end(); ++iter) {
+          if (iter->second->GetInterpolationMethod() == MultiplyByDensity)
+            iter->second->Multiply(fd_dens);
+        }
+    }
     
     /* Do the interpolation for the density field. */
  
@@ -370,7 +379,8 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
       /* Divide by density field to convert from conserved to physical
          variables (skipping density). */
  
-      if (ConservativeInterpolation)
+      if (ConservativeInterpolation) {
+        /*
 	if (MakeFieldConservative( FieldType[field] ) ){
 	  FORTRAN_NAME(div3d)(TemporaryDensityField, TemporaryField,
 			      &TempSize, &One, &One,
@@ -378,6 +388,13 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
 			      &Zero, &Zero, &Zero, &Zero, &Zero, &Zero,
 			      &Zero, &Zero, &Zero, &TempSize, &Zero, &Zero);
     }
+        */
+
+        for (iter = this->Fields.begin(); iter != this->Fields.end(); ++iter) {
+          if (iter->second->GetInterpolationMethod() == MultiplyByDensity)
+            iter->second->Divide(fd_dens);
+        }
+      }
       
       /* Set FieldPointer to either the correct field (density or the one we
 	 just interpolated to). */

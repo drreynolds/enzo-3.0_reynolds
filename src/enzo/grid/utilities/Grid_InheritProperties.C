@@ -42,6 +42,8 @@ void grid::InheritProperties(grid *ParentGrid)
  
   for (int field = 0; field < NumberOfBaryonFields; field++)
     FieldType[field]      = ParentGrid->FieldType[field];
+
+  this->ReconstructFieldMapping();
  
   CourantSafetyNumber    = ParentGrid->CourantSafetyNumber;
   PPMFlatteningParameter = ParentGrid->PPMFlatteningParameter;

@@ -22,6 +22,7 @@
 #include "ActiveParticle.h"
 #include "FOF_allvars.h"
 #include "MemoryPool.h"
+#include "field_objects/FieldObjects.h"
 #ifdef ECUDA
 #include "hydro_rk/CudaMHD.h"
 #endif
@@ -92,6 +93,9 @@ class grid
   FLOAT *CellLeftEdge[MAX_DIMENSION];
   FLOAT *CellWidth[MAX_DIMENSION];
   fluxes *BoundaryFluxes;
+
+  // Field Registry
+  FieldRegistry Fields;
 
   // For restart dumps
 
@@ -906,6 +910,10 @@ gradient force to gravitational force for one-zone collapse test. */
    (gg # 5,6) */
 
    void InheritProperties(grid *ParentGrid);
+
+   // Field Registry
+   void ReconstructFieldMapping();
+   void VerifyFieldMapping();
 
 /* set the grid dimensions, left, right edges and cell quantities based
    on arguments (gg #5,6) */
