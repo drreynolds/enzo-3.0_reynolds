@@ -22,7 +22,7 @@
 #include "ActiveParticle.h"
 #include "FOF_allvars.h"
 #include "MemoryPool.h"
-#include "field_objects/FieldObjects.h"
+#include "FieldObjects.h"
 #ifdef ECUDA
 #include "hydro_rk/CudaMHD.h"
 #endif

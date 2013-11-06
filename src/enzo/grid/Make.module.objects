@@ -22,6 +22,22 @@ ENZO_OBJS +=\
 	Grid_TransferSubgridActiveParticles.o \
 	Grid_TransferSubgridParticles.o \
 	Grid_TransferSubgridStars.o \
+#
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   grid/field_objects
+#
+
+vpath %.C   grid/field_objects/
+vpath %.c   grid/field_objects/
+vpath %.F   grid/field_objects/
+vpath %.F90 grid/field_objects/
+
+ENZO_OBJS +=\
+	FieldDescriptor.o \
+	FieldRegistry.o \
+	Grid_ReconstructFieldMapping.o \
+	Grid_VerifyFieldMapping.o
 
 # ENZO BUILD SYSTEM DIRECTORY MODULE
 #
