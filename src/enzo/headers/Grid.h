@@ -912,7 +912,7 @@ gradient force to gravitational force for one-zone collapse test. */
    void InheritProperties(grid *ParentGrid);
 
    // Field Registry
-   void ReconstructFieldMapping();
+   void ReconstructFieldMapping(int ForceReconstruction = TRUE);
    void VerifyFieldMapping();
 
 /* set the grid dimensions, left, right edges and cell quantities based

@@ -23,13 +23,14 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
  
-void grid::ReconstructFieldMapping()
+void grid::ReconstructFieldMapping(int ForceReconstruction)
 {
  
   int field;
   FieldDescriptor *fd_base;
   std::string name;
   static long_int Zero[3] = {0, 0, 0}; // Will add more later
+  if (ForceReconstruction == FALSE && this->Fields.size() > 0) return;
   for (int field = 0; field < NumberOfBaryonFields; field++) {
     // We now do a double map lookup
     name = BaseFieldIDs[FieldType[field]];

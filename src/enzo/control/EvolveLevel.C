@@ -314,6 +314,10 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
      are included.  We don't want the more massive particles
      to contaminate the high-resolution region. */
 
+  /* Fields can occasionally get unlocked.  This re-locks them. */
+    for (grid1 = 0; grid1 < NumberOfGrids; grid1++) {
+      Grids[grid1]->GridData->ReconstructFieldMapping(FALSE);
+    }
   AdjustRefineRegion(LevelArray, MetaData, level);
 
   //EMISSIVITY if cleared here will not reach the FLD solver in 2.0, finding better place
