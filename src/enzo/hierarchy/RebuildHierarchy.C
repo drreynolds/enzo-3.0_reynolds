@@ -479,6 +479,7 @@ int RebuildHierarchy(TopGridData *MetaData,
 	    AppendForcingToBaryonFields();
         }
 
+	SubgridHierarchyPointer[j]->GridData->ReconstructFieldMapping(TRUE);
 	SubgridHierarchyPointer[j]->GridData->InterpolateFieldValues
 	  (SubgridHierarchyPointer[j]->ParentGrid->GridData);
 
