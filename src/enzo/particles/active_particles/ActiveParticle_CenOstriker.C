@@ -398,12 +398,12 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     if (FeedbackDistRadius > 0)
       {
-	i = max(1+NumberOfGhostZones+FeedbackDistRadius,
-		min(GridXSize - NumberOfGhostZones - FeedbackDistRadius,i));
-	j = max(1+NumberOfGhostZones+FeedbackDistRadius,
-		min(GridYSize - NumberOfGhostZones - FeedbackDistRadius,j));
-	k = max(1+NumberOfGhostZones+FeedbackDistRadius,
-		min(GridZSize - NumberOfGhostZones - FeedbackDistRadius,k));	
+	i = max(NumberOfGhostZones + FeedbackDistRadius,
+		min(GridXSize - NumberOfGhostZones - FeedbackDistRadius - 1, i));
+	j = max(NumberOfGhostZones + FeedbackDistRadius,
+		min(GridYSize - NumberOfGhostZones - FeedbackDistRadius - 1, j));
+	k = max(NumberOfGhostZones + FeedbackDistRadius,
+		min(GridZSize - NumberOfGhostZones - FeedbackDistRadius - 1, k));	
       }
 
     // Subtract ejected mass from particle
