@@ -869,20 +869,10 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
     
     gridcounter++;
     
-    if (PartitionNestedGrids) {
-      // The nested child grid is not necessarily attached to the first grid on 
-      // this level, so we have to look for the grid that has the child.
-      while (CurrentGrid != NULL) {
-        if (CurrentGrid->NextGridNextLevel != NULL) {
-          CurrentGrid = CurrentGrid->NextGridNextLevel;
-          break;
-        }
-        CurrentGrid = CurrentGrid->NextGridThisLevel;
-      }
-    }
-    else {
+    if (PartitionNestedGrids)
+      CurrentGrid = CurrentGrid->NextGridNextLevel;
+    else
       CurrentGrid = NULL;
-    }
     
   }
   

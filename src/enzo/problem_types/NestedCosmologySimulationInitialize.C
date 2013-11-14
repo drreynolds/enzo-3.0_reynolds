@@ -882,10 +882,6 @@ int NestedCosmologySimulationReInitialize(HierarchyEntry *TopGrid,
 
   PINT ParticleCount = 0, ParticleTempCount;
   for (gridnum = 0; gridnum < CosmologySimulationNumberOfInitialGrids; gridnum++) {
-
-    if (CurrentGrid == NULL) {
-      ENZO_FAIL("Error in NestedCosmologySimulationInitialize: supposed to initialize grid but grid is NULL!\n");
-    }
  
     if (MyProcessorNumber == ROOT_PROCESSOR)
       printf("NestedCosmologySimulation: ReInitializing grid %"ISYM"\n", gridnum);
@@ -1013,15 +1009,7 @@ int NestedCosmologySimulationReInitialize(HierarchyEntry *TopGrid,
 
     // Go down to the grid(s) on the next level
  
-    // The nested child grid is not necessarily attached to the first grid on 
-    // this level, so we have to look for the grid that has the child.
-    while (CurrentGrid != NULL) {
-      if (CurrentGrid->NextGridNextLevel != NULL) {
-        CurrentGrid = CurrentGrid->NextGridNextLevel;
-        break;
-      }
-      CurrentGrid = CurrentGrid->NextGridThisLevel;
-    }
+    CurrentGrid = CurrentGrid->NextGridNextLevel;
  
   } // end loop over initial grid levels
 
