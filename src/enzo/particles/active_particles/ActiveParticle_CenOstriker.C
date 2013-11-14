@@ -190,7 +190,7 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 
 	// 5. Cell mass is greater than the Jeans Mass
         BaryonMass = density[index] * data.DensityUnits * 
-          POW(dx*data.LengthUnits, 3) / SolarMass;
+          POW(dx, 3) / SolarMass;
 	if (JeansMassCriterion) {
 	  IsothermalSoundSpeedSquared = SoundSpeedConstant * data.Temperature[index];
 	  JeansMass = M_PI / (6.0 * sqrt(density[index] * data.DensityUnits)) *
