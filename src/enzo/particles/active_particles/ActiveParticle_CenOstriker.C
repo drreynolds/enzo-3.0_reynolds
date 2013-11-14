@@ -20,7 +20,7 @@ const char config_cen_ostriker_particle_defaults[] =
 "Physics: {\n"
 "    ActiveParticles: {\n"
 "        CenOstriker: {\n"
-"            OverdensityThreshold = 100; # [particles per proper cm^3]\n"
+"            OverdensityThreshold = 100; # [with respect to rho_crit(z)]\n"
 "            JeansMassCriterion   = true;\n"
 "            StochasticStarFormation = false;\n"
 "            UnigridVelocities    = false;\n"
