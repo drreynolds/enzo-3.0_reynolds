@@ -610,6 +610,9 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
 
   CommunicationBarrier();
 
+#define NO_LINK_GRID_FIX
+#ifdef LINK_GRID_FIX
+
   /* Link level 1 grids to the partitioned grids.  Before
      partitioning, all level 1 grids are linked to the first root
      grid.  */
@@ -668,6 +671,8 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
     ChildGrid = SavedGrid;
 
   } // ENDWHILE child grids
+
+#endif // LINK_GRID_FIX
 
   /* Clean up. */
 
