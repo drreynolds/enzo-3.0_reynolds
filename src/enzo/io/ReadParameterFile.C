@@ -1262,7 +1262,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
   // Enable the active particles that were selected.
   for (i = 0;i < active_particles;i++) {
-    fprintf(stdout, "Enabling particle type %s\n", active_particle_types[i]);
+    if (MyProcessorNumber == ROOT_PROCESSOR) {
+      fprintf(stdout, "Enabling particle type %s\n", active_particle_types[i]);
+    }
     EnableActiveParticleType(active_particle_types[i]);
   }
   delete [] active_particle_types;
