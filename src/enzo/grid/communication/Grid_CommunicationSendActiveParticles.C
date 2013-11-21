@@ -44,6 +44,7 @@ int CommunicationBufferedSend(void *buffer, int size, MPI_Datatype Type,
 
 int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool DeleteParticles)
 {
+#ifdef USE_MPI
 
   if (CommunicationShouldExit(ProcessorNumber, ToProcessor))
     return SUCCESS;
@@ -275,6 +276,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   
   delete [] type_element_size;
 
+#endif /* USE_MPI */
   return SUCCESS;
 }
 

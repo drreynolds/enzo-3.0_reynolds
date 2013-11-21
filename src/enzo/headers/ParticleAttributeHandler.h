@@ -30,7 +30,9 @@ class ParticleAttributeHandler
   public:
 
     std::string name;
+#ifdef USE_MPI
     MPI_Datatype mpitype;
+#endif
     Eint32 hdf5type;
     int element_size;
     int offset;
@@ -54,16 +56,24 @@ class Handler : public ParticleAttributeHandler
 
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
+#ifdef USE_MPI
             this->mpitype = IntDataType;
+#endif
             this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
+#ifdef USE_MPI
             this->mpitype = FloatDataType;
+#endif
             this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
+#ifdef USE_MPI
             this->mpitype = MPI_DOUBLE;
+#endif
             this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
+#ifdef USE_MPI
             this->mpitype = FLOATDataType;
+#endif
             this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
@@ -104,16 +114,24 @@ class ArrayHandler : public ParticleAttributeHandler
 
         /* Can't use a switch */
         if (typeid(Type) == typeid(int)) {
+#ifdef USE_MPI
             this->mpitype = IntDataType;
+#endif
             this->hdf5type = HDF5_INT;
         } else if (typeid(Type) == typeid(float)) {
+#ifdef USE_MPI
             this->mpitype = FloatDataType;
+#endif
             this->hdf5type = HDF5_REAL;
         } else if (typeid(Type) == typeid(double)) {
+#ifdef USE_MPI
             this->mpitype = MPI_DOUBLE;
+#endif
             this->hdf5type = HDF5_R8;
         } else if (typeid(Type) == typeid(FLOAT)) {
+#ifdef USE_MPI
             this->mpitype = FLOATDataType;
+#endif
             this->hdf5type = HDF5_PREC;
         } else {
             ENZO_FAIL("Unrecognized data type");
