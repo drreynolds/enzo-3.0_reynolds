@@ -335,7 +335,7 @@ namespace ActiveParticleHelpers {
           _name = (*it)->name.c_str();
           APClass::WriteDataset(ndims, dims, _name, node,
                                 (*it)->hdf5type, buffer);
-          delete buffer;
+          delete [] buffer;
       }
 
       H5Gclose(node);
@@ -374,7 +374,7 @@ namespace ActiveParticleHelpers {
           for (i = 0; i < Count; i++) {
               (*it)->SetAttribute(&_buffer, OutList[i+offset]);
           }
-          delete buffer;
+          delete [] buffer;
       }
 
       H5Gclose(node);
