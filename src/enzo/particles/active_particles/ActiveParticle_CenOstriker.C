@@ -20,7 +20,7 @@ const char config_cen_ostriker_particle_defaults[] =
 "Physics: {\n"
 "    ActiveParticles: {\n"
 "        CenOstriker: {\n"
-"            OverdensityThreshold = 100; # [particles per proper cm^3]\n"
+"            OverdensityThreshold = 100; # [with respect to rho_crit(z)]\n"
 "            JeansMassCriterion   = true;\n"
 "            StochasticStarFormation = false;\n"
 "            UnigridVelocities    = false;\n"
@@ -190,7 +190,7 @@ int ActiveParticleType_CenOstriker::EvaluateFormation(grid *thisgrid_orig, Activ
 
 	// 5. Cell mass is greater than the Jeans Mass
         BaryonMass = density[index] * data.DensityUnits * 
-          POW(dx*data.LengthUnits, 3) / SolarMass;
+          POW(dx, 3) / SolarMass;
 	if (JeansMassCriterion) {
 	  IsothermalSoundSpeedSquared = SoundSpeedConstant * data.Temperature[index];
 	  JeansMass = M_PI / (6.0 * sqrt(density[index] * data.DensityUnits)) *
@@ -398,12 +398,12 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     if (FeedbackDistRadius > 0)
       {
-	i = max(1+NumberOfGhostZones+FeedbackDistRadius,
-		min(GridXSize - NumberOfGhostZones - FeedbackDistRadius,i));
-	j = max(1+NumberOfGhostZones+FeedbackDistRadius,
-		min(GridYSize - NumberOfGhostZones - FeedbackDistRadius,j));
-	k = max(1+NumberOfGhostZones+FeedbackDistRadius,
-		min(GridZSize - NumberOfGhostZones - FeedbackDistRadius,k));	
+	i = max(NumberOfGhostZones + FeedbackDistRadius,
+		min(GridXSize - NumberOfGhostZones - FeedbackDistRadius - 1, i));
+	j = max(NumberOfGhostZones + FeedbackDistRadius,
+		min(GridYSize - NumberOfGhostZones - FeedbackDistRadius - 1, j));
+	k = max(NumberOfGhostZones + FeedbackDistRadius,
+		min(GridZSize - NumberOfGhostZones - FeedbackDistRadius - 1, k));	
       }
 
     // Subtract ejected mass from particle
