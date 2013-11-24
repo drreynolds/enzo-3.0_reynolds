@@ -782,6 +782,7 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
   /* Clean up. */
  
   delete [] NumberOfSubgrids;
+  delete [] NumberOfNewActiveParticles;
   delete [] NumberOfNewParticles;
   delete [] Grids;
   delete [] SubgridFluxesEstimate;
