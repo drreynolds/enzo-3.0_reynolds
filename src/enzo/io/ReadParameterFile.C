@@ -438,6 +438,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "RandomForcingEdot = %"FSYM, &RandomForcingEdot); //AK
     ret += sscanf(line, "RandomForcingMachNumber = %"FSYM, //AK
                   &RandomForcingMachNumber);
+#ifdef USE_GRACKLE
     /* Grackle chemistry parameters */
     ret += sscanf(line, "use_grackle = %"ISYM, &grackle_chemistry.use_grackle);
     ret += sscanf(line, "with_radiative_cooling = %"ISYM,
@@ -454,6 +455,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "LWbackground_sawtooth_suppression = %"ISYM,
                   &grackle_chemistry.LWbackground_sawtooth_suppression);
     /********************************/
+#endif
     ret += sscanf(line, "RadiativeCooling = %"ISYM, &RadiativeCooling);
     ret += sscanf(line, "RadiativeCoolingModel = %"ISYM, &RadiativeCoolingModel);
     ret += sscanf(line, "GadgetEquilibriumCooling = %"ISYM, &GadgetEquilibriumCooling);
@@ -1319,6 +1321,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       }
   }
 
+#ifdef USE_GRACKLE
   /* If using Grackle chemistry and cooling library, override all other 
      cooling machinery and do a translation of some of the parameters. */
   if (grackle_chemistry.use_grackle == TRUE) {
@@ -1379,6 +1382,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   }  // if (grackle_chemistry.use_grackle == TRUE)
 
   else {
+#endif // USE_GRACKE
 
     /* If GadgetEquilibriumCooling == TRUE, we don't want MultiSpecies
        or RadiationFieldType to be on - both are taken care of in
@@ -1433,7 +1437,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 	ENZO_FAIL("Error in InitializeRadiationFieldData.");
       }
  
+#ifdef USE_GRACKLE
   } // else (if Grackle == TRUE)
+#endif
 
   /* If using MBHFeedback = 2 to 5 (Star->FeedbackFlag = MBH_JETS), 
      you need MBHParticleIO for angular momentum */
