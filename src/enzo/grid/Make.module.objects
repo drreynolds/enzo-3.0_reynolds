@@ -228,6 +228,7 @@ ENZO_OBJS +=\
 	Grid_GadgetEquilibriumCooling.o \
 	Grid_Gadgetconvertutotemp.o \
 	Grid_Gadgetfindabundancesandrates.o \
+	Grid_GrackleWrapper.o \
 	Grid_MergePausedPhotonPackages.o \
 	Grid_MoveAllPhotonPackages.o \
 	Grid_MultiSpeciesHandler.o \
