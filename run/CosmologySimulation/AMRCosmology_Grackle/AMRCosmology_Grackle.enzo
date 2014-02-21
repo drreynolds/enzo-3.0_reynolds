@@ -102,8 +102,7 @@ CMBTemperatureFloor     = 1 // sets grackle.cmb_temperature_floor
 #
 # star formation parameters
 #
-StarParticleCreation          = 1
-StarParticleFeedback          = 1
+AppendActiveParticleType = CenOstriker
 StarMakerOverDensityThreshold = 100
 StarMakerMinimumMass          = 1e6
 StarMakerMinimumDynamicalTime = 1e6
