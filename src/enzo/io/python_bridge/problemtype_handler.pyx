@@ -56,7 +56,7 @@ class NotEnoughFields(Exception):
         return "Missing: %s" % self.missing
 
 def append_ghost_zones(field):
-    GZ = DEFAULT_GHOST_ZONES
+    GZ = NumberOfGhostZones
     new_field = np.zeros((field.shape[0] + GZ*2,
                           field.shape[1] + GZ*2,
                           field.shape[2] + GZ*2), dtype=field.dtype)

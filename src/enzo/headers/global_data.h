@@ -34,8 +34,6 @@
 class EnzoProblemType;
 #endif
 
-#define DEFAULT_GHOST_ZONES 3
-
 /* Load Balancing.  Currently only memory count method implemented
                           0 = off
                           1 = Equalize processor memory count
