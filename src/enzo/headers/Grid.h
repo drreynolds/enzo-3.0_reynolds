@@ -76,6 +76,7 @@ class grid
                                        //   (zero based)
   FLOAT GridLeftEdge[MAX_DIMENSION];   // starting pos (active problem space)
   FLOAT GridRightEdge[MAX_DIMENSION];  // ending pos (active problem space)
+  int GridLevel;                       // hierarchy level where this grid lives
   float dtFixed;                       // current (fixed) timestep
   FLOAT Time;                          // current problem time
   FLOAT OldTime;                       // time corresponding to OldBaryonField
@@ -365,6 +366,17 @@ public:
 
   void SetGridID(int id) { ID = id; };
   int GetGridID(void) { return ID; };
+
+  /* Return, set level of this grid */
+  int GetLevel() { return GridLevel; };
+  int SetLevel(int level) { 
+    if (level >= 0) {
+      GridLevel=level;
+      return SUCCESS;
+    } else {
+      return FAIL;
+    } 
+  };
    
   /* Baryons: return field types. */
 
@@ -913,7 +925,7 @@ gradient force to gravitational force for one-zone collapse test. */
 /* Inherit properties (rank, baryon field types, etc.) from ParentGrid
    (gg # 5,6) */
 
-   void InheritProperties(grid *ParentGrid);
+   void InheritProperties(grid *ParentGrid, int level);
 
    // Field Registry
    void ReconstructFieldMapping(int ForceReconstruction = TRUE);

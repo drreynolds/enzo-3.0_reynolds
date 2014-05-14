@@ -181,7 +181,7 @@ int RotatingCylinderInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopGri
       /* create a new subgrid and initialize it */
  
       Subgrid[lev]->GridData = new grid;
-      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData);
+      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData, lev);
       Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank, SubgridDims,
 				     LeftEdge, RightEdge, 0);
       if (Subgrid[lev]->GridData->InitializeUniformGrid(RotatingCylinderDensity,

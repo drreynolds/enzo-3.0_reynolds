@@ -74,6 +74,11 @@ int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int Grid
   Grid->NextGridNextLevel = NULL;
   Grid->ParentGrid        = ParentGrid;
 
+  if (ParentGrid == NULL) 
+    Grid->GridData->SetLevel(0);
+  else
+    Grid->GridData->SetLevel(ParentGrid->GridData->GetLevel()+1);
+
 
   if (HierarchyFileInputFormat % 2 == 0) {
     TestGridID = GridID;

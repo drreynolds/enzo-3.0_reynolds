@@ -148,7 +148,8 @@ int FindSubgrids(HierarchyEntry *Grid, int level, int &TotalFlaggedCells,
       /* set some the new grid's properties (rank, field types, etc.)
 	 based on the current grid */
  
-      ThisGrid->GridData->InheritProperties(Grid->GridData);
+      ThisGrid->GridData->InheritProperties(Grid->GridData,
+					    level+1);
  
       /* Set the new grid's positional parameters.
          (The zero indicates there are no particles (for now). */

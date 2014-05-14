@@ -71,7 +71,8 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
   /* Generate a new grid. */
  
   NewHierarchy->GridData = new grid;
-  NewHierarchy->GridData->InheritProperties(OldHierarchy->GridData);
+  NewHierarchy->GridData->InheritProperties(OldHierarchy->GridData,
+					    OldHierarchy->GridData->GetLevel());
   NewHierarchy->GridData->SetGravityParameters(
 		       OldHierarchy->GridData->ReturnGravityBoundaryType());
   NewHierarchy->GridData->PrepareGrid(Rank, NewDims, DomainLeftEdge,

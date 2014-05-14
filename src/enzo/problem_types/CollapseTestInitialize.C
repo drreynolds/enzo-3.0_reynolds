@@ -320,7 +320,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 	      for (dim = 0; dim < MetaData.TopGridRank; dim++)
 		NumberOfSubgridDims[dim] += 2*NumberOfGhostZones;
 	      Subgrid[lev]->GridData = new grid;
-	      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData);
+	      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData,lev);
 	      Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank, 
 						  NumberOfSubgridDims,
 						  ThisLeftEdge,

@@ -186,7 +186,7 @@ void ExtractSection(HierarchyEntry &TopGrid, TopGridData &MetaData,
     /* Create a new grid and fill it full of goodies. */
  
     Grids[level] = new grid;
-    Grids[level]->InheritProperties(LevelArray[0]->GridData);
+    Grids[level]->InheritProperties(LevelArray[0]->GridData, level);
     Grids[level]->PrepareGrid(MetaData.TopGridRank, ExtractDims,
 			      LeftPosition, RightPosition, 0);
     Grids[level]->AllocateGrids();

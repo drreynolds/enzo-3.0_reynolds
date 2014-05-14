@@ -463,7 +463,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   if (ProblemType == -978)
   {
     CurrentProblemType = select_problem_type(ProblemTypeName);
-    /* This gives us the poblem type, but we do not yet have
+    /* This gives us the problem type, but we do not yet have
        our event hooks set up.  When the day comes that event hooks are all
        stored in parameter files, this will not be necessary. */
     CurrentProblemType->InitializeFromRestart(TopGrid, MetaData);
