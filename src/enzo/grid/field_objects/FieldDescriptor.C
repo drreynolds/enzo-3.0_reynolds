@@ -10,7 +10,7 @@ FieldDescriptor::FieldDescriptor(
     FieldDescriptor *BaseDefinition,
     int CellDimensions[MAX_DIMENSIONS],
     long_int LeftEdge[MAX_DIMENSIONS],
-    float **FieldPointer, int SkipValueAllocation) {
+    float **FieldPointer, int SkipValueAllocation, int Level) {
   int dim;
   this->ValueCentering = BaseDefinition->ValueCentering;
   this->Rank = BaseDefinition->Rank;
@@ -18,6 +18,7 @@ FieldDescriptor::FieldDescriptor(
     this->CellDimensions[dim] = CellDimensions[dim];
     this->LeftEdge[dim] = LeftEdge[dim];
   }
+  this->Level = Level;
   this->InterpolationMethod = BaseDefinition->InterpolationMethod;
   // Do we want to strdup or just assign the pointer?
   this->Name = strdup(BaseDefinition->GetName());
@@ -41,7 +42,8 @@ FieldDescriptor::FieldDescriptor(
     InterpolationType InterpolationMethod,
     const char* Name,
     const char* UnitsName,
-    float **FieldPointer) {
+    float **FieldPointer,
+    int Level) {
   int dim;
   this->ValueCentering = ValueCentering;
   this->Rank = Rank;
@@ -49,6 +51,7 @@ FieldDescriptor::FieldDescriptor(
     this->CellDimensions[dim] = CellDimensions[dim];
     this->LeftEdge[dim] = LeftEdge[dim];
   }
+  this->Level = Level;
   this->InterpolationMethod = InterpolationMethod;
   // Do we want to strdup or just assign the pointer?
   this->Name = strdup(Name);

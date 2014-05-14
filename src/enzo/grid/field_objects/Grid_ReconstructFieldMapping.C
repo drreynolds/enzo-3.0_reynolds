@@ -31,12 +31,13 @@ void grid::ReconstructFieldMapping(int ForceReconstruction)
   std::string name;
   static long_int Zero[3] = {0, 0, 0}; // Will add more later
   if (ForceReconstruction == FALSE && this->Fields.size() > 0) return;
+  if (this->GridLevel < 0)  ENZO_FAIL("Illegal Grid Level");
   for (int field = 0; field < NumberOfBaryonFields; field++) {
     // We now do a double map lookup
     name = BaseFieldIDs[FieldType[field]];
     fd_base = BaseFieldTypes[name];
     this->Fields[name] = new FieldDescriptor(
-            fd_base, this->GridDimension, Zero, this->BaryonField + field, 1);
+	     fd_base, this->GridDimension, Zero, this->BaryonField + field, 1, this->GridLevel);
 #ifdef FIELD_DEBUG
     fprintf(stderr, "Locked %s to %"ISYM" (%"ISYM")\n", name.c_str(), field, FieldType[field]);
 #endif
