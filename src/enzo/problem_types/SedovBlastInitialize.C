@@ -245,7 +245,7 @@ const  char *Vel3Name = "z-velocity";
       /* create a new subgrid and initialize it */
 	
 	Subgrid[lev]->GridData = new grid;
-	Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData, lev);
+	Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData, lev+1);
 	Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank, SubgridDims,
 					    LeftEdge, RightEdge, 0);
 	if (Subgrid[lev]->GridData->InitializeUniformGrid(SedovBlastDensity,

@@ -195,7 +195,7 @@ int SphericalInfallInitialize(FILE *fptr, FILE *Outfptr,
     /* create a new subgrid and initialize it */
  
     Subgrid->GridData = new grid;
-    Subgrid->GridData->InheritProperties(TopGrid.GridData,1);
+    Subgrid->GridData->InheritProperties(TopGrid.GridData, 1);
     Subgrid->GridData->PrepareGrid(MetaData.TopGridRank, SubgridDims,
 				   LeftEdge, RightEdge, 0);
     if (Subgrid->GridData->SphericalInfallInitializeGrid(
