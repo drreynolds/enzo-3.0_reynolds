@@ -715,7 +715,17 @@ int grid::CorrectForRefinedFluxes(fluxes *InitialFluxes,
 		    BaryonField[TENum][i2] += 0.5 * B2 / BaryonField[DensNum][i2];
 		}
 
-		
+          if (HydroMethod == MHD_Li){
+            B2 = POW(CenteredB[0][i1],2) +
+              POW(CenteredB[1][i1],2) +
+              POW(CenteredB[2][i1],2);
+            BaryonField[TENum][i1] += 0.5 * B2 / BaryonField[DensNum][i1];
+            B2 = POW(CenteredB[0][i2],2) +
+              POW(CenteredB[1][i2],2) +
+              POW(CenteredB[2][i2],2);
+            BaryonField[TENum][i2] += 0.5 * B2 / BaryonField[DensNum][i2];
+          }
+
 		}		
 	      } // end: loop over faces
 	  } // end: if (DualEnergyFormalism)

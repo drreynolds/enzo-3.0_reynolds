@@ -254,7 +254,6 @@ show-config:
 	@echo "   CONFIG_ACCELERATION_BOUNDARY  [acceleration-boundary-{yes,no}]              : $(CONFIG_ACCELERATION_BOUNDARY)"
 	@echo "   CONFIG_OPT  [opt-{warn,debug,cudadebug,high,aggressive}]  : $(CONFIG_OPT)"
 	@echo "   CONFIG_TESTING  [testing-{yes,no}]                        : $(CONFIG_TESTING)"
-	@echo "   CONFIG_TPVEL  [tpvel-{yes,no}]]                           : $(CONFIG_TPVEL)"
 	@echo "   CONFIG_PHOTON  [photon-{yes,no}]                          : $(CONFIG_PHOTON)"
 	@echo "   CONFIG_HYPRE  [hypre-{yes,no}]                            : $(CONFIG_HYPRE)"
 	@echo "   CONFIG_EMISSIVITY  [emissivity-{yes,no}]                  : $(CONFIG_EMISSIVITY)"
@@ -725,23 +724,6 @@ CONFIG_TESTING-%: suggest-clean
 
 #-----------------------------------------------------------------------
 
-VALID_TPVEL = tpvel-yes tpvel-no
-.PHONY: $(VALID_TPVEL)
-
-tpvel-yes: CONFIG_TPVEL-yes
-tpvel-no: CONFIG_TPVEL-no
-tpvel-%:
-	@printf "\n\tInvalid target: $@\n\n\tValid targets: [$(VALID_TPVEL)]\n\n"
-CONFIG_TPVEL-%: suggest-clean
-	@tmp=.config.temp; \
-        grep -v CONFIG_TPVEL $(MAKE_CONFIG_OVERRIDE) > $${tmp}; \
-        mv $${tmp} $(MAKE_CONFIG_OVERRIDE); \
-        echo "CONFIG_TPVEL = $*" >> $(MAKE_CONFIG_OVERRIDE); \
-	$(MAKE) show-config | grep CONFIG_TPVEL; \
-	echo
-
-#-----------------------------------------------------------------------
-
 VALID_PHOTON = photon-yes photon-no
 .PHONY: $(VALID_PHOTON)
 
@@ -827,6 +809,9 @@ CONFIG_BITWISE_IDENTICALITY-%: suggest-clean
 	$(MAKE)  show-config | grep CONFIG_BITWISE_IDENTICALITY; \
 	echo
 
+
+
+#-----------------------------------------------------------------------
 
 
 #-----------------------------------------------------------------------
