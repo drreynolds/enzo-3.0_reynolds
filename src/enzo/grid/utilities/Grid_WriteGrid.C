@@ -139,6 +139,8 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
 
     fprintf(fptr, "GridRank          = %"ISYM"\n", GridRank);
 
+    fprintf(fptr, "GridLevel         = %"ISYM"\n", GridLevel);
+
     fprintf(fptr, "GridDimension     = ");
     WriteListOfInts(fptr, GridRank, GridDimension);
 

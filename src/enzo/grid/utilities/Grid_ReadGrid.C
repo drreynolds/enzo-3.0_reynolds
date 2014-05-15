@@ -112,6 +112,10 @@ int grid::ReadGrid(FILE *fptr, int GridID, HDF5_hid_t file_id,
             ENZO_FAIL("Error reading GridRank.");
     }
  
+    if (fscanf(fptr, "GridLevel = %"ISYM"\n", &GridLevel) != 1) {
+            ENZO_FAIL("Error reading GridLevel.");
+    }
+ 
     if (fscanf(fptr, "GridDimension = ") != 0) {
             ENZO_FAIL("Error reading GridDimension(0).");
     }
