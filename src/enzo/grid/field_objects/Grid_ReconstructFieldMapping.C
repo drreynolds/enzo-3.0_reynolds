@@ -29,15 +29,24 @@ void grid::ReconstructFieldMapping(int ForceReconstruction)
   int field;
   FieldDescriptor *fd_base;
   std::string name;
-  static long_int Zero[3] = {0, 0, 0}; // Will add more later
   if (ForceReconstruction == FALSE && this->Fields.size() > 0) return;
   if (this->GridLevel < 0)  ENZO_FAIL("Illegal Grid Level");
+
+  // determine the global "LeftEdge" of this field's active data
+  long_int LeftEdge[3] = {0, 0, 0};
+  FLOAT dx;
+  for (int dim = 0; dim < this->GridRank; dim++) {
+    dx = (this->GridRightEdge[dim] - this->GridLeftEdge[dim])
+       / (this->GridEndIndex[dim]-this->GridStartIndex[dim]+1);
+    LeftEdge[dim] = nlongint( (this->GridLeftEdge[dim] - DomainLeftEdge[dim]) / dx);
+  }
+
   for (int field = 0; field < NumberOfBaryonFields; field++) {
     // We now do a double map lookup
     name = BaseFieldIDs[FieldType[field]];
     fd_base = BaseFieldTypes[name];
     this->Fields[name] = new FieldDescriptor(
-	     fd_base, this->GridDimension, Zero, this->BaryonField + field, 1, this->GridLevel);
+	     fd_base, this->GridDimension, LeftEdge, this->BaryonField + field, 1, this->GridLevel);
 #ifdef FIELD_DEBUG
     fprintf(stderr, "Locked %s to %"ISYM" (%"ISYM")\n", name.c_str(), field, FieldType[field]);
 #endif
