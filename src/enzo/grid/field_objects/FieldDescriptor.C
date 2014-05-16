@@ -103,7 +103,7 @@ FieldDescriptor* FieldDescriptor::Duplicate(char *NewName, char *NewUnitsName) {
   // Note that this will allocate and set the bits to deallocate later
   FieldDescriptor *fd = new FieldDescriptor(this->ValueCentering, this->Rank,
         this->CellDimensions, this->LeftEdge, this->InterpolationMethod,
-        NewName, NewUnitsName, NULL);
+        NewName, NewUnitsName, NULL, this->Level);
   if(this->FieldPointer != NULL) {
     // We copy if there are any FieldPointer
     float *vo = fd->GetValues();
@@ -268,6 +268,22 @@ void FieldDescriptor::GetOverlapRegion(FieldDescriptor *Other,
         CopyDims[dim] = MAX(OverlapEnd - OverlapStart, 0);
       }
 }
+
+void FieldDescriptor::PrintFieldInformation() {
+  fprintf(stdout,"\nField: %s\n",this->Name);
+  fprintf(stdout,"  UnitsName: %s\n",this->UnitsName);
+  fprintf(stdout,"  CellDimensions: ");
+  for (int dim=0; dim<MAX_DIMENSIONS; dim++)
+    fprintf(stdout," %"ISYM"", this->CellDimensions[dim]);
+  fprintf(stdout,"\n  LeftEdge: ");
+  for (int dim=0; dim<MAX_DIMENSIONS; dim++)
+    fprintf(stdout," %li", this->LeftEdge[dim]);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"  Level: %"ISYM"\n",this->Level);
+  fprintf(stdout,"  DeallocateFieldPointer: %"ISYM"\n",this->DeallocateFieldPointer);
+  fprintf(stdout,"  DeallocateFieldvalues: %"ISYM"\n",this->DeallocateFieldValues);
+}
+
 
 // Mathematical Operations
 

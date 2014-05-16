@@ -60,7 +60,7 @@ class FieldDescriptor
                       long_int LeftEdge[MAX_DIMENSIONS],
                       float **FieldPointer = NULL,
                       int SkipValueAllocation = 0,
-		      int Level = 0);
+		      int Level = -1);
       // This constructor is the most raw method of constructing a
       // FieldDescriptor, and it allows fields to be created from no previous
       // information.  It may be useful for one-off fields that do not persist
@@ -116,7 +116,7 @@ class FieldDescriptor
                       const char* Name,
                       const char* UnitsName,
                       float **FieldPointer = NULL,
-		      int Level = 0);
+		      int Level = -1);
 
       // Destructor
       ~FieldDescriptor();
@@ -212,6 +212,8 @@ class FieldDescriptor
 
       int CanCombine(FieldDescriptor *Other);
 
+      void PrintFieldInformation();
+
     protected: 
 
       // These "UnaryAccumulator" functions are templated functions that enable
@@ -264,10 +266,10 @@ class FieldDescriptor
       char* UnitsName;
       int CellDimensions[MAX_DIMENSIONS];
       long_int LeftEdge[MAX_DIMENSIONS];
+      int Level;
       float **FieldPointer;
       int DeallocateFieldPointer;
       int DeallocateFieldValues;
-      int Level;
 
 };
 
