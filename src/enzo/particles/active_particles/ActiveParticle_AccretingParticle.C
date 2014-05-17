@@ -19,9 +19,15 @@ const char config_accreting_particle_defaults[] =
 "Physics: {\n"
 "    ActiveParticles: {\n"
 "        AccretingParticle: {\n"
-"            OverflowFactor       = 1.01;\n"
-"            LinkingLength        = 4;\n   "
-"            AccretionRadius      = 4;\n   "
+"            OverflowFactor         = 1.01;\n"
+"            LinkingLength          = 4;\n   "
+"            AccretionRadius        = 4;\n   "
+"            RadiationParticle      = 0;\n"
+"            LuminosityPerSolarMass = 1e48;\n"
+"            RadiationSEDNumberOfBins = 1;\n"
+"            RadiationEnergyBins    = [15.0];\n"
+"            RadiationSED           = [1.0];\n"
+"            RadiationLifetime      = 10000;\n"
 "        };\n"
 "    };\n"
 "};\n";
@@ -44,6 +50,13 @@ class AccretingParticleGrid : private grid {
 float ActiveParticleType_AccretingParticle::OverflowFactor = FLOAT_UNDEFINED;
 int ActiveParticleType_AccretingParticle::AccretionRadius = INT_UNDEFINED;
 int ActiveParticleType_AccretingParticle::LinkingLength = INT_UNDEFINED;
+int ActiveParticleType_AccretingParticle::RadiationParticle = INT_UNDEFINED;
+double ActiveParticleType_AccretingParticle::LuminosityPerSolarMass = FLOAT_UNDEFINED;
+int ActiveParticleType_AccretingParticle::RadiationSEDNumberOfBins = INT_UNDEFINED;
+float* ActiveParticleType_AccretingParticle::RadiationEnergyBins = NULL;
+float* ActiveParticleType_AccretingParticle::RadiationSED = NULL;
+float ActiveParticleType_AccretingParticle::RadiationLifetime = FLOAT_UNDEFINED;
+
 
 int ActiveParticleType_AccretingParticle::InitializeParticleType()
 {
@@ -57,6 +70,11 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   Param.GetScalar(OverflowFactor, "Physics.ActiveParticles.AccretingParticle.OverflowFactor");
   Param.GetScalar(LinkingLength, "Physics.ActiveParticles.AccretingParticle.LinkingLength");
   Param.GetScalar(AccretionRadius, "Physics.ActiveParticles.AccretingParticle.AccretionRadius");
+  Param.GetScalar(RadiationParticle, "Physics.ActiveParticles.AccretingParticle.RadiationParticle");
+  Param.GetScalar(RadiationSEDNumberOfBins, "Physics.ActiveParticles.AccretingParticle.RadiationSEDNumberOfBins");
+  Param.GetScalar(RadiationLifetime, "Physics.ActiveParticles.AccretingParticle.RadiationLifetime");
+  Param.GetArray(RadiationEnergyBins, "Physics.ActiveParticles.AccretingParticle.RadiationEnergyBins");
+  Param.GetArray(RadiationEnergyBins, "Physics.ActiveParticles.AccretingParticle.RadiationSED");
 
 #else
 
@@ -65,6 +83,14 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   OverflowFactor = 1.01;
   LinkingLength = 4;
   AccretionRadius = 4;
+  RadiationParticle = FALSE;
+  LuminosityPerSolarMass = 1e47;
+  RadiationSEDNumberOfBins = 1;
+  RadiationEnergyBins = new float[RadiationSEDNumberOfBins];
+  RadiationSED = new float[RadiationSEDNumberOfBins];
+  RadiationEnergyBins[0] = 21.0;
+  RadiationSED[0] = 1.0;
+  RadiationLifetime = 1000;
 
 #endif
 
@@ -246,6 +272,82 @@ void ActiveParticleType_AccretingParticle::DescribeSupplementalData(ActivePartic
 }
 
 
+template <class active_particle_class>
+int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
+(HierarchyEntry *Grids[], TopGridData *MetaData,
+ int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+ int ThisLevel, int TotalStarParticleCountPrevious[],
+ int AccretingParticleID)
+{
+
+  FLOAT Time = LevelArray[ThisLevel]->GridData->ReturnTime();
+  float DensityUnits, LengthUnits, TemperatureUnits, TimeUnits,
+    VelocityUnits;
+  GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
+	   &TimeUnits, &VelocityUnits, Time);
+
+  // Create radiation sources from particles
+  
+  int j, dim, ipart, nParticles;
+  ActiveParticleType **AccretingParticleList = NULL;
+  AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
+
+  const double LConv = (double) TimeUnits / pow(LengthUnits,3);
+
+  // Calculate conversion factor to solar masses
+  
+  AccretingParticleGrid *tempGrid =
+    static_cast<AccretingParticleGrid *>(LevelArray[ThisLevel]->GridData);
+
+  double dx = LengthUnits * tempGrid->CellWidth[0][0];
+  float MassConversion = (float) (dx*dx*dx * double(DensityUnits) / SolarMass);
+
+  ActiveParticleType_AccretingParticle *ThisParticle;
+  for (ipart = 0; ipart < nParticles; ipart++) {
+    if (AccretingParticleList[ipart]->IsARadiationSource(Time)) {
+      ThisParticle =
+	static_cast<ActiveParticleType_AccretingParticle*>(AccretingParticleList[ipart]);
+      RadiationSourceEntry *source = new RadiationSourceEntry;
+      source->PreviousSource = GlobalRadiationSources;
+      source->NextSource     = GlobalRadiationSources->NextSource;
+      source->SuperSource    = NULL;  // Define this later
+      source->GridID         = ThisParticle->GridID;
+      source->GridLevel      = ThisParticle->level;
+      source->Type           = ThisParticle->type;
+      source->LifeTime       = RadiationLifetime;
+      source->CreationTime   = ThisParticle->BirthTime;
+      source->Position       = new FLOAT[3];
+      for (dim = 0; dim < MAX_DIMENSION; dim++) {
+	if (ThisParticle->pos[dim] < DomainLeftEdge[dim])
+	  source->Position[dim] = ThisParticle->pos[dim] +
+	    DomainRightEdge[dim] - DomainLeftEdge[dim];
+	else if (ThisParticle->pos[dim] >= DomainRightEdge[dim])
+	  source->Position[dim] = ThisParticle->pos[dim] -
+	    DomainRightEdge[dim] + DomainLeftEdge[dim];
+	else
+	  source->Position[dim] = ThisParticle->pos[dim];
+      }
+      source->Luminosity = (LuminosityPerSolarMass * LConv) *
+	(ThisParticle->Mass * MassConversion);
+      source->RampTime = 0.0;
+      source->EnergyBins = RadiationSEDNumberOfBins;
+      source->Energy = new float[RadiationSEDNumberOfBins];
+      source->SED = new float[RadiationSEDNumberOfBins];
+      for (j = 0; j < RadiationSEDNumberOfBins; j++) {
+	source->Energy[j] = RadiationEnergyBins[j];
+	source->SED[j] = RadiationSED[j];
+      }
+      source->Orientation = NULL;
+      if (GlobalRadiationSources->NextSource != NULL)
+	GlobalRadiationSources->NextSource->PreviousSource = source;
+      GlobalRadiationSources->NextSource = source;
+    }
+  }
+  
+  return SUCCESS;
+}
+
+
 grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle, int FeedbackRadius,
 			     FLOAT dx, HierarchyEntry** Grids, int NumberOfGrids,
 			     int SendField);
@@ -341,6 +443,11 @@ int ActiveParticleType_AccretingParticle::SetFlaggingField(LevelHierarchyEntry *
   delete [] AccretingParticleList;
 
   return SUCCESS;
+}
+
+bool ActiveParticleType_AccretingParticle::IsARadiationSource(FLOAT Time)
+{
+  return (RadiationParticle == TRUE) ? true : false;
 }
 
 namespace {

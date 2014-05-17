@@ -50,7 +50,21 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
 
   if (NextActiveParticleID == INT_UNDEFINED)
     NextActiveParticleID = NumberOfOtherParticles + NumberOfActiveParticles;
-  
+
+  /* If radiation sources exist, delete them */
+
+#ifdef TRANSFER
+  RadiationSourceEntry *dummy;
+  while (GlobalRadiationSources != NULL) {
+    dummy = GlobalRadiationSources;
+    GlobalRadiationSources = GlobalRadiationSources->NextSource;
+    delete dummy;
+  }
+  GlobalRadiationSources = new RadiationSourceEntry;
+  GlobalRadiationSources->NextSource = NULL;
+  GlobalRadiationSources->PreviousSource = NULL;
+#endif /* TRANSFER */
+
   /* Call initialization routines for each active particle type */
 
   int ActiveParticleID;
