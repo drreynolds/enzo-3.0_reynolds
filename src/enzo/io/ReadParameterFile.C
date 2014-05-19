@@ -883,6 +883,13 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "H2StarMakerColdGasTemperature = %"FSYM,
 		  &H2StarMakerColdGasTemperature);
 
+    /* Accreting particle parameters */
+
+    ret += sscanf(line, "AccretingParticleRadiation = %"ISYM,
+		  &AccretingParticleRadiation);
+    ret += sscanf(line, "AccretingParticleLuminosity = %lg",
+		  &AccretingParticleLuminosity);
+
     /* Read Movie Dump parameters */
 
     ret += sscanf(line, "MovieSkipTimestep = %"ISYM, &MovieSkipTimestep);

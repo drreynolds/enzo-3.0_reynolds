@@ -146,6 +146,9 @@ SPEXTERN int    GMCParticleRNGCalls;
 SPEXTERN accTableStor accTable;
 SPEXTERN radSolTableStor radSolTable;
 
+SPEXTERN int AccretingParticleRadiation;
+SPEXTERN double AccretingParticleLuminosity;
+
 SPEXTERN float minStarLifetime;
 SPEXTERN FLOAT LastSupernovaTime;
 SPEXTERN float *IMFData;

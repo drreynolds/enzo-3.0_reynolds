@@ -83,8 +83,8 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
   OverflowFactor = 1.01;
   LinkingLength = 4;
   AccretionRadius = 4;
-  RadiationParticle = FALSE;
-  LuminosityPerSolarMass = 1e47;
+  RadiationParticle = AccretingParticleRadiation;
+  LuminosityPerSolarMass = AccretingParticleLuminosity;
   RadiationSEDNumberOfBins = 1;
   RadiationEnergyBins = new float[RadiationSEDNumberOfBins];
   RadiationSED = new float[RadiationSEDNumberOfBins];

@@ -596,6 +596,9 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   H2StarMakerH2FloorInColdGas = 0.0;
   H2StarMakerColdGasTemperature = 1e4;
 
+  AccretingParticleRadiation = FALSE;
+  AccretingParticleLuminosity = 1e47;
+  
   GMCParticleRNGSeed               = INT_UNDEFINED;
   GMCParticleRNGCalls              = 0;
 
