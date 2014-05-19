@@ -36,7 +36,6 @@ cdef extern from "macros_and_parameters.h":
     enum: COMMUNICATION_RECEIVE
     enum: COMMUNICATION_SEND_RECEIVE 
 
-    enum: DEFAULT_GHOST_ZONES
     enum: MAX_DEPTH_OF_HIERARCHY
     enum: MAX_DIMENSION
     enum: MAX_NUMBER_OF_BARYON_FIELDS
