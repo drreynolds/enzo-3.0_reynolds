@@ -104,6 +104,6 @@ RadiativeTransfer = 1
 RadiativeTransferRadiationPressure = 0
 RadiativeTransferRadiationPressureScale = 3
 RadiativeTransferAdaptiveTimestep = 1
-RadiativeTransferHIIRestrictedTimestep = 1
+RadiativeTransferHIIRestrictedTimestep = 0
 
 Debug1 = 0
