@@ -94,6 +94,15 @@ int ActiveParticleType_AccretingParticle::InitializeParticleType()
 
 #endif
 
+  /* Error check parameters */
+
+  if (AccretingParticleRadiation) {
+    if (RadiativeTransfer == FALSE)
+    ENZO_FAIL("RadiativeTransfer must be turned with AccretingParticleRadiation.");
+    if (MultiSpecies == FALSE)
+      ENZO_FAIL("Multispecies must be turned with AccretingParticleRadiation.");
+  }
+
   // Need to turn on particle mass flagging if it isn't already turned on.
 
   bool TurnOnParticleMassRefinement = true;
@@ -286,16 +295,16 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
   GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
 	   &TimeUnits, &VelocityUnits, Time);
 
-  // Create radiation sources from particles
-  
   int j, dim, ipart, nParticles;
   ActiveParticleType **AccretingParticleList = NULL;
   AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
-  const double LConv = (double) TimeUnits / pow(LengthUnits,3);
-
-  // Calculate conversion factor to solar masses
+  /* Create radiation sources from particles */
   
+  // Calculate conversion factor to solar masses
+
+#ifdef TRANSFER
+  const double LConv = (double) TimeUnits / pow(LengthUnits,3);
   AccretingParticleGrid *tempGrid =
     static_cast<AccretingParticleGrid *>(LevelArray[ThisLevel]->GridData);
 
@@ -343,6 +352,7 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
       GlobalRadiationSources->NextSource = source;
     }
   }
+#endif /* TRANSFER */
   
   return SUCCESS;
 }
