@@ -134,7 +134,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
       
 	    CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
 	    CommunicationReceiveGridTwo[CommunicationReceiveIndex] = ToGrid;
-	    CommunicationReceiveCallType[CommunicationReceiveIndex] = 20;
+	    CommunicationReceiveCallType[CommunicationReceiveIndex] = 22;
 
 	    CommunicationReceiveBuffer[CommunicationReceiveIndex] = (float *) type_count;
 	    CommunicationReceiveDependsOn[CommunicationReceiveIndex] = 
@@ -220,7 +220,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
 	CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
 	CommunicationReceiveGridTwo[CommunicationReceiveIndex] = ToGrid;
-	CommunicationReceiveCallType[CommunicationReceiveIndex] = 20;
+	CommunicationReceiveCallType[CommunicationReceiveIndex] = 22;
 
 	CommunicationReceiveBuffer[CommunicationReceiveIndex] = (float *) buffer;
 	CommunicationReceiveDependsOn[CommunicationReceiveIndex] = 

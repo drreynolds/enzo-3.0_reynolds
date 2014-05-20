@@ -155,6 +155,7 @@ ENZO_OBJS +=\
 	cic_flag.o \
 	cic_flag_c.o \
 	cic_interp_c.o \
+    ngp_deposit_c.o \
 	particle_splitter.o \
 	smooth_deposit_c.o \
 	tscint1d.o \

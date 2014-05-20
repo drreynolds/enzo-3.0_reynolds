@@ -68,6 +68,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
   /* Define a temporary flux holder for the refined fluxes. */
 
   fluxes SubgridFluxesRefined;
+  InitializeFluxes(&SubgridFluxesRefined);
 
   while (ReceivesCompletedToDate < TotalReceives) {
 
@@ -116,7 +117,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
     gCSAPs_count = 0;
     gCSAPs_done = 0;
     for (index = 0; index < TotalReceives; index++) {
-      if (CommunicationReceiveCallType[index] == 20) {
+      if (CommunicationReceiveCallType[index] == 22) {
         gCSAPs_count++;
         if (CommunicationReceiveGridOne[index] != NULL &&
 	    CommunicationReceiveMPI_Request[index] == MPI_REQUEST_NULL) {
@@ -134,7 +135,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
     for (index = 0; index < TotalReceives; index++) {
       // if we are looking at a g:CSAP recv, only go forth if ALL
       // g:CSAP recvs are done.
-      if ((CommunicationReceiveCallType[index] == 20) &&
+      if ((CommunicationReceiveCallType[index] == 22) &&
           (gCSAPs_count != gCSAPs_done)) {
         continue;
       }
@@ -263,7 +264,7 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 	  PP = grid_one->ReturnPhotonPackagePointer();
 	  errcode = grid_one->CommunicationSendPhotonPackages
 	    (grid_two, MyProcessorNumber, ToNumber, FromNumber,
-	     &PP->NextPackage);
+	     &PP);
 	  break;
 #endif /* TRANSFER */
 
@@ -289,13 +290,18 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 	  level = CommunicationReceiveArgumentInt[0][index];
 	  errcode = grid_one->SetSubgridMarkerFromParent(grid_two, level);
 	  break;
+
+	case 20:
+	  errcode = grid_one->CommunicationSendSubgridMarker(grid_two, 
+							     MyProcessorNumber);
+	  break;
 #endif
 
 	case 21:
 	  SendField = CommunicationReceiveArgumentInt[0][index];
 	  errcode = grid_one->CopyActiveZonesFromGrid(grid_two, EdgeOffset, SendField);
 
-	case 20:
+	case 22:
 	  errcode = grid_one->CommunicationSendActiveParticles
 	    (grid_two, MyProcessorNumber);
 	  break;
@@ -317,10 +323,10 @@ int CommunicationReceiveHandler(fluxes **SubgridFluxesEstimate[],
 	/* Mark this receive complete. */
 
     // if this is a g:CSAPs recv, mark ALL g:CSAPs done, including this one.
-    if (CommunicationReceiveCallType[index] == 20) {
+    if (CommunicationReceiveCallType[index] == 22) {
       temp_grid = CommunicationReceiveGridOne[index];
       for (index2 = 0; index2 < TotalReceives; index2++) {
-        if (CommunicationReceiveCallType[index2] == 20 &&
+        if (CommunicationReceiveCallType[index2] == 22 &&
 	    CommunicationReceiveGridOne[index2] == temp_grid) {
 //	  printf("Recv done: index %d, index2 = %d/%d, call type %d, grid ID %d\n",
 //		 index, index2, TotalReceives, CommunicationReceiveCallType[index2], 
