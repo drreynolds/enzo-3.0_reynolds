@@ -54,7 +54,7 @@ int grid::ConductHeat(){
       ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
     }
 
-  if (useMHD){
+  if (UseMHD){
     iBx=FindField(Bfield1, FieldType, NumberOfBaryonFields);
     iBy=FindField(Bfield2, FieldType, NumberOfBaryonFields);
     iBz=FindField(Bfield3, FieldType, NumberOfBaryonFields);  
@@ -117,10 +117,8 @@ int grid::ConductHeat(){
     }
 
     // compute this subcycle timestep
-    if (this->ComputeConductionTimeStep(dtSubcycle) == FAIL) {
-      ENZO_FAIL("Error in ComputeConductionTimeStep.");
-    }
-    dtSubcycle *= ConductionCourantSafetyNumber;  // for stability, this has to be < 0.5
+    if (this->ComputeConductionTimeStep(dtSubcycle) == FAIL)
+      ENZO_FAIL("Error in ComputeConductionTimeStep.\n");
 
     // make sure we don't extend past dtFixed
     dtSubcycle = min(dtSubcycle, dtFixed-dtSoFar);
@@ -164,7 +162,7 @@ int grid::ConductHeat(){
 	    if(GridRank > 2)
 	      BaryonField[TENum][idx] += 0.5*POW(BaryonField[Vel3Num][idx], 2.0);
 
-	    if(useMHD)
+	    if(UseMHD)
 	      BaryonField[TENum][idx] += 0.5*(POW(BaryonField[iBx][idx],2.0) + 
 					      POW(BaryonField[iBy][idx],2.0) + 
 					      POW(BaryonField[iBz][idx],2.0))/BaryonField[DensNum][idx];

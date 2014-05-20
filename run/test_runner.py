@@ -33,6 +33,7 @@ from nose.loader import TestLoader
 from nose.plugins import Plugin
 from nose.plugins import debug
 from nose.plugins.manager import PluginManager
+from nose.plugins.xunit import Xunit
 
 from yt.config import ytcfg
 ytcfg["yt","suppressStreamLogging"] = "True"
@@ -47,7 +48,7 @@ disable_stream_logging()
 
 # Set the filename for the latest version of the gold standard
 # and for the default local standard output
-ytcfg["yt", "gold_standard_filename"] = str("enzogold0001")
+ytcfg["yt", "gold_standard_filename"] = str("enzogold0003")
 ytcfg["yt", "local_standard_filename"] = str("enzolocaldev")
 from yt.utilities.answer_testing.framework import \
     AnswerTesting
@@ -262,6 +263,7 @@ class ResultsSummary(Plugin):
                     outfile.write(line)
                     outfile.write('\n')
             outfile.write('\n')
+
 
 class EnzoTestCollection(object):
     def __init__(self, tests = None, verbose=True, args = None,
@@ -531,6 +533,12 @@ class EnzoTestRun(object):
         suite = tl.loadTestsFromDir(self.run_dir)
         nose.run(argv=self.args, suite=suite)
 
+
+class DummyConfiguration(object):
+    """Provide a dummy configuration for Nose"""
+    def __init__(self):
+        self.verbosity = 0
+
 class UnspecifiedParameter(object):
     pass
 unknown = UnspecifiedParameter()
@@ -587,6 +595,17 @@ if __name__ == "__main__":
                       dest="strict", default='low', metavar='str',
                       help="strictness for testing precision: [%s]" % " ,".join(all_strict))
 
+
+    xunit_plugin = Xunit()
+    # Make sure this plugin get called by setting its score to be the highest.
+    xunit_plugin.score = 1000000
+    xunit_plugin.enabled = True
+
+    # Set up a dummy env for xunit to parse. Note we are using nose's xunit,
+    # not the one bundled in yt
+    env = {"NOSE_XUNIT_FILE": "nosetests.xml"} 
+    xunit_plugin.options(parser, env)
+
     answer_plugin = AnswerTesting()
     answer_plugin.enabled = True
     answer_plugin.options(parser)
@@ -610,11 +629,11 @@ if __name__ == "__main__":
     parser.add_option_group(testproblem_group)
     options, args = parser.parse_args()
 
+
     if options.pdb:
         pdb_plugin.enabled = True
         pdb_plugin.enabled_for_failures = True
 
-   
     # Get information about the current repository, set it as the version in
     # the answer testing plugin.
     options.repository = os.path.expanduser(options.repository)
@@ -624,8 +643,10 @@ if __name__ == "__main__":
     if options.run_suffix:
         rev_hash += options.run_suffix
 
+
     answer_plugin._my_version = rev_hash
 
+    xunit_plugin.configure(options, DummyConfiguration())
     answer_plugin.configure(options, None)
     reporting_plugin.configure(options, None)
 
@@ -646,8 +667,9 @@ if __name__ == "__main__":
     if options.bisect:
         bisector(options,args)
         sys.exit(0)
+
     etc = EnzoTestCollection(verbose=options.verbose, args=sys.argv[:1],
-                             plugins = [answer_plugin, reporting_plugin, pdb_plugin])
+                             plugins = [answer_plugin, reporting_plugin, pdb_plugin, xunit_plugin])
 
     construct_selection = {}
     if options.test_suite != unknown:
@@ -742,7 +764,7 @@ if __name__ == "__main__":
     # Same with MHD2DRotorTest
     ignore_list = ('GravityTest', 'ProtostellarCollapse_Std',
                    'ZeldovichPancake', 'AMRZeldovichPancake',
-                   'MHD2DRotorTest', 'Toro-6-ShockTube')
+                   'MHD2DRotorTest', 'Toro-6-ShockTube', 'MHDCTOrszagTangAMR', 'MHDCTOrszagTang')
     
     template = open("test_type.py.template").read()
     
@@ -769,9 +791,11 @@ if __name__ == "__main__":
     # *__test_standard.py files from the enzo run/ directory
     # that we just created.
     for file in test_standard_files:
-        os.remove(file)
+        if os.path.exists(file):
+            os.remove(file)
 
     # Store the results locally or in the cloud.
+    xunit_plugin.report(None)
     answer_plugin.finalize()
     #reporting_plugin.finalize(None, res_file = )
 

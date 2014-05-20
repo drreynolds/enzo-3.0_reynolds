@@ -16,6 +16,7 @@ ENZO_OBJS +=\
 	CosmologyComputeExpansionTimestep.o \
 	CosmologyComputeTimeFromRedshift.o \
 	CosmologyGetUnits.o \
+    DebugTools.o \
 	E_ColumnFormat.o \
 	EnzoVector.o \
 	EnzoVector_Exchange.o \

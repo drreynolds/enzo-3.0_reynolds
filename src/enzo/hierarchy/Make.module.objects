@@ -30,7 +30,8 @@ ENZO_OBJS +=\
 	ExternalBoundary_SetDoubleMachBoundary.o \
 	ExternalBoundary_SetExternalBoundaryIO.o \
 	ExternalBoundary_SetExternalBoundaryParticles.o \
-	ExternalBoundary_SetShockPoolBoundary.o \
+    ExternalBoundary_SetMagneticBoundary.o \
+    ExternalBoundary_SetShockPoolBoundary.o \
 	ExternalBoundary_SetWavePoolBoundary.o \
 	ExternalBoundary_SetWengenCollidingFlowBoundary.o \
 	ExternalBoundary_WriteExternalBoundary.o \
@@ -43,6 +44,7 @@ ENZO_OBJS +=\
 	GenerateGridArray.o \
 	Hierarchy_DeleteHierarchyEntry.o \
 	IdentifyNewSubgridsBySignature.o \
+    InitializeFluxes.o \
 	LevelHierarchy_AddLevel.o \
 	ProtoSubgrid_AcceptableGrid.o \
 	ProtoSubgrid_CleanUp.o \

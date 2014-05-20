@@ -54,7 +54,7 @@ int grid::SolvePPM_DE(int CycleNumber, int NumberOfSubgrids,
   for (int dim = 0; dim < GridRank; dim++)
     size *= GridDimension[dim];
   
-  float *Pressure = new float[size];
+  float *Pressure = new float[size]();
   this->ComputePressure(Time, Pressure);
 
 #ifdef ECUDA

@@ -9,7 +9,7 @@
 /
 ************************************************************************/
 
-#include <stdio.h>
+
 #include <math.h>
 #include <stdlib.h>
 #include "ErrorExceptions.h"
@@ -22,7 +22,6 @@
 #include "TopGridData.h"
 #include "Grid.h"
 #include "CUDAUtil.h"
-
 
 int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);
 
@@ -99,6 +98,8 @@ int grid::CudaMHDRK2_1stStep(fluxes *SubgridFluxes[],
   this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
                                    Vel3Num, TENum, B1Num, B2Num, B3Num, 
                                    PhiNum);
+  int IdxBaryon[10] = 
+    {DensNum, Vel1Num, Vel2Num, Vel3Num, TENum, B1Num, B2Num, B3Num, PhiNum, GENum};
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
       DINum, DIINum, HDINum;
   if (MultiSpecies)
@@ -114,6 +115,16 @@ int grid::CudaMHDRK2_1stStep(fluxes *SubgridFluxes[],
   //
   // Copy data from CPU to GPU
   //
+
+  // Copy BaryonFields 
+  for (int i = 0; i < NEQ_MHD; i++) 
+    cudaMemcpy(MHDData.Baryon[i], BaryonField[IdxBaryon[i]], sizebytes,
+               cudaMemcpyHostToDevice);
+
+  // Copy to old baryon
+  for (int i = 0; i < NEQ_MHD; i++)
+    cudaMemcpy(MHDData.OldBaryon[i], MHDData.Baryon[i], sizebytes,
+               cudaMemcpyDeviceToDevice);
   if (SelfGravity || ExternalGravity || UniformGravity || PointSourceGravity) 
     for (int i = 0; i < GridRank; i++)
       cudaMemcpy(MHDData.AccelerationField[i], AccelerationField[i], sizebytes, cudaMemcpyHostToDevice);
@@ -127,27 +138,7 @@ int grid::CudaMHDRK2_1stStep(fluxes *SubgridFluxes[],
     cudaMemcpy(MHDData.DrivingForce[1], BaryonField[Drive2Num], sizebytes, cudaMemcpyHostToDevice);
     cudaMemcpy(MHDData.DrivingForce[2], BaryonField[Drive3Num], sizebytes, cudaMemcpyHostToDevice);
   }   
-  cudaMemcpy(MHDData.D  , BaryonField[DensNum], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.V1 , BaryonField[Vel1Num], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.V2 , BaryonField[Vel2Num], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.V3 , BaryonField[Vel3Num], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.TE , BaryonField[TENum  ], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.B1 , BaryonField[B1Num  ], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.B2 , BaryonField[B2Num  ], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.B3 , BaryonField[B3Num  ], sizebytes, cudaMemcpyHostToDevice);
-  cudaMemcpy(MHDData.Phi, BaryonField[PhiNum ], sizebytes, cudaMemcpyHostToDevice);
-
-  // copy to old baryon
-  cudaMemcpy(MHDData.OldD  , MHDData.D  , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldV1 , MHDData.V1 , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldV2 , MHDData.V2 , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldV3 , MHDData.V3 , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldTE , MHDData.TE , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldB1 , MHDData.B1 , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldB2 , MHDData.B2 , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldB3 , MHDData.B3 , sizebytes, cudaMemcpyDeviceToDevice);
-  cudaMemcpy(MHDData.OldPhi, MHDData.Phi, sizebytes, cudaMemcpyDeviceToDevice);
-
+  
   if (MultiSpecies) {
     cudaMemcpy(MHDData.Species[0], BaryonField[HINum], sizebytes, cudaMemcpyHostToDevice);
     cudaMemcpy(MHDData.Species[1], BaryonField[HIINum], sizebytes, cudaMemcpyHostToDevice);
@@ -178,15 +169,11 @@ int grid::CudaMHDRK2_1stStep(fluxes *SubgridFluxes[],
   //
   // Copy results from CPU to GPU                                                    
   //
-  cudaMemcpy(BaryonField[DensNum], MHDData.D  , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[Vel1Num], MHDData.V1 , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[Vel2Num], MHDData.V2 , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[Vel3Num], MHDData.V3 , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[TENum  ], MHDData.TE , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[B1Num  ], MHDData.B1 , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[B2Num  ], MHDData.B2 , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[B3Num  ], MHDData.B3 , sizebytes, cudaMemcpyDeviceToHost);
-  cudaMemcpy(BaryonField[PhiNum ], MHDData.Phi, sizebytes, cudaMemcpyDeviceToHost);
+
+  for (int i = 0; i < NEQ_MHD; i++)
+    cudaMemcpy(BaryonField[IdxBaryon[i]], MHDData.Baryon[i], sizebytes,
+               cudaMemcpyDeviceToHost);
+
   if (MultiSpecies) {
     cudaMemcpy(BaryonField[HINum   ], MHDData.Species[0], sizebytes, cudaMemcpyDeviceToHost);
     cudaMemcpy(BaryonField[HIINum  ], MHDData.Species[1], sizebytes, cudaMemcpyDeviceToHost);

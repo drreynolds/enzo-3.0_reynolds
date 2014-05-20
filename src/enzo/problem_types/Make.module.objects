@@ -12,8 +12,8 @@ ENZO_OBJS +=\
 	AdiabaticExpansionInitialize.o \
 	CallProblemSpecificRoutines.o \
 	CheckShearingBoundaryConsistency.o \
-	ClusterInitialize.o \
-        ClusterSMBHSumGasMass.o \
+    ClusterInitialize.o \
+    ClusterSMBHSumGasMass.o \
 	CollapseTestInitialize.o \
 	ComputeRandomForcingNormalization.o \
 	ConductionBubbleInitialize.o \
@@ -33,6 +33,9 @@ ENZO_OBJS +=\
 	ImplosionInitialize.o \
 	InitializeNew.o \
 	KHInitialize.o \
+    MHDBlastInitialize.o \
+    MHDLoopInit.o \
+    MHDOrszagTangInit.o \
 	NestedCosmologySimulationInitialize.o \
 	NohInitialize.o \
 	NullProblem.o \
@@ -45,6 +48,7 @@ ENZO_OBJS +=\
 	ProblemType_AgoraRestart.o \
 	ProblemType_CollapsingCoolingCloud.o \
 	ProblemType_ExplodingCloud.o \
+    ProblemType_MagneticReconnection.o \
 	ProblemType_Python.o \
 	ProblemType_RotatingCylinder.o \
 	ProtostellarCollapseInitialize.o \
@@ -59,6 +63,8 @@ ENZO_OBJS +=\
 	RadHydroStreamTestInitialize.o \
 	RadiatingShockInitialize.o \
 	RotatingCylinderInitialize.o \
+    RotatingDiskInitialize.o \
+    RotatingSphereInitialize.o \
 	SedovBlastInitialize.o \
 	ShearingBox2DInitialize.o \
 	ShearingBoxInitialize.o \
