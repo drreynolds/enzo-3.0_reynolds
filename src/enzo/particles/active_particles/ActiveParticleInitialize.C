@@ -51,18 +51,29 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
   if (NextActiveParticleID == INT_UNDEFINED)
     NextActiveParticleID = NumberOfOtherParticles + NumberOfActiveParticles;
 
-  /* If radiation sources exist, delete them */
+  bool CallEvolvePhotons = false;
 
 #ifdef TRANSFER
-  RadiationSourceEntry *dummy;
-  while (GlobalRadiationSources != NULL) {
-    dummy = GlobalRadiationSources;
-    GlobalRadiationSources = GlobalRadiationSources->NextSource;
-    delete dummy;
+  /* If radiation sources exist, delete them */
+  if (RadiativeTransfer == TRUE) {
+    RadiationSourceEntry *dummy;
+    while (GlobalRadiationSources != NULL) {
+      dummy = GlobalRadiationSources;
+      GlobalRadiationSources = GlobalRadiationSources->NextSource;
+      delete dummy;
+    }
+    GlobalRadiationSources = new RadiationSourceEntry;
+    GlobalRadiationSources->NextSource = NULL;
+    GlobalRadiationSources->PreviousSource = NULL;
+
+    /* Determine whether EvolvePhotons will be called this timestep */
+
+    FLOAT GridTime = LevelArray[ThisLevel]->GridData->ReturnTime();
+    float dt = LevelArray[ThisLevel]->GridData->ReturnTimeStep();
+    if ((GridTime+dt > PhotonTime && LevelArray[ThisLevel+1] == NULL)
+	|| MetaData->FirstTimestepAfterRestart)
+      CallEvolvePhotons = true;
   }
-  GlobalRadiationSources = new RadiationSourceEntry;
-  GlobalRadiationSources->NextSource = NULL;
-  GlobalRadiationSources->PreviousSource = NULL;
 #endif /* TRANSFER */
 
   /* Call initialization routines for each active particle type */
@@ -74,9 +85,10 @@ int ActiveParticleInitialize(HierarchyEntry *Grids[], TopGridData *MetaData,
     ActiveParticleType_info *ActiveParticleTypeToEvaluate = EnabledActiveParticles[i];
     ActiveParticleID = ActiveParticleTypeToEvaluate->GetEnabledParticleID();
 
-    ActiveParticleTypeToEvaluate->BeforeEvolveLevel(Grids,MetaData,NumberOfGrids,LevelArray, 
-							      ThisLevel,TotalActiveParticleCount,
-							      ActiveParticleID);
+    ActiveParticleTypeToEvaluate->BeforeEvolveLevel(Grids, MetaData, NumberOfGrids, LevelArray, 
+						    ThisLevel, CallEvolvePhotons, 
+						    TotalActiveParticleCount,
+						    ActiveParticleID);
 
   }
 

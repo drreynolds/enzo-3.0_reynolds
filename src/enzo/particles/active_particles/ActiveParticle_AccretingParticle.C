@@ -285,7 +285,8 @@ template <class active_particle_class>
 int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
 (HierarchyEntry *Grids[], TopGridData *MetaData,
  int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
- int ThisLevel, int TotalStarParticleCountPrevious[],
+ int ThisLevel, bool CallEvolvePhotons, 
+ int TotalStarParticleCountPrevious[],
  int AccretingParticleID)
 {
 
@@ -304,18 +305,18 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
   // Calculate conversion factor to solar masses
 
 #ifdef TRANSFER
+  double dx;
+  float MassConversion;
   const double LConv = (double) TimeUnits / pow(LengthUnits,3);
-  AccretingParticleGrid *tempGrid =
-    static_cast<AccretingParticleGrid *>(LevelArray[ThisLevel]->GridData);
-
-  double dx = LengthUnits * tempGrid->CellWidth[0][0];
-  float MassConversion = (float) (dx*dx*dx * double(DensityUnits) / SolarMass);
+  const double mfactor = double(DensityUnits) / SolarMass;
 
   ActiveParticleType_AccretingParticle *ThisParticle;
   for (ipart = 0; ipart < nParticles; ipart++) {
     if (AccretingParticleList[ipart]->IsARadiationSource(Time)) {
       ThisParticle =
 	static_cast<ActiveParticleType_AccretingParticle*>(AccretingParticleList[ipart]);
+      dx = LengthUnits * LevelArray[ThisParticle->level]->GridData->GetCellWidth(0,0);
+      MassConversion = (float) (dx*dx*dx * mfactor);
       RadiationSourceEntry *source = new RadiationSourceEntry;
       source->PreviousSource = GlobalRadiationSources;
       source->NextSource     = GlobalRadiationSources->NextSource;
@@ -338,6 +339,10 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
       }
       source->Luminosity = (LuminosityPerSolarMass * LConv) *
 	(ThisParticle->Mass * MassConversion);
+      printf("SRC Luminosity: L=%lg Lcode=%g M=%g Mcode=%g\n",
+	     LuminosityPerSolarMass * ThisParticle->Mass * MassConversion, 
+	     source->Luminosity, ThisParticle->Mass * MassConversion, 
+	     ThisParticle->Mass);
       source->RampTime = 0.0;
       source->EnergyBins = RadiationSEDNumberOfBins;
       source->Energy = new float[RadiationSEDNumberOfBins];
