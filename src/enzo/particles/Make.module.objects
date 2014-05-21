@@ -24,7 +24,7 @@ ENZO_OBJS +=\
         ActiveParticle_Kravtsov.o \
         ActiveParticle_MirrorToParticle.o \
         ActiveParticle_PopIII.o \
-        ActiveParticle_SampleParticle.o \
+        ActiveParticle_Skeleton.o \
         ActiveParticle_SphereContained.o \
         ActiveParticle_SpringelHernquist.o
 
