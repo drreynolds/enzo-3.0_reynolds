@@ -375,7 +375,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
     // Check bounds - if star particle is outside of this grid then give a warning and continue
     
     if (i < 0 || i > GridXSize-1 || j < 0 || j > GridYSize-1 || k < 0 || k > GridZSize-1){
-      fprintf(stdout, "Particle out of grid; xind, yind, zind = %d, %d, %d\n",i,j,k);
+      fprintf(stdout, "Particle out of grid; xind, yind, zind = %"ISYM", %"ISYM", %"ISYM"\n",i,j,k);
       continue;
     }
       
@@ -383,7 +383,7 @@ int ActiveParticleType_CenOstriker::EvaluateFeedback
 
     index = GRIDINDEX_NOGHOST(i,j,k);
 
-    // skip if very little mass if formed
+    // skip if very little mass is formed
 
     if (StarFormationDensityThisTimestep/density[index] < 1e-10 )
       continue;
@@ -501,8 +501,6 @@ void ActiveParticleType_CenOstriker::DescribeSupplementalData(ActiveParticleForm
   flags.DarkMatterDensity = true;
   flags.CoolingTime = true;
   flags.Temperature = true;
-  flags.UnitConversions = true;
-  flags.DataFieldNumbers = true;
   flags.MetalField = true;
 }
 

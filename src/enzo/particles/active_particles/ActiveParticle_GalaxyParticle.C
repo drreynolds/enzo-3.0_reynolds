@@ -197,8 +197,6 @@ void ActiveParticleType_GalaxyParticle::DescribeSupplementalData
 {
   flags.DarkMatterDensity = true;
   flags.Temperature = true;
-  flags.UnitConversions = true;
-  flags.DataFieldNumbers = true;
   flags.MetalField = true;
 }
 

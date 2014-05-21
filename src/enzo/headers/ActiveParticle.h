@@ -239,8 +239,6 @@ struct ActiveParticleFormationDataFlags {
   bool CoolingTime;
   bool CoolingRate;
   bool Temperature;
-  bool UnitConversions;
-  bool DataFieldNumbers;
   bool MetalField;
 };
 
@@ -250,8 +248,6 @@ const struct ActiveParticleFormationDataFlags flags_default = {
   false,    // CoolingTime
   false,    // CoolingRate
   false,    // Temperature
-  false,    // UnitConversions
-  false,    // DataFieldNumbers
   false     // MetalField
 };
 

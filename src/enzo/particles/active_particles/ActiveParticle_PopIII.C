@@ -1,3 +1,4 @@
+
 /***********************************************************************
 /
 /  AN EXAMPLE ACTIVE PARTICLE TYPE
@@ -232,8 +233,6 @@ void ActiveParticleType_PopIII::DescribeSupplementalData
   flags.H2Fraction = true;
   flags.CoolingTime = true;
   flags.Temperature = true;
-  flags.UnitConversions = true;
-  flags.DataFieldNumbers = true;
   flags.MetalField = true;
 }
 

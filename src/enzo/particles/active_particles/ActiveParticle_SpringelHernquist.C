@@ -209,8 +209,6 @@ void ActiveParticleType_SpringelHernquist::DescribeSupplementalData
 {
   flags.CoolingTime = true;
   flags.Temperature = true;
-  flags.UnitConversions = true;
-  flags.DataFieldNumbers = true;
   flags.MetalField = true;
 }
 
