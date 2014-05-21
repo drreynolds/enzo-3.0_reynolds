@@ -146,11 +146,6 @@ struct TopGridData
   boundary_type ParticleBoundaryType;
   PINT          NumberOfParticles;
   
-  /* Active Particle Data */
-
-  /* TODO: Update NumberOfActiveParticles
-  /* PINT   NumberOfActiveParticles; */
-
   /* Hydro Parameters.  
      These are here out of convenience, the real ones are in the grids. */
 
