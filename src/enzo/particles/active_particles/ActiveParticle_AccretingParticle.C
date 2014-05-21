@@ -305,39 +305,41 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
   // Calculate conversion factor to solar masses
 
 #ifdef TRANSFER
-  RadiationSourceEntry* source;
-  double dx;
-  float MassConversion;
-  const double LConv = (double) TimeUnits / pow(LengthUnits,3);
-  const double mfactor = double(DensityUnits) / SolarMass;
+  if (CallEvolvePhotons) {
+    RadiationSourceEntry* source;
+    double dx;
+    float MassConversion;
+    const double LConv = (double) TimeUnits / pow(LengthUnits,3);
+    const double mfactor = double(DensityUnits) / SolarMass;
 
-  ActiveParticleType_AccretingParticle *ThisParticle;
-  for (ipart = 0; ipart < nParticles; ipart++) {
-    if (AccretingParticleList[ipart]->IsARadiationSource(Time)) {
-      ThisParticle =
-	static_cast<ActiveParticleType_AccretingParticle*>(AccretingParticleList[ipart]);
-      source = ThisParticle->RadiationSourceInitialize();
-      dx = LengthUnits * LevelArray[ThisParticle->level]->GridData->GetCellWidth(0,0);
-      MassConversion = (float) (dx*dx*dx * mfactor);
-      source->LifeTime       = RadiationLifetime;
-      source->Luminosity = (LuminosityPerSolarMass * LConv) *
-	(ThisParticle->Mass * MassConversion); 
-      source->EnergyBins = RadiationSEDNumberOfBins;
-      source->Energy = new float[RadiationSEDNumberOfBins];
-      source->SED = new float[RadiationSEDNumberOfBins];
-      for (j = 0; j < RadiationSEDNumberOfBins; j++) {
-	source->Energy[j] = RadiationEnergyBins[j];
-	source->SED[j] = RadiationSED[j];
+    ActiveParticleType_AccretingParticle *ThisParticle;
+    for (ipart = 0; ipart < nParticles; ipart++) {
+      if (AccretingParticleList[ipart]->IsARadiationSource(Time)) {
+	ThisParticle =
+	  static_cast<ActiveParticleType_AccretingParticle*>(AccretingParticleList[ipart]);
+	source = ThisParticle->RadiationSourceInitialize();
+	dx = LengthUnits * LevelArray[ThisParticle->level]->GridData->GetCellWidth(0,0);
+	MassConversion = (float) (dx*dx*dx * mfactor);
+	source->LifeTime       = RadiationLifetime;
+	source->Luminosity = (LuminosityPerSolarMass * LConv) *
+	  (ThisParticle->Mass * MassConversion); 
+	source->EnergyBins = RadiationSEDNumberOfBins;
+	source->Energy = new float[RadiationSEDNumberOfBins];
+	source->SED = new float[RadiationSEDNumberOfBins];
+	for (j = 0; j < RadiationSEDNumberOfBins; j++) {
+	  source->Energy[j] = RadiationEnergyBins[j];
+	  source->SED[j] = RadiationSED[j];
+	}
+//	printf("SRC Luminosity: L=%lg Lcode=%g M=%g Mcode=%g\n",
+//	       LuminosityPerSolarMass * ThisParticle->Mass * MassConversion, 
+//	       source->Luminosity, ThisParticle->Mass * MassConversion, 
+//	       ThisParticle->Mass);
+	if (GlobalRadiationSources->NextSource != NULL)
+	  GlobalRadiationSources->NextSource->PreviousSource = source;
+	GlobalRadiationSources->NextSource = source;
       }
-//      printf("SRC Luminosity: L=%lg Lcode=%g M=%g Mcode=%g\n",
-//	     LuminosityPerSolarMass * ThisParticle->Mass * MassConversion, 
-//	     source->Luminosity, ThisParticle->Mass * MassConversion, 
-//	     ThisParticle->Mass);
-      if (GlobalRadiationSources->NextSource != NULL)
-	GlobalRadiationSources->NextSource->PreviousSource = source;
-      GlobalRadiationSources->NextSource = source;
     }
-  }
+  } // ENDIF CallEvolvePhotons
 #endif /* TRANSFER */
   
   return SUCCESS;
