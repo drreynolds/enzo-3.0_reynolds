@@ -583,14 +583,14 @@ ActiveParticleType_info *register_ptype(std::string name)
   return pinfo;
 }
 
-#define ENABLED_PARTICLE_ID_ACCESSOR					\
-  int GetEnabledParticleID(int myid = -1) {				\
-    static int ParticleID = -1;						\
-    if (myid >= 0) {							\
-      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");	\
-      ParticleID = myid;						\
-    }									\
-    return ParticleID;							\
+#define ENABLED_PARTICLE_ID_ACCESSOR                                   \
+  int GetEnabledParticleID(int myid = -1) {                            \
+    static int ParticleID = -1;                                        \
+    if (myid >= 0) {                                                   \
+      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");   \
+      ParticleID = myid;                                               \
+    }                                                                  \
+    return ParticleID;                                                 \
   };
 
 
