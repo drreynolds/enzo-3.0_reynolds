@@ -298,7 +298,8 @@ int ActiveParticleType_AccretingParticle::BeforeEvolveLevel
 
   int j, dim, ipart, nParticles;
   ActiveParticleType **AccretingParticleList = NULL;
-  AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
+  if (CallEvolvePhotons)
+    AccretingParticleList = ActiveParticleFindAll(LevelArray, &nParticles, AccretingParticleID);
 
   /* Create radiation sources from particles */
   
