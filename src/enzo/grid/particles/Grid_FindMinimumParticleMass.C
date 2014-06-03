@@ -36,11 +36,14 @@ int grid::FindMinimumParticleMass(float &min_mass, int level)
 
   if (NumberOfParticleAttributes == 0) {
     for (i = 0; i < NumberOfParticles; i++)
-      if (ParticleMass[i] > threshold)
+      if (ParticleType[i] == PARTICLE_TYPE_DARK_MATTER &&
+          ParticleMass[i] > threshold)
 	min_mass = min(min_mass, MassFactor*ParticleMass[i]);
   } else {
     for (i = 0; i < NumberOfParticles; i++)
-      if (ParticleAttribute[0][i] <= 0.0 && ParticleMass[i] > threshold)
+      if (ParticleType[i] == PARTICLE_TYPE_DARK_MATTER &&
+          ParticleAttribute[0][i] <= 0.0 &&
+          ParticleMass[i] > threshold)
 	min_mass = min(min_mass, MassFactor*ParticleMass[i]);
   }
 

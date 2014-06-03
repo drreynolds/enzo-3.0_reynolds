@@ -69,7 +69,7 @@ int grid::MoveParticlesFOF(int level, FOF_particle_data* &P,
       P[Index].Mass = ParticleMass[i] * MassConv;
 
       P[Index].PartID = ParticleNumber[i];
-      P[Index].Type = 1;
+      P[Index].Type = ParticleType[i];
       //P[Index].level = level;
       //P[Index].GridID = GridNum;
 
@@ -111,6 +111,7 @@ int grid::MoveParticlesFOF(int level, FOF_particle_data* &P,
     for (i = 0; i < AllVars.Nlocal; i++) 
       if (P[i].slab == MyProcessorNumber && P[i].PartID >= 0) {
 	ParticleMass[i] = P[i].Mass * MassConvInv;
+    ParticleType[i] = P[i].Type;
 	ParticleNumber[i] = P[i].PartID;
       }
 

@@ -41,7 +41,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
   int NumberOfSubgridActiveParticles = 0;
   int TotalNumberOfParticles = NumberOfParticles;
   int TotalNumberOfActiveParticles = NumberOfActiveParticles;
-  int i, j, grid, dim, *Type;
+  int i, j, grid, dim, *Type = NULL;
   PINT *Number;
  
   for (grid = 0; grid < NumberOfGrids; grid++)
@@ -71,7 +71,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
  
   Mass = new float[TotalNumberOfParticles];
   Number = new PINT[TotalNumberOfParticles];
-  Type = NULL;
+  Type = new int[TotalNumberOfParticles];
   for (int dim = 0; dim < GridRank; dim++) {
     Position[dim] = new FLOAT[TotalNumberOfParticles];
     Velocity[dim] = new float[TotalNumberOfParticles];
@@ -98,6 +98,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
   for (i = 0; i < NumberOfParticles; i++) {
     Mass[i]   = ParticleMass[i];
     Number[i] = ParticleNumber[i];
+    Type[i] = ParticleType[i];
   }
   for (dim = 0; dim < GridRank; dim++)
     for (i = 0; i < NumberOfParticles; i++) {
@@ -125,6 +126,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
     for (i = 0; i < FromGrid[grid]->NumberOfParticles; i++) {
       Mass[Index+i] = FromGrid[grid]->ParticleMass[i] * MassDecrease;
       Number[Index+i] = FromGrid[grid]->ParticleNumber[i];
+      Type[Index+i] = FromGrid[grid]->ParticleType[i];
     }
     
     for (dim = 0; dim < GridRank; dim++)
@@ -226,7 +228,7 @@ int grid::MoveAllParticlesOld(int NumberOfGrids, grid* FromGrid[])
   if (MyProcessorNumber == ProcessorNumber) {
      Mass = new float[TotalNumberOfParticles];
      Number = new PINT[TotalNumberOfParticles]; 
-     Type = NULL;
+     Type = new int[TotalNumberOfParticles];
      for (int dim = 0; dim < GridRank; dim++) {
        Position[dim] = new FLOAT[TotalNumberOfParticles];
        Velocity[dim] = new float[TotalNumberOfParticles];
@@ -256,6 +258,7 @@ int grid::MoveAllParticlesOld(int NumberOfGrids, grid* FromGrid[])
      for (i = 0; i < NumberOfParticles; i++) {
        Mass[i]   = ParticleMass[i];
        Number[i] = ParticleNumber[i];
+       Type[i] = ParticleType[i];
      }
      for (dim = 0; dim < GridRank; dim++)
        for (i = 0; i < NumberOfParticles; i++) {
@@ -294,6 +297,7 @@ int grid::MoveAllParticlesOld(int NumberOfGrids, grid* FromGrid[])
       for (i = 0; i < FromGrid[grid]->NumberOfParticles; i++) {
 	Mass[Index+i] = FromGrid[grid]->ParticleMass[i] * MassDecrease;
 	Number[Index+i] = FromGrid[grid]->ParticleNumber[i];
+    Type[Index+i] = FromGrid[grid]->ParticleType[i];
       }
 
       for (dim = 0; dim < GridRank; dim++)
