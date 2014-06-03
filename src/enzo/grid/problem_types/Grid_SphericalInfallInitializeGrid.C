@@ -167,6 +167,7 @@ int grid::SphericalInfallInitializeGrid(float InitialPerturbation,
 	  //   ParticleMass[n] = tiny_number;
 
 	  ParticleNumber[n] = n;
+      ParticleType[n] = PARTICLE_TYPE_DARK_MATTER;
 	}
  
     /* Give the central particle density it's perturbation. */

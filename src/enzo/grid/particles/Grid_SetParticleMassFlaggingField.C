@@ -125,8 +125,23 @@ int grid::SetParticleMassFlaggingField(int StartProc, int EndProc, int level,
 	DepositParticleMaximumParticleMass = 0;
 
 	break;
+
+        /* ==== METHOD 8: BY POSITION OF MUST-REFINE PARTICLES  ==== */
+
+      case 8:
+
+        if (level < MustRefineParticlesRefineToLevel) {
+          NumberOfFlaggedCells =
+            this->DepositMustRefineParticles(ParticleMassMethod, level);
+          //printf(" Level <  MustRefineParticlesRefineToLevel = %d   \n",MustRefineParticlesRefineToLevel );
+          if (NumberOfFlaggedCells < 0) {
+            ENZO_FAIL("Error in grid->DepositMustRefineParticles.\n");
+          }
+        }
+
+        break;
  
-	/* ==== undefined ==== */
+        /* ==== undefined ==== */
  
       case INT_UNDEFINED:
 	break;
