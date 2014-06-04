@@ -55,9 +55,8 @@ int grid::TestGravityMotionInitializeGrid(float InitialVelocity)
 	ParticleVelocity[dim][i] = 0;
 	if (dim == 0)
 	  ParticleVelocity[dim][i] = InitialVelocity;
-    ParticleMass[i]          = 1.0;
-    ParticleNumber[i]        = i;
-    ParticleType[i]          = PARTICLE_TYPE_DARK_MATTER;
+	ParticleMass[i]          = 1.0;
+	ParticleNumber[i]        = i;
       }
  
   }

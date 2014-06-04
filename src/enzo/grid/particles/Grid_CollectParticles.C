@@ -64,7 +64,6 @@ int grid::CollectParticles(int GridNum, int* &NumberToMove,
       }
       List[n1].mass = ParticleMass[i];
       List[n1].id = ParticleNumber[i];
-      List[n1].type = ParticleType[i];
       for (j = 0; j < NumberOfParticleAttributes; j++)
 	List[n1].attribute[j] = ParticleAttribute[j][i];
       List[n1].grid = GridNum;
@@ -108,7 +107,6 @@ int grid::CollectParticles(int GridNum, int* &NumberToMove,
 
       Mass = new float[TotalNumberOfParticles];
       Number = new PINT[TotalNumberOfParticles];
-      Type = new int[TotalNumberOfParticles];
       for (dim = 0; dim < GridRank; dim++) {
 	Position[dim] = new FLOAT[TotalNumberOfParticles];
 	Velocity[dim] = new float[TotalNumberOfParticles];
@@ -127,7 +125,6 @@ int grid::CollectParticles(int GridNum, int* &NumberToMove,
       for (i = 0; i < NumberOfParticles; i++) {
 	Mass[i] = ParticleMass[i];
 	Number[i] = ParticleNumber[i];
-    Type[i] = ParticleType[i];
       }
 
       for (dim = 0; dim < GridRank; dim++)
@@ -146,7 +143,6 @@ int grid::CollectParticles(int GridNum, int* &NumberToMove,
       for (i = StartIndex; i < EndIndex; i++) {
 	Mass[n] = List[i].mass;
 	Number[n] = List[i].id;
-    Type[n] = List[i].type;
 	n++;
       }
 

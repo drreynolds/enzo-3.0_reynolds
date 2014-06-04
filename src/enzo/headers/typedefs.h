@@ -301,7 +301,6 @@ struct particle_data {
   float mass;
   float attribute[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
   PINT  id;
-  int   type;
   int   grid;
   int   proc;
 };

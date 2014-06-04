@@ -274,7 +274,7 @@ int grid::OutputAsParticleData(FLOAT RegionLeftEdge[], FLOAT RegionRightEdge[],
  
       /* set particle type (for convenience). */
  
-      itype = ParticleType[n];
+      itype = 1;
  
       /* Set position, radius and mass. */
  

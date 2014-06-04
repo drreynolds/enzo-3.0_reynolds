@@ -172,7 +172,6 @@ int start;
 //	  FromGrid->ParticleAttribute[k][i];
  
       X_Number[start] = FromGrid->ParticleNumber[i];
-      X_Type[start] = FromGrid->ParticleType[i];
       X_Mass[start] = (FromGrid->ParticleMass[i]) * MassIncrease;
       for (dim = 0; dim < GridRank; dim++) {
         X_Position[dim][start] = FromGrid->ParticlePosition[dim][i];

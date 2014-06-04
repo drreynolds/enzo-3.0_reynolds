@@ -60,7 +60,7 @@ int grid::CleanUpMovedParticles()
  
     Mass = new float[NumberOfParticlesRemaining];
     Number = new PINT[NumberOfParticlesRemaining];
-    Type = new int[NumberOfParticlesRemaining];
+    Type = NULL;
     for (dim = 0; dim < GridRank; dim++) {
       Position[dim] = new FLOAT[NumberOfParticlesRemaining];
       Velocity[dim] = new float[NumberOfParticlesRemaining];
@@ -77,7 +77,6 @@ int grid::CleanUpMovedParticles()
  
 	Mass  [j] = ParticleMass  [i];
 	Number[j] = ParticleNumber[i];
-    Type  [j] = ParticleType  [i];
 	for (dim = 0; dim < GridRank; dim++) {
 	  Position[dim][j] = ParticlePosition[dim][i];
 	  Velocity[dim][j] = ParticleVelocity[dim][i];
