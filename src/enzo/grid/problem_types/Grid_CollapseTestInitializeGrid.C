@@ -126,11 +126,11 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
     }
   }
   if (SphereUseMetals)
-    FieldType[MetalNum = NumberOfBaryonFields++] = SNColour;
+    FieldType[MetalNum = NumberOfBaryonFields++] = Metallicity;
 
   int ColourNum = NumberOfBaryonFields;
   if (SphereUseColour)
-    FieldType[NumberOfBaryonFields++] = Metallicity; /* fake it with metals */
+    FieldType[NumberOfBaryonFields++] = SNColour;
 
   /* Return if this doesn't concern us. */
 
