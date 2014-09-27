@@ -259,6 +259,11 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   }
 #endif
 
+#ifdef USE_GRACKLE
+  if (MyProcessorNumber == ROOT_PROCESSOR) {
+    grackle_verbose = 1;
+  }
+#endif
 
   int int_argc;
   int_argc = argc;
