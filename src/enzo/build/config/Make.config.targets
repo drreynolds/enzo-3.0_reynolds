@@ -809,11 +809,7 @@ CONFIG_BITWISE_IDENTICALITY-%: suggest-clean
 	echo
 
 
-
 #-----------------------------------------------------------------------
-
-#-----------------------------------------------------------------------
-
 
 VALID_GRAVITY_4S = gravity-4s-yes gravity-4s-no
 .PHONY: $(VALID_GRAVITY_4S)
