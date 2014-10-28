@@ -169,6 +169,7 @@ int grid::MoveAllParticles(int NumberOfGrids, grid* FromGrid[])
       MoveParticles[Index++] = FromGrid[grid]->ActiveParticles[i];
     }
     FromGrid[grid]->NumberOfActiveParticles = 0;
+    delete [] FromGrid[grid]->ActiveParticles;
     FromGrid[grid]->ActiveParticles = NULL;
   }
 
