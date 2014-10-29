@@ -87,7 +87,7 @@ int ProjectToPlane(TopGridData &MetaData, LevelHierarchyEntry *LevelArray[],
 		   int ProjectStart[], int ProjectEnd[],
 		   FLOAT ProjectStartCoordinates[],
 		   FLOAT ProjectEndCoordinates[], int ProjectLevel,
-		   int ProjectionDimension, char *ProjectionFileName,
+		   int ProjectionDimension, const char *ProjectionFileName,
 		   int ProjectionSmooth, ExternalBoundary *Exterior);
 int ProjectToPlane2(char *ParameterFile, HierarchyEntry &TopGrid,
 		    TopGridData &MetaData, LevelHierarchyEntry *LevelArray[],
@@ -105,7 +105,7 @@ int OutputAsParticleData(TopGridData &MetaData,
 			 int RegionStart[], int RegionEnd[],
 			 FLOAT RegionStartCoordinates[],
 			 FLOAT RegionEndCoordinates[], int RegionLevel,
-			 char *OutputFileName);
+			 const char *OutputFileName);
 int InterpretCommandLine(int argc, char *argv[], char *myname,
 			 int &restart, int &debug, int &extract,
 			 int &InformationOutput,
@@ -225,7 +225,7 @@ void lcaperfInitialize (int max_level);
 #endif
 
 void my_exit(int status);
-void PrintMemoryUsage(char *str);
+void PrintMemoryUsage(const char *str);
 
 
 
@@ -546,9 +546,9 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
     dim2 = (ProjectionDimension == -1) ?
       MetaData.TopGridRank : ProjectionDimension+1;
     for (dim = dim1; dim < dim2; dim++) {
-      sprintf(proj_name, "project_%4.4d_%c.h5", MetaData.CycleNumber, 120+dim);
+      sprintf(proj_name, "project_%"ISYM"4.4_%"ISYM".h5", MetaData.CycleNumber, 120+dim);
       if (MyProcessorNumber == ROOT_PROCESSOR)
-	printf("ProjectToPlane: dimension %d.  Output %s\n", dim, proj_name);
+	printf("ProjectToPlane: dimension %"ISYM".  Output %s\n", dim, proj_name);
       if (ProjectToPlane2(ParameterFile, TopGrid, MetaData, LevelArray,
 			  RegionStart, RegionEnd,
 			  RegionStartCoordinates, RegionEndCoordinates,

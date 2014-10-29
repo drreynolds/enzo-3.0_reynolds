@@ -43,7 +43,7 @@
 void WriteListOfFloats(FILE *fptr, int N, float floats[]);
 void WriteListOfFloats(FILE *fptr, int N, FLOAT floats[]);
 void WriteListOfInts(FILE *fptr, int N, int nums[]);
-void PrintMemoryUsage(char *str);
+void PrintMemoryUsage(const char *str);
 int InitializeRateData(FLOAT Time);
 int GetUnits(float *DensityUnits, float *LengthUnits,
 	     float *TemperatureUnits, float *TimeUnits,

@@ -138,10 +138,10 @@ void ActiveParticleType::ConstructData(grid *_grid,
             ActiveParticleFormationDataFlags &flags,
             ActiveParticleFormationData &data) {
 
-    /* We have a number of items that can be required; we now attempt to
-       generate them.
+  /* We have a number of items that can be required; we now attempt to
+     generate them.
 
-       This uses code from the old grid::StarParticleHandler routine. */
+     This uses code from the old grid::StarParticleHandler routine. */
 
 
   /* initialize */
