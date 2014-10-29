@@ -1888,6 +1888,17 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   }
 
 
+  /* If ParticleTypeInFile is on and active particles are used, turn
+     off ParticleTypeInFile because particles are grouped by active
+     particle type.  Types are no longer used. */
+
+  if (ParticleTypeInFile == TRUE) {
+    if (debug) 
+      fprintf(stderr, "Particle types are deprecated.\n"
+  "Turning OFF ParticleTypeInFile.\n");
+    ParticleTypeInFile = FALSE;
+  }
+
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
 
   // Now that we know our rank, we can fill our Field Registry
