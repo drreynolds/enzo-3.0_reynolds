@@ -1266,6 +1266,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       fprintf(stdout, "Enabling particle type %s\n", active_particle_types[i]);
     }
     EnableActiveParticleType(active_particle_types[i]);
+    delete [] active_particle_types[i];
   }
   delete [] active_particle_types;
 
@@ -1843,11 +1844,11 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   if ( (MetaData.GlobalDir != NULL) && (MetaData.LocalDir != NULL) ) {
     ENZO_FAIL("Cannot select GlobalDir AND LocalDir!\n");
   }
- 
-  char *cwd_buffer = new char[MAX_LINE_LENGTH];
-  size_t cwd_buffer_len = MAX_LINE_LENGTH;
- 
+  
   if ( (MetaData.GlobalDir == NULL) && (MetaData.LocalDir == NULL) ) {
+    char *cwd_buffer = new char[MAX_LINE_LENGTH];
+    size_t cwd_buffer_len = MAX_LINE_LENGTH;
+
     /*if(getcwd(cwd_buffer, cwd_buffer_len) == NULL) {
       fprintf(stderr, "GETCWD call FAILED\n");
     }
