@@ -76,6 +76,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   char *dummy = new char[MAX_LINE_LENGTH];
   dummy[0] = 0;
   int comment_count = 0;
+
+  char *dummy = new char[MAX_LINE_LENGTH];
+  dummy[0] = 0;
  
   char **active_particle_types;
   active_particle_types = new char*[MAX_ACTIVE_PARTICLE_TYPES];
@@ -86,9 +89,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   rewind(fptr);
   while ((fgets(line, MAX_LINE_LENGTH, fptr) != NULL) 
       && (comment_count < 2)) {
-
-    char *dummy = new char[MAX_LINE_LENGTH];
-    dummy[0] = 0;
 
     ret = 0;
  
@@ -1176,8 +1176,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 		  ResetMagneticFieldAmplitude+2);
 
     if (sscanf(line, "AppendActiveParticleType = %s", dummy) == 1) {
-      active_particle_types[active_particles] = new char[MAX_LINE_LENGTH];
-      strcpy(active_particle_types[active_particles], dummy);
+      active_particle_types[active_particles] = dummy;
       active_particles++;
     }
 
@@ -1188,6 +1187,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
  
     if (*dummy != 0) {
       dummy = new char[MAX_LINE_LENGTH];
+      dummy[0] = 0;
       ret++;
     }
  
@@ -1257,8 +1257,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       if (MyProcessorNumber == ROOT_PROCESSOR)
 	fprintf(stderr, "warning: the following parameter line was not interpreted:\n%s", line);
 
-    delete [] dummy;
   }
+
+  delete [] dummy;
 
   // Enable the active particles that were selected.
   for (i = 0;i < active_particles;i++) {
