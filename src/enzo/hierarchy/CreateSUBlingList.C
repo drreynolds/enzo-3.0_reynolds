@@ -213,7 +213,6 @@ int CreateSUBlingList(TopGridData *MetaData,
   /*****************************************************************/
  
   int CoarseGrid, SUBling;
-  //*SUBlingList = new LevelHierarchyEntry*[NumberOfGrids];
   NextEntry = NULL;
   LastEntry = NULL;
 
