@@ -76,9 +76,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   char *dummy = new char[MAX_LINE_LENGTH];
   dummy[0] = 0;
   int comment_count = 0;
-
-  char *dummy = new char[MAX_LINE_LENGTH];
-  dummy[0] = 0;
  
   char **active_particle_types;
   active_particle_types = new char*[MAX_ACTIVE_PARTICLE_TYPES];
