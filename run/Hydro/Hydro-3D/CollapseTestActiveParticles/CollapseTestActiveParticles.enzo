@@ -46,7 +46,7 @@ GravitationalConstant = 1.39698e-3     // 4*pi*G_{cgs}*DensityUnits*TimeUnits^2
 #
 #  set I/O and stop/start parameters
 #
-StopTime          = 12.5
+StopTime          = 10
 dtDataDump        = 0.5
 #CycleSkipDataDump = 1
 DataDumpDir       = DD
@@ -91,7 +91,8 @@ GreensFunctionMaxNumber   = 10         // # of greens function at any one time
 #  active particle parameters
 #
 AppendActiveParticleType = CenOstriker
-StarMakerOverDensityThreshold = 5000   // in cm^-3
-StarMakerMinimumMass          = 1.0    // Msun
+StarMakerOverDensityThreshold = 500
+StarMakerMinimumMass          = 1e-4
 StarMakerMinimumDynamicalTime = 1e+04  // years
-
+StarMakerMassEjectionFraction = 0
+StarEnergyToThermalFeedback = 0
