@@ -6,7 +6,7 @@
 #
 ProblemType                = 27         // Collapse test
 TopGridRank                = 3
-TopGridDimensions          = 64 64 64
+TopGridDimensions          = 32 32 32
 SelfGravity                = 1          // gravity on
 TopGridGravityBoundary     = 0          // periodic
 LeftFaceBoundaryCondition  = 3 3 3      // periodic
@@ -66,7 +66,7 @@ GravitationalConstant = 0.0320327594   // 4*pi*G_{cgs}*DensityUnits*TimeUnits^2
 #  set I/O and stop/start parameters
 #
 StopTime          = 1.0
-dtDataDump        = 0.01
+dtDataDump        = 0.1
 #CycleSkipDataDump = 1
 DataDumpDir       = DD
 DataDumpName      = DD
