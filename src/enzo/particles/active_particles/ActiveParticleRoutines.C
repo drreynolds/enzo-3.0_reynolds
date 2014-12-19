@@ -353,29 +353,38 @@ void ActiveParticleType::PrintInfo(void)
   return;
 }
 
+
 #ifdef TRANSFER
 RadiationSourceEntry* ActiveParticleType::RadiationSourceInitialize(void)
 {
+  /* The active particle routine that calls this helper function needs to also define
+     1. Lifetime
+     2. Luminosity
+     3. Number of energy bins
+     4. Spectral energy distribution (SED)
+   */
   RadiationSourceEntry *source = new RadiationSourceEntry;
   source->PreviousSource = GlobalRadiationSources;
   source->NextSource     = GlobalRadiationSources->NextSource;
-  source->SuperSource    = NULL;  // Define this later (below)
-  source->GridID         = GridID;
-  source->GridLevel      = level;
-  source->Type           = type;
-  source->LifeTime       = DynamicalTime;
-  source->CreationTime   = BirthTime;
-  source->AddedEmissivity = false;
+  source->SuperSource    = NULL; // Define this when constructing source tree
+  source->GridID         = this->GridID;
+  source->GridLevel      = this->level;
+  source->Type           = this->type;
+  source->CreationTime   = this->BirthTime;
+  source->RampTime       = 0.0;
+  source->Orientation    = NULL;
   source->Position       = new FLOAT[3];
   for (int dim = 0; dim < MAX_DIMENSION; dim++) {
-    if (pos[dim] < DomainLeftEdge[dim])
-      source->Position[dim] = pos[dim] + DomainRightEdge[dim] - DomainLeftEdge[dim];
-    else if (pos[dim] >= DomainRightEdge[dim])
-      source->Position[dim] = pos[dim] - DomainRightEdge[dim] + DomainLeftEdge[dim];
+    if (this->pos[dim] < DomainLeftEdge[dim])
+      source->Position[dim] = this->pos[dim] +
+	DomainRightEdge[dim] - DomainLeftEdge[dim];
+    else if (this->pos[dim] >= DomainRightEdge[dim])
+      source->Position[dim] = this->pos[dim] -
+	DomainRightEdge[dim] + DomainLeftEdge[dim];
     else
-      source->Position[dim] = pos[dim];
+      source->Position[dim] = this->pos[dim];
   }
   return source;
 }
-#endif
+#endif /* TRANSFER */
 
