@@ -68,6 +68,12 @@ public:
    * access the entire grid hierarchy and can in principle make arbitrary
    * modifications to any grid.
    *
+   * This funcion and the corresponding AfterEvolveLevel function are the best
+   * place to implement any feedback or subgrid physics algorithm that needs
+   * information outside of the grid a particle lives on.  These functions
+   * have access to the full AMR hierarchy and can arbitrarily change the
+   * state of the simulation.
+   *
    * This function is called in the ActiveParticleInitialize function, which is
    * in turn called before the loop that advances the grids by a timestep
    * happens in EvolveLevel.
@@ -88,6 +94,12 @@ public:
    * Perform distributed operations on the hierarchy.  This function can
    * access the entire grid hierarchy and can in principle make arbitrary
    * modifications to any grid.
+   *
+   * This funcion and the corresponding AfterEvolveLevel function are the best
+   * place to implement any feedback or subgrid physics algorithm that needs
+   * information outside of the grid a particle lives on.  These functions
+   * have access to the full AMR hierarchy and can arbitrarily change the
+   * state of the simulation.
    *
    * This function is called in the ActiveParticleFinalize function, which is
    * in turn called after the loop that advances the grids by a timestep
