@@ -464,7 +464,8 @@ public:
    int (*feedback)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*before_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-		  int ThisLevel, int TotalStarParticleCountPrevious[],
+		  int ThisLevel, bool CallEvolvePhotons, 
+		  int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
    int (*after_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
@@ -521,16 +522,17 @@ public:
   int (*EvaluateFormation)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*EvaluateFeedback)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*BeforeEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-				     int ThisLevel, int TotalStarParticleCountPrevious[],
-				     int ActiveParticleID);
+			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+			   int ThisLevel, bool CallEvolvePhotons,
+			   int TotalStarParticleCountPrevious[],
+			   int ActiveParticleID);
   int (*AfterEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-				    int ThisLevel, int TotalStarParticleCountPrevious[],
-				    int ActiveParticleID);
+			  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+			  int ThisLevel, int TotalStarParticleCountPrevious[],
+			  int ActiveParticleID);
   int (*DepositMass)(HierarchyEntry *Grids[], TopGridData *MetaData,
-                    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-                    int ThisLevel, int ActiveParticleID);
+		     int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+		     int ThisLevel, int ActiveParticleID);
   int (*SetFlaggingField)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
   void (*AllocateBuffer)(int Count, char **buffer);

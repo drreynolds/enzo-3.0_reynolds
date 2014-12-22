@@ -28,7 +28,8 @@ public:
   template <class active_particle_class>
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int ThisLevel, bool CallEvolvePhotons,
+				 int TotalStarParticleCountPrevious[],
 				 int SampleParticleID) { return SUCCESS; };
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,

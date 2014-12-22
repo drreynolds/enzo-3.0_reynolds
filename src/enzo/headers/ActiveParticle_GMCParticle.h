@@ -29,9 +29,10 @@ class ActiveParticleType_GMCParticle : public ActiveParticleType_AccretingPartic
   static int ReadFromOutput(ActiveParticleType **&particles_to_read, int &n, int GridRank, hid_t group_id);
   template <class active_particle_class>
   static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				 int ThisLevel, int TotalStarParticleCountPrevious[],
-				 int GMCParticleID);
+			       int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+			       int ThisLevel, bool CallEvolvePhotons,
+			       int TotalStarParticleCountPrevious[],
+			       int GMCParticleID);
   template <class active_particle_class>
   static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
@@ -108,11 +109,13 @@ public:
 template <class active_particle_class>
 int ActiveParticleType_GMCParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 						      int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-						      int ThisLevel, int TotalStarParticleCountPrevious[],
+						      int ThisLevel, bool CallEvolvePhotons,
+						      int TotalStarParticleCountPrevious[],
 						      int GMCParticleID)
 {
   if (ActiveParticleType_AccretingParticle::BeforeEvolveLevel<ActiveParticleType_GMCParticle>
-      (Grids, MetaData, NumberOfGrids, LevelArray,ThisLevel, TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
+      (Grids, MetaData, NumberOfGrids, LevelArray, ThisLevel, CallEvolvePhotons,
+       TotalStarParticleCountPrevious,GMCParticleID) == FAIL)
     ENZO_FAIL("AccretingParticle BeforeEvolveLevel failed!");
 
   return SUCCESS;
