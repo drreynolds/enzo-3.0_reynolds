@@ -40,10 +40,14 @@
 #include "communication.h"
 #include "CommunicationUtilities.h"
 #include "EventHooks.h"
+#ifdef ECUDA
+#include "CUDAUtil.h"
+#endif
 #ifdef TRANSFER
 #include "PhotonCommunication.h"
 #include "ImplicitProblemABC.h"
 #endif
+#include "DebugTools.h"
 #undef DEFINE_STORAGE
 #ifdef USE_PYTHON
 int InitializePythonInterface(int argc, char **argv);
@@ -62,6 +66,8 @@ int InitializeLocal(int restart, HierarchyEntry &TopGrid,
 int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		      ExternalBoundary *Exterior, float *Initialdt,
 		      bool ReadParticlesOnly=false);
+
+int  MHDCT_EnergyToggle(HierarchyEntry &TopGrid, TopGridData &MetaData, ExternalBoundary *Exterior, LevelHierarchyEntry *LevelArray[]);
 
 int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &tgd,
 		    ExternalBoundary *Exterior,
@@ -233,7 +239,6 @@ void PrintMemoryUsage(char *str);
 
 Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 {
-
 
   int i;
 
@@ -441,9 +446,9 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
 
   // If we need to read the parameter file as a restart file, do it now
-
-  if (restart || OutputAsParticleDataFlag || extract || InformationOutput || project  ||  velanyl) {
-
+ 
+  if (restart || OutputAsParticleDataFlag || extract || InformationOutput || project  ||  velanyl || WritePotentialOnly) {
+ 
     SetDefaultGlobalValues(MetaData);
 
     if (debug) printf("Reading parameter file %s\n", ParameterFile);
@@ -687,6 +692,15 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
   }
 
+#ifdef ECUDA
+  if (UseCUDA) {
+    if (InitGPU(MyProcessorNumber) != SUCCESS) {
+      printf("InitGPU failed\n");
+      exit(1);
+    }
+  }
+#endif
+
   /* Initialize the radiative transfer */
 
 #ifdef TRANSFER
@@ -705,8 +719,9 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   InitializePythonInterface(argc, argv);
 #endif
 
-  // Call the main evolution routine
+  MHDCT_EnergyToggle(TopGrid, MetaData, &Exterior, LevelArray);
 
+  // Call the main evolution routine
   if (debug) fprintf(stderr, "INITIALDT ::::::::::: %16.8e\n", Initialdt);
   try {
   if (EvolveHierarchy(TopGrid, MetaData, &Exterior,

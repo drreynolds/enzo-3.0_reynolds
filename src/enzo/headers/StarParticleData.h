@@ -46,6 +46,7 @@ SPEXTERN int G_TotalNumberOfStars;
 SPEXTERN int StarFeedbackType;
 SPEXTERN int StarMakerTypeIaSNe;
 SPEXTERN int StarMakerPlanetaryNebulae;
+SPEXTERN int StarMakerTimeIndependentFormation;
 SPEXTERN float StarMakerOverDensityThreshold;
 SPEXTERN float StarMakerSHDensityThreshold;
 SPEXTERN float StarMakerMassEfficiency;
@@ -145,6 +146,9 @@ SPEXTERN int    GMCParticleRNGSeed;
 SPEXTERN int    GMCParticleRNGCalls;
 SPEXTERN accTableStor accTable;
 SPEXTERN radSolTableStor radSolTable;
+
+SPEXTERN int AccretingParticleRadiation;
+SPEXTERN double AccretingParticleLuminosity;
 
 SPEXTERN float minStarLifetime;
 SPEXTERN FLOAT LastSupernovaTime;

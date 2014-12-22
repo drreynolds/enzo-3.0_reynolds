@@ -10,6 +10,7 @@
 ************************************************************************/
 
 #include "preincludes.h"
+#include "EnzoTiming.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -42,10 +43,12 @@ int grid::MHDRK2_2ndStep(fluxes *SubgridFluxes[],
   if (NumberOfBaryonFields == 0) {
     return SUCCESS;
   }
+  TIMER_START("MHDRK2");
 
 #ifdef ECUDA
   if (UseCUDA) {
     this->CudaMHDRK2_2ndStep(SubgridFluxes, NumberOfSubgrids, level, Exterior);
+    TIMER_STOP("MHDRK2");
     return SUCCESS;
   }     
 #endif 
@@ -120,6 +123,8 @@ int grid::MHDRK2_2ndStep(fluxes *SubgridFluxes[],
   for (int field = 0; field < NEQ_MHD+NSpecies+NColor; field++) {
     delete [] dU[field];
   }
+  
+  TIMER_STOP("MHDRK2");
 
   /* If we're supposed to be outputting on Density, we need to update
   the current maximum value of that Density. */

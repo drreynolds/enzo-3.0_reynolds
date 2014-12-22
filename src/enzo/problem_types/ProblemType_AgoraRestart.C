@@ -12,7 +12,7 @@
 ************************************************************************/
 
 #ifdef NEW_PROBLEM_TYPES
-#include <stdio.h>
+
 #include <iostream>
 #include "preincludes.h"
 #include "ErrorExceptions.h"

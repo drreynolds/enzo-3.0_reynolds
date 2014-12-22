@@ -92,6 +92,7 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
   int dim, i, j, k, m, field, sphere, size;
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
     DINum, DIINum, HDINum, MetalNum;
+  float xdist,ydist,zdist;
 
   /* create fields */
 
@@ -125,11 +126,11 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
     }
   }
   if (SphereUseMetals)
-    FieldType[MetalNum = NumberOfBaryonFields++] = SNColour;
+    FieldType[MetalNum = NumberOfBaryonFields++] = Metallicity;
 
   int ColourNum = NumberOfBaryonFields;
   if (SphereUseColour)
-    FieldType[NumberOfBaryonFields++] = Metallicity; /* fake it with metals */
+    FieldType[NumberOfBaryonFields++] = SNColour;
 
   /* Return if this doesn't concern us. */
 
@@ -961,11 +962,20 @@ int grid::CollapseTestInitializeGrid(int NumberOfSpheres,
 		    CellWidth[2][0]*(FLOAT(rand())/FLOAT(RAND_MAX) - 0.5);
 
 		  /* Set bulk velocity. */
-
-		  for (dim = 0; dim < GridRank; dim++)
-		    ParticleVelocity[dim][npart] = 
-		      DMVelocity[dim]+UniformVelocity[dim];
-
+          
+          for (sphere = 0; sphere<NumberOfSpheres;sphere++) {
+            xdist = ParticlePosition[0][npart]-SpherePosition[sphere][0];
+            ydist = ParticlePosition[1][npart]-SpherePosition[sphere][1];
+            zdist = ParticlePosition[2][npart]-SpherePosition[sphere][2];
+            for (dim = 0; dim < GridRank; dim++)
+              if (sqrt(xdist*xdist + ydist*ydist + zdist*zdist) < SphereRadius[sphere]) { //particle is inside sphere
+		        ParticleVelocity[dim][npart] = 
+		        DMVelocity[dim]+UniformVelocity[dim]+SphereVelocity[sphere][dim] ; 
+              } else { //particle is outside sphere
+		        ParticleVelocity[dim][npart] = 
+		        DMVelocity[dim]+UniformVelocity[dim]; 
+              }
+          }
 		  /* Add random velocity; */
 
 		  if (sigma != 0)

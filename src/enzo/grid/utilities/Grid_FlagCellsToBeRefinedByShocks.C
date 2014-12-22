@@ -115,7 +115,7 @@ int grid::FlagCellsToBeRefinedByShocks()
  
   /* clean up */
  
-  delete Pressure;
+  delete [] Pressure;
  
   /* Count number of flagged Cells. */
  

@@ -45,6 +45,10 @@ void grid::ReconstructFieldMapping(int ForceReconstruction)
     // We now do a double map lookup
     name = BaseFieldIDs[FieldType[field]];
     fd_base = BaseFieldTypes[name];
+    if (this->Fields.count(name) > 0) {
+      delete this->Fields[name];
+      this->Fields.erase(name);
+    }
     this->Fields[name] = new FieldDescriptor(
 	     fd_base, this->GridDimension, LeftEdge, this->BaryonField + field, 1, this->GridLevel);
 #ifdef FIELD_DEBUG
