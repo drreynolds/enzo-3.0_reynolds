@@ -47,7 +47,8 @@ public:
   template <class active_particle_class>
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int ThisLevel, bool CallEvolvePhotons,
+				 int TotalStarParticleCountPrevious[],
 				 int GalaxyParticleID);
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
@@ -98,9 +99,10 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
 
 template <class active_particle_class>
 int ActiveParticleType_GalaxyParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int GalaxyParticleID)
+							 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							 int ThisLevel, bool CallEvolvePhotons,
+							 int TotalStarParticleCountPrevious[],
+							 int GalaxyParticleID)
 {
 
   return SUCCESS;

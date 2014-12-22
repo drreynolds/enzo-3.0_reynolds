@@ -955,8 +955,10 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   fprintf(fptr, "H2StarMakerSigmaOverR              = %"GSYM"\n", H2StarMakerSigmaOverR);
   fprintf(fptr, "H2StarMakerAssumeColdWarmPressureBalance = %"ISYM"\n", H2StarMakerAssumeColdWarmPressureBalance);
   fprintf(fptr, "H2StarMakerH2DissociationFlux_MW   = %"GSYM"\n", H2StarMakerH2DissociationFlux_MW);
-  fprintf(fptr, "H2StarMakerH2FloorInColdGas        = %"GSYM"\n\n", H2StarMakerH2FloorInColdGas);
-  fprintf(fptr, "H2StarMakerColdGasTemperature      = %"GSYM"\n\n", H2StarMakerColdGasTemperature);
+  fprintf(fptr, "H2StarMakerH2FloorInColdGas        = %"GSYM"\n", H2StarMakerH2FloorInColdGas);
+  fprintf(fptr, "H2StarMakerColdGasTemperature      = %"GSYM"\n", H2StarMakerColdGasTemperature);
+  fprintf(fptr, "AccretingParticleRadiation         = %"ISYM"\n", AccretingParticleRadiation);
+  fprintf(fptr, "AccretingParticleLuminosity        = %lg\n\n", AccretingParticleLuminosity);
 
   /* Most Stanford additions: */
 

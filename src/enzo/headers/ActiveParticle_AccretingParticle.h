@@ -29,6 +29,12 @@
 #include "phys_constants.h"
 #include "FofLib.h"
 
+/* Prototypes */
+
+int GetUnits(float *DensityUnits, float *LengthUnits,
+	     float *TemperatureUnits, float *TimeUnits,
+	     float *VelocityUnits, FLOAT Time);
+
 class ActiveParticleType_AccretingParticle : public ActiveParticleType
 {
 public:
@@ -46,7 +52,8 @@ public:
   template <class active_particle_class>
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int ThisLevel, bool CallEvolvePhotons,
+				 int TotalStarParticleCountPrevious[],
 				 int AccretingParticleID);
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
@@ -59,6 +66,7 @@ public:
 				int ThisLevel, int GalaxyParticleID) {return SUCCESS; };
   static int SetFlaggingField(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   static int InitializeParticleType();
+  bool IsARadiationSource(FLOAT Time);
   
   int GetEnabledParticleID(int myid = -1) {				
     static int ParticleID = -1;						
@@ -87,6 +95,12 @@ public:
   static float OverflowFactor;
   static int AccretionRadius;   // in units of CellWidth on the maximum refinement level
   static int LinkingLength;     // Should be equal to AccretionRadius
+  static int RadiationParticle;
+  static double LuminosityPerSolarMass;
+  static int RadiationSEDNumberOfBins;
+  static float* RadiationEnergyBins;
+  static float* RadiationSED;
+  static float RadiationLifetime;
   float AccretionRate;
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
 };
@@ -194,16 +208,6 @@ active_particle_class** ActiveParticleType_AccretingParticle::MergeAccretingPart
 int GenerateGridArray(LevelHierarchyEntry *LevelArray[], int level,
 		      HierarchyEntry **Grids[]);
  
-template <class active_particle_class>
-int ActiveParticleType_AccretingParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int AccretingParticleID)
-{
-
-  return SUCCESS;
-}
-
 int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticles, 
 				 LevelHierarchyEntry *LevelArray[]); 
 

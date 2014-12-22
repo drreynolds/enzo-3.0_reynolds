@@ -969,6 +969,13 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "H2StarMakerColdGasTemperature = %"FSYM,
 		  &H2StarMakerColdGasTemperature);
 
+    /* Accreting particle parameters */
+
+    ret += sscanf(line, "AccretingParticleRadiation = %"ISYM,
+		  &AccretingParticleRadiation);
+    ret += sscanf(line, "AccretingParticleLuminosity = %lg",
+		  &AccretingParticleLuminosity);
+
     /* Read Movie Dump parameters */
 
     ret += sscanf(line, "MovieSkipTimestep = %"ISYM, &MovieSkipTimestep);
@@ -1887,6 +1894,14 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 #endif
   }
 
+
+  /* Check whether Enzo has been compiled with photon-yes if
+     RadiativeTransfer is on */
+
+#ifndef TRANSFER
+  if (RadiativeTransfer == TRUE)
+    ENZO_FAIL("Enzo must be compiled with photon-yes if RadiativeTransfer = 1");
+#endif
 
   if (debug) printf("Initialdt in ReadParameterFile = %e\n", *Initialdt);
 

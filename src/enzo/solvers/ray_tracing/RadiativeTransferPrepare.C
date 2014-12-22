@@ -56,11 +56,6 @@ int RadiativeTransferPrepare(LevelHierarchyEntry *LevelArray[], int level,
 
     RadiativeTransferComputeTimestep(LevelArray, MetaData, dtLevelAbove, level);
 
-    /* Convert star particles into radiation sources only if we're going
-       into EvolvePhotons */
-
-    StarParticleRadTransfer(LevelArray, level, AllStars);
-
   } // ENDIF
   
   /* If the first timestep after restart and we have radiation
