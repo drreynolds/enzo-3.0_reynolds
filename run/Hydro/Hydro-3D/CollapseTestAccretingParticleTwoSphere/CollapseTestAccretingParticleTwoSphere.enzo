@@ -58,15 +58,15 @@ ComovingCoordinates   = 0              // Expansion OFF
 #
 #  units
 #
-DensityUnits          = 3.82e-20      // 10^4 cm^-3
-LengthUnits           = 5e17          // 1 pc in cm
-TimeUnits             = 1.0e12        // 10^4 yrs
+DensityUnits          = 3.82e-20      // 2.2*10^4 cm^-3
+LengthUnits           = 5e17          // .16 pc in cm
+TimeUnits             = 1.0e12        // 3*10^4 yrs
 GravitationalConstant = 0.0320327594   // 4*pi*G_{cgs}*DensityUnits*TimeUnits^2
 #
 #  set I/O and stop/start parameters
 #
 StopTime          = 1.0
-dtDataDump        = 0.01
+dtDataDump        = 0.1
 #CycleSkipDataDump = 1
 DataDumpDir       = DD
 DataDumpName      = DD
