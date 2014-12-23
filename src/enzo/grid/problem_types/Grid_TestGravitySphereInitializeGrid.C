@@ -122,6 +122,7 @@ int grid::TestGravitySphereInitializeGrid(float SphereInteriorDensity,
       /* Set particle identifier. */
  
       ParticleNumber[i] = i;
+      ParticleType[i] = PARTICLE_TYPE_DARK_MATTER;
  
     }
  

@@ -711,6 +711,9 @@ int grid::WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t file_id
           (VOIDP) ParticleType);
       if( h5_status == h5_error ){ENZO_FAIL("Can't write particle_type");}
 
+      if (OutputParticleTypeGrouping)
+        this->CreateParticleTypeGrouping(dset_id, file_dsp_id, group_id, file_id);
+
       h5_status = H5Sclose(file_dsp_id);
       if( h5_status == h5_error ){ENZO_FAIL("Problem closing particle_type dataspace");}
 
