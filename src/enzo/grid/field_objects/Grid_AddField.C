@@ -36,10 +36,11 @@ FieldDescriptor* Grid::AddField(char *Name, char *UnitsName, int NumberOfFieldGh
     Dimensions[dim] = this->Dimensions[dim] + 2*NumberOfFieldGhostZones;
     LeftEdge[dim] = this->LeftEdge[dim] - NumberOfFieldGhostZones;
   }
+  if (this->GridLevel < 0)  ENZO_FAIL("Illegal Grid Level");
   FieldDescriptor *NewField = new FieldDescriptor(
         ValueCentering, 3, Dimensions, LeftEdge,
         InterpolationMethod, Name, UnitsName,
-        this->BaryonFields + this->NumberOfFields++);
+        this->BaryonFields + this->NumberOfFields++, this->GridLevel);
   this->Fields[Name] = NewField;
   return NewField;
 }

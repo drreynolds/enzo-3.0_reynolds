@@ -463,7 +463,7 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
  
 	NewGrid = new grid;
 	ThisGrid->GridData = NewGrid;
-	NewGrid->InheritProperties(OldGrid);
+	NewGrid->InheritProperties(OldGrid, OldGrid->GetLevel());
 	NewGrid->SetGravityParameters(OldGrid->ReturnGravityBoundaryType());
  
 	/* Compute grid region. */

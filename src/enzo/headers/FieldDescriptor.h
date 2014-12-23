@@ -51,11 +51,16 @@ class FieldDescriptor
       //        This specifies whether we should skip new-ing a field if the
       //        field pointer is NULL.  Typically, when working with Enzo grid
       //        objects, we will skip value allocation.
+      //    Level
+      //        This specifies on which level of the AMR hierarchy this field
+      //        lives, which is necessary for interpolation between fields on 
+      //        different levels.
       FieldDescriptor(FieldDescriptor* BaseDefinition,
                       int CellDimensions[MAX_DIMENSIONS],
                       long_int LeftEdge[MAX_DIMENSIONS],
                       float **FieldPointer = NULL,
-                      int SkipValueAllocation = 0);
+                      int SkipValueAllocation = 0,
+		      int Level = -1);
       // This constructor is the most raw method of constructing a
       // FieldDescriptor, and it allows fields to be created from no previous
       // information.  It may be useful for one-off fields that do not persist
@@ -100,13 +105,18 @@ class FieldDescriptor
       //        allocations and deallocations that occur.  If a pointer is
       //        supplied, it will be "owned" by this object.  If NULL, it will
       //        be allocated.
+      //    Level
+      //        This specifies on which level of the AMR hierarchy this field
+      //        lives, which is necessary for interpolation between fields on 
+      //        different levels.
       FieldDescriptor(CenteringType ValueCentering, int Rank,
                       int CellDimensions[MAX_DIMENSIONS],
                       long_int LeftEdge[MAX_DIMENSIONS],
                       InterpolationType InterpolationMethod,
                       const char* Name,
                       const char* UnitsName,
-                      float **FieldPointer = NULL);
+                      float **FieldPointer = NULL,
+		      int Level = -1);
 
       // Destructor
       ~FieldDescriptor();
@@ -202,6 +212,8 @@ class FieldDescriptor
 
       int CanCombine(FieldDescriptor *Other);
 
+      void PrintFieldInformation();
+
     protected: 
 
       // These "UnaryAccumulator" functions are templated functions that enable
@@ -254,6 +266,7 @@ class FieldDescriptor
       char* UnitsName;
       int CellDimensions[MAX_DIMENSIONS];
       long_int LeftEdge[MAX_DIMENSIONS];
+      int Level;
       float **FieldPointer;
       int DeallocateFieldPointer;
       int DeallocateFieldValues;

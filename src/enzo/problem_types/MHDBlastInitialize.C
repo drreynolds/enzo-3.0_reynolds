@@ -400,7 +400,7 @@ int MHDBlastInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopGrid,
 	// create a new subgrid and initialize it 
 	
 	Subgrid[lev]->GridData = new grid;
-	Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData);
+	Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData, lev+1);
 	Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank, SubgridDims,
 					    MHDBlastSubgridLeft,MHDBlastSubgridRight, 0);
 	

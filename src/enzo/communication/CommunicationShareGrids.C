@@ -206,7 +206,8 @@ int CommunicationShareGrids(HierarchyEntry *GridHierarchyPointer[],
       /* set some the new grid's properties (rank, field types, etc.)
 	 based on the current grid */
  
-      ThisGrid->GridData->InheritProperties(SubgridParent->GridData);
+      ThisGrid->GridData->InheritProperties(SubgridParent->GridData,
+					    SubgridParent->GridData->GetLevel()+1);
  
       /* Set the new grid's positional parameters.
          (The zero indicates there are no particles (for now). */

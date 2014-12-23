@@ -10,7 +10,7 @@ FieldDescriptor::FieldDescriptor(
     FieldDescriptor *BaseDefinition,
     int CellDimensions[MAX_DIMENSIONS],
     long_int LeftEdge[MAX_DIMENSIONS],
-    float **FieldPointer, int SkipValueAllocation) {
+    float **FieldPointer, int SkipValueAllocation, int Level) {
   int dim;
   this->ValueCentering = BaseDefinition->ValueCentering;
   this->Rank = BaseDefinition->Rank;
@@ -18,6 +18,7 @@ FieldDescriptor::FieldDescriptor(
     this->CellDimensions[dim] = CellDimensions[dim];
     this->LeftEdge[dim] = LeftEdge[dim];
   }
+  this->Level = Level;
   this->InterpolationMethod = BaseDefinition->InterpolationMethod;
   // Do we want to strdup or just assign the pointer?
   this->Name = strdup(BaseDefinition->GetName());
@@ -41,7 +42,8 @@ FieldDescriptor::FieldDescriptor(
     InterpolationType InterpolationMethod,
     const char* Name,
     const char* UnitsName,
-    float **FieldPointer) {
+    float **FieldPointer,
+    int Level) {
   int dim;
   this->ValueCentering = ValueCentering;
   this->Rank = Rank;
@@ -49,6 +51,7 @@ FieldDescriptor::FieldDescriptor(
     this->CellDimensions[dim] = CellDimensions[dim];
     this->LeftEdge[dim] = LeftEdge[dim];
   }
+  this->Level = Level;
   this->InterpolationMethod = InterpolationMethod;
   // Do we want to strdup or just assign the pointer?
   this->Name = strdup(Name);
@@ -100,7 +103,7 @@ FieldDescriptor* FieldDescriptor::Duplicate(char *NewName, char *NewUnitsName) {
   // Note that this will allocate and set the bits to deallocate later
   FieldDescriptor *fd = new FieldDescriptor(this->ValueCentering, this->Rank,
         this->CellDimensions, this->LeftEdge, this->InterpolationMethod,
-        NewName, NewUnitsName, NULL);
+        NewName, NewUnitsName, NULL, this->Level);
   if(this->FieldPointer != NULL) {
     // We copy if there are any FieldPointer
     float *vo = fd->GetValues();
@@ -265,6 +268,22 @@ void FieldDescriptor::GetOverlapRegion(FieldDescriptor *Other,
         CopyDims[dim] = MAX(OverlapEnd - OverlapStart, 0);
       }
 }
+
+void FieldDescriptor::PrintFieldInformation() {
+  fprintf(stdout,"\nField: %s\n",this->Name);
+  fprintf(stdout,"  UnitsName: %s\n",this->UnitsName);
+  fprintf(stdout,"  CellDimensions: ");
+  for (int dim=0; dim<MAX_DIMENSIONS; dim++)
+    fprintf(stdout," %"ISYM"", this->CellDimensions[dim]);
+  fprintf(stdout,"\n  LeftEdge: ");
+  for (int dim=0; dim<MAX_DIMENSIONS; dim++)
+    fprintf(stdout," %li", this->LeftEdge[dim]);
+  fprintf(stdout,"\n");
+  fprintf(stdout,"  Level: %"ISYM"\n",this->Level);
+  fprintf(stdout,"  DeallocateFieldPointer: %"ISYM"\n",this->DeallocateFieldPointer);
+  fprintf(stdout,"  DeallocateFieldvalues: %"ISYM"\n",this->DeallocateFieldValues);
+}
+
 
 // Mathematical Operations
 

@@ -34,6 +34,7 @@ grid::grid()
   OldTime                               = 0.0;
   NumberOfBaryonFields                  = 0;
   dtFixed                               = 0.0;
+  GridLevel                             = -1;
   NumberOfParticles                     = 0;
   GravitatingMassFieldCellSize          = FLOAT_UNDEFINED;
   GravitatingMassFieldParticlesCellSize = FLOAT_UNDEFINED;

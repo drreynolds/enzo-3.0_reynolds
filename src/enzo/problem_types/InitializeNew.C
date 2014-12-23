@@ -340,7 +340,8 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
     // Create the top grid, prepare it, set the time and parameters
     
     TopGrid.GridData = new grid;
-    
+    TopGrid.GridData->SetLevel(0);
+
     TopGrid.GridData->PrepareGrid(MetaData.TopGridRank, MetaData.TopGridDims,
 				  DomainLeftEdge, DomainRightEdge,
 				  MetaData.NumberOfParticles);
