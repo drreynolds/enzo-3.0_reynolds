@@ -1,0 +1,14 @@
+name = 'ParticleSplit'
+answer_testing_script = None
+nprocs = 2
+runtime = 'short'
+AMR = False
+hydro = True
+gravity = True
+cosmology = True
+dimensionality = 3
+author = 'Uncle Enzo'
+max_time_minutes = 1
+fullsuite = False
+pushsuite = False
+quicksuite = False
