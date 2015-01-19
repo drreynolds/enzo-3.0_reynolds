@@ -596,8 +596,8 @@ int EvolveLevel_RK2(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
      (b) correct for the difference between this grid's fluxes and the
          subgrid's fluxes. (step #19) */
 
-
-    SUBlingList = new LevelHierarchyEntry*[NumberOfGrids];
+    if (FluxCorrection == TRUE)
+      SUBlingList = new LevelHierarchyEntry*[NumberOfGrids];
 #ifdef FAST_SIB
     CreateSUBlingList(MetaData, LevelArray, level, SiblingList,
 		      &SUBlingList);

@@ -120,7 +120,8 @@ int UpdateFromFinerGrids(int level, HierarchyEntry *Grids[], int NumberOfGrids,
 
       /* Loop over SUBlings for this grid. */
 
-      NextEntry = SUBlingList[grid1];
+      if (FluxCorrection == TRUE)
+	NextEntry = SUBlingList[grid1];
       while (NextEntry != NULL && FluxCorrection) {
 
 	/* make sure this isn't a "proper" subgrid */
@@ -179,7 +180,8 @@ int UpdateFromFinerGrids(int level, HierarchyEntry *Grids[], int NumberOfGrids,
 
       /* Loop over SUBlings for this grid. */
 
-      NextEntry = SUBlingList[grid1];
+      if (FluxCorrection == TRUE)
+	NextEntry = SUBlingList[grid1];
       while (NextEntry != NULL && FluxCorrection) {
 	/* make sure this isn't a "proper" subgrid */
 

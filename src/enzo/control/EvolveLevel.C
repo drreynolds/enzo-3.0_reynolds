@@ -699,7 +699,8 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
      *     subgrid's fluxes. (step #19)
      */
  
-    SUBlingList = new LevelHierarchyEntry*[NumberOfGrids];
+    if (FluxCorrection == TRUE) 
+      SUBlingList = new LevelHierarchyEntry*[NumberOfGrids];
 #ifdef FAST_SIB
     CreateSUBlingList(MetaData, LevelArray, level, SiblingList,
 		      &SUBlingList);

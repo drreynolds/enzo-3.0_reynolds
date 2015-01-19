@@ -87,9 +87,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   while ((fgets(line, MAX_LINE_LENGTH, fptr) != NULL) 
       && (comment_count < 2)) {
 
-    char *dummy = new char[MAX_LINE_LENGTH];
-    dummy[0] = 0;
-
     ret = 0;
  
     /* read MetaData parameters */
@@ -1183,8 +1180,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 		  ResetMagneticFieldAmplitude+2);
 
     if (sscanf(line, "AppendActiveParticleType = %s", dummy) == 1) {
-      active_particle_types[active_particles] = new char[MAX_LINE_LENGTH];
-      strcpy(active_particle_types[active_particles], dummy);
+      active_particle_types[active_particles] = dummy;
       active_particles++;
     }
 
@@ -1195,6 +1191,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
  
     if (*dummy != 0) {
       dummy = new char[MAX_LINE_LENGTH];
+      dummy[0] = 0;
       ret++;
     }
  
@@ -1264,8 +1261,9 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       if (MyProcessorNumber == ROOT_PROCESSOR)
 	fprintf(stderr, "warning: the following parameter line was not interpreted:\n%s", line);
 
-    delete [] dummy;
   }
+
+  delete [] dummy;
 
   // Enable the active particles that were selected.
   for (i = 0;i < active_particles;i++) {
@@ -1273,6 +1271,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       fprintf(stdout, "Enabling particle type %s\n", active_particle_types[i]);
     }
     EnableActiveParticleType(active_particle_types[i]);
+    delete [] active_particle_types[i];
   }
   delete [] active_particle_types;
 
@@ -1850,11 +1849,11 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   if ( (MetaData.GlobalDir != NULL) && (MetaData.LocalDir != NULL) ) {
     ENZO_FAIL("Cannot select GlobalDir AND LocalDir!\n");
   }
- 
-  char *cwd_buffer = new char[MAX_LINE_LENGTH];
-  size_t cwd_buffer_len = MAX_LINE_LENGTH;
- 
+  
   if ( (MetaData.GlobalDir == NULL) && (MetaData.LocalDir == NULL) ) {
+    char *cwd_buffer = new char[MAX_LINE_LENGTH];
+    size_t cwd_buffer_len = MAX_LINE_LENGTH;
+
     /*if(getcwd(cwd_buffer, cwd_buffer_len) == NULL) {
       fprintf(stderr, "GETCWD call FAILED\n");
     }
