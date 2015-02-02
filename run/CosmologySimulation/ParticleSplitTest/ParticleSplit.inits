@@ -4,7 +4,7 @@
 CosmologyOmegaMatterNow    = 0.268
 CosmologyOmegaLambdaNow    = 0.732
 CosmologyOmegaBaryonNow    = 0.0441
-CosmologyComovingBoxSize   = 0.01       // in Mpc/h
+CosmologyComovingBoxSize   = 3.0       // in Mpc/h
 CosmologyHubbleConstantNow = 0.704      // in units of 100 km/s/Mpc
 CosmologyInitialRedshift   = 50
 
@@ -22,14 +22,14 @@ PowerSpectrumRandomSeed      = -312367047
 Rank                = 3
 InitializeGrids     = 1
 GridRefinement      = 1
-GridDims            = 64 64 64
+GridDims            = 32 32 32
 
 #
 #  Particle info
 #
 InitializeParticles = 1
 ParticleRefinement  = 1
-ParticleDims        = 64 64 64
+ParticleDims        = 32 32 32
 
 #
 #  Names
