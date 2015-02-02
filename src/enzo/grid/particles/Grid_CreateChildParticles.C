@@ -73,7 +73,7 @@ int grid::CreateChildParticles(float dx, int NumberOfParticles, float *ParticleM
   
   for(partnum = 0; partnum < NumberOfParticles; partnum++)
     {
-      if(ParticleMass[partnum] > 0.0 && ParticleType[partnum] <= 2)
+      if(ParticleMass[partnum] > 0.0 && ParticleType[partnum] < PARTICLE_TYPE_STAR)
 	{
 	  /* 
 	   * Check that particle is within the most refined region.

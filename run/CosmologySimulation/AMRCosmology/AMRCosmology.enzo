@@ -1,5 +1,3 @@
-#;-*-C-*-
-
 # AMR PROBLEM DEFINITION FILE: Cosmology Simulation
 # This is a small cosmology simulation that runs to z = 0.
 # The redshift outputs can be used to create a light-cone out to z = 0.1.
@@ -91,7 +89,7 @@ MinimumEfficiency                     = 0.35
 #
 # microphysics parameters
 #
-MultiSpecies       = 0
+MultiSpecies       = 2
 RadiativeCooling   = 1
 RadiationFieldType = 0
 
@@ -99,7 +97,7 @@ RadiationFieldType = 0
 # star formation parameters
 #
 AppendActiveParticleType = CenOstriker
-StarMakerOverDensityThreshold = 100
+StarMakerOverDensityThreshold = 10
 StarMakerMinimumMass          = 1e6
 StarMakerMinimumDynamicalTime = 1e6
 StarMakerMassEfficiency       = 0.1
