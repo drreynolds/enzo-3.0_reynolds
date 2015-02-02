@@ -89,7 +89,7 @@ MinimumEfficiency                     = 0.35
 #
 # microphysics parameters
 #
-MultiSpecies       = 2
+MultiSpecies       = 0
 RadiativeCooling   = 1
 RadiationFieldType = 0
 
@@ -97,7 +97,7 @@ RadiationFieldType = 0
 # star formation parameters
 #
 AppendActiveParticleType = CenOstriker
-StarMakerOverDensityThreshold = 10
+StarMakerOverDensityThreshold = 100
 StarMakerMinimumMass          = 1e6
 StarMakerMinimumDynamicalTime = 1e6
 StarMakerMassEfficiency       = 0.1
