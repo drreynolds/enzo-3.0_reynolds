@@ -36,7 +36,7 @@ CosmologyHubbleConstantNow = 0.704
 CosmologyComovingBoxSize   = 3.0
 CosmologyMaxExpansionRate  = 0.02
 CosmologyInitialRedshift   = 50
-CosmologyFinalRedshift     = 49.98
+CosmologyFinalRedshift     = 40.0
 GravitationalConstant      = 1
 
 #
@@ -48,8 +48,8 @@ RedshiftDumpDir  = RD
 DataDumpName     = DD
 DataDumpDir      = DD
 
-CosmologyOutputRedshift[0] = 50
-CosmologyOutputRedshift[1] = 49.99
+CosmologyOutputRedshift[0] = 45.0
+CosmologyOutputRedshift[1] = 40.0
 
 #
 #
