@@ -1529,7 +1529,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   }  // if (grackle_data.use_grackle == TRUE)
 
   else {
-#endif // USE_GRACKE
+#endif // USE_GRACKLE
 
     /* If GadgetEquilibriumCooling == TRUE, we don't want MultiSpecies
        or RadiationFieldType to be on - both are taken care of in
@@ -1552,11 +1552,6 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
       if (InitializeGadgetEquilibriumCoolData(MetaData.Time) == FAIL) {
         ENZO_FAIL("Error in InitializeGadgetEquilibriumCoolData.");
       } 
-    }
-
-    // Set temperature range for this cooling method.
-    if (MetalCooling == JHW_METAL_COOLING) {
-      CoolData.TemperatureEnd = 1.0e8;
     }
 
     /* If set, initialize the RadiativeCooling and RateEquations data. */
