@@ -246,12 +246,12 @@ int grid::CreateChildParticles(float dx, int NumberOfParticles, float *ParticleM
 		l31*NewPos[0][innerchild] + l32*NewPos[1][innerchild] + l33*NewPos[2][innerchild];
 
 	      
-	      if(this->ParticlePosition[0][child] < 0.0  ||
-		 this->ParticlePosition[0][child] > 1.0  ||
-		 this->ParticlePosition[1][child] < 0.0  ||
-		 this->ParticlePosition[1][child] > 1.0  ||
-		 this->ParticlePosition[2][child] < 0.0  ||
-		 this->ParticlePosition[2][child] > 1.0)
+	      if(this->ParticlePosition[0][child] < DomainLeftEdge[0]   ||
+		 this->ParticlePosition[0][child] > DomainRightEdge[0]  ||
+		 this->ParticlePosition[1][child] < DomainLeftEdge[1]   ||
+		 this->ParticlePosition[1][child] > DomainRightEdge[1]  ||
+		 this->ParticlePosition[2][child] < DomainLeftEdge[2]   ||
+		 this->ParticlePosition[2][child] > DomainRightEdge[2])
 		{
 		  fprintf(stderr, "WARNING - Child kicked outside domain\n");
 		  fprintf(stderr, "OldPos[%d] = (%f %f %f)\n NewPos[%d] = (%f %f %f)\n\n", 
