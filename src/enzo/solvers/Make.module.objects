@@ -12,6 +12,7 @@ ENZO_OBJS +=\
 	BlockSolve.o \
 	CalcEmiss.o \
 	FLDCorrectForImpulses.o \
+    FreezeRateData.o \
 	FSProb_ComputeOpacityLW.o \
 	FSProb_Dump.o \
 	FSProb_EnforceBoundary.o \
@@ -72,6 +73,7 @@ ENZO_OBJS +=\
 	gFLDSplit_Dump.o \
 	gFLDSplit_EnforceBoundary.o \
 	gFLDSplit_Evolve.o \
+    gFLDSplit_FillRates.o \
 	gFLDSplit_FInterface.o \
 	gFLDSplit_GasEnergySource.o \
 	gFLDSplit_InitialGuess.o \

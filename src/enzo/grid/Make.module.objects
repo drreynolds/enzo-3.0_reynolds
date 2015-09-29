@@ -65,6 +65,7 @@ ENZO_OBJS +=\
 	Grid_ChangeParticleTypeBeforeSN.o \
 	Grid_CollectActiveParticles.o \
 	Grid_CollectParticles.o \
+    Grid_CreateChildParticles.o \
 	Grid_DebugActiveParticles.o \
 	Grid_DepositMustRefineParticles.o \
 	Grid_FindAllStarParticles.o \

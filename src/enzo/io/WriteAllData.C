@@ -646,7 +646,7 @@ int WriteAllData(char *basename, int filenumber,
   CheckpointRestart = CheckpointDump;
  
 #ifdef TRANSFER
-  if (ImplicitProblem) {
+  if (ImplicitProblem && MyProcessorNumber == ROOT_PROCESSOR) {
     // Output ImplicitSolver module parameter file
 
     //    Reset MetaData.RadHydroParameterFname

@@ -138,7 +138,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   // Default Hierarchy File IO settings (1 = ASCII; 2 = HDF5+ASCII)
   HierarchyFileInputFormat = 1;
-  HierarchyFileOutputFormat = 2;
+  HierarchyFileOutputFormat = 1;
 
   ConductionDynamicRebuildHierarchy = FALSE;
   ConductionDynamicRebuildMinLevel = 0;
@@ -192,7 +192,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   HydroMethod               = PPM_DirectEuler;   //
   Gamma                     = 5.0/3.0;           // 5/3
   PressureFree              = FALSE;             // use pressure (duh)
-  RefineBy                  = 4;                 // Refinement factor
+  RefineBy                  = 2;                 // Refinement factor
   MaximumRefinementLevel    = 2;                 // three levels (w/ topgrid)
   MaximumGravityRefinementLevel = INT_UNDEFINED;
   MaximumParticleRefinementLevel = -1;            // unused if negative
@@ -285,6 +285,9 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   NumberOfRootGridTilesPerDimensionPerProcessor = 1;
   PartitionNestedGrids        = FALSE;
   ExtractFieldsOnly           = TRUE;
+  for (i = 0; i < MAX_DIMENSION; i++) {
+    UserDefinedRootGridLayout[i] = INT_UNDEFINED;
+  }
 
   ExternalBoundaryIO          = FALSE;
   ExternalBoundaryTypeIO      = FALSE;
@@ -357,7 +360,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   RadiativeTransferFLD        = 0;                 // off
   ImplicitProblem             = 0;                 // off
   StarMakerEmissivityField    = 0;                 // off
-  uv_param                    = 1.0e-5;            // mid-range value from Razoumov Norman 2002
+  uv_param                    = 1.1e-5;            // consistent with Razoumov Norman 2002
 
   MultiSpecies                = FALSE;             // off
   NoMultiSpeciesButColors     = FALSE;             // off
@@ -857,9 +860,6 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   MHDCTDualEnergyMethod = INT_UNDEFINED;
   MHDCTPowellSource = 0;
   MHDCTUseSpecificEnergy = TRUE;
-  ProcessorTopology[0]      = INT_UNDEFINED;
-  ProcessorTopology[1]      = INT_UNDEFINED;
-  ProcessorTopology[2]      = INT_UNDEFINED;
   FixedTimestep = -1.0;
   WriteBoundary             = FALSE;
   CT_AthenaDissipation = 0.1;
@@ -884,6 +884,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   ParticleSplitterIterations = FALSE;
   ParticleSplitterChildrenParticleSeparation = 1.0;
+  ParticleSplitterRandomSeed = 131180;
 
   /* Magnetic Field Resetter */
 

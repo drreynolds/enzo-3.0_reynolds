@@ -460,7 +460,7 @@ help:
 #-----------------------------------------------------------------------
 
 clean:
-	-@rm -f *.so *.o uuid/*.o *.mod *.f *.f90 DEPEND.bak *~ $(OUTPUT) *.exe \
+	-@rm -f *.so *.o uuid/*.o *.mod *.f *.f90 DEPEND.bak *~ $(OUTPUT) enzo.exe \
           $(BUILD_DIR)/*.o \
           $(BUILD_DIR)/*.C \
           $(BUILD_DIR)/*.h \
