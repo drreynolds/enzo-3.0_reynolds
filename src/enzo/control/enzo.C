@@ -40,10 +40,14 @@
 #include "communication.h"
 #include "CommunicationUtilities.h"
 #include "EventHooks.h"
+#ifdef ECUDA
+#include "CUDAUtil.h"
+#endif
 #ifdef TRANSFER
 #include "PhotonCommunication.h"
 #include "ImplicitProblemABC.h"
 #endif
+#include "DebugTools.h"
 #undef DEFINE_STORAGE
 #ifdef USE_PYTHON
 int InitializePythonInterface(int argc, char **argv);
@@ -63,6 +67,8 @@ int ReadAllData(char *filename, HierarchyEntry *TopGrid, TopGridData &tgd,
 		      ExternalBoundary *Exterior, float *Initialdt,
 		      bool ReadParticlesOnly=false);
 
+int  MHDCT_EnergyToggle(HierarchyEntry &TopGrid, TopGridData &MetaData, ExternalBoundary *Exterior, LevelHierarchyEntry *LevelArray[]);
+
 int EvolveHierarchy(HierarchyEntry &TopGrid, TopGridData &tgd,
 		    ExternalBoundary *Exterior,
 #ifdef TRANSFER
@@ -81,7 +87,7 @@ int ProjectToPlane(TopGridData &MetaData, LevelHierarchyEntry *LevelArray[],
 		   int ProjectStart[], int ProjectEnd[],
 		   FLOAT ProjectStartCoordinates[],
 		   FLOAT ProjectEndCoordinates[], int ProjectLevel,
-		   int ProjectionDimension, char *ProjectionFileName,
+		   int ProjectionDimension, const char *ProjectionFileName,
 		   int ProjectionSmooth, ExternalBoundary *Exterior);
 int ProjectToPlane2(char *ParameterFile, HierarchyEntry &TopGrid,
 		    TopGridData &MetaData, LevelHierarchyEntry *LevelArray[],
@@ -99,7 +105,7 @@ int OutputAsParticleData(TopGridData &MetaData,
 			 int RegionStart[], int RegionEnd[],
 			 FLOAT RegionStartCoordinates[],
 			 FLOAT RegionEndCoordinates[], int RegionLevel,
-			 char *OutputFileName);
+			 const char *OutputFileName);
 int InterpretCommandLine(int argc, char *argv[], char *myname,
 			 int &restart, int &debug, int &extract,
 			 int &InformationOutput,
@@ -219,7 +225,7 @@ void lcaperfInitialize (int max_level);
 #endif
 
 void my_exit(int status);
-void PrintMemoryUsage(char *str);
+void PrintMemoryUsage(const char *str);
 
 
 
@@ -233,7 +239,6 @@ void PrintMemoryUsage(char *str);
 
 Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 {
-
 
   int i;
 
@@ -254,6 +259,11 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   }
 #endif
 
+#ifdef USE_GRACKLE
+  if (MyProcessorNumber == ROOT_PROCESSOR) {
+    grackle_verbose = 1;
+  }
+#endif
 
   int int_argc;
   int_argc = argc;
@@ -441,9 +451,9 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
 
   // If we need to read the parameter file as a restart file, do it now
-
-  if (restart || OutputAsParticleDataFlag || extract || InformationOutput || project  ||  velanyl) {
-
+ 
+  if (restart || OutputAsParticleDataFlag || extract || InformationOutput || project  ||  velanyl || WritePotentialOnly || WriteCoolingTimeOnly || SmoothedDarkMatterOnly) {
+ 
     SetDefaultGlobalValues(MetaData);
 
     if (debug) printf("Reading parameter file %s\n", ParameterFile);
@@ -463,7 +473,7 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   if (ProblemType == -978)
   {
     CurrentProblemType = select_problem_type(ProblemTypeName);
-    /* This gives us the poblem type, but we do not yet have
+    /* This gives us the problem type, but we do not yet have
        our event hooks set up.  When the day comes that event hooks are all
        stored in parameter files, this will not be necessary. */
     CurrentProblemType->InitializeFromRestart(TopGrid, MetaData);
@@ -541,9 +551,9 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
     dim2 = (ProjectionDimension == -1) ?
       MetaData.TopGridRank : ProjectionDimension+1;
     for (dim = dim1; dim < dim2; dim++) {
-      sprintf(proj_name, "project_%4.4d_%c.h5", MetaData.CycleNumber, 120+dim);
+      sprintf(proj_name, "project_%"ISYM"4.4_%"ISYM".h5", MetaData.CycleNumber, 120+dim);
       if (MyProcessorNumber == ROOT_PROCESSOR)
-	printf("ProjectToPlane: dimension %d.  Output %s\n", dim, proj_name);
+	printf("ProjectToPlane: dimension %"ISYM".  Output %s\n", dim, proj_name);
       if (ProjectToPlane2(ParameterFile, TopGrid, MetaData, LevelArray,
 			  RegionStart, RegionEnd,
 			  RegionStartCoordinates, RegionEndCoordinates,
@@ -687,6 +697,15 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
 
   }
 
+#ifdef ECUDA
+  if (UseCUDA) {
+    if (InitGPU(MyProcessorNumber) != SUCCESS) {
+      printf("InitGPU failed\n");
+      exit(1);
+    }
+  }
+#endif
+
   /* Initialize the radiative transfer */
 
 #ifdef TRANSFER
@@ -705,8 +724,9 @@ Eint32 MAIN_NAME(Eint32 argc, char *argv[])
   InitializePythonInterface(argc, argv);
 #endif
 
-  // Call the main evolution routine
+  MHDCT_EnergyToggle(TopGrid, MetaData, &Exterior, LevelArray);
 
+  // Call the main evolution routine
   if (debug) fprintf(stderr, "INITIALDT ::::::::::: %16.8e\n", Initialdt);
   try {
   if (EvolveHierarchy(TopGrid, MetaData, &Exterior,

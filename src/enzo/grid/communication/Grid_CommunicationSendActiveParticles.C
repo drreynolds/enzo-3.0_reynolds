@@ -44,6 +44,7 @@ int CommunicationBufferedSend(void *buffer, int size, MPI_Datatype Type,
 
 int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool DeleteParticles)
 {
+#ifdef USE_MPI
 
   if (CommunicationShouldExit(ProcessorNumber, ToProcessor))
     return SUCCESS;
@@ -133,7 +134,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
       
 	    CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
 	    CommunicationReceiveGridTwo[CommunicationReceiveIndex] = ToGrid;
-	    CommunicationReceiveCallType[CommunicationReceiveIndex] = 20;
+	    CommunicationReceiveCallType[CommunicationReceiveIndex] = 22;
 
 	    CommunicationReceiveBuffer[CommunicationReceiveIndex] = (float *) type_count;
 	    CommunicationReceiveDependsOn[CommunicationReceiveIndex] = 
@@ -219,7 +220,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
 
 	CommunicationReceiveGridOne[CommunicationReceiveIndex] = this;
 	CommunicationReceiveGridTwo[CommunicationReceiveIndex] = ToGrid;
-	CommunicationReceiveCallType[CommunicationReceiveIndex] = 20;
+	CommunicationReceiveCallType[CommunicationReceiveIndex] = 22;
 
 	CommunicationReceiveBuffer[CommunicationReceiveIndex] = (float *) buffer;
 	CommunicationReceiveDependsOn[CommunicationReceiveIndex] = 
@@ -275,6 +276,7 @@ int grid::CommunicationSendActiveParticles(grid *ToGrid, int ToProcessor, bool D
   
   delete [] type_element_size;
 
+#endif /* USE_MPI */
   return SUCCESS;
 }
 

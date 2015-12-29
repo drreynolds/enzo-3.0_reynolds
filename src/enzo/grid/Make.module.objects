@@ -16,12 +16,29 @@ ENZO_OBJS +=\
 	Grid_CommunicationSendPhotonPackages.o \
 	Grid_CommunicationSendRegion.o \
 	Grid_CommunicationSendStars.o \
+    Grid_CommunicationSendSubgridMarker.o \
 	Grid_CommunicationTransferActiveParticles.o \
 	Grid_CommunicationTransferParticlesOpt.o \
 	Grid_CommunicationTransferStarsOpt.o \
 	Grid_TransferSubgridActiveParticles.o \
 	Grid_TransferSubgridParticles.o \
 	Grid_TransferSubgridStars.o \
+#
+# ENZO BUILD SYSTEM DIRECTORY MODULE
+#
+#   grid/field_objects
+#
+
+vpath %.C   grid/field_objects/
+vpath %.c   grid/field_objects/
+vpath %.F   grid/field_objects/
+vpath %.F90 grid/field_objects/
+
+ENZO_OBJS +=\
+	FieldDescriptor.o \
+	FieldRegistry.o \
+	Grid_ReconstructFieldMapping.o \
+	Grid_VerifyFieldMapping.o
 
 # ENZO BUILD SYSTEM DIRECTORY MODULE
 #
@@ -48,6 +65,7 @@ ENZO_OBJS +=\
 	Grid_ChangeParticleTypeBeforeSN.o \
 	Grid_CollectActiveParticles.o \
 	Grid_CollectParticles.o \
+    Grid_CreateChildParticles.o \
 	Grid_DebugActiveParticles.o \
 	Grid_DepositMustRefineParticles.o \
 	Grid_FindAllStarParticles.o \
@@ -122,6 +140,10 @@ ENZO_OBJS +=\
 	Grid_HydroShockTubesInitializeGrid.o \
 	Grid_ImplosionInitializeGrid.o \
 	Grid_KHInitializeGrid.o \
+    Grid_KHInitializeGridRamp.o \
+    Grid_MHDBlastInitializeGrid.o \
+    Grid_MHDLoopInitGrid.o \
+    Grid_MHDOrszagTangInitGrid.o \
 	Grid_NestedCosmologySimulationInitializeGrid.o \
 	Grid_NohInitializeGrid.o \
 	Grid_OneZoneFreefallTestInitializeGrid.o \
@@ -144,6 +166,8 @@ ENZO_OBJS +=\
 	Grid_ReadRandomForcingFields.o \
 	Grid_RemoveForcingFromBaryonFields.o \
 	Grid_RotatingCylinderInitialize.o \
+    Grid_RotatingDiskInitializeGrid.o \
+    Grid_RotatingSphereInitialize.o \
 	Grid_SedovBlastInitializeGrid.o \
 	Grid_SedovBlastInitializeGrid3D.o \
 	Grid_ShearingBox2DInitializeGrid.o \
@@ -176,6 +200,9 @@ ENZO_OBJS +=\
 	Grid_AddH2Dissociation.o \
 	Grid_AddRadiationImpulse.o \
 	Grid_AddRadiationPressureAcceleration.o \
+    Grid_CenterMagneticField.o \
+    Grid_ClearAvgElectricField.o \
+    Grid_ComputeElectricField.o \
 	Grid_ComputeAccelerationField.o \
 	Grid_ComputeAccelerationFieldExternal.o \
 	Grid_ComputeAccelerations.o \
@@ -212,7 +239,16 @@ ENZO_OBJS +=\
 	Grid_GadgetEquilibriumCooling.o \
 	Grid_Gadgetconvertutotemp.o \
 	Grid_Gadgetfindabundancesandrates.o \
+	Grid_GrackleWrapper.o \
 	Grid_MergePausedPhotonPackages.o \
+    Grid_MHDCTEnergyToggle.o \
+    Grid_MHD_CID.o \
+    Grid_MHD_Curl.o \
+    Grid_MHD_ProjectFace.o \
+    Grid_MHD_ProlongAllocate.o \
+    Grid_MHD_SendOldFineGrids.o \
+    Grid_MHD_SetupDims.o \
+    Grid_MHD_UpdateMagneticField.o \
 	Grid_MoveAllPhotonPackages.o \
 	Grid_MultiSpeciesHandler.o \
 	Grid_PhotonPeriodicBoundary.o \
@@ -226,6 +262,8 @@ ENZO_OBJS +=\
 	Grid_ShocksHandler.o \
 	Grid_SolveForPotential.o \
 	Grid_SolveHydroEquations.o \
+    Grid_SolveMHDEquations.o \
+    Grid_SolveMHD_Li.o \
 	Grid_SolveOneZoneFreefall.o \
 	Grid_SolvePPM_DE.o \
 	Grid_SolveRadiativeCooling.o \
@@ -331,6 +369,7 @@ ENZO_OBJS +=\
 	Grid_FlagCellsToBeRefinedByMustRefineRegion.o \
 	Grid_FlagCellsToBeRefinedByOpticalDepth.o \
 	Grid_FlagCellsToBeRefinedByResistiveLength.o \
+    Grid_FlagCellsToBeRefinedBySecondDerivative.o \
 	Grid_FlagCellsToBeRefinedByShear.o \
 	Grid_FlagCellsToBeRefinedByShocks.o \
 	Grid_FlagCellsToBeRefinedByShockwaves.o \
@@ -364,6 +403,7 @@ ENZO_OBJS +=\
 	Grid_InterpolateRadiationFromParent.o \
 	Grid_InterpolateStarParticlesToGrid.o \
 	Grid_MagneticFieldResetter.o \
+    Grid_MHD_Diagnose.o \
 	Grid_OutputAsParticleData.o \
 	Grid_PrepareBoundaryFluxes.o \
 	Grid_PrepareFFT.o \
@@ -383,6 +423,7 @@ ENZO_OBJS +=\
 	Grid_ReturnSubgridMarker.o \
 	Grid_SetExternalBoundaryValues.o \
 	Grid_SetFlaggingField.o \
+    Grid_SetFlaggingFieldMultiRefineRegions.o \
 	Grid_SetFlaggingFieldStaticRegions.o \
 	Grid_SetIsolatedPotentialBoundary.o \
 	Grid_SetMinimumSupport.o \

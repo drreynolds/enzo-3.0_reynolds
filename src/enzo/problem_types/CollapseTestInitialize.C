@@ -240,16 +240,18 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 	     0) == FAIL) {
     ENZO_FAIL("Error in CollapseTestInitializeGrid.");
   }
+  TopGrid.GridData->ReconstructFieldMapping();
 
   /* Convert minimum initial overdensity for refinement to mass
      (unless MinimumMass itself was actually set). */
+  for (int count = 0; count < MAX_FLAGGING_METHODS; count++)
+    if (MinimumMassForRefinement[count] == FLOAT_UNDEFINED) {
+      MinimumMassForRefinement[count] = MinimumOverDensityForRefinement[count];
+      for (dim = 0; dim < MetaData.TopGridRank; dim++)
+        MinimumMassForRefinement[count] *=(DomainRightEdge[dim]-DomainLeftEdge[dim])/
+	     float(MetaData.TopGridDims[dim]);
+    }
 
-  if (MinimumMassForRefinement[0] == FLOAT_UNDEFINED) {
-    MinimumMassForRefinement[0] = MinimumOverDensityForRefinement[0];
-    for (dim = 0; dim < MetaData.TopGridRank; dim++)
-      MinimumMassForRefinement[0] *=(DomainRightEdge[dim]-DomainLeftEdge[dim])/
-	float(MetaData.TopGridDims[dim]);
-  }
 
   /* If requested and there are no manual settings of the refinement
      of spheres, refine the grid to the desired level. */
@@ -319,7 +321,7 @@ int CollapseTestInitialize(FILE *fptr, FILE *Outfptr,
 	      for (dim = 0; dim < MetaData.TopGridRank; dim++)
 		NumberOfSubgridDims[dim] += 2*NumberOfGhostZones;
 	      Subgrid[lev]->GridData = new grid;
-	      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData);
+	      Subgrid[lev]->GridData->InheritProperties(TopGrid.GridData, lev+1);
 	      Subgrid[lev]->GridData->PrepareGrid(MetaData.TopGridRank, 
 						  NumberOfSubgridDims,
 						  ThisLeftEdge,

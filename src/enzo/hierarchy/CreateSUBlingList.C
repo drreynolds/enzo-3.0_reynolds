@@ -62,8 +62,6 @@ int CreateSUBlingList(TopGridData *MetaData,
 #endif
 {
 
-  if( FluxCorrection != TRUE ) 
-    return SUCCESS;
 
   int i, grid1, grid2, othergrid_id, count;
   int NumberOfGrids, NumberOfChildGrids, LocalNumberOfSUBlings, TotalNumberOfSUBlings;
@@ -75,6 +73,11 @@ int CreateSUBlingList(TopGridData *MetaData,
 
   NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
   NumberOfChildGrids = GenerateGridArray(LevelArray, level+1, &ChildGrids);
+
+  if( FluxCorrection != TRUE ) {
+    return SUCCESS;
+  }
+
 
   /************************************************************************
      Create a SUBling list of ONLY the subgrid IDs for grids on this 
@@ -208,7 +211,6 @@ int CreateSUBlingList(TopGridData *MetaData,
   /*****************************************************************/
  
   int CoarseGrid, SUBling;
-  //*SUBlingList = new LevelHierarchyEntry*[NumberOfGrids];
   NextEntry = NULL;
   LastEntry = NULL;
 

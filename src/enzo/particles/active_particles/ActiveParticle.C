@@ -138,10 +138,10 @@ void ActiveParticleType::ConstructData(grid *_grid,
             ActiveParticleFormationDataFlags &flags,
             ActiveParticleFormationData &data) {
 
-    /* We have a number of items that can be required; we now attempt to
-       generate them.
+  /* We have a number of items that can be required; we now attempt to
+     generate them.
 
-       This uses code from the old grid::StarParticleHandler routine. */
+     This uses code from the old grid::StarParticleHandler routine. */
 
 
   /* initialize */
@@ -343,18 +343,18 @@ void ActiveParticleType::DestroyData(grid *_grid,
     /* We don't actually need to inspect the flags.
      * We just need to know if the data has been allocated. */
 
-    if (data.DarkMatterDensity != NULL) delete data.DarkMatterDensity;
-    if (data.H2Fraction != NULL) delete data.H2Fraction;
-    if (data.CoolingTime != NULL) delete data.CoolingTime;
-    if (data.CoolingRate != NULL) delete data.CoolingRate;
-    if (data.Temperature != NULL) delete data.Temperature;
+    if (data.DarkMatterDensity != NULL) delete [] data.DarkMatterDensity;
+    if (data.H2Fraction != NULL) delete [] data.H2Fraction;
+    if (data.CoolingTime != NULL) delete [] data.CoolingTime;
+    if (data.CoolingRate != NULL) delete [] data.CoolingRate;
+    if (data.Temperature != NULL) delete [] data.Temperature;
     if (data.TotalMetals != NULL && data.MetalNum != -1 && data.ColourNum != -1)
-      delete data.TotalMetals;
+      delete [] data.TotalMetals;
 
     /* We convert back from Fractions to Values */
     _grid->ConvertColorFieldsFromFractions();
 
-    delete data.NewParticles;
+    delete [] data.NewParticles;
 
     /* We don't need to reset anything else. */
 

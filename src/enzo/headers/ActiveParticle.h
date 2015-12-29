@@ -239,8 +239,6 @@ struct ActiveParticleFormationDataFlags {
   bool CoolingTime;
   bool CoolingRate;
   bool Temperature;
-  bool UnitConversions;
-  bool DataFieldNumbers;
   bool MetalField;
 };
 
@@ -250,8 +248,6 @@ const struct ActiveParticleFormationDataFlags flags_default = {
   false,    // CoolingTime
   false,    // CoolingRate
   false,    // Temperature
-  false,    // UnitConversions
-  false,    // DataFieldNumbers
   false     // MetalField
 };
 
@@ -335,7 +331,7 @@ namespace ActiveParticleHelpers {
           _name = (*it)->name.c_str();
           APClass::WriteDataset(ndims, dims, _name, node,
                                 (*it)->hdf5type, buffer);
-          delete buffer;
+          delete [] buffer;
       }
 
       H5Gclose(node);
@@ -374,7 +370,7 @@ namespace ActiveParticleHelpers {
           for (i = 0; i < Count; i++) {
               (*it)->SetAttribute(&_buffer, OutList[i+offset]);
           }
-          delete buffer;
+          delete [] buffer;
       }
 
       H5Gclose(node);
@@ -468,7 +464,8 @@ public:
    int (*feedback)(grid *thisgrid_orig, ActiveParticleFormationData &data),
    int (*before_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-		  int ThisLevel, int TotalStarParticleCountPrevious[],
+		  int ThisLevel, bool CallEvolvePhotons, 
+		  int TotalStarParticleCountPrevious[],
 		  int ActiveParticleID),
    int (*after_evolvelevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
 		  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
@@ -525,16 +522,17 @@ public:
   int (*EvaluateFormation)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*EvaluateFeedback)(grid *thisgrid_orig, ActiveParticleFormationData &data);
   int (*BeforeEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				     int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-				     int ThisLevel, int TotalStarParticleCountPrevious[],
-				     int ActiveParticleID);
+			   int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+			   int ThisLevel, bool CallEvolvePhotons,
+			   int TotalStarParticleCountPrevious[],
+			   int ActiveParticleID);
   int (*AfterEvolveLevel)(HierarchyEntry *Grids[], TopGridData *MetaData,
-				    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-				    int ThisLevel, int TotalStarParticleCountPrevious[],
-				    int ActiveParticleID);
+			  int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+			  int ThisLevel, int TotalStarParticleCountPrevious[],
+			  int ActiveParticleID);
   int (*DepositMass)(HierarchyEntry *Grids[], TopGridData *MetaData,
-                    int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
-                    int ThisLevel, int ActiveParticleID);
+		     int NumberOfGrids, LevelHierarchyEntry *LevelArray[],
+		     int ThisLevel, int ActiveParticleID);
   int (*SetFlaggingField)(LevelHierarchyEntry *LevelArray[], int level, int TopGridDims[], int ActiveParticleID);
   void (*DescribeSupplementalData)(ActiveParticleFormationDataFlags &flags);
   void (*AllocateBuffer)(int Count, char **buffer);
@@ -587,14 +585,14 @@ ActiveParticleType_info *register_ptype(std::string name)
   return pinfo;
 }
 
-#define ENABLED_PARTICLE_ID_ACCESSOR					\
-  int GetEnabledParticleID(int myid = -1) {				\
-    static int ParticleID = -1;						\
-    if (myid >= 0) {							\
-      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");	\
-      ParticleID = myid;						\
-    }									\
-    return ParticleID;							\
+#define ENABLED_PARTICLE_ID_ACCESSOR                                   \
+  int GetEnabledParticleID(int myid = -1) {                            \
+    static int ParticleID = -1;                                        \
+    if (myid >= 0) {                                                   \
+      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");   \
+      ParticleID = myid;                                               \
+    }                                                                  \
+    return ParticleID;                                                 \
   };
 
 

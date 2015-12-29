@@ -256,6 +256,7 @@ int grid::SolveRadiativeCooling()
   if (MultiSpecies) {
 
     // Multispecies cooling
+    int addRT = (RadiativeTransfer) || (RadiativeTransferFLD);
 
     FORTRAN_NAME(multi_cool)(
        density, totalenergy, gasenergy, velocity1, velocity2, velocity3,
@@ -295,7 +296,7 @@ int grid::SolveRadiativeCooling()
        &RadiationData.NumberOfFrequencyBins,
        &RadiationFieldRecomputeMetalRates,
        &RadiationData.RadiationShield, &HIShieldFactor, &HeIShieldFactor, &HeIIShieldFactor,
-       &RadiativeTransfer, BaryonField[gammaNum],
+       &addRT, BaryonField[gammaNum],
        &H2OpticalDepthApproximation, &CIECooling, CoolData.cieco,
        &CloudyCoolingData.CMBTemperatureFloor,
        &CloudyCoolingData.IncludeCloudyHeating,

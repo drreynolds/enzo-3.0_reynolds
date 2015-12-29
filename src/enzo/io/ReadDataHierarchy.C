@@ -39,10 +39,11 @@
 static int ReadDataGridCounter = 0;
 
 
-int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int GridID,
-			    HierarchyEntry *ParentGrid, hid_t file_id,
-			    int NumberOfRootGrids, int *RootGridProcessors,
-			    bool ReadParticlesOnly, FILE *log_fptr)
+int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid,
+                      TopGridData & MetaData, int GridID,
+                      HierarchyEntry *ParentGrid, hid_t file_id,
+                      int NumberOfRootGrids, int *RootGridProcessors,
+                      bool ReadParticlesOnly, FILE *log_fptr)
 {
  
   int TestGridID, NextGridThisLevelID, NextGridNextLevelID;
@@ -73,6 +74,11 @@ int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int Grid
   Grid->NextGridThisLevel = NULL;
   Grid->NextGridNextLevel = NULL;
   Grid->ParentGrid        = ParentGrid;
+
+  if (ParentGrid == NULL) 
+    Grid->GridData->SetLevel(0);
+  else
+    Grid->GridData->SetLevel(ParentGrid->GridData->GetLevel()+1);
 
 
   if (HierarchyFileInputFormat % 2 == 0) {
@@ -196,7 +202,13 @@ int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int Grid
       ENZO_VFAIL("Error in grid->ReadGrid (grid %"ISYM").\n", GridID)
     }
   }
- 
+
+  /* Intialize grid hydrodynamics parameters */
+  Grid->GridData->SetHydroParameters(MetaData.CourantSafetyNumber,
+                                     MetaData.PPMFlatteningParameter,
+                                     MetaData.PPMDiffusionParameter,
+                                     MetaData.PPMSteepeningParameter);
+  
   /* Read RandomForcingFields for the grid(s) on level 0. //AK */
  
   if (RandomForcing && ParentGrid == NULL && extract != TRUE 
@@ -224,9 +236,10 @@ int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int Grid
  
   if (NextGridThisLevelID != 0) {
     Grid->NextGridThisLevel = new HierarchyEntry;
-    if (ReadDataHierarchy(fptr, Hfile_id, Grid->NextGridThisLevel, NextGridThisLevelID,
-				ParentGrid, file_id, NumberOfRootGrids,
-				RootGridProcessors, ReadParticlesOnly, log_fptr) == FAIL)
+    if (ReadDataHierarchy(fptr, Hfile_id, Grid->NextGridThisLevel,
+                          MetaData, NextGridThisLevelID, ParentGrid,
+                          file_id, NumberOfRootGrids, RootGridProcessors,
+                          ReadParticlesOnly, log_fptr) == FAIL)
       ENZO_FAIL("Error in ReadDataHierarchy(1).");
   }
 
@@ -249,10 +262,10 @@ int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *Grid, int Grid
  
   if (NextGridNextLevelID != 0) {
     Grid->NextGridNextLevel = new HierarchyEntry;
-    if (ReadDataHierarchy(fptr, Hfile_id, Grid->NextGridNextLevel, NextGridNextLevelID, 
-
-				Grid, file_id, NumberOfRootGrids, 
-				RootGridProcessors, ReadParticlesOnly, log_fptr) == FAIL)
+    if (ReadDataHierarchy(fptr, Hfile_id, Grid->NextGridNextLevel,
+                         MetaData, NextGridNextLevelID, Grid, file_id,
+                         NumberOfRootGrids, RootGridProcessors,
+                         ReadParticlesOnly, log_fptr) == FAIL)
       ENZO_FAIL("Error in ReadDataHierarchy(2).");
   }
  

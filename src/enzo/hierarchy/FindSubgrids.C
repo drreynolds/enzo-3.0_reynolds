@@ -69,10 +69,20 @@ int FindSubgrids(HierarchyEntry *Grid, int level, int &TotalFlaggedCells,
  
   /* Add a buffer region around each flagged cell. */
  
-  if (NumberOfFlaggedCells != 0)
-    for (i = 0; i < NumberOfBufferZones; i++)
-      NumberOfFlaggedCells = CurrentGrid->FlagBufferZones();
- 
+  if (NumberOfFlaggedCells != 0) {
+
+    /* check flagged cells are in allowed refined region */
+    
+    if (CurrentGrid->SetFlaggingFieldMultiRefineRegions(level) 
+	== FAIL) {
+      fprintf(stderr, "Error in grid->SetFlaggingFieldMultiRefineRegions.\n");
+      return FAIL;
+    }
+
+    NumberOfFlaggedCells = CurrentGrid->FlagBufferZones();
+
+  } 
+
   /* Set the static (permanent) regions. */
  
   if (CurrentGrid->SetFlaggingFieldStaticRegions(level, NumberOfFlaggedCells)
@@ -148,7 +158,8 @@ int FindSubgrids(HierarchyEntry *Grid, int level, int &TotalFlaggedCells,
       /* set some the new grid's properties (rank, field types, etc.)
 	 based on the current grid */
  
-      ThisGrid->GridData->InheritProperties(Grid->GridData);
+      ThisGrid->GridData->InheritProperties(Grid->GridData,
+					    level+1);
  
       /* Set the new grid's positional parameters.
          (The zero indicates there are no particles (for now). */

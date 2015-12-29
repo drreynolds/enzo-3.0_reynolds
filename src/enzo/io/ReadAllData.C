@@ -49,10 +49,12 @@ void my_exit(int status);
 
 /* function prototypes */
  
-int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id, HierarchyEntry *TopGrid, int GridID,
-			    HierarchyEntry *ParentGrid, hid_t file_id,
-			    int NumberOfRootGrids, int *RootGridProcessors,
-			    bool ReadParticlesOnly=false, FILE *log_fptr=NULL);
+int ReadDataHierarchy(FILE *fptr, hid_t Hfile_id,
+                      HierarchyEntry *TopGrid, TopGridData &MetaData,
+                      int GridID, HierarchyEntry *ParentGrid,
+                      hid_t file_id, int NumberOfRootGrids,
+                      int *RootGridProcessors,
+                      bool ReadParticlesOnly=false, FILE *log_fptr=NULL);
 int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt);
 int ReadStarParticleData(FILE *fptr, hid_t Hfile_id, FILE *log_fptr);
 int ReadRadiationData(FILE *fptr);
@@ -139,6 +141,20 @@ int ReadAllData(char *name, HierarchyEntry *TopGrid, TopGridData &MetaData,
   /* Close main file. */
  
   fclose(fptr);
+
+  /* Set the number of particle attributes, if left unset. */
+
+  if (NumberOfParticleAttributes == INT_UNDEFINED ||
+      NumberOfParticleAttributes == 0) {
+    if (StarParticleCreation || StarParticleFeedback) {
+      NumberOfParticleAttributes = 3;
+      if (StarMakerTypeIaSNe) NumberOfParticleAttributes++;
+      AddParticleAttributes = TRUE;
+    } else {
+      NumberOfParticleAttributes = 0;
+    }
+
+  }
 
   // name is something like /dsgpfs/harkness/NewL7/Dumps/DD0156/DD0156
   // open the hdf file on this processor /dsgpfs/harkness/NewL7/Dumps/DD0156/DD0156.cpu0000, etc.
@@ -321,9 +337,10 @@ int ReadAllData(char *name, HierarchyEntry *TopGrid, TopGridData &MetaData,
   }
 
   GridID = 1;
-  if (ReadDataHierarchy(fptr, Hfile_id, TopGrid, GridID, NULL, file_id,
-			      NumberOfRootGrids, RootGridProcessors,
-			      ReadParticlesOnly, log_fptr) == FAIL) {
+  if (ReadDataHierarchy(fptr, Hfile_id, TopGrid, MetaData, GridID,
+                        NULL, file_id, NumberOfRootGrids,
+                        RootGridProcessors, ReadParticlesOnly,
+                        log_fptr) == FAIL) {
     fprintf(stderr, "Error in ReadDataHierarchy (%s).\n", hierarchyname);
     return FAIL;
   }

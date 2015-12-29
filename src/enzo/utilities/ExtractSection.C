@@ -186,7 +186,7 @@ void ExtractSection(HierarchyEntry &TopGrid, TopGridData &MetaData,
     /* Create a new grid and fill it full of goodies. */
  
     Grids[level] = new grid;
-    Grids[level]->InheritProperties(LevelArray[0]->GridData);
+    Grids[level]->InheritProperties(LevelArray[0]->GridData, level);
     Grids[level]->PrepareGrid(MetaData.TopGridRank, ExtractDims,
 			      LeftPosition, RightPosition, 0);
     Grids[level]->AllocateGrids();
@@ -212,7 +212,8 @@ void ExtractSection(HierarchyEntry &TopGrid, TopGridData &MetaData,
     /* If level > 0: Interpolate from higher grid (if present). */
  
     if (level > 0)
-      if (Grids[level]->InterpolateFieldValues(Grids[level-1]) == FAIL) {
+      if (Grids[level]->InterpolateFieldValues(Grids[level-1]
+			,NULL, &MetaData) == FAIL) {
 	fprintf(stderr, "Error in grid->InterpolateFieldValues.\n");
 	my_exit(EXIT_FAILURE);
       }

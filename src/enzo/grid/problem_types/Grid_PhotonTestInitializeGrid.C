@@ -785,6 +785,7 @@ int grid::PhotonTestInitializeGrid(int NumberOfSpheres,
 		ParticleMass[npart] = ParticleMeanDensity*
 		                      pow(float(RefineBy), GridRank*level);
 		ParticleNumber[npart] = PhotonTestParticleCount++;
+        ParticleType[npart] = PARTICLE_TYPE_DARK_MATTER;
 
 		/* Set random position within cell. */
 

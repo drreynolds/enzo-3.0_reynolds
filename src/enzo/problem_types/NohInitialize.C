@@ -141,7 +141,7 @@ int NohInitialize(FILE *fptr,
     /* create a new subgrid and initialize it */
 
     Subgrid->GridData = new grid;
-    Subgrid->GridData->InheritProperties(TopGrid.GridData);
+    Subgrid->GridData->InheritProperties(TopGrid.GridData, 1);
     Subgrid->GridData->PrepareGrid(MetaData.TopGridRank, SubgridDims,
 				   LeftEdge, RightEdge, 0);
     if (Subgrid->GridData->NohInitializeGrid(NohDensity,

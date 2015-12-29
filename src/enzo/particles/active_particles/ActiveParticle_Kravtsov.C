@@ -215,8 +215,6 @@ int ActiveParticleType_Kravtsov::EvaluateFeedback(grid *thisgrid_orig, ActivePar
 void ActiveParticleType_Kravtsov::DescribeSupplementalData
 (ActiveParticleFormationDataFlags &flags)
 {
-  flags.UnitConversions = true;
-  flags.DataFieldNumbers = true;
   flags.MetalField = true;
 }
 

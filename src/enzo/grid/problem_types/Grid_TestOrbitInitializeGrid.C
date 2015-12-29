@@ -36,10 +36,6 @@ int grid::TestOrbitInitializeGrid(int NumberOfTestParticles,
 
   int dim, i;
 
-  if (UseBaryons) {
-    ENZO_FAIL("UseBaryons not implemented yet.\n");
-  }
-
   NumberOfParticles = NumberOfTestParticles + 1;
 
   /* Return if this doesn't concern us. */
@@ -66,6 +62,7 @@ int grid::TestOrbitInitializeGrid(int NumberOfTestParticles,
 
   for (i = 0; i < NumberOfParticles; i++) {
     ParticleNumber[i] = i;
+    ParticleType[i] = PARTICLE_TYPE_MUST_REFINE;
   }
 
   /* Set central particle. */
@@ -131,6 +128,9 @@ int grid::TestOrbitInitializeGrid(int NumberOfTestParticles,
   printf("The particle velocities are:\n");
   printf("  (central)   %e %e %e\n",ParticleVelocity[0][0],ParticleVelocity[1][0],ParticleVelocity[2][0] );
   printf("  (test)      %e %e %e\n",ParticleVelocity[0][1],ParticleVelocity[1][1],ParticleVelocity[2][1] );
+
+  if(UseBaryons)
+    printf("\n    ** Baryon fields have been turned on! **\n");
 
   fflush(stdout);
 

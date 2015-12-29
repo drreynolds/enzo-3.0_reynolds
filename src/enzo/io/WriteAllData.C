@@ -646,7 +646,7 @@ int WriteAllData(char *basename, int filenumber,
   CheckpointRestart = CheckpointDump;
  
 #ifdef TRANSFER
-  if (ImplicitProblem) {
+  if (ImplicitProblem && MyProcessorNumber == ROOT_PROCESSOR) {
     // Output ImplicitSolver module parameter file
 
     //    Reset MetaData.RadHydroParameterFname
@@ -738,25 +738,34 @@ int WriteAllData(char *basename, int filenumber,
   LevelHierarchyEntry *Temp;
   LevelHierarchyEntry *LevelArray[MAX_DEPTH_OF_HIERARCHY];
 
-  if ((HierarchyFileOutputFormat % 2) == 0  || VelAnyl==1 || BAnyl==1) {
+#ifndef FAST_SIB
+  if (VelAnyl==1 || BAnyl==1) {
     /* Create LevelArray */
     for (int level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++)
       LevelArray[level] = NULL;
     AddLevel(LevelArray, TempTopGrid, 0);
 
-#ifndef FAST_SIB
-    if(VelAnyl==1||BAnyl==1){
-      for (int level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
-	HierarchyEntry **Grids;
-	int NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
-	if (LevelArray[level] != NULL) {
-	  
-	  if (SetBoundaryConditions(Grids, NumberOfGrids, level, &MetaData, 
-				    Exterior, LevelArray[level]) == FAIL) {
-	    printf("error setboundary");
-	  }}}}
-#endif
+    for (int level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++) {
+      HierarchyEntry **Grids;
+      int NumberOfGrids = GenerateGridArray(LevelArray, level, &Grids);
+      if (LevelArray[level] != NULL) {
+	
+	if (SetBoundaryConditions(Grids, NumberOfGrids, level, &MetaData, 
+				  Exterior, LevelArray[level]) == FAIL) {
+	  ENZO_FAIL("Error in SetBoundaryConditions\n");
+	}
+      }
+    }
+    
+    // Delete LevelArray linked list
+    for (level = 0; level < MAX_DEPTH_OF_HIERARCHY; level++)
+      while (LevelArray[level] != NULL) {
+	Temp = LevelArray[level]->NextGridThisLevel;
+	delete LevelArray[level];
+	LevelArray[level] = Temp;
+      } // ENDWHILE
   }
+#endif
   
   // Output Data Hierarchy
 

@@ -1,0 +1,11 @@
+#####################################################################
+This is a cosmology simulation which splits particles using the first 
+output. The success of the particle splitting procedure can be further tested by 
+running the script.py YT script. Currently it is formatted to use YT 2.X but
+updating to version 3.X is straight forward. 
+
+Usage:
+./inits.exe -d ParticleSplit.inits
+mpirun -np 2 ./ring.exe pv ParticlePositions ParticleVelocities 
+mpirun -np 2 ./enzo.exe -d ParticleSplit.enzo
+mpirun -np 2 ./enzo.exe -d -r RD0000/RD0000

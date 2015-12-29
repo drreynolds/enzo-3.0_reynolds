@@ -164,6 +164,7 @@ int grid::MoveSubgridParticlesFast(int NumberOfSubgrids, grid* ToGrids[],
 	n = ToGrids[subgrid]->NumberOfParticles;
 	ToGrids[subgrid]->ParticleMass[n] = ParticleMass[i] * MassIncrease;
 	ToGrids[subgrid]->ParticleNumber[n] = ParticleNumber[i];
+    ToGrids[subgrid]->ParticleType[n] = ParticleType[i];
 	for (dim = 0; dim < GridRank; dim++) {
 	 ToGrids[subgrid]->ParticlePosition[dim][n] = ParticlePosition[dim][i];
 	 ToGrids[subgrid]->ParticleVelocity[dim][n] = ParticleVelocity[dim][i];

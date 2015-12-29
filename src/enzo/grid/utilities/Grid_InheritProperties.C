@@ -25,13 +25,14 @@
 #include "ExternalBoundary.h"
 #include "Grid.h"
  
-void grid::InheritProperties(grid *ParentGrid)
+void grid::InheritProperties(grid *ParentGrid, int level)
 {
  
   /*  Set rank and current time */
  
-  GridRank = ParentGrid->GridRank;
-  Time     = ParentGrid->Time;
+  GridRank  = ParentGrid->GridRank;
+  Time      = ParentGrid->Time;
+  GridLevel = level;
  
   /*  Baryons only: set up field quantities and allocate fields
        (we assume here the grid is uniform in each dimension) */
@@ -42,6 +43,8 @@ void grid::InheritProperties(grid *ParentGrid)
  
   for (int field = 0; field < NumberOfBaryonFields; field++)
     FieldType[field]      = ParentGrid->FieldType[field];
+
+  this->ReconstructFieldMapping();
  
   CourantSafetyNumber    = ParentGrid->CourantSafetyNumber;
   PPMFlatteningParameter = ParentGrid->PPMFlatteningParameter;

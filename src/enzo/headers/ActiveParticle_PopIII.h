@@ -1,11 +1,6 @@
 /***********************************************************************
 /
-/  AN EXAMPLE ACTIVE PARTICLE TYPE
-/
-/  written by: Matthew Turk
-/  date:       May, 2011
-/
-/  PURPOSE:
+/  A particle that represents a Pop III star.
 /
 ************************************************************************/
 
@@ -14,9 +9,6 @@
 #endif 
 
 #include "preincludes.h"
-#include "hdf5.h"
-#include "h5utilities.h"
-
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -49,7 +41,8 @@ public:
   template <class active_particle_class>
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int ThisLevel, bool CallEvolvePhotons, 
+				 int TotalStarParticleCountPrevious[],
 				 int PopIIIParticleID) { return SUCCESS; };
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,

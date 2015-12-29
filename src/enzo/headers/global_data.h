@@ -148,6 +148,7 @@ EXTERN int FastSiblingLocatorEntireDomain;
 			 11 = FlagCellsToBeRefinedByResistiveLength
                          12 = FlagCellsToBeRefinedByMustRefineRegion
 			 13 = FlagCellsToBeRefinedByMetallicity
+       15 = FlagCellsToBeRefinedBySecondDerivative
  */
 
 EXTERN int CellFlaggingMethod[MAX_FLAGGING_METHODS];
@@ -235,6 +236,20 @@ EXTERN FLOAT RefineRegionLeftEdge[MAX_DIMENSION],
              RefineRegionRightEdge[MAX_DIMENSION];
 EXTERN int RefineRegionAutoAdjust;
 
+EXTERN int MultiRefineRegion;
+EXTERN FLOAT MultiRefineRegionLeftEdge[MAX_STATIC_REGIONS][MAX_DIMENSION], 
+             MultiRefineRegionRightEdge[MAX_STATIC_REGIONS][MAX_DIMENSION];
+EXTERN int MultiRefineRegionGeometry[MAX_STATIC_REGIONS];
+EXTERN FLOAT MultiRefineRegionCenter[MAX_STATIC_REGIONS][MAX_DIMENSION];
+EXTERN FLOAT MultiRefineRegionOrientation[MAX_STATIC_REGIONS][MAX_DIMENSION];
+EXTERN FLOAT MultiRefineRegionRadius[MAX_STATIC_REGIONS];
+EXTERN FLOAT MultiRefineRegionWidth[MAX_STATIC_REGIONS];
+EXTERN int MultiRefineRegionMaximumLevel[MAX_STATIC_REGIONS];
+EXTERN int MultiRefineRegionMinimumLevel[MAX_STATIC_REGIONS];
+EXTERN int MultiRefineRegionMaximumOuterLevel;
+EXTERN int MultiRefineRegionMinimumOuterLevel;
+EXTERN FLOAT MultiRefineRegionStaggeredRefinement[MAX_STATIC_REGIONS];
+
 /* Uniform gravity: on/off flag, direction, and strength. */
 
 EXTERN int UniformGravity, UniformGravityDirection;
@@ -291,6 +306,14 @@ EXTERN int ComputePotential;
 /* Flag to indicate output for gravitational potential field. */
 
 EXTERN int WritePotential;
+
+/* Parameter to control how particles in a subgrid are deposited in
+   the target grid.  Options are: 
+     CIC_DEPOSIT - cloud in cell using cloud size equal to target grid size
+     CIC_DEPOSIT_SMALL - CIC using cloud size equal to source grid size
+     NGP_DEPOSIT - nearest grid point */
+
+EXTERN int ParticleSubgridDepositMode;
 
 /* Maximum number of GreensFunctions that will be stored in any time.
    This number must be less than MAX_NUMBER_OF_GREENS_FUNCTIONS. */
@@ -458,6 +481,7 @@ EXTERN int First_Pass;
 EXTERN int UnigridTranspose;
 EXTERN int NumberOfRootGridTilesPerDimensionPerProcessor;
 EXTERN int CosmologySimulationNumberOfInitialGrids;
+EXTERN int UserDefinedRootGridLayout[3];
 
 /* Parameters that control density dex output */
 
@@ -543,6 +567,11 @@ EXTERN float MustRefineParticlesMinimumMass;
 
 EXTERN float MinimumShearForRefinement;
 
+/* For CellFlaggingMethod = 9,   
+   Whether to use the old method for calculating shear refinement.    */
+
+EXTERN int OldShearMethod;
+
 /* For CellFlaggingMethod = 11,
    The number of cells by which the Resistive length abs(B)/abs(curl(B)) 
    should be resolved. */
@@ -555,6 +584,12 @@ EXTERN float RefineByResistiveLengthSafetyFactor;
 EXTERN float ShockwaveRefinementMinMach;
 EXTERN float ShockwaveRefinementMinVelocity;
 EXTERN int ShockwaveRefinementMaxLevel;
+
+/* For CellFlaggingMethod = 15,   
+   Minimum second derivative required for refinement.    */
+EXTERN float MinimumSecondDerivativeForRefinement[MAX_FLAGGING_METHODS];
+EXTERN int SecondDerivativeFlaggingFields[MAX_FLAGGING_METHODS];
+EXTERN float SecondDerivativeEpsilon;
 
 /* Noh problem switch: Upper-Right quadrant or full domain */
 
@@ -598,6 +633,7 @@ EXTERN char  *CubeDumps[MAX_CUBE_DUMPS];
 /* Parameters governing whether tracer particles are on or off. */
 
 EXTERN int   TracerParticleOn;
+EXTERN int   TracerParticleOutputVelocity;
 EXTERN FLOAT TracerParticleCreationSpacing;
 EXTERN FLOAT TracerParticleCreationLeftEdge[MAX_DIMENSION];
 EXTERN FLOAT TracerParticleCreationRightEdge[MAX_DIMENSION];
@@ -854,11 +890,16 @@ EXTERN RadiativeTransferSpectrumTableType RadiativeTransferSpectrumTable;
 #endif /* TRANSFER  */
 
 EXTERN int LevelCycleCount[MAX_DEPTH_OF_HIERARCHY];
+EXTERN int LevelSubCycleCount[MAX_DEPTH_OF_HIERARCHY];
+EXTERN float dtRebuildHierarchy[MAX_DEPTH_OF_HIERARCHY];
+EXTERN float TimeSinceRebuildHierarchy[MAX_DEPTH_OF_HIERARCHY];
 EXTERN float dtThisLevelSoFar[MAX_DEPTH_OF_HIERARCHY];
 EXTERN float dtThisLevel[MAX_DEPTH_OF_HIERARCHY];
 
 /* RebuildHierarchy on this level every N cycles. */
 EXTERN int RebuildHierarchyCycleSkip[MAX_DEPTH_OF_HIERARCHY];
+EXTERN int ConductionDynamicRebuildHierarchy;
+EXTERN int ConductionDynamicRebuildMinLevel;
 
 /* Coupled radiative transfer, cooling, and rate solver */
 EXTERN int RadiativeTransferCoupledRateSolver;
@@ -892,7 +933,7 @@ EXTERN float VelocityGradient;
 EXTERN int ShearingBoundaryDirection;
 EXTERN int ShearingVelocityDirection;
 EXTERN int ShearingOtherDirection;
-EXTERN int useMHD;
+EXTERN int UseMHD;
 EXTERN FLOAT TopGridDx[MAX_DIMENSION];
 EXTERN int ShearingBoxProblemType; // 0 = advecting sphere; 1 = shearing box; 2 = vortex wave ; 3 = stratified
 
@@ -907,6 +948,7 @@ EXTERN int MoveParticlesBetweenSiblings;
 
 EXTERN int ParticleSplitterIterations;
 EXTERN float ParticleSplitterChildrenParticleSeparation;
+EXTERN int ParticleSplitterRandomSeed;
 
 /* Magnetic Field Resetter */
 
@@ -939,6 +981,7 @@ EXTERN int AnisotropicConduction;  // TRUE OR FALSE
 EXTERN float IsotropicConductionSpitzerFraction;  // f_Spitzer
 EXTERN float AnisotropicConductionSpitzerFraction;  // f_Spitzer
 EXTERN float ConductionCourantSafetyNumber;
+EXTERN int SpeedOfLightTimeStepLimit; // TRUE OR FALSE
 
 class ActiveParticleType_info;
 
@@ -964,6 +1007,31 @@ EXTERN float ClusterSMBHEnoughColdGas;  // To turn jet on, in SolarMass
 EXTERN float ClusterSMBHAccretionTime;  // Used only when CalculateGasMass=2
 EXTERN int ClusterSMBHJetDim;  // Jet dimension
 EXTERN float ClusterSMBHAccretionEpsilon;  // Edot=epsilon*Mdot(accreted/removed)*c^2
+
+EXTERN int MHDCT_debug_flag;
+EXTERN int MHDCTSlopeLimiter;
+EXTERN int MHDCTDualEnergyMethod;
+EXTERN int MHDCTPowellSource;
+EXTERN int MHDCTUseSpecificEnergy;
+EXTERN float FixedTimestep;
+EXTERN int WriteBoundary;
+EXTERN int WriteAcceleration;
+EXTERN int TracerParticlesAddToRestart;// forces addition of tracer particles to already initialized simulations
+EXTERN int MHD_ProjectThisFace[3]; //Used for determining face projection/communication needs for 
+                                   //face centered fields
+EXTERN float CT_AthenaDissipation;
+EXTERN int MHD_WriteElectric;
+EXTERN float tiny_pressure;
+EXTERN int MHD_CT_Method;
+EXTERN int MHD_ProjectB;// Should always be FALSE for the evoloution. May be used in initialization.
+EXTERN int MHD_ProjectE;// Should always be TRUE for the evoloution
+EXTERN int UseMHDCT;
+EXTERN int EquationOfState;
+EXTERN char *MHDLabel[3];
+EXTERN char *MHDcLabel[3];
+EXTERN char *MHDUnits[3];
+EXTERN char *MHDeLabel[3];
+EXTERN char *MHDeUnits[3];
 
 /* For the database */
 EXTERN char *DatabaseLocation;

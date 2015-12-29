@@ -10,9 +10,6 @@
 ************************************************************************/
 
 #include "preincludes.h"
-#include "hdf5.h"
-#include "h5utilities.h"
-
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -47,7 +44,8 @@ public:
   template <class active_particle_class>
     static int BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
 				 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-				 int ThisLevel, int TotalStarParticleCountPrevious[],
+				 int ThisLevel, bool CallEvolvePhotons,
+				 int TotalStarParticleCountPrevious[],
 				 int GalaxyParticleID);
   template <class active_particle_class>
     static int AfterEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
@@ -73,16 +71,7 @@ public:
 		     FLOAT period[3]);
   
   static std::vector<ParticleAttributeHandler *> AttributeHandlers;
-
-  // Need this to make active particle ID work correctly.
-  int GetEnabledParticleID(int myid = -1) {
-    static int ParticleID = -1;
-    if (myid >= 0) {
-      if (ParticleID != -1) ENZO_FAIL("Setting Particle ID Twice!");
-      ParticleID = myid;
-    }
-    return ParticleID;
-  };
+  ENABLED_PARTICLE_ID_ACCESSOR
   
   // Galaxy Particle specific stuff.
   float Radius;
@@ -98,9 +87,10 @@ int AssignActiveParticlesToGrids(ActiveParticleType** ParticleList, int nParticl
 
 template <class active_particle_class>
 int ActiveParticleType_GalaxyParticle::BeforeEvolveLevel(HierarchyEntry *Grids[], TopGridData *MetaData,
-							    int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
-							    int ThisLevel, int TotalStarParticleCountPrevious[],
-							    int GalaxyParticleID)
+							 int NumberOfGrids, LevelHierarchyEntry *LevelArray[], 
+							 int ThisLevel, bool CallEvolvePhotons,
+							 int TotalStarParticleCountPrevious[],
+							 int GalaxyParticleID)
 {
 
   return SUCCESS;

@@ -46,6 +46,16 @@ grid::~grid()
   /* exit(EXIT_FAILURE); */
   }
 #endif /* UNUSED */
+
+  // Field Registry
+
+  FieldRegistry::iterator iter;
+  for (iter = this->Fields.begin();
+       iter != this->Fields.end(); ++iter) {
+    if (iter->second != NULL) {
+      delete (iter->second);
+    }
+  }
  
   for (i = 0; i < MAX_DIMENSION; i++) {
     delete [] CellLeftEdge[i];
@@ -88,6 +98,8 @@ grid::~grid()
   delete [] FlaggingField;
   delete [] MassFlaggingField;
   delete [] ParticleMassFlaggingField;
+
+  delete [] ActiveParticles;
  
   for (i = 0; i < MAX_NUMBER_OF_PARTICLE_ATTRIBUTES; i++)
     delete [] ParticleAttribute[i];
@@ -124,5 +136,38 @@ grid::~grid()
     WriteListOfInts(stdout, GridRank, GridDimension);
   }
 */
+
+  //MHD stuff 
  
+  if( UseMHDCT ){
+    for(i=0;i<3;i++){
+
+      if(MagneticField[i] != NULL ){
+	delete MagneticField[i];
+	MagneticField[i] = NULL;
+      }
+      if(OldMagneticField[i] != NULL ){
+	delete OldMagneticField[i];
+	OldMagneticField[i] = NULL;
+      }
+
+      if( CenteredB[i] != NULL ){
+	delete CenteredB[i];
+	CenteredB[i] = NULL;
+      }
+
+      if(ElectricField[i] != NULL){
+	delete ElectricField[i];
+	ElectricField[i] = NULL;
+      }
+
+      if(AvgElectricField[i] != NULL){
+	delete AvgElectricField[i];
+	AvgElectricField[i] = NULL;
+      }
+
+    }
+
+  }
+
 }

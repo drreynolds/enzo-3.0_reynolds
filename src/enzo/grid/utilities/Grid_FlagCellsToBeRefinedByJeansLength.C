@@ -139,7 +139,7 @@ int grid::FlagCellsToBeRefinedByJeansLength()
   /* clean up */
  
   if (ProblemType != 60 && ProblemType != 61) //AK
-    delete temperature;
+    delete [] temperature;
  
   /* Count number of flagged Cells. */
  

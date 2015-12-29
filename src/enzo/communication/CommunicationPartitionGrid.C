@@ -104,45 +104,34 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
   }
 */
 
-  int Nnodes = NumberOfProcessors;
-  int Ndims = Rank;
-  int LayoutDims[] = {0, 0, 0};
-  int NumberOfGrids;
-
-  if (Enzo_Dims_create(Nnodes, Ndims, LayoutDims) != SUCCESS) {
-    ENZO_FAIL("Error in Enzo_Dims_create.");
+  /* If defined, use user defined Processor Topology. */
+  if( UserDefinedRootGridLayout[0] != INT_UNDEFINED &&
+      UserDefinedRootGridLayout[1] != INT_UNDEFINED &&
+      UserDefinedRootGridLayout[2] != INT_UNDEFINED ){
+    for (dim = 0; dim < Rank; dim++) {
+      Layout[dim] = UserDefinedRootGridLayout[dim];
+    }
   }
+  else {
+    int Nnodes = NumberOfProcessors;
+    int Ndims = Rank;
+    int LayoutDims[] = {0, 0, 0};
 
-  for (dim = 0; dim < Rank; dim++)
-    LayoutTemp[dim] = LayoutDims[dim];
- 
-  /* Swap layout because we want smallest value to be at Layout[0]. */
- 
-  NumberOfGrids = 1;
-  for (dim = 0; dim < Rank; dim++) {
-    Layout[dim] = LayoutTemp[Rank-1-dim] * NumberOfRootGridTilesPerDimensionPerProcessor;
-    NumberOfGrids *= Layout[dim];
+    if (Enzo_Dims_create(Nnodes, Ndims, LayoutDims) != SUCCESS) {
+      ENZO_FAIL("Error in Enzo_Dims_create.");
+    }
+
+    for (dim = 0; dim < Rank; dim++) {
+      LayoutTemp[dim] = LayoutDims[dim];
+    }
+
+    /* Swap layout because we want smallest value to be at Layout[0]. */
+    for (dim = 0; dim < Rank; dim++) {
+      Layout[dim] = LayoutTemp[Rank-1-dim] *
+        NumberOfRootGridTilesPerDimensionPerProcessor;
+    }
+
   }
- 
-  /* Force some distributions if the default is brain-dead. */
-
-/*
-  if (Rank == 3 && NumberOfProcessors == 8)
-    for (dim = 0; dim < Rank; dim++)
-      Layout[dim] = 2;
-
-  if (Rank == 3 && NumberOfProcessors == 64)
-    for (dim = 0; dim < Rank; dim++)
-      Layout[dim] = 4;
-
-  if (Rank == 3 && NumberOfProcessors == 125)
-    for (dim = 0; dim < Rank; dim++)
-      Layout[dim] = 5;
- 
-  if (Rank == 3 && NumberOfProcessors == 216)
-    for (dim = 0; dim < Rank; dim++)
-      Layout[dim] = 6;
-*/
 
   if (MyProcessorNumber == ROOT_PROCESSOR) {
     fprintf(stderr, "ENZO_layout %"ISYM" x %"ISYM" x %"ISYM"\n", Layout[0], Layout[1], Layout[2]);
@@ -257,7 +246,7 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
     } // ENDELSE ThisLevel == 1
 
     if (ParentGridNum == INT_UNDEFINED) {
-      ENZO_VFAIL("CommunicationPartitionGrid: grid %d (%d), Parent not found?\n",
+      ENZO_VFAIL("CommunicationPartitionGrid: grid %"ISYM" (%"ISYM"), Parent not found?\n",
 	      gridnum, ThisLevel)
     }
 
@@ -450,7 +439,7 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
  
 	NewGrid = new grid;
 	ThisGrid->GridData = NewGrid;
-	NewGrid->InheritProperties(OldGrid);
+	NewGrid->InheritProperties(OldGrid, OldGrid->GetLevel());
 	NewGrid->SetGravityParameters(OldGrid->ReturnGravityBoundaryType());
  
 	/* Compute grid region. */
@@ -609,65 +598,6 @@ int CommunicationPartitionGrid(HierarchyEntry *Grid, int gridnum)
       }
 
   CommunicationBarrier();
-
-  /* Link level 1 grids to the partitioned grids.  Before
-     partitioning, all level 1 grids are linked to the first root
-     grid.  */
-
-  bool match;
-  FLOAT GridCenter[MAX_DIMENSION];
-
-  // head node of list containing all level-1 grids.
-  HierarchyEntry *ChildGrid = Grid->NextGridNextLevel; // save before erasing
-  HierarchyEntry *RootGrid = NULL;
-  HierarchyEntry *SavedGrid = NULL;
-
-  // level 0
-  for (TempGrid = Grid; TempGrid; TempGrid = TempGrid->NextGridThisLevel) {
-    TempGrid->NextGridNextLevel = NULL;
-    TempGrid->ParentGrid = NULL;
-  }
-
-  // level 1
-  for (TempGrid = ChildGrid; TempGrid; TempGrid = TempGrid->NextGridThisLevel) {
-    TempGrid->ParentGrid = NULL;
-  }
-
-  while (ChildGrid != NULL) {
-    ChildGrid->GridData->ReturnGridInfo(&Rank, Dims, LeftEdge, RightEdge);
-    for (dim = 0; dim < Rank; dim++)
-      GridCenter[dim] = 0.5 * (LeftEdge[dim] + RightEdge[dim]);
-
-    // Look for parents
-    for (RootGrid = Grid; RootGrid; RootGrid = RootGrid->NextGridThisLevel) {
-      RootGrid->GridData->ReturnGridInfo(&Rank, Dims, LeftEdge, RightEdge);
-      match = true;
-      for (dim = 0; dim < Rank; dim++)
-	match &= (GridCenter[dim] >= LeftEdge[dim]) &&
-	  (GridCenter[dim] <= RightEdge[dim]);
-
-      // If the child grid's center is contained in the parent grid,
-      // then insert the hierarchy entry in the linked list of
-      // subgrids of the root grid under consideration
-      if (match) {
-	SavedGrid = ChildGrid->NextGridThisLevel;
-	ChildGrid->ParentGrid = RootGrid;
-	if (RootGrid->NextGridNextLevel != NULL)
-	  ChildGrid->NextGridThisLevel = RootGrid->NextGridNextLevel;
-	else
-	  ChildGrid->NextGridThisLevel = NULL;
-	RootGrid->NextGridNextLevel = ChildGrid;
-	if (ChildGrid->NextGridThisLevel != NULL)
-	  if (ChildGrid->NextGridThisLevel->ParentGrid != ChildGrid->ParentGrid)
-	    ENZO_FAIL("ERROR: Grid hierarchy is inconsistent after top grid partition");
-	break;
-      } // ENDIF match
-
-    } // ENDFOR root grids
-    
-    ChildGrid = SavedGrid;
-
-  } // ENDWHILE child grids
 
   /* Clean up. */
 

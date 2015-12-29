@@ -85,7 +85,10 @@ grid *EnzoProblemType::CreateNewUniformGrid(
 				float UniformBField[])
 {
     grid *grid_data = new grid;
-    grid_data->InheritProperties(ParentGrid);
+    int lev = 0;
+    if (ParentGrid != NULL)
+      lev = ParentGrid->GetLevel()+1;
+    grid_data->InheritProperties(ParentGrid, lev);
     grid_data->PrepareGrid(Rank, Dimensions, LeftEdge, RightEdge,
             NumParticles);
     this->InitializeUniformGrid(grid_data,
@@ -249,10 +252,10 @@ int EnzoProblemType::InitializeUniformGrid(
  
   /* allocate fields */
  
-  for (field = 0; field < tg->NumberOfBaryonFields; field++)
-    if (tg->BaryonField[field] == NULL)
-      tg->BaryonField[field] = new float[size];
- 
+  // for (field = 0; field < tg->NumberOfBaryonFields; field++)
+  //   if (tg->BaryonField[field] == NULL)
+  //     tg->BaryonField[field] = new float[size];
+  tg->AllocateGrids();  
   /* set density, total energy */
  
   for (i = 0; i < size; i++) {

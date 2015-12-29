@@ -12,6 +12,7 @@ ENZO_OBJS +=\
 	BlockSolve.o \
 	CalcEmiss.o \
 	FLDCorrectForImpulses.o \
+    FreezeRateData.o \
 	FSProb_ComputeOpacityLW.o \
 	FSProb_Dump.o \
 	FSProb_EnforceBoundary.o \
@@ -72,6 +73,7 @@ ENZO_OBJS +=\
 	gFLDSplit_Dump.o \
 	gFLDSplit_EnforceBoundary.o \
 	gFLDSplit_Evolve.o \
+    gFLDSplit_FillRates.o \
 	gFLDSplit_FInterface.o \
 	gFLDSplit_GasEnergySource.o \
 	gFLDSplit_InitialGuess.o \
@@ -121,6 +123,7 @@ ENZO_OBJS +=\
 	ffte_st1.o \
 	fourn.o \
 	grid_cic.o \
+    grid_ngp.o \
 	ibm_fft64.o \
 	ibm_st1_fft64.o \
 	mg_calc_defect.o \
@@ -129,6 +132,7 @@ ENZO_OBJS +=\
 	mg_relax.o \
 	mg_restrict.o \
 	mkl_st1.o \
+    ngp_deposit.o \
 	nr_1d.o \
 	nr_2d.o \
 	nr_3d.o \
@@ -161,6 +165,8 @@ ENZO_OBJS +=\
 	CreateFluxes.o \
 	DeleteFluxes.o \
 	FinalizeFluxes.o \
+    MHDCTSetupFieldLabels.o \
+    MHDCT_ParameterJuggle.o \
 	ZeusSource.o \
 	ZeusUtilities.o \
 	Zeus_xTransport.o \
@@ -182,9 +188,19 @@ ENZO_OBJS +=\
 	intrmp.o \
 	intvar.o \
 	lgrg.o \
+    mhd_dt.o \
+    mhd_hlld_adiabatic.o \
+    mhd_hlld_isothermal.o \
+    mhd_interpolate.o \
+    mhd_li.o \
+    mhd_li_ms.o \
+    pde1dsolver_mhd.o \
+    pde1dsolver_mhd_NewMS.o \
+    pde1dsolver_mhd_ms.o \
 	pgas2d.o \
 	pgas2d_dual.o \
 	remap.o \
+    riemann_mhd.o \
 	twoshock.o \
 
 # ENZO BUILD SYSTEM DIRECTORY MODULE
@@ -206,6 +222,7 @@ ENZO_OBJS +=\
 	InitializeCloudyCooling.o \
 	InitializeEquilibriumCoolData.o \
 	InitializeGadgetEquilibriumCoolData.o \
+    InitializeHM12Photorates.o \
 	InitializeLymanWernerTable.o \
 	InitializeRadiationFieldData.o \
 	InitializeRateData.o \

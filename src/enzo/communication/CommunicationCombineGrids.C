@@ -71,7 +71,8 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
   /* Generate a new grid. */
  
   NewHierarchy->GridData = new grid;
-  NewHierarchy->GridData->InheritProperties(OldHierarchy->GridData);
+  NewHierarchy->GridData->InheritProperties(OldHierarchy->GridData,
+					    OldHierarchy->GridData->GetLevel());
   NewHierarchy->GridData->SetGravityParameters(
 		       OldHierarchy->GridData->ReturnGravityBoundaryType());
   NewHierarchy->GridData->PrepareGrid(Rank, NewDims, DomainLeftEdge,
@@ -94,6 +95,16 @@ int CommunicationCombineGrids(HierarchyEntry *OldHierarchy,
 	              + SendOffset[dim];
     }
  
+    //Sometimes E isn't created by the time this code is run.Ensure it is.
+
+    if(UseMHDCT == TRUE  && MyProcessorNumber == OldGrid->ReturnProcessorNumber() ){
+      for(int field=0;field<3;field++)
+        if( OldGrid->ElectricField[field] == NULL ){
+          OldGrid->ElectricField[field] = new float[OldGrid->ElectricSize[field]];
+          for(int i=0;i<OldGrid->ElectricSize[field];i++)
+            OldGrid->ElectricField[field][i]=0.0;
+        }
+    }
     /* Copy grid region. */
  
     int RecvType = ((WriteTime < 0) && (RestartDump == FALSE)) ? 

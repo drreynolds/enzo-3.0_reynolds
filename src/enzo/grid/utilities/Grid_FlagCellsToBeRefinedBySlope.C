@@ -145,7 +145,7 @@ int grid::FlagCellsToBeRefinedBySlope()
  
   /* delete buffer */
  
-  delete TempBuffer;
+  delete [] TempBuffer;
  
   /* Count number of flagged Cells. */
  

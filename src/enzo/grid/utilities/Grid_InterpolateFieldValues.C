@@ -37,6 +37,21 @@ extern "C" void FORTRAN_NAME(interpolate)
 			      float *field, int dim[], int is[], float *work,
 			      interpolation_type *imethod, int *posflag,
 			      int *ierror);
+
+extern "C" void FORTRAN_NAME(mhd_interpolate)
+                               (float *parentx, float *parenty, float *parentz,
+				int parentdim[], int refine[],
+				float * childx, float * childy, float *childz,
+				int childdim[], int childstart[], int refinedim[],
+				float * otherbx, float * otherby, float * otherbz,
+				int otherdim[], int otherstart[],
+				float* DyBx, float* DzBx, float* DyzBx,
+				float* DxBy, float* DzBy, float* DxzBy,
+				float* DxBz, float* DyBz, float* DxyBz,
+				int* DBxFlag,int* DByFlag,int* DBzFlag,
+				FLOAT *cellsizex, FLOAT *cellsizey, FLOAT *cellsizez,
+                                int *face, int * step, int * counter);
+
 extern "C" void FORTRAN_NAME(copy3d)(float *source, float *dest,
 				     int *sdim1, int *sdim2, int *sdim3,
 				     int *ddim1, int *ddim2, int *ddim3,
@@ -65,8 +80,10 @@ extern "C" void FORTRAN_NAME(combine3d)(
 int MakeFieldConservative(field_type field); 
 
 /* InterpolateBoundaryFromParent function */
- 
-int grid::InterpolateFieldValues(grid *ParentGrid)
+
+int grid::InterpolateFieldValues(grid *ParentGrid
+        , LevelHierarchyEntry * OldFineLevel, TopGridData * MetaData
+        )
 {
  
   /* set grid time to the parent grid time */
@@ -107,8 +124,10 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
  
     int densfield;
     if ((densfield=FindField(Density, FieldType, NumberOfBaryonFields)) < 0) {
-      ENZO_FAIL("No density field!\n");
+      ENZO_FAIL("No density field!");
     }
+    FieldRegistry::iterator iter;
+    FieldDescriptor *parent_dens = ParentGrid->Fields["Density"];
  
     /* Set up array of flags if we are using SecondOrderB interpolation
        method.  These flags indicate if the quantity must always by > 0.
@@ -272,7 +291,7 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
     /* Multiply ParentTemp fields by their own density to get conserved
        quantities. */
  
-    if (ConservativeInterpolation)
+    if (ConservativeInterpolation) {
       for (field = 0; field < NumberOfBaryonFields; field++){
 	if (MakeFieldConservative( FieldType[field] ) ){
 	  FORTRAN_NAME(mult3d)(ParentTemp[densfield], ParentTemp[field],
@@ -281,6 +300,13 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
                                &Zero, &Zero, &Zero, &Zero, &Zero, &Zero);
     }
       }
+        /*
+        for (iter = ParentGrid->Fields.begin(); iter != ParentGrid->Fields.end(); ++iter) {
+          if (iter->second->GetInterpolationMethod() == MultiplyByDensity)
+            iter->second->Multiply(parent_dens);
+        }
+           */
+    }
     
     /* Do the interpolation for the density field. */
  
@@ -313,7 +339,7 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
 		 this->GridLeftEdge[0], this->GridLeftEdge[1], 
 		 this->GridLeftEdge[2], this->GridRightEdge[0], 
 	     this->GridRightEdge[1], this->GridRightEdge[2]);
-      ENZO_FAIL("");
+      ENZO_FAIL("interpolation error");
     }
 
  
@@ -363,14 +389,14 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
 		     this->GridLeftEdge[0], this->GridLeftEdge[1], 
 		 this->GridLeftEdge[2], this->GridRightEdge[0],
 		 this->GridRightEdge[1], this->GridRightEdge[2]);
-	  ENZO_FAIL("");
+	  ENZO_FAIL("interpolation error");
 	}
       }
  
       /* Divide by density field to convert from conserved to physical
          variables (skipping density). */
  
-      if (ConservativeInterpolation)
+      if (ConservativeInterpolation) {
 	if (MakeFieldConservative( FieldType[field] ) ){
 	  FORTRAN_NAME(div3d)(TemporaryDensityField, TemporaryField,
 			      &TempSize, &One, &One,
@@ -378,6 +404,14 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
 			      &Zero, &Zero, &Zero, &Zero, &Zero, &Zero,
 			      &Zero, &Zero, &Zero, &TempSize, &Zero, &Zero);
     }
+
+        /*
+        for (iter = this->Fields.begin(); iter != this->Fields.end(); ++iter) {
+          if (iter->second->GetInterpolationMethod() == MultiplyByDensity)
+            iter->second->Divide(fd_dens);
+        }
+        */
+      }
       
       /* Set FieldPointer to either the correct field (density or the one we
 	 just interpolated to). */
@@ -401,6 +435,190 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
 			   Offset, Offset+1, Offset+2);
  
     } // end loop over fields
+
+    if(UseMHDCT){
+      int MHDParentTempDims[3][3], MHDChildTempDims[3][3];
+
+      float *MHDChildTemp[3], *dummy = new float;
+      
+      int MHDParentTempSize[3]={1,1,1}, MHDChildTempSize[3]={1,1,1}, One[3] = {1,1,1};
+      int i;
+      int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num;      
+      
+      *dummy = 1;
+      for( field=0;field<3;field++ ){
+
+	//save these values for use in the prolongation,
+	//called from Grid_CopyZonesFromGrid
+	MHDParentTempPermanent[field] = ParentTempDim[field];
+	MHDRefinementFactors[field] = Refinement[field];
+        ParentDx =ParentGrid->CellWidth[0][0];
+	ParentDy =ParentGrid->CellWidth[1][0];
+	ParentDz =ParentGrid->CellWidth[2][0];
+
+
+	for(dim=0;dim<3;dim++){
+	  MHDParentTempDims[field][dim] = ParentTempDim[dim]+MHDAdd[field][dim];
+	  MHDChildTempDims[field][dim] = TempDim[dim] + MHDAdd[field][dim];
+	  MHDParentTempSize[field] *= MHDParentTempDims[field][dim];
+	  MHDChildTempSize[field] *= MHDChildTempDims[field][dim];
+	  
+	}
+	//	fprintf(stderr, "Parent Temp Size %d \n ", MHDParentTempSize[field] );
+	
+	if(MHDParentTemp[field] != NULL ) 
+	  delete MHDParentTemp[field];
+	
+	MHDParentTemp[field] = new float[ MHDParentTempSize[field] ];
+	MHDChildTemp[field] = new float[ MHDChildTempSize[field] ];
+
+	if( CenteredB[field] == NULL ) 
+	  CenteredB[field] = new float[GridSize];
+
+	if( MagneticField[field] == NULL )
+	  MagneticField[field] = new float[ MagneticSize[field] ];
+	
+
+	for(i=0;i<GridSize;i++) CenteredB[field][i] = 1.0;
+	for(i=0;i<MagneticSize[field]; i++) MagneticField[field][i] = 1.0;
+	for(i=0;i<MHDParentTempSize[field];i++) MHDParentTemp[field][i] = 1.0;
+	for(i=0;i<MHDChildTempSize[field];i++) MHDChildTemp[field][i] = 1.0;
+
+	FORTRAN_NAME(copy3d)(ParentGrid->MagneticField[field], MHDParentTemp[field],
+			     ParentGrid->MagneticDims[field], 
+			     ParentGrid->MagneticDims[field]+1, 
+			     ParentGrid->MagneticDims[field]+2,
+			     MHDParentTempDims[field], 
+			     MHDParentTempDims[field]+1, 
+			     MHDParentTempDims[field]+2,
+			     &Zero,&Zero,&Zero,
+			     ParentStartIndex, ParentStartIndex+1,
+			     ParentStartIndex+2);
+      }//field loop
+    
+      //Dimensions passed in refer to cell centered quantities.  This is done to 
+      //minimize variables called. 
+
+      //Allocates space for DxyBz, etc, derivatives.  The derivatives are currently not
+      //used in this stage, but space should be allocated anyway.  They will be used in 
+      //the prolongation stuff later.
+
+      MHD_ProlongAllocate(TempDim);
+      MHD_DCheck(TempDim, "one");
+
+      //mhd_interpolate used to take derivatives and do the rest of the interpolation 
+      //at the same time, right here.  I then realized that I needed all derivatives from all
+      //old fine grids before the new fine grid is actually filled.  
+      //So now the code is called twice, with the flag "step" to split this one routine into two.
+
+      //Allocate derivatives on the parent grid.
+      int Step = 1;
+      int mhd_interpolate_face = 0;
+      FORTRAN_NAME(mhd_interpolate)(MHDParentTemp[0], MHDParentTemp[1], MHDParentTemp[2],
+				    ParentTempDim,    Refinement,
+				    MHDChildTemp[0], MHDChildTemp[1], MHDChildTemp[2],
+				    TempDim, ZeroVector, TempDim, 
+				    dummy, dummy, dummy, One, One,
+				      DyBx, DzBx, DyzBx,
+				      DxBy, DzBy, DxzBy,
+				      DxBz, DyBz, DxyBz,
+				    DBxFlag,DByFlag,DBzFlag,
+				    ParentGrid->CellWidth[0], 
+				    ParentGrid->CellWidth[1], 
+				    ParentGrid->CellWidth[2],
+				    &mhd_interpolate_face, &Step, &Step);
+
+      
+      if( MHD_DCheck(TempDim, "1") == FAIL )
+	ENZO_FAIL("Error:  fail at mhd_interpolate, MHD_DCheck");
+
+
+
+      //calculate derivatives for the other, old fine grids.  
+      //This is equivalent to the Prolongation
+      //described in Balsara, but here we simply calculate all 
+      //fine grid derivatives and do a single
+      //interpolation.  This avoids any by-hand mucking about with grid 
+      //ownership of face centered
+      //variables, one of the primary concerns of the MHD 
+      //implementor. 
+
+      CommunicationDirection = COMMUNICATION_SEND_RECEIVE;
+      if( MHD_CID(OldFineLevel, MetaData, Offset, TempDim, Refinement) == FAIL )
+	ENZO_FAIL("Error: MHD_CID failed.");
+      if( MHD_DCheck(TempDim, "2") == FAIL )
+	ENZO_FAIL("Error: fail at second MHD_DCheck, after MHD_CID");
+
+
+      CommunicationDirection = COMMUNICATION_SEND_RECEIVE;
+      //Now do the actual interpolation with all derivatives found from all old fine grids and 
+	//the parent grid.
+
+      Step = 2;
+      for(field=0;field<3;field++)
+	for(i=0;i<MHDParentTempSize[field];i++){
+	  if( MHDParentTemp[field][i] != MHDParentTemp[field][i]  ){
+	    fprintf(stderr,"MHDParentTemp nan \n");
+	  }
+	}
+
+
+      for(field=0;field<3;field++)
+	for(i=0;i<MHDChildTempSize[field];i++)
+	  if( MHDChildTemp[field][i] != MHDChildTemp[field][i] )
+	    fprintf(stderr,"Error: nan. in MHDCHildTemp\n");
+
+      mhd_interpolate_face = 0;
+      FORTRAN_NAME(mhd_interpolate)(MHDParentTemp[0], MHDParentTemp[1], MHDParentTemp[2],
+				    ParentTempDim,    Refinement,
+				    MHDChildTemp[0], MHDChildTemp[1], MHDChildTemp[2],
+				    TempDim, ZeroVector, TempDim, 
+				    dummy, dummy, dummy, One, One,
+				      DyBx, DzBx, DyzBx,
+				      DxBy, DzBy, DxzBy,
+				      DxBz, DyBz, DxyBz,
+				    DBxFlag,DByFlag,DBzFlag,
+				    ParentGrid->CellWidth[0], 
+				    ParentGrid->CellWidth[1], 
+				    ParentGrid->CellWidth[2],
+				    &mhd_interpolate_face, &Step, &Step);
+
+      for(field=0;field<3;field++){
+	
+	for(i=0;i<MHDChildTempSize[field];i++)
+	  if( MHDChildTemp[field][i] != MHDChildTemp[field][i] )
+	    fprintf(stderr,"Nan in MHDChildTemp\n");
+      }//field
+
+      if( MHD_DCheck(TempDim, "I can't believe this thing doesnt work") == FAIL )
+	ENZO_FAIL("Failure in MHD_DCheck");
+
+      //free memory allocated for Interpolation Derivatives.
+      MHD_ProlongFree();
+
+      for(field=0;field<3;field++){
+	
+	FORTRAN_NAME(copy3d)(MHDChildTemp[field], this->MagneticField[field],
+		  MHDChildTempDims[field],MHDChildTempDims[field]+1,MHDChildTempDims[field]+2,
+		  MagneticDims[field],MagneticDims[field]+1,MagneticDims[field]+2,
+		  &Zero, &Zero, &Zero, 
+		  Offset, Offset+1, Offset+2);
+
+	delete [] MHDParentTemp[field];
+	MHDParentTemp[field] = NULL;
+	delete [] MHDChildTemp[field];
+
+
+
+      }//field
+      if (this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
+					   Vel3Num, TENum) == FAIL)
+	ENZO_FAIL("Error in IdentifyPhysicalQuantities.");
+
+      if( this->CenterMagneticField() == FAIL )
+	ENZO_FAIL("error with CenterMagneticField");
+      
+    }// UseMHDCT
  
     delete [] Work;
     delete [] TemporaryField;
@@ -415,7 +633,7 @@ int grid::InterpolateFieldValues(grid *ParentGrid)
  
     if (DualEnergyFormalism)
       if (this->RestoreEnergyConsistency(ENTIRE_REGION) == FAIL) {
-	ENZO_FAIL("Error in grid->RestoreEnergyConsisitency.\n");
+	ENZO_FAIL("Error in grid->RestoreEnergyConsistency.");
       }
       //      if (this->RestoreEnergyConsistency(ONLY_BOUNDARY) == FAIL) {
  

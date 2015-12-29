@@ -218,6 +218,14 @@ int MHD3DTestInitialize(FILE *fptr, FILE *Outfptr,
   if (DualEnergyFormalism) {
     DataLabel[count++] = (char*) GEName;
   }
+
+  if (HydroMethod == MHD_RK) {
+    DataLabel[count++] = (char*) BxName;
+    DataLabel[count++] = (char*) ByName;
+    DataLabel[count++] = (char*) BzName;
+    DataLabel[count++] = (char*) PhiName;
+  }
+
   if (MultiSpecies) {
     DataLabel[count++] = (char*) ElectronName;
     DataLabel[count++] = (char*) HIName;
@@ -236,13 +244,6 @@ int MHD3DTestInitialize(FILE *fptr, FILE *Outfptr,
       DataLabel[count++] = (char*) HDIName;
     }
   }  // if Multispecies
-
-  if (HydroMethod == MHD_RK) {
-    DataLabel[count++] = (char*) BxName;
-    DataLabel[count++] = (char*) ByName;
-    DataLabel[count++] = (char*) BzName;
-    DataLabel[count++] = (char*) PhiName;
-  }
 
   for (i = 0; i < count; i++)
     DataUnits[i] = NULL;

@@ -466,7 +466,8 @@ int NestedCosmologySimulationInitialize(FILE *fptr, FILE *Outfptr,
     // Create a new subgrid and initialize it
  
     Subgrid->GridData = new grid;
-    Subgrid->GridData->InheritProperties(Subgrid->ParentGrid->GridData);
+    Subgrid->GridData->InheritProperties(Subgrid->ParentGrid->GridData, 
+					 Subgrid->ParentGrid->GridData->GetLevel()+1);
     Subgrid->GridData->PrepareGrid(MetaData.TopGridRank,
 				   CosmologySimulationGridDimension[gridnum],
 				   CosmologySimulationGridLeftEdge[gridnum],

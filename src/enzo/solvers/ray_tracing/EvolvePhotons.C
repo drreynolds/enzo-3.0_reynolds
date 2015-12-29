@@ -75,7 +75,7 @@ int StarParticleFindAll(LevelHierarchyEntry *LevelArray[], Star *&AllStars);
 int SetSubgridMarker(TopGridData &MetaData, 
 		     LevelHierarchyEntry *LevelArray[], int level,
 		     int UpdateReplicatedGridsOnly);
-void PrintMemoryUsage(char *str);
+void PrintMemoryUsage(const char *str);
 void fpcol(Eflt64 *x, int n, int m, FILE *log_fptr);
 double ReturnWallTime();
 
@@ -221,7 +221,6 @@ int EvolvePhotons(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     if (RadiativeTransferLoadBalance) {
       CommunicationLoadBalancePhotonGrids(Grids, nGrids, 
 					  MetaData->FirstTimestepAfterRestart);
-      SetSubgridMarker(*MetaData, LevelArray, 1, TRUE);
     }
 
     /* Recalculate timestep if this isn't the first loop.  We already
@@ -532,6 +531,11 @@ int EvolvePhotons(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
     delete [] Grids0;
     delete [] Temp0;
 
+    /* Sync photon counts after ray tracing */
+
+    START_PERF();
+    CommunicationSyncNumberOfPhotons(LevelArray);
+    END_PERF(11);
 
     /* Delete baryon fields on temporary "fake" grid on
        ProcessorNumber and revert it back to OriginalProcessorNumber,
@@ -599,14 +603,6 @@ int EvolvePhotons(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
 	  }	
     
     debug = debug_store;
-
-    /* We don't rely on the count NumberOfPhotonPackages here, so they
-       aren't synchronized across processors.  But in RebuildHierarchy, 
-       this number is needed.  Synchronize them now. */
-
-    START_PERF();
-    CommunicationSyncNumberOfPhotons(LevelArray);
-    END_PERF(11);
 
     /* If we're using the HII restricted timestep, get the global
        maximum kph in I-fronts. */

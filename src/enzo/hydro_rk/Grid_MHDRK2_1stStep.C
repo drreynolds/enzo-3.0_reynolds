@@ -10,6 +10,7 @@
 ************************************************************************/
 
 #include "preincludes.h"
+#include "EnzoTiming.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -19,7 +20,6 @@
 #include "ExternalBoundary.h"
 #include "TopGridData.h"
 #include "Grid.h"
-
 
 double ReturnWallTime();
 
@@ -32,7 +32,6 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
     SubgridFluxes[NumberOfSubgrids]
   */
 {
-  //  printf("NumberOfBaryonFields=%"ISYM"\n", NumberOfBaryonFields);
   if (ProcessorNumber != MyProcessorNumber) {
     return SUCCESS;
   }
@@ -41,13 +40,21 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
     return SUCCESS;
   }
 
+  if (DualEnergyFormalism > 0) NEQ_MHD = 10;
+
+  TIMER_START("MHDRK2");
 #ifdef ECUDA
   if (UseCUDA) {
     this->CudaMHDRK2_1stStep(SubgridFluxes, NumberOfSubgrids, level, Exterior);
+    TIMER_STOP("MHDRK2");
     return SUCCESS;
   }
 #endif
 
+
+  int size = 1;
+  for (int dim = 0; dim < GridRank; dim++)
+    size *= GridDimension[dim];
   double time1 = ReturnWallTime();
   int igrid;
 
@@ -97,8 +104,6 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
     
   } // end of loop over subgrids
 
-  if (DualEnergyFormalism > 0) NEQ_MHD = 10;
-
   float *Prim[NEQ_MHD+NSpecies+NColor];
   this->ReturnHydroRKPointers(Prim, false); 
 
@@ -107,10 +112,6 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
 
   float *dU[NEQ_MHD+NSpecies+NColor];
 
-  int size = 1;
-  for (int dim = 0; dim < GridRank; dim++)
-    size *= GridDimension[dim];
-  
   int activesize = 1;
   for (int dim = 0; dim < GridRank; dim++)
     activesize *= (GridDimension[dim] - 2*NumberOfGhostZones);
@@ -161,6 +162,8 @@ int grid::MHDRK2_1stStep(fluxes *SubgridFluxes[],
   for (int field = 0; field < NEQ_MHD+NSpecies+NColor; field++) {
     delete [] dU[field];
   }
+
+  TIMER_STOP("MHDRK2");
 
   return SUCCESS;
 

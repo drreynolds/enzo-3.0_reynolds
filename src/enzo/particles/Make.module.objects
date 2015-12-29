@@ -24,7 +24,7 @@ ENZO_OBJS +=\
         ActiveParticle_Kravtsov.o \
         ActiveParticle_MirrorToParticle.o \
         ActiveParticle_PopIII.o \
-        ActiveParticle_SampleParticle.o \
+        ActiveParticle_Skeleton.o \
         ActiveParticle_SphereContained.o \
         ActiveParticle_SpringelHernquist.o
 
@@ -155,7 +155,7 @@ ENZO_OBJS +=\
 	cic_flag.o \
 	cic_flag_c.o \
 	cic_interp_c.o \
-	particle_splitter.o \
+    ngp_deposit_c.o \
 	smooth_deposit_c.o \
 	tscint1d.o \
 	tscint2d.o \

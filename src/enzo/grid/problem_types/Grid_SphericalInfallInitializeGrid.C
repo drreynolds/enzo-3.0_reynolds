@@ -63,7 +63,8 @@ int grid::SphericalInfallInitializeGrid(float InitialPerturbation,
    if (WritePotential)
     FieldType[NumberOfBaryonFields++] = GravPotential;
 
-   NumberOfParticles = 1000;
+  NumberOfParticles = 0;
+
   /* Return if this doesn't concern us. */
  
   if (ProcessorNumber != MyProcessorNumber)
@@ -166,6 +167,7 @@ int grid::SphericalInfallInitializeGrid(float InitialPerturbation,
 	  //   ParticleMass[n] = tiny_number;
 
 	  ParticleNumber[n] = n;
+      ParticleType[n] = PARTICLE_TYPE_DARK_MATTER;
 	}
  
     /* Give the central particle density it's perturbation. */

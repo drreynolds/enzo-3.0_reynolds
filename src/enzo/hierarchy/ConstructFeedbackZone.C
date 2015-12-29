@@ -89,7 +89,7 @@ grid* ConstructFeedbackZone(ActiveParticleType* ThisParticle,int FeedbackRadius,
 
   grid* FeedbackZone = new grid;
 
-  FeedbackZone->InheritProperties(APGrid);
+  FeedbackZone->InheritProperties(APGrid, APGrid->GetLevel());
 
   FeedbackZone->PrepareGrid(FeedbackZoneRank, FeedbackZoneDimension,
 			    FeedbackZoneLeftEdge,FeedbackZoneRightEdge,0);
